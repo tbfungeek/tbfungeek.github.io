@@ -77,6 +77,143 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/03/22/树莓派3-安装ROS-Indigo/" title="树莓派3 安装ROS Indigo" itemprop="url">树莓派3 安装ROS Indigo</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-03-22T10:53:40.000Z" itemprop="datePublished"> 發表於 2016-03-22</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>&#x786C;&#x4EF6;&#x8BBE;&#x5907;&#xFF1A;<br>RapsBerry 3<br>&#x64CD;&#x4F5C;&#x7CFB;&#x7EDF;&#xFF1A;<br>Rapsbian OS jessie</p>
+<ol>
+<li>Setup ROS Repositories</li>
+</ol>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">$ sudo <span class="keyword">sh</span> -c &apos;echo <span class="string">&quot;deb http://packages.ros.org/ros/ubuntu jessie main&quot;</span> &gt; /etc/apt/sources.<span class="keyword">list</span>.<span class="keyword">d</span>/ros-latest.<span class="keyword">list</span>&apos;</span><br><span class="line">$ wget https:<span class="comment">//raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -</span></span><br></pre></td></tr></table></figure>
+<p>2.&#x66F4;&#x65B0;&#x8F6F;&#x4EF6;&#x6E90;</p>
+<figure class="highlight q"><table><tr><td class="code"><pre><span class="line">$ sudo apt-<span class="built_in">get</span> <span class="keyword">update</span></span><br><span class="line">$ sudo apt-<span class="built_in">get</span> upgrade</span><br></pre></td></tr></table></figure>
+<p>3.Install Bootstrap Dependencies    </p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">$ sudo apt-<span class="built_in">get</span> install <span class="keyword">python</span>-pip <span class="keyword">python</span>-setuptools <span class="keyword">python</span>-yaml <span class="keyword">python</span>-distribute <span class="keyword">python</span>-docutils <span class="keyword">python</span>-dateutil <span class="keyword">python</span>-six</span><br><span class="line">$ sudo pip install rosdep rosinstall_generator wstool rosinstall</span><br></pre></td></tr></table></figure>
+<p>4.Initializing rosdep    </p>
+<pre><code>$ sudo rosdep init
+$ rosdep update
+</code></pre><p>Installation</p>
+<p>Now, we will download and build ROS Indigo.</p>
+<p>Create a catkin Workspace</p>
+<p>In order to build the core packages, you will need a catkin workspace. Create one now:</p>
+<p>$ mkdir ~/ros_catkin_ws<br>$ cd ~/ros_catkin_ws</p>
+<p>Next we will want to fetch the core packages so we can build them. We will use wstool for this. Select the wstool command for the particular variant you want to install:</p>
+<p>ROS-Comm: (recommended) ROS package, build, and communication libraries. No GUI tools.</p>
+<pre><code>$ rosinstall_generator ros_comm --rosdistro indigo --deps --wet-only --exclude roslisp --tar &gt; indigo-ros_comm-wet.rosinstall
+$ wstool init src indigo-ros_comm-wet.rosinstall
+
+
+This will add all of the catkin or wet packages in the given variant and then fetch the sources into the ~/ros_catkin_ws/src directory. The command will take a few minutes to download all of the core ROS packages into the src folder. The -j8 option downloads 8 packages in parallel. 
+
+
+
+
+Resolve Dependencies
+</code></pre><p>Before you can build your catkin workspace, you need to make sure that you have all the required dependencies. We use the rosdep tool for this, however, a couple of dependencies are not available in the repositories. They must be manually built first.</p>
+<p>Unavailable Dependencies</p>
+<p>Following packages are not available for Raspbian:</p>
+<p>Raspbian Wheezy: libconsole-bridge-dev, liburdfdom-headers-dev, liburdfdom-dev, liblz4-dev, collada-dom-dev</p>
+<p>Raspbian Jessie: collada-dom-dev</p>
+<p>The following packages are needed for each ROS variant:</p>
+<p>Ros_Comm: libconsole-bridge-dev, liblz4-dev</p>
+<p>Desktop: libconsole-bridge-dev, liblz4-dev, liburdfdom-headers-dev, liburdfdom-dev, collada-dom-dev</p>
+<p>The required packages can be built from source in a new directory:</p>
+<pre><code>$ mkdir ~/ros_catkin_ws/external_src
+$ sudo apt-get install checkinstall cmake
+$ sudo sh -c &apos;echo &quot;deb-src http://mirrordirector.raspbian.org/raspbian/ testing main contrib non-free rpi&quot; &gt;&gt; /etc/apt/sources.list&apos;
+$ sudo apt-get update
+</code></pre><p>libconsole-bridge-dev:</p>
+<pre><code>$ cd ~/ros_catkin_ws/external_src
+$ sudo apt-get build-dep console-bridge
+$ apt-get source -b console-bridge
+$ sudo dpkg -i libconsole-bridge0.2*.deb libconsole-bridge-dev_*.deb
+
+
+
+liblz4-dev:
+
+$ cd ~/ros_catkin_ws/external_src
+$ apt-get source -b lz4
+$ sudo dpkg -i liblz4-*.deb
+
+
+
+Resolving Dependencies with rosdep
+</code></pre><p>The remaining dependencies should be resolved by running rosdep:</p>
+<p>Raspbian Wheezy:</p>
+<p>$ cd ~/ros_catkin_ws<br>$ rosdep install &#x2013;from-paths src &#x2013;ignore-src &#x2013;rosdistro indigo -y -r &#x2013;os=debian:wheezy</p>
+<p>Raspbian Jessie:</p>
+<p>$ cd ~/ros_catkin_ws<br>$ rosdep install &#x2013;from-paths src &#x2013;ignore-src &#x2013;rosdistro indigo -y -r &#x2013;os=debian:jessie</p>
+<p>Building the catkin Workspace</p>
+<p>Once you have completed downloading the packages and have resolved the dependencies, you are ready to build the catkin packages.</p>
+<p>Invoke catkin_make_isolated:</p>
+<p>$ sudo ./src/catkin/bin/catkin_make_isolated &#x2013;install -DCMAKE_BUILD_TYPE=Release &#x2013;install-space /opt/ros/indigo</p>
+<p>Note: This will install ROS in the equivalent file location to Ubuntu in /opt/ros/indigo however you can modify this as you wish.</p>
+<p>For rviz, you will also have to apply this patch.</p>
+<p>Should the compilation fail with an &#x201C;internal compiler error&#x201D;, it may be because you&#x2019;re out of memory. A quick fix for this is to add swap space to the Pi and recompile. If the error persists try building with the -j2 option instead of the default -j4 option:</p>
+<p>$ sudo ./src/catkin/bin/catkin_make_isolated &#x2013;install -DCMAKE_BUILD_TYPE=Release &#x2013;install-space /opt/ros/indigo -j2</p>
+<p>Now ROS should be installed! Remember to source the new installation:</p>
+<p>$ source /opt/ros/indigo/setup.bash</p>
+<p>Or optionally source the setup.bash in the ~/.bashrc, so that ROS environment variables are automatically added to your bash session every time a new shell is launched:</p>
+<p>$ &#x201C;source /opt/ros/indigo/setup.bash&#x201D; &gt;&gt; ~/.bashrc</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/ROS/">ROS</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/ROS/">ROS</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/03/22/树莓派3-安装ROS-Indigo/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/03/22/树莓派3-安装ROS-Indigo/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/03/21/睡前学习ROS之-运行ROS-Master和-ROS-参数服务器/" title="睡前学习ROS之 运行ROS Master和 ROS 参数服务器" itemprop="url">睡前学习ROS之 运行ROS Master和 ROS 参数服务器</a>
   </h1>
   <p class="article-author">By
@@ -859,70 +996,6 @@
 	
 	  	<span></span>
 		<a href="/2016/03/13/睡前ROS-学习-Hello-World-ROS/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/03/13/睡前ROS-学习-Hello-World-ROS/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/03/12/与树莓派互传文件/" title="使用filezilla与树莓派互传文件" itemprop="url">使用filezilla与树莓派互传文件</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
-		
-  <p class="article-time">
-    <time datetime="2016-03-12T14:39:10.000Z" itemprop="datePublished"> 發表於 2016-03-12</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>&#x4E4B;&#x524D;&#x4ECB;&#x7ECD;&#x4E86;&#x4F7F;&#x7528;scp&#x547D;&#x4EE4;&#x6765;&#x5728;&#x7535;&#x8111;&#x548C;&#x6811;&#x8393;&#x6D3E;&#x4E4B;&#x95F4;&#x4E92;&#x4F20;&#x6587;&#x4EF6;&#x4EE5;&#x53CA;&#x6587;&#x4EF6;&#x5939;&#xFF0C;&#x8FD9;&#x91CC;&#x8FD8;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;Filezilla &#x5728;&#x4E8C;&#x8005;&#x4E4B;&#x95F4;&#x4F20;&#x8F93;&#x6587;&#x4EF6;&#xFF0C;&#x4E0B;&#x8F7D;Filezilla</p>
-<p>&#x7136;&#x540E;&#x8F93;&#x5165;&#x6811;&#x8393;&#x6D3E;&#x7684;ip&#x5730;&#x5740;&#x4EE5;&#x53CA;&#x767B;&#x5165;&#x7528;&#x6237;&#x540D;&#x548C;&#x5BC6;&#x7801;&#x5982;&#x4E0B;&#x6240;&#x793A;&#xFF1A;<br><img src="/2016/03/12/&#x4E0E;&#x6811;&#x8393;&#x6D3E;&#x4E92;&#x4F20;&#x6587;&#x4EF6;/filezilla.png" alt=""></p>
-<p>&#x8FD9;&#x91CC;&#x9700;&#x8981;&#x6CE8;&#x610F;&#x7684;&#x662F;ip&#x5730;&#x5740;&#x4E4B;&#x524D;&#x4E00;&#x5B9A;&#x8981;&#x6DFB;&#x52A0;sftp://.</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/树莓派/">树莓派</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/树莓派/">树莓派</a>
-  </div>
-
-</div>
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/03/12/与树莓派互传文件/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/03/12/与树莓派互传文件/" data-count-type="comments">&nbsp;</a>
 	
 </div>
 
