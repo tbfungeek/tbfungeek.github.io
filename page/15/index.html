@@ -77,6 +77,72 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/05/21/Android-进阶之设计模式-组合模式/" title="Android 进阶之设计模式 组合模式" itemprop="url">Android 进阶之设计模式 组合模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-21T13:30:15.000Z" itemprop="datePublished"> 發表於 2016-05-21</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>&#x7EC4;&#x5408;&#x6A21;&#x5F0F;&#x7528;&#x4E8E;&#x8BA9;&#x5BA2;&#x6237;&#x7AEF;&#x4E0D;&#x518D;&#x533A;&#x5206;&#x64CD;&#x4F5C;&#x7684;&#x662F;&#x7EC4;&#x5408;&#x5BF9;&#x8C61;&#x8FD8;&#x662F;&#x53F6;&#x5B50;&#x5BF9;&#x8C61;&#xFF0C;&#x800C;&#x662F;&#x4EE5;&#x4E00;&#x4E2A;&#x7EDF;&#x4E00;&#x7684;&#x65B9;&#x5F0F;&#x6765;&#x64CD;&#x4F5C;&#x3002;&#x5B83;&#x7684;&#x5173;&#x952E;&#x5728;&#x4E8E;&#x4F7F;&#x7528;&#x4E00;&#x4E2A;&#x62BD;&#x8C61;&#x7684;&#x7EC4;&#x4EF6;&#xFF0C;&#x6765;&#x4EE3;&#x8868;&#x7EC4;&#x5408;&#x5BF9;&#x8C61;&#x548C;&#x53F6;&#x5B50;&#x5BF9;&#x8C61;&#x3002;&#x8FD9;&#x6837;&#x5BA2;&#x6237;&#x5C31;&#x53EF;&#x4EE5;&#x4E0D;&#x7528;&#x533A;&#x5206;&#x5230;&#x5E95;&#x64CD;&#x4F5C;&#x7684;&#x662F;&#x7EC4;&#x5408;&#x5BF9;&#x8C61;&#x8FD8;&#x662F;&#x53F6;&#x5B50;&#x5BF9;&#x8C61;&#x4E86;&#xFF0C;&#x53EA;&#x9700;&#x8981;&#x628A;&#x4ED6;&#x4EEC;&#x5168;&#x90E8;&#x5F53;&#x4F5C;&#x7EC4;&#x4EF6;&#x5BF9;&#x8C61;&#x8FDB;&#x884C;&#x7EDF;&#x4E00;&#x64CD;&#x4F5C;&#x5C31;&#x53EF;&#x4EE5;&#x4E86;&#x3002;</p>
+<p><img src="/2016/05/21/Android-&#x8FDB;&#x9636;&#x4E4B;&#x8BBE;&#x8BA1;&#x6A21;&#x5F0F;-&#x7EC4;&#x5408;&#x6A21;&#x5F0F;/1.png" alt=""></p>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">Component</span> {</span><br><span class="line">    <span class="keyword">public</span> String name = <span class="keyword">null</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Component</span>(<span class="params">String name</span>) </span>{</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addChild</span>(<span class="params">Component component</span>) </span>{</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removeChild</span>(<span class="params">Component component</span>) </span>{</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> Component <span class="title">getComponent</span>(<span class="params"><span class="keyword">int</span> index</span>) </span>{</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> String <span class="title">getName</span>(<span class="params"></span>)</span>;</span><br><span class="line">    </span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.awt.List;</span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Compositive</span> <span class="keyword">extends</span> <span class="title">Component</span></span>{</span><br><span class="line">    <span class="keyword">private</span> ArrayList&lt;Component&gt; componentlist = <span class="keyword">new</span> ArrayList&lt;Component&gt;();</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Compositive</span><span class="params">(String name)</span> </span>{</span><br><span class="line">        <span class="keyword">super</span>(name);</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="function">String <span class="title">getName</span><span class="params">()</span> </span>{</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.name;</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">addChild</span><span class="params">(Component component)</span> </span>{</span><br><span class="line">        <span class="keyword">if</span>(component!= <span class="keyword">null</span>) {</span><br><span class="line">            componentlist.add(component);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">removeChild</span><span class="params">(Component component)</span> </span>{</span><br><span class="line">        <span class="keyword">if</span>(componentlist!= <span class="keyword">null</span> &amp;&amp; componentlist.contains(component)) {</span><br><span class="line">            componentlist.remove(component);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="function">Component <span class="title">getComponent</span><span class="params">(<span class="keyword">int</span> index)</span> </span>{</span><br><span class="line">        <span class="keyword">if</span>(componentlist != <span class="keyword">null</span>) {</span><br><span class="line">            <span class="function"><span class="keyword">return</span> componentlist.<span class="title">get</span><span class="params">(index)</span></span>;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">Leaf</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Component</span> {</span></span><br><span class="line">    public <span class="type">Leaf</span>(<span class="type">String</span> name) {</span><br><span class="line">        <span class="keyword">super</span>(name);</span><br><span class="line">    }</span><br><span class="line">    public <span class="type">String</span> getName() {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.name;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Client</span> {</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span>(<span class="params">String args[]</span>) </span>{</span><br><span class="line">        Component component1 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x7EC4;&#x5408;1&quot;</span>);</span><br><span class="line">        Component component2 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x7EC4;&#x5408;2&quot;</span>);</span><br><span class="line">        Component component3 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x7EC4;&#x5408;3&quot;</span>);</span><br><span class="line">        Component component4 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x7EC4;&#x5408;4&quot;</span>);</span><br><span class="line">        Component component5 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x7EC4;&#x5408;5&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        Component leaf1 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x6839;&#x8282;&#x70B9;1&quot;</span>);</span><br><span class="line">        Component leaf2 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x6839;&#x8282;&#x70B9;2&quot;</span>);</span><br><span class="line">        Component leaf3 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x6839;&#x8282;&#x70B9;3&quot;</span>);</span><br><span class="line">        Component leaf4 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x6839;&#x8282;&#x70B9;4&quot;</span>);</span><br><span class="line">        Component leaf5 = <span class="keyword">new</span> Compositive(<span class="string">&quot;&#x6839;&#x8282;&#x70B9;5&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        component1.addChild(component2);</span><br><span class="line">        component1.addChild(component3);</span><br><span class="line">        component1.addChild(component4);</span><br><span class="line">        component1.addChild(component5);</span><br><span class="line">        component2.addChild(leaf1);</span><br><span class="line">        component2.addChild(leaf2);</span><br><span class="line">        component3.addChild(leaf3);</span><br><span class="line">        component4.addChild(leaf4);</span><br><span class="line">        component4.addChild(leaf5);  </span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android进阶/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/21/Android-进阶之设计模式-组合模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/21/Android-进阶之设计模式-组合模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2016/05/20/Android-进阶之设计模式-策略模式/" title="Android 进阶之设计模式 策略模式" itemprop="url">Android 进阶之设计模式 策略模式</a>
   </h1>
   <p class="article-author">By
@@ -710,72 +776,6 @@
 	
 	  	<span></span>
 		<a href="/2016/05/12/Android-进阶之设计模式-代理模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/12/Android-进阶之设计模式-代理模式/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/05/11/Android-进阶之设计模式-享元模式/" title="Android 进阶之设计模式 享元模式" itemprop="url">Android 进阶之设计模式 享元模式</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
-		
-  <p class="article-time">
-    <time datetime="2016-05-11T13:30:28.000Z" itemprop="datePublished"> 發表於 2016-05-11</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>&#x6709;&#x65F6;&#x5019;&#x7CFB;&#x7EDF;&#x4E2D;&#x5B58;&#x5728;&#x6709;&#x5927;&#x91CF;&#x7684;&#x7EC6;&#x7C92;&#x5EA6;&#x7684;&#x5BF9;&#x8C61;&#xFF0C;&#x5E76;&#x4E14;&#x8FD9;&#x4E9B;&#x7EC6;&#x7C92;&#x5EA6;&#x7684;&#x5BF9;&#x8C61;&#x6709;&#x5F88;&#x591A;&#x5B58;&#x5728;&#x91CD;&#x590D;&#x7684;&#x5BF9;&#x8C61;&#xFF0C;<br>&#x8FD8;&#x6709;&#x4E00;&#x79CD;&#x60C5;&#x51B5;&#x662F;&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x5927;&#x91CF;&#x7EC6;&#x7C92;&#x5EA6;&#x5BF9;&#x8C61;&#x6574;&#x4F53;&#x4E0A;&#x5E76;&#x4E0D;&#x91CD;&#x590D;&#xFF0C;&#x4F46;&#x662F;&#x5728;&#x6BCF;&#x4E2A;&#x5BF9;&#x8C61;&#x7684;&#x90E8;&#x5206;&#x6570;&#x636E;&#x4E0A;&#x5B58;&#x5728;&#x91CD;&#x590D;&#x3002;<br>&#x4E3A;&#x4E86;&#x907F;&#x514D;&#x8FD9;&#x79CD;&#x73B0;&#x8C61;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x901A;&#x8FC7;&#x7F13;&#x5B58;&#x5305;&#x542B;&#x91CD;&#x590D;&#x6570;&#x636E;&#x7684;&#x5BF9;&#x8C61;&#xFF0C;&#x8BA9;&#x8FD9;&#x4E9B;&#x5BF9;&#x8C61;&#x53EA;&#x51FA;&#x73B0;&#x4E00;&#x6B21;&#xFF0C;&#x4ECE;&#x800C;&#x51CF;&#x5C11;&#x5185;&#x5B58;&#x7684;&#x6D88;&#x8017;&#x3002;</p>
-<p>&#x56E0;&#x6B64;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x5BF9;&#x8FD9;&#x4E9B;&#x7EC6;&#x7C92;&#x5EA6;&#x7684;&#x5BF9;&#x8C61;&#x7684;&#x7EC4;&#x6210;&#x8FDB;&#x884C;&#x5206;&#x7C7B;&#xFF0C;&#x5206;&#x51FA;&#x54EA;&#x4E9B;&#x6570;&#x636E;&#x662F;&#x4E0D;&#x53D8;&#x7684;&#x5E76;&#x4E14;&#x91CD;&#x590D;&#x51FA;&#x73B0;&#x7684;&#xFF0C;&#x79F0;&#x4E4B;&#x4E3A;&#x5185;&#x90E8;&#x53D8;&#x91CF;&#xFF0C;&#x54EA;&#x4E9B;&#x6570;&#x636E;&#x662F;&#x7ECF;&#x5E38;&#x53D8;&#x5316;&#x7684;&#xFF0C;&#x6211;&#x4EEC;&#x79F0;&#x4E4B;&#x4E3A;&#x5916;&#x90E8;&#x53D8;&#x91CF;&#xFF0C;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x7F13;&#x5B58;&#x7684;&#x662F;&#x54EA;&#x4E9B;&#x4E0D;&#x53D8;&#x4E14;&#x91CD;&#x590D;&#x7684;&#x5185;&#x90E8;&#x53D8;&#x91CF;&#xFF0C;&#x800C;&#x54EA;&#x4E9B;&#x53D8;&#x5316;&#x7684;&#x5916;&#x90E8;&#x53D8;&#x91CF;&#x5C31;&#x4E0D;&#x9700;&#x8981;&#x7F13;&#x5B58;&#x4E86;&#xFF0C;&#x4E00;&#x822C;&#x6211;&#x4EEC;&#x4F1A;&#x628A;&#x5916;&#x90E8;&#x72B6;&#x6001;&#x5206;&#x79BB;&#x51FA;&#x6765;&#xFF0C;&#x653E;&#x5230;&#x5916;&#x90E8;&#x8BA9;&#x5E94;&#x7528;&#x5728;&#x4F7F;&#x7528;&#x7684;&#x65F6;&#x5019;&#x8FDB;&#x884C;&#x7EF4;&#x62A4;&#x5E76;&#x5728;&#x9700;&#x8981;&#x7684;&#x65F6;&#x5019;&#x4F20;&#x9012;&#x7ED9;&#x4EAB;&#x5143;&#x5BF9;&#x8C61;&#x4F7F;&#x7528;&#x3002;<br>&#x8FD9;&#x5C31;&#x662F;&#x4EAB;&#x5143;&#x6A21;&#x5F0F;&#x7684;&#x57FA;&#x672C;&#x601D;&#x60F3;&#xFF0C;&#x5B83;&#x7684;&#x8BBE;&#x8BA1;&#x91CD;&#x70B9;&#x5728;&#x4E8E;&#x5206;&#x79BB;&#x53D8;&#x4E0E;&#x4E0D;&#x53D8;&#x3002;<br><figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> class Flyweight {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> id;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">String</span> name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">String</span> sex;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">String</span> classNo;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">long</span> getId() {</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> setId(<span class="keyword">long</span> id) {</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">String</span> getName() {</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> setName(<span class="keyword">String</span> name) {</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">String</span> getSex() {</span><br><span class="line">        <span class="keyword">return</span> sex;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> setSex(<span class="keyword">String</span> sex) {</span><br><span class="line">        <span class="keyword">this</span>.sex = sex;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">String</span> getClassNo() {</span><br><span class="line">        <span class="keyword">return</span> classNo;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> setClassNo(<span class="keyword">String</span> classNo) {</span><br><span class="line">        <span class="keyword">this</span>.classNo = classNo;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> Flyweight(<span class="keyword">String</span> <span class="variable">key</span>){</span><br><span class="line">        <span class="keyword">String</span>[] internalkey = <span class="variable">key</span>.<span class="built_in">split</span>(<span class="string">&quot;-&quot;</span>);</span><br><span class="line">        <span class="keyword">this</span>.sex = internalkey[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">this</span>.classNo = internalkey[<span class="number">1</span>];</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> class ConcreFlyweight extends Flyweight {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">String</span> <span class="variable">key</span>;</span><br><span class="line">    <span class="keyword">public</span> ConcreFlyweight(<span class="keyword">String</span> <span class="variable">key</span>) {</span><br><span class="line">        <span class="keyword">super</span>(<span class="variable">key</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">String</span> getKey() {</span><br><span class="line">        <span class="keyword">return</span> <span class="variable">key</span>;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> setKey(<span class="keyword">String</span> <span class="variable">key</span>) {</span><br><span class="line">        <span class="keyword">this</span>.<span class="variable">key</span> = <span class="variable">key</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">String</span> toString() {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Id = &quot;</span>+<span class="keyword">super</span>.getId() +<span class="string">&quot;  Name = &quot;</span>+<span class="keyword">super</span>.getName()</span><br><span class="line">                +<span class="string">&quot; Sex = &quot;</span>+<span class="keyword">super</span>.getSex() +<span class="string">&quot; Class No.&quot;</span>+ <span class="keyword">super</span>.getClassNo();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
-<figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> class FlyweightFactory {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> class FlyweightFactoryHolder {</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">static</span> FlyweightFactory instance = <span class="keyword">new</span> FlyweightFactory();</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">private</span> FlyweightFactory(){}</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> FlyweightFactory getInstance() {</span><br><span class="line">        <span class="keyword">return</span> FlyweightFactoryHolder.instance;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;<span class="keyword">String</span>,Flyweight&gt; flyweightCache = <span class="keyword">new</span> <span class="keyword">HashMap</span>&lt;<span class="keyword">String</span>,Flyweight&gt;();</span><br><span class="line">    <span class="keyword">public</span> Flyweight getFlyweight(<span class="keyword">String</span> <span class="variable">key</span>) {</span><br><span class="line">        Flyweight obj = flyweightCache.<span class="built_in">get</span>(<span class="variable">key</span>);</span><br><span class="line">        <span class="keyword">if</span>(obj == <span class="keyword">null</span>) {</span><br><span class="line">            obj = <span class="keyword">new</span> ConcreFlyweight(<span class="variable">key</span>);</span><br><span class="line">            flyweightCache.put(<span class="variable">key</span>, obj);</span><br><span class="line">            System.out.<span class="built_in">println</span>(<span class="string">&quot;&#x65B0;&#x5EFA;&#x4E00;&#x4E2A;&#x5BF9;&#x8C61;&#xFF0C;&#x6DFB;&#x52A0;&#x5230;&#x7F13;&#x5B58;&#x5668;&quot;</span>);</span><br><span class="line">        }<span class="keyword">else</span>{</span><br><span class="line">            System.out.<span class="built_in">println</span>(<span class="string">&quot;&#x76F4;&#x63A5;&#x4F7F;&#x7528;&#x7F13;&#x5B58;&#x5668;&#x4E2D;&#x73B0;&#x6709;&#x7684;&quot;</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> Client {</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> </span>{</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i =<span class="number">0</span> ; i&lt;<span class="number">2</span> ;i++) {</span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> j =<span class="number">0</span>;j&lt;<span class="number">10</span>;j++) {</span><br><span class="line">                <span class="keyword">if</span>(i==<span class="number">0</span>) {</span><br><span class="line">                    FlyweightFactory.getInstance().getFlyweight(<span class="string">&quot;Boy-Class&quot;</span>+j);</span><br><span class="line">                }<span class="keyword">else</span>{</span><br><span class="line">                    FlyweightFactory.getInstance().getFlyweight(<span class="string">&quot;Girl-Class&quot;</span>+j);</span><br><span class="line">                }</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        Flyweight fly = FlyweightFactory.getInstance().getFlyweight(<span class="string">&quot;Boy-Class6&quot;</span>);</span><br><span class="line">        fly.setId(<span class="number">1001</span>);</span><br><span class="line">        fly.setName(<span class="string">&quot;jimmy&quot;</span>);</span><br><span class="line">        System.out.println(fly.toString());</span><br><span class="line"></span><br><span class="line">        Flyweight fly2 = FlyweightFactory.getInstance().getFlyweight(<span class="string">&quot;Boy-Class60&quot;</span>);</span><br><span class="line">        fly2.setId(<span class="number">1003</span>);</span><br><span class="line">        fly2.setName(<span class="string">&quot;jimmy2&quot;</span>);</span><br><span class="line">        System.out.println(fly2.toString());</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Android进阶/">Android进阶</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
-  </div>
-
-</div>
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2016/05/11/Android-进阶之设计模式-享元模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/11/Android-进阶之设计模式-享元模式/" data-count-type="comments">&nbsp;</a>
 	
 </div>
 
