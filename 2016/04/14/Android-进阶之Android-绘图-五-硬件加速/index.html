@@ -11,19 +11,16 @@
     
 
     
-    <meta name="description" content="&amp;#x7ED8;&amp;#x56FE;&amp;#x4E0E;&amp;#x786C;&amp;#x4EF6;&amp;#x52A0;&amp;#x901F;&amp;#xFF1A;
-&amp;#x5728;Android 3.0&amp;#x540E;&amp;#xFF0C;Android&amp;#x7684;2D&amp;#x6E32;&amp;#x67D3;&amp;#x901A;&amp;#x9053;&amp;#x5F00;&amp;#x59CB;&amp;#x652F;&amp;#x6301;&amp;#x786C;&amp;#x4EF6;&amp;#x">
+    <meta name="description" content="&amp;#x7ED8;&amp;#x56FE;&amp;#x4E0E;&amp;#x786C;&amp;#x4EF6;&amp;#x52A0;&amp;#x901F;&amp;#xFF1A;&amp;#x5728;Android 3.0&amp;#x540E;&amp;#xFF0C;Android&amp;#x7684;2D&amp;#x6E32;&amp;#x67D3;&amp;#x901A;&amp;#x9053;&amp;#x5F00;&amp;#x59CB;&amp;#x652F;&amp;#x6301;&amp;#x786C;&amp;#x4EF6;&amp;#x5">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之Android 绘图 五 硬件加速">
 <meta property="og:url" content="http://yoursite.com/2016/04/14/Android-进阶之Android-绘图-五-硬件加速/index.html">
 <meta property="og:site_name" content="Edgar's Blog">
-<meta property="og:description" content="&amp;#x7ED8;&amp;#x56FE;&amp;#x4E0E;&amp;#x786C;&amp;#x4EF6;&amp;#x52A0;&amp;#x901F;&amp;#xFF1A;
-&amp;#x5728;Android 3.0&amp;#x540E;&amp;#xFF0C;Android&amp;#x7684;2D&amp;#x6E32;&amp;#x67D3;&amp;#x901A;&amp;#x9053;&amp;#x5F00;&amp;#x59CB;&amp;#x652F;&amp;#x6301;&amp;#x786C;&amp;#x4EF6;&amp;#x">
+<meta property="og:description" content="&amp;#x7ED8;&amp;#x56FE;&amp;#x4E0E;&amp;#x786C;&amp;#x4EF6;&amp;#x52A0;&amp;#x901F;&amp;#xFF1A;&amp;#x5728;Android 3.0&amp;#x540E;&amp;#xFF0C;Android&amp;#x7684;2D&amp;#x6E32;&amp;#x67D3;&amp;#x901A;&amp;#x9053;&amp;#x5F00;&amp;#x59CB;&amp;#x652F;&amp;#x6301;&amp;#x786C;&amp;#x4EF6;&amp;#x5">
 <meta property="og:updated_time" content="2016-07-18T21:39:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之Android 绘图 五 硬件加速">
-<meta name="twitter:description" content="&amp;#x7ED8;&amp;#x56FE;&amp;#x4E0E;&amp;#x786C;&amp;#x4EF6;&amp;#x52A0;&amp;#x901F;&amp;#xFF1A;
-&amp;#x5728;Android 3.0&amp;#x540E;&amp;#xFF0C;Android&amp;#x7684;2D&amp;#x6E32;&amp;#x67D3;&amp;#x901A;&amp;#x9053;&amp;#x5F00;&amp;#x59CB;&amp;#x652F;&amp;#x6301;&amp;#x786C;&amp;#x4EF6;&amp;#x">
+<meta name="twitter:description" content="&amp;#x7ED8;&amp;#x56FE;&amp;#x4E0E;&amp;#x786C;&amp;#x4EF6;&amp;#x52A0;&amp;#x901F;&amp;#xFF1A;&amp;#x5728;Android 3.0&amp;#x540E;&amp;#xFF0C;Android&amp;#x7684;2D&amp;#x6E32;&amp;#x67D3;&amp;#x901A;&amp;#x9053;&amp;#x5F00;&amp;#x59CB;&amp;#x652F;&amp;#x6301;&amp;#x786C;&amp;#x4EF6;&amp;#x5">
 
     
     <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
@@ -95,40 +92,29 @@
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目錄</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">绘图与硬件加速：</span></a></li></ol>
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#绘图与硬件加速："><span class="toc-number">1.</span> <span class="toc-text">绘图与硬件加速：</span></a></li></ol>
 		
 		</div>
 		
-		<h3>&#x7ED8;&#x56FE;&#x4E0E;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;</h3>
-<p>&#x5728;Android 3.0&#x540E;&#xFF0C;Android&#x7684;2D&#x6E32;&#x67D3;&#x901A;&#x9053;&#x5F00;&#x59CB;&#x652F;&#x6301;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF0C;&#x610F;&#x5473;&#x7740;&#x6240;&#x6709;View&#x7684;Canvas&#x7ED8;&#x753B;&#x52A8;&#x4F5C;&#x90FD;&#x4F1A;&#x4F7F;&#x7528;GPU&#x542F;&#x7528;&#x786C;&#x52A0;&#x901F;&#xFF0C;&#x4F7F;&#x7528;GPU&#x7684;&#x7279;&#x6027;&#xFF0C;&#x53EF;&#x4EE5;&#x4F7F;&#x5F97;&#x754C;&#x9762;&#x6E32;&#x67D3;&#x66F4;&#x52A0;&#x5E73;&#x6ED1;&#xFF0C;&#x5728;4.0&#x4E4B;&#x540E;&#x66F4;&#x662F;&#x9ED8;&#x8BA4;&#x5F00;&#x542F;&#x4E86;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF0C;
-&#x4F46;&#x662F;&#x786C;&#x52A0;&#x901F;&#x4E0D;&#x662F;&#x88AB;&#x6240;&#x6709;&#x7684;2D&#x7ED8;&#x5236;&#x6240;&#x652F;&#x6301;&#xFF0C;&#x5E76;&#x4E14;&#x4F1A;&#x6D88;&#x8017;&#x66F4;&#x591A;&#x5185;&#x5B58;RAM&#xFF0C;&#x5E76;&#x4E14;&#x7531;&#x4E8E;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x5C5E;&#x4E8E;&#x53CC;&#x7F13;&#x51B2;&#x673A;&#x5236;&#xFF0C;&#x4F7F;&#x7528;&#x663E;&#x5B58;&#x8FDB;&#x884C;&#x9875;&#x9762;&#x6E32;&#x67D3;&#xFF0C;&#x8FD9;&#x5BFC;&#x81F4;&#x4E86;&#x66F4;&#x9891;&#x7E41;&#x7684;&#x663E;&#x5B58;&#x64CD;&#x4F5C;&#xFF0C;&#x53EF;&#x80FD;&#x5F15;&#x8D77;&#x767D;&#x5C4F;&#x3001;&#x82B1;&#x5C4F;&#x3001;&#x95EA;&#x5C4F;&#x7684;&#x73B0;&#x8C61;&#x3002;&#x751A;&#x81F3;&#x5728;&#x4F4E;RAM&#x5185;&#x5B58;&#x914D;&#x7F6E;&#x624B;&#x673A;&#x4E0A;&#x95EA;&#x9000;&#x3002;
-&#x4E00;&#x822C;&#x53EF;&#x4EE5;&#x901A;&#x8FC7;&#x5982;&#x4E0B;&#x4E24;&#x79CD;&#x65B9;&#x6CD5;&#x89E3;&#x51B3;&#x8FD9;&#x7C7B;&#x95EE;&#x9898;&#x3002;
-1.&#x964D;&#x4F4E;&#x9875;&#x9762;&#x7684;&#x5185;&#x5B58;&#x5360;&#x7528;&#xFF0C;&#x7ED9;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x817E;&#x51FA;RAM
-2.&#x5728;&#x9002;&#x5F53;&#x7684;&#x5730;&#x65B9;&#x5173;&#x95ED;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x3002;
-&#x524D;&#x8005;&#x64CD;&#x4F5C;&#x8D77;&#x6765;&#x6BD4;&#x8F83;&#x9EBB;&#x70E6;&#xFF0C;&#x56E0;&#x6B64;&#x5728;&#x53EF;&#x80FD;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#x6700;&#x4F18;&#x5148;&#x9009;&#x62E9;&#x7684;&#x662F;&#x5173;&#x95ED;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x3002;</p>
-<p>&#x4E0D;&#x8FC7;&#x4E0D;&#x652F;&#x6301;&#x4EC5;&#x4EC5;&#x662F;&#x9488;&#x5BF9;&#x81EA;&#x5B9A;&#x4E49;View Android&#x53EF;&#x4EE5;&#x4FDD;&#x8BC1;&#x5185;&#x7F6E;&#x7684;&#x7EC4;&#x4EF6;&#x548C;&#x5E94;&#x7528;&#x652F;&#x6301;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF0C;&#x56E0;&#x6B64;&#xFF0C;&#x5982;&#x679C;&#x5E94;&#x7528;&#x4E2D;&#x53EA;&#x4F7F;&#x7528;&#x4E86;&#x6807;&#x51C6;UI&#x7EC4;&#x4EF6;&#xFF0C;&#x53EF;&#x4EE5;&#x653E;&#x5FC3;&#x5F00;&#x542F;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x3002;
-&#x4E0B;&#x9762;&#x4ECB;&#x7ECD;&#x4E0B;&#x5982;&#x4F55;&#x5728;&#x5404;&#x4E2A;&#x5C42;&#x7EA7;&#x4E2D;&#x5173;&#x95ED;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;</p>
+		<h3 id="&#x7ED8;&#x56FE;&#x4E0E;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;"><a href="#&#x7ED8;&#x56FE;&#x4E0E;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;" class="headerlink" title="&#x7ED8;&#x56FE;&#x4E0E;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;"></a>&#x7ED8;&#x56FE;&#x4E0E;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;</h3><p>&#x5728;Android 3.0&#x540E;&#xFF0C;Android&#x7684;2D&#x6E32;&#x67D3;&#x901A;&#x9053;&#x5F00;&#x59CB;&#x652F;&#x6301;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF0C;&#x610F;&#x5473;&#x7740;&#x6240;&#x6709;View&#x7684;Canvas&#x7ED8;&#x753B;&#x52A8;&#x4F5C;&#x90FD;&#x4F1A;&#x4F7F;&#x7528;GPU&#x542F;&#x7528;&#x786C;&#x52A0;&#x901F;&#xFF0C;&#x4F7F;&#x7528;GPU&#x7684;&#x7279;&#x6027;&#xFF0C;&#x53EF;&#x4EE5;&#x4F7F;&#x5F97;&#x754C;&#x9762;&#x6E32;&#x67D3;&#x66F4;&#x52A0;&#x5E73;&#x6ED1;&#xFF0C;&#x5728;4.0&#x4E4B;&#x540E;&#x66F4;&#x662F;&#x9ED8;&#x8BA4;&#x5F00;&#x542F;&#x4E86;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF0C;<br>&#x4F46;&#x662F;&#x786C;&#x52A0;&#x901F;&#x4E0D;&#x662F;&#x88AB;&#x6240;&#x6709;&#x7684;2D&#x7ED8;&#x5236;&#x6240;&#x652F;&#x6301;&#xFF0C;&#x5E76;&#x4E14;&#x4F1A;&#x6D88;&#x8017;&#x66F4;&#x591A;&#x5185;&#x5B58;RAM&#xFF0C;&#x5E76;&#x4E14;&#x7531;&#x4E8E;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x5C5E;&#x4E8E;&#x53CC;&#x7F13;&#x51B2;&#x673A;&#x5236;&#xFF0C;&#x4F7F;&#x7528;&#x663E;&#x5B58;&#x8FDB;&#x884C;&#x9875;&#x9762;&#x6E32;&#x67D3;&#xFF0C;&#x8FD9;&#x5BFC;&#x81F4;&#x4E86;&#x66F4;&#x9891;&#x7E41;&#x7684;&#x663E;&#x5B58;&#x64CD;&#x4F5C;&#xFF0C;&#x53EF;&#x80FD;&#x5F15;&#x8D77;&#x767D;&#x5C4F;&#x3001;&#x82B1;&#x5C4F;&#x3001;&#x95EA;&#x5C4F;&#x7684;&#x73B0;&#x8C61;&#x3002;&#x751A;&#x81F3;&#x5728;&#x4F4E;RAM&#x5185;&#x5B58;&#x914D;&#x7F6E;&#x624B;&#x673A;&#x4E0A;&#x95EA;&#x9000;&#x3002;<br>&#x4E00;&#x822C;&#x53EF;&#x4EE5;&#x901A;&#x8FC7;&#x5982;&#x4E0B;&#x4E24;&#x79CD;&#x65B9;&#x6CD5;&#x89E3;&#x51B3;&#x8FD9;&#x7C7B;&#x95EE;&#x9898;&#x3002;<br>1.&#x964D;&#x4F4E;&#x9875;&#x9762;&#x7684;&#x5185;&#x5B58;&#x5360;&#x7528;&#xFF0C;&#x7ED9;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x817E;&#x51FA;RAM<br>2.&#x5728;&#x9002;&#x5F53;&#x7684;&#x5730;&#x65B9;&#x5173;&#x95ED;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x3002;<br>&#x524D;&#x8005;&#x64CD;&#x4F5C;&#x8D77;&#x6765;&#x6BD4;&#x8F83;&#x9EBB;&#x70E6;&#xFF0C;&#x56E0;&#x6B64;&#x5728;&#x53EF;&#x80FD;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#x6700;&#x4F18;&#x5148;&#x9009;&#x62E9;&#x7684;&#x662F;&#x5173;&#x95ED;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x3002;</p>
+<p>&#x4E0D;&#x8FC7;&#x4E0D;&#x652F;&#x6301;&#x4EC5;&#x4EC5;&#x662F;&#x9488;&#x5BF9;&#x81EA;&#x5B9A;&#x4E49;View Android&#x53EF;&#x4EE5;&#x4FDD;&#x8BC1;&#x5185;&#x7F6E;&#x7684;&#x7EC4;&#x4EF6;&#x548C;&#x5E94;&#x7528;&#x652F;&#x6301;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF0C;&#x56E0;&#x6B64;&#xFF0C;&#x5982;&#x679C;&#x5E94;&#x7528;&#x4E2D;&#x53EA;&#x4F7F;&#x7528;&#x4E86;&#x6807;&#x51C6;UI&#x7EC4;&#x4EF6;&#xFF0C;&#x53EF;&#x4EE5;&#x653E;&#x5FC3;&#x5F00;&#x542F;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#x3002;<br>&#x4E0B;&#x9762;&#x4ECB;&#x7ECD;&#x4E0B;&#x5982;&#x4F55;&#x5728;&#x5404;&#x4E2A;&#x5C42;&#x7EA7;&#x4E2D;&#x5173;&#x95ED;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;</p>
 <ol>
 <li>Application &#x5E94;&#x7528;&#x7A0B;&#x5E8F;&#x7B49;&#x7EA7;&#x63A7;&#x5236;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF0C;&#x5728;AndroidManifest.xml&#x4E2D;&#x6DFB;&#x52A0;&#xFF1A;</li>
 </ol>
-<p><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;<span class="type">application</span> android:hardwareAccelerated=<span class="string">&quot;true&quot;</span> ...&gt;</span><br></pre></td></tr></table></figure></p>
-<ol start="2">
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;<span class="type">application</span> android:hardwareAccelerated=<span class="string">&quot;true&quot;</span> ...&gt;</span><br></pre></td></tr></table></figure>
+<ol>
 <li>Activity  Activity&#x7B49;&#x7EA7;&#x7684;&#x63A7;&#x5236;&#x8FD8;&#x662F;&#x5728;AndroidManifest.xml&#x4E2D;&#x8FDB;&#x884C;&#x63A7;&#x5236;&#xFF1A;</li>
 </ol>
-<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">application</span> <span class="attribute">android:hardwareAccelerated</span>=<span class="value">&quot;true&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="title">activity</span> <span class="attribute">...</span> /&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="title">activity</span> <span class="attribute">android:hardwareAccelerated</span>=<span class="value">&quot;false&quot;</span> /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="title">application</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<ol start="3">
-<li>
-<p>Window &#x7A97;&#x53E3;&#x7EA7;&#x63A7;&#x5236;&#xFF1A;
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="tag">getWindow</span>()<span class="class">.setFlags</span>(  </span><br><span class="line">    <span class="tag">WindowManager</span><span class="class">.LayoutParams</span><span class="class">.FLAG_HARDWARE_ACCELERATED</span>,  </span><br><span class="line">    <span class="tag">WindowManager</span><span class="class">.LayoutParams</span><span class="class">.FLAG_HARDWARE_ACCELERATED</span>);</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">application</span> <span class="attribute">android:hardwareAccelerated</span>=<span class="value">&quot;true&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="title">activity</span> <span class="attribute">...</span> /&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="title">activity</span> <span class="attribute">android:hardwareAccelerated</span>=<span class="value">&quot;false&quot;</span> /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="title">application</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>Window &#x7A97;&#x53E3;&#x7EA7;&#x63A7;&#x5236;&#xFF1A;</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="tag">getWindow</span>()<span class="class">.setFlags</span>(  </span><br><span class="line">    <span class="tag">WindowManager</span><span class="class">.LayoutParams</span><span class="class">.FLAG_HARDWARE_ACCELERATED</span>,  </span><br><span class="line">    <span class="tag">WindowManager</span><span class="class">.LayoutParams</span><span class="class">.FLAG_HARDWARE_ACCELERATED</span>);</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>View &#x5728;&#x8FD0;&#x884C;&#x65F6;&#x63A7;&#x5236;&#x5355;&#x4E2A;View&#x662F;&#x5426;&#x4F7F;&#x7528;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;</p>
+<li><p>View &#x5728;&#x8FD0;&#x884C;&#x65F6;&#x63A7;&#x5236;&#x5355;&#x4E2A;View&#x662F;&#x5426;&#x4F7F;&#x7528;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF1A;</p>
 </li>
 </ol>
-<p><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">setLayerType<span class="list">(<span class="keyword">View</span>.LAYER_TYPE_SOFTWARE, null)</span><span class="comment">;  LAYER_TYPE_HARDWARE&#x5373;&#x4E3A;&#x4F7F;&#x7528;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF08;GPU&#xFF09;&#xFF0C;LAYER_TYPE_SOFTWARE&#x4F7F;&#x7528;CPU&#x8FDB;&#x884C;&#x7ED8;&#x5236;&#x3002;</span></span><br></pre></td></tr></table></figure></p>
-<p>&#x68C0;&#x6D4B;&#x5F53;&#x524D;View&#x6216;&#x8005;Canvas&#x662F;&#x5426;&#x4F7F;&#x7528;&#x786C;&#x4EF6;&#x52A0;&#x901F;
-View.isHardwareAccelerated()<br>
-Canvas.isHardwareAccelerated()</p>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">setLayerType<span class="list">(<span class="keyword">View</span>.LAYER_TYPE_SOFTWARE, null)</span><span class="comment">;  LAYER_TYPE_HARDWARE&#x5373;&#x4E3A;&#x4F7F;&#x7528;&#x786C;&#x4EF6;&#x52A0;&#x901F;&#xFF08;GPU&#xFF09;&#xFF0C;LAYER_TYPE_SOFTWARE&#x4F7F;&#x7528;CPU&#x8FDB;&#x884C;&#x7ED8;&#x5236;&#x3002;</span></span><br></pre></td></tr></table></figure>
+<p>&#x68C0;&#x6D4B;&#x5F53;&#x524D;View&#x6216;&#x8005;Canvas&#x662F;&#x5426;&#x4F7F;&#x7528;&#x786C;&#x4EF6;&#x52A0;&#x901F;<br>View.isHardwareAccelerated()<br>Canvas.isHardwareAccelerated()  </p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -191,7 +177,7 @@ Canvas.isHardwareAccelerated()</p>
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目錄</strong>
  
- <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">绘图与硬件加速：</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#绘图与硬件加速："><span class="toc-number">1.</span> <span class="toc-text">绘图与硬件加速：</span></a></li></ol>
  
   </div>
 
