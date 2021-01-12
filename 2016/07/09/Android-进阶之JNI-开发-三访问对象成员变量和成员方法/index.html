@@ -1,0 +1,708 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之JNI 开发 三访问对象成员变量和成员方法 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="访问对象的成员属性和成员方法：下面我们通过一个例子来介绍对象成员属性和成员方法的访问： 首先我们先定义一个测试类，在这篇博客中将对测试类的testString方法进行访问和设置，我们先看下这个测试类：public class Testjni &amp;#123;    private String testString;    public String getTestString() &amp;#123;">
+<meta name="keywords" content="Android JNI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之JNI 开发 三访问对象成员变量和成员方法">
+<meta property="og:url" content="http://yoursite.com/2016/07/09/Android-进阶之JNI-开发-三访问对象成员变量和成员方法/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="访问对象的成员属性和成员方法：下面我们通过一个例子来介绍对象成员属性和成员方法的访问： 首先我们先定义一个测试类，在这篇博客中将对测试类的testString方法进行访问和设置，我们先看下这个测试类：public class Testjni &amp;#123;    private String testString;    public String getTestString() &amp;#123;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2016-07-18T22:11:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 进阶之JNI 开发 三访问对象成员变量和成员方法">
+<meta name="twitter:description" content="访问对象的成员属性和成员方法：下面我们通过一个例子来介绍对象成员属性和成员方法的访问： 首先我们先定义一个测试类，在这篇博客中将对测试类的testString方法进行访问和设置，我们先看下这个测试类：public class Testjni &amp;#123;    private String testString;    public String getTestString() &amp;#123;">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto">等待执剑少年修炼归来！</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/09/Android-进阶之JNI-开发-三访问对象成员变量和成员方法/" title="Android 进阶之JNI 开发 三访问对象成员变量和成员方法" itemprop="url">Android 进阶之JNI 开发 三访问对象成员变量和成员方法</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-09T12:27:54.000Z" itemprop="datePublished"> Published 2016-07-09</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="访问对象的成员属性和成员方法："><a href="#访问对象的成员属性和成员方法：" class="headerlink" title="访问对象的成员属性和成员方法："></a>访问对象的成员属性和成员方法：</h4><p>下面我们通过一个例子来介绍对象成员属性和成员方法的访问：</p>
+<p>首先我们先定义一个测试类，在这篇博客中将对测试类的testString方法进行访问和设置，我们先看下这个测试类：<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Testjni</span> &#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">String</span> testString;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">String</span> <span class="title">getTestString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> testString;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTestString</span><span class="params">(<span class="keyword">String</span> testString)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.testString = testString;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight mel"><table><tr><td class="code"><pre><span class="line"><span class="comment">//通过调用Java层方法来实现某个功能</span></span><br><span class="line">JNIEXPORT void JNICALL</span><br><span class="line">Java_com_idealist_myapplication_MainActivity_setTestString(JNIEnv *<span class="keyword">env</span>, jobject <span class="keyword">instance</span>,</span><br><span class="line">                                                           jobject obj, jstring str_) &#123;</span><br><span class="line">    <span class="comment">//获得某个对象的类类型</span></span><br><span class="line">    jclass testCls = (*<span class="keyword">env</span>)-&gt;GetObjectClass(<span class="keyword">env</span>,obj);</span><br><span class="line">    <span class="comment">//获得对应的方法id</span></span><br><span class="line">	jmethodID methodId = (*<span class="keyword">env</span>)-&gt;GetMethodID(<span class="keyword">env</span>,testCls,<span class="string">"setTestString"</span>,<span class="string">"(Ljava/lang/String;)V"</span>);</span><br><span class="line">    <span class="keyword">if</span>(methodId == NULL) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//通过方法id 调用该方法</span></span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;CallVoidMethod(<span class="keyword">env</span>,obj,methodId,str_);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//通过调用Java层的方法，来获取testString</span></span><br><span class="line">JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_idealist_myapplication_MainActivity_getTestString(JNIEnv *<span class="keyword">env</span>, jobject <span class="keyword">instance</span>,</span><br><span class="line">                                                           jobject obj) &#123;</span><br><span class="line"></span><br><span class="line">    jclass testCls = (*<span class="keyword">env</span>)-&gt;GetObjectClass(<span class="keyword">env</span>,obj);</span><br><span class="line">    jmethodID methodId = (*<span class="keyword">env</span>)-&gt;GetMethodID(<span class="keyword">env</span>,testCls,<span class="string">"getTestString"</span>,<span class="string">"()Ljava/lang/String;"</span>);</span><br><span class="line">    <span class="keyword">if</span>(methodId == NULL) &#123;</span><br><span class="line">        <span class="keyword">return</span> NULL;</span><br><span class="line">    &#125;</span><br><span class="line">    jstring str = (*<span class="keyword">env</span>)-&gt;CallObjectMethod(<span class="keyword">env</span>, obj, methodId);</span><br><span class="line">    <span class="keyword">return</span> str;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//通过直接访问属性域，来设置testString值。</span></span><br><span class="line">JNIEXPORT void JNICALL</span><br><span class="line">Java_com_idealist_myapplication_MainActivity_setTestStrByField(JNIEnv *<span class="keyword">env</span>, jobject <span class="keyword">instance</span>,</span><br><span class="line">                                                               jobject obj, jstring str_) &#123;</span><br><span class="line"></span><br><span class="line">    jclass testCls = (*<span class="keyword">env</span>)-&gt;GetObjectClass(<span class="keyword">env</span>, obj);</span><br><span class="line">    jfieldID  fieldId = (*<span class="keyword">env</span>)-&gt;GetFieldID(<span class="keyword">env</span>,testCls,<span class="string">"testString"</span>,<span class="string">"Ljava/lang/String;"</span>);</span><br><span class="line">    <span class="keyword">if</span>(fieldId == NULL) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;SetObjectField(<span class="keyword">env</span>, obj, fieldId, str_);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//通过直接访问属性域，来获取testString值。</span></span><br><span class="line">JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_idealist_myapplication_MainActivity_getTestStringByField(JNIEnv *<span class="keyword">env</span>, jobject <span class="keyword">instance</span>,</span><br><span class="line">                                                                  jobject obj) &#123;</span><br><span class="line">    jclass testCls = (*<span class="keyword">env</span>)-&gt;GetObjectClass(<span class="keyword">env</span>,obj);</span><br><span class="line">    jfieldID fieldId = (*<span class="keyword">env</span>)-&gt;GetFieldID(<span class="keyword">env</span>,testCls,<span class="string">"testString"</span>,<span class="string">"Ljava/lang/String;"</span>);</span><br><span class="line">    <span class="keyword">if</span>(fieldId == NULL) &#123;</span><br><span class="line">        <span class="keyword">return</span> NULL;</span><br><span class="line">    &#125;</span><br><span class="line">    jstring str = (*<span class="keyword">env</span>)-&gt;GetObjectField(<span class="keyword">env</span>, obj, fieldId);</span><br><span class="line">    <span class="keyword">return</span> str;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个是来自JNI Programmer’s Guide and Specification文档中的一个例子：<br><figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">JNIEXPORT <span class="literal">void</span> JNICALL</span><br><span class="line">Java_InstanceFieldAccess_accessField(JNIEnv *env, jobject obj)</span><br><span class="line">&#123;</span><br><span class="line">	jfieldID fid;<span class="comment">/* store the field ID */</span></span><br><span class="line">	jstring jstr;</span><br><span class="line">	<span class="keyword">const</span> char *str;</span><br><span class="line">	<span class="comment">/* 根据jobject对象实例创建指向它的类引用 */</span></span><br><span class="line">	jclass <span class="function"><span class="title">cls</span> = <span class="params">(*env)</span>-&gt;</span>GetObjectClass(env, obj);</span><br><span class="line">	printf(<span class="string">"In C:\n"</span>);</span><br><span class="line">	<span class="comment">/* 根据上述找到的jclass类型以及类名和标识符寻找fieldID 最后一个参数可以通过javap -p -s InstanceFieldAccess 来查看*/</span></span><br><span class="line">	<span class="function"><span class="title">fid</span> = <span class="params">(*env)</span>-&gt;</span>GetFieldID(env, cls, <span class="string">"s"</span>,<span class="string">"Ljava/lang/String;"</span>);</span><br><span class="line">	<span class="keyword">if</span> (fid == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span>; <span class="comment">/* failed to find the field */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">/* 读取对象的成员属性域*/</span></span><br><span class="line">	<span class="function"><span class="title">jstr</span> = <span class="params">(*env)</span>-&gt;</span>GetObjectField(env, obj, fid);</span><br><span class="line">	<span class="comment">/* 转化为C语言的字符串形式 */</span></span><br><span class="line">	<span class="function"><span class="title">str</span> = <span class="params">(*env)</span>-&gt;</span>GetStringUTFChars(env, jstr, NULL);</span><br><span class="line">	<span class="keyword">if</span> (str == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span>; <span class="comment">/* out of memory */</span></span><br><span class="line">	&#125;</span><br><span class="line">	printf(<span class="string">" c.s = \"%s\"\n"</span>, str);</span><br><span class="line">	<span class="comment">/* 释放掉无用的资源 */</span></span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>ReleaseStringUTFChars(env, jstr, str);</span><br><span class="line">	<span class="comment">/* 创建一个新的字符串 */</span></span><br><span class="line">	<span class="function"><span class="title">jstr</span> = <span class="params">(*env)</span>-&gt;</span>NewStringUTF(env, <span class="string">"123"</span>);</span><br><span class="line">	<span class="keyword">if</span> (jstr == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span>; <span class="comment">/* out of memory */</span></span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">/*设置对象属性值*/</span></span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>SetObjectField(env, obj, fid, jstr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面是访问静态成员变量的例子：<br><figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">JNIEXPORT <span class="literal">void</span> JNICALL</span><br><span class="line">Java_StaticFieldAccess_accessField(JNIEnv *env, jobject obj)</span><br><span class="line">&#123;</span><br><span class="line">	jfieldID fid;</span><br><span class="line">	<span class="comment">/* store the field ID */</span></span><br><span class="line">	jint si;</span><br><span class="line">	<span class="comment">/* Get a reference to obj’s class */</span></span><br><span class="line">	jclass <span class="function"><span class="title">cls</span> = <span class="params">(*env)</span>-&gt;</span>GetObjectClass(env, obj);</span><br><span class="line">	printf(<span class="string">"In C:\n"</span>);</span><br><span class="line">	<span class="comment">/* Look for the static field si in cls */</span></span><br><span class="line">	<span class="function"><span class="title">fid</span> = <span class="params">(*env)</span>-&gt;</span>GetStaticFieldID(env, cls, <span class="string">"si"</span>, <span class="string">"I"</span>);</span><br><span class="line">	<span class="keyword">if</span> (fid == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span>; <span class="comment">/* field not found */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">/* Access the static field si */</span></span><br><span class="line">	<span class="function"><span class="title">si</span> = <span class="params">(*env)</span>-&gt;</span>GetStaticIntField(env, cls, fid);</span><br><span class="line">	printf(<span class="string">" StaticFieldAccess.si = %d\n"</span>, si);</span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>SetStaticIntField(env, cls, fid, <span class="number">200</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面是访问静态成员方法的例子：<br><figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">JNIEXPORT <span class="literal">void</span> JNICALL</span><br><span class="line">Java_StaticMethodCall_nativeMethod(JNIEnv *env, jobject obj)</span><br><span class="line">&#123;</span><br><span class="line">	jclass <span class="function"><span class="title">cls</span> = <span class="params">(*env)</span>-&gt;</span>GetObjectClass(env, obj);</span><br><span class="line">	jmethodID <span class="function"><span class="title">mid</span> =<span class="params">(*env)</span>-&gt;</span>GetStaticMethodID(env, cls, <span class="string">"callback"</span>, <span class="string">"()V"</span>);</span><br><span class="line">	<span class="keyword">if</span> (mid == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span>; <span class="comment">/* method not found */</span></span><br><span class="line">	&#125;</span><br><span class="line">	printf(<span class="string">"In C\n"</span>);</span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>CallStaticVoidMethod(env, cls, mid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上面我们介绍了通过GetObjectClass来获得某个jclass，下面将通过FindClass来获取：<br><figure class="highlight smali"><table><tr><td class="code"><pre><span class="line">jobject thd = ...; /* a java.lang.Thread<span class="built_in"> instance </span>*/</span><br><span class="line">jmethodID mid;</span><br><span class="line">jclass runnableIntf = (*env)-&gt;FindClass(env, <span class="string">"java/lang/Runnable"</span>);</span><br><span class="line">if (runnableIntf == NULL) &#123;</span><br><span class="line"><span class="keyword">.</span>.. /* error handling */</span><br><span class="line">&#125;</span><br><span class="line">mid = (*env)-&gt;GetMethodID(env, runnableIntf, <span class="string">"run"</span>, <span class="string">"()V"</span>);</span><br><span class="line">if (mid == NULL) &#123;</span><br><span class="line">	... /* error handling */</span><br><span class="line">&#125;</span><br><span class="line">(*env)-&gt;CallVoidMethod(env, thd, mid);</span><br><span class="line"><span class="keyword">.</span>.. /*<span class="built_in"> check </span>for possible exceptions */</span><br></pre></td></tr></table></figure></p>
+<h4 id="访问属性和方法总结："><a href="#访问属性和方法总结：" class="headerlink" title="访问属性和方法总结："></a>访问属性和方法总结：</h4><p>调用对象的静态方法的步骤<br><figure class="highlight lsl"><table><tr><td class="code"><pre><span class="line"><span class="number">1.</span> 使用FindClass或者GetObjectClass来获取jclass对象</span><br><span class="line"><span class="number">2.</span> 通过GetMethodID获取在某个类中的方法的id值。这一步需要步骤<span class="number">1</span>中获取到的jclass对象，方法名，方法签名</span><br><span class="line"><span class="number">3.</span> 通过这个id值来调用通过CallStaticXXXMethod方法传入id，参数</span><br><span class="line"><span class="number">4.</span> 释放局部变量</span><br></pre></td></tr></table></figure></p>
+<p>调用对象的实例方法的步骤（没有传入jobject的情况）<br><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>使用FindClass搜索某个类</span><br><span class="line"><span class="bullet">2. </span>获取某个类的默认构造方法</span><br><span class="line"><span class="bullet">3. </span>通过NewObject创建该类的实例</span><br><span class="line"><span class="bullet">4. </span>通过GetMethodID查找要调用的实例对象的方法id</span><br><span class="line"><span class="bullet">5. </span>通过CallXXXMethod调用实例的方法</span><br><span class="line"><span class="bullet">6. </span>释放局部变量</span><br></pre></td></tr></table></figure></p>
+<p>调用对象的实例方法的步骤（有传入jobject的情况）<br><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>如果有传入对象的话可以使用GetObjectClass获取jclass对象</span><br><span class="line"><span class="bullet">2. </span>通过GetMethodID查找要调用的实例对象的方法id</span><br><span class="line"><span class="bullet">3. </span>通过CallXXXMethod调用实例的方法</span><br><span class="line"><span class="bullet">4. </span>释放局部变量</span><br></pre></td></tr></table></figure></p>
+<p>获取和设置实例对象的属性<br><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>通过 GetObjectClass 获取类的jclass引用</span><br><span class="line"><span class="bullet">2. </span>通过GetFieldID获取实例变量的属性id</span><br><span class="line"><span class="bullet">3. </span>通过GetXXXField来获取某个属性变量的值</span><br><span class="line"><span class="bullet">4. </span>通过setObjectField设置某个属性对象的值</span><br><span class="line"><span class="bullet">5. </span>删除局部变量</span><br></pre></td></tr></table></figure></p>
+<p>获取和设置某个静态属性<br><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>通过FindClass 获取类的jclass引用</span><br><span class="line"><span class="bullet">2. </span>通过GetStaticFieldID获得静态属性id</span><br><span class="line"><span class="bullet">3. </span>通过GetStaticXXXField来获取某个属性变量的值</span><br><span class="line"><span class="bullet">4. </span>通过setStaticObjectField设置某个属性对象的值</span><br><span class="line"><span class="bullet">5. </span>删除局部变量</span><br></pre></td></tr></table></figure></p>
+<h4 id="访问父类方法和访问构造函数："><a href="#访问父类方法和访问构造函数：" class="headerlink" title="访问父类方法和访问构造函数："></a>访问父类方法和访问构造函数：</h4><ol>
+<li>访问父类方法：</li>
+</ol>
+<p>我们可以调用在父类中已经定义但是已经被覆写的实例方法，JNI 中提供了一系列的CallNonvirtual<type> 方法用来解决这个问题，为了能够调用父类的方法需要如下处理：</type></p>
+<ul>
+<li>使用GetMethodID或者GetStaticMethodID从父类引用中获得方法id</li>
+<li>传入对象，父类，方法id到上面提到的CallNonvirtual<type>方法中。</type></li>
+</ul>
+<ol start="2">
+<li>访问构造函数：<br>在JNI中可以通过和调用实例对象的其他方法一样调用构造方法，唯一的区别是需要传入”<init>“作为方法名”V” 作为返回类型标识。然后通过调用 NewObject并传入方法id来创建出实例对象。<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">jstring</span><br><span class="line">MyNewString(JNIEnv *env, jchar *chars, jint len)&#123;</span><br><span class="line">	jclass stringClass;</span><br><span class="line">	jmethodID cid;</span><br><span class="line">	jcharArray elemArr;</span><br><span class="line">	jstring result;</span><br><span class="line">	<span class="function"><span class="title">stringClass</span> = <span class="params">(*env)</span>-&gt;</span>FindClass(env, <span class="string">"java/lang/String"</span>);</span><br><span class="line">	<span class="keyword">if</span> (stringClass == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span> NULL; <span class="comment">/* exception thrown */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">/* Get the method ID for the String(char[]) constructor */</span></span><br><span class="line">	<span class="function"><span class="title">cid</span> = <span class="params">(*env)</span>-&gt;</span>GetMethodID(env, stringClass,<span class="string">"&lt;init&gt;"</span>, <span class="string">"([C)V"</span>);</span><br><span class="line">	<span class="keyword">if</span> (cid == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span> NULL; <span class="comment">/* exception thrown */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">/* Create a char[] that holds the string characters */</span></span><br><span class="line">	<span class="function"><span class="title">elemArr</span> = <span class="params">(*env)</span>-&gt;</span>NewCharArray(env, len);</span><br><span class="line">	<span class="keyword">if</span> (elemArr == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span> NULL; <span class="comment">/* exception thrown */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>SetCharArrayRegion(env, elemArr, <span class="number">0</span>, len, chars);</span><br><span class="line">	<span class="comment">/* Construct a java.lang.String object */</span></span><br><span class="line">	<span class="function"><span class="title">result</span> = <span class="params">(*env)</span>-&gt;</span>NewObject(env, stringClass, cid, elemArr);</span><br><span class="line">	<span class="comment">/* Free local references */</span></span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>DeleteLocalRef(env, elemArr);</span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>DeleteLocalRef(env, stringClass);</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</init></li>
+</ol>
+<p>下面通过一个例子来验证上述的知识点：<br><figure class="highlight mel"><table><tr><td class="code"><pre><span class="line">JNIEXPORT void JNICALL</span><br><span class="line">Java_com_idealist_myapplication_MainActivity_testSayHello(JNIEnv *<span class="keyword">env</span>, jobject <span class="keyword">instance</span>,</span><br><span class="line">                                                          jstring name_) &#123;</span><br><span class="line">    <span class="comment">//获取ChildClass类															  </span></span><br><span class="line">    jclass  clzz = (*<span class="keyword">env</span>)-&gt;FindClass(<span class="keyword">env</span>, <span class="string">"com/idealist/myapplication/ChildClass"</span>);</span><br><span class="line">    <span class="comment">//获取ChildClass的构造函数</span></span><br><span class="line">	jmethodID contructureid = (*<span class="keyword">env</span>)-&gt;GetMethodID(<span class="keyword">env</span>,clzz,<span class="string">"&lt;init&gt;"</span>,<span class="string">"()V"</span>);</span><br><span class="line">    <span class="comment">//使用构造函数创建一个对象</span></span><br><span class="line">	jobject childObj = (*<span class="keyword">env</span>)-&gt;NewObject(<span class="keyword">env</span>, clzz, contructureid);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//通过这个对象调用ChildClass sayHello的方法</span></span><br><span class="line">    jmethodID sayhelloid = (*<span class="keyword">env</span>)-&gt;GetMethodID(<span class="keyword">env</span>,clzz,<span class="string">"sayHello"</span>,<span class="string">"(Ljava/lang/String;)V"</span>);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;CallVoidMethod(<span class="keyword">env</span>, childObj, sayhelloid, name_);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//通过FindClass获取FatherClass类</span></span><br><span class="line">    jclass suppercls = (*<span class="keyword">env</span>)-&gt;FindClass(<span class="keyword">env</span>,<span class="string">"com/idealist/myapplication/FatherClass"</span>);</span><br><span class="line">	<span class="comment">//获取FatherClass的sayHello的id</span></span><br><span class="line">    jmethodID sayhellofromSuper = (*<span class="keyword">env</span>)-&gt;GetMethodID(<span class="keyword">env</span>,suppercls,<span class="string">"sayHello"</span>,<span class="string">"(Ljava/lang/String;)V"</span>);</span><br><span class="line">	<span class="comment">//通过子类对象，父类jclass，父类方法id来调用父类的方法。</span></span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;CallNonvirtualVoidMethod(<span class="keyword">env</span>, childObj, suppercls, sayhellofromSuper, name_);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//释放局部变量</span></span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>, clzz);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>, contructureid);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>, childObj);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>, sayhelloid);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>, suppercls);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>, sayhellofromSuper);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>输出结果：<br><figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="number">07</span>-<span class="number">05</span> <span class="number">21</span>:<span class="number">52</span>:<span class="number">49.212</span> <span class="number">20472</span>-<span class="number">20472</span>/com<span class="selector-class">.idealist</span><span class="selector-class">.myapplication</span> I/xiaohai<span class="selector-class">.lin</span>: Constructure of FatherClass</span><br><span class="line"><span class="number">07</span>-<span class="number">05</span> <span class="number">21</span>:<span class="number">52</span>:<span class="number">49.212</span> <span class="number">20472</span>-<span class="number">20472</span>/com<span class="selector-class">.idealist</span><span class="selector-class">.myapplication</span> I/xiaohai<span class="selector-class">.lin</span>: Constructure of ChildClass</span><br><span class="line"><span class="number">07</span>-<span class="number">05</span> <span class="number">21</span>:<span class="number">52</span>:<span class="number">49.212</span> <span class="number">20472</span>-<span class="number">20472</span>/com<span class="selector-class">.idealist</span><span class="selector-class">.myapplication</span> I/xiaohai<span class="selector-class">.lin</span>: From Child class Hello Jimmy</span><br><span class="line"><span class="number">07</span>-<span class="number">05</span> <span class="number">21</span>:<span class="number">52</span>:<span class="number">49.212</span> <span class="number">20472</span>-<span class="number">20472</span>/com<span class="selector-class">.idealist</span><span class="selector-class">.myapplication</span> I/xiaohai<span class="selector-class">.lin</span>: From Super class Hello Jimmy</span><br></pre></td></tr></table></figure></p>
+<h4 id="缓存FieldID-以及methodID"><a href="#缓存FieldID-以及methodID" class="headerlink" title="缓存FieldID 以及methodID"></a>缓存FieldID 以及methodID</h4><p>每次获取FieldID以及和methodID都需要对字段、方法的名字和描述符进行一费时的检索过程。为了减小检索过程的耗时行为可以将第一次获取到的字段id缓存起来，缓存方法有两种，一种是通过将id声明为static变量在使用时缓存，另一种实在类静态初始化的时候。</p>
+<ul>
+<li><p>使用时缓存：</p>
+<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">JNIEXPORT <span class="literal">void</span> JNICALL</span><br><span class="line">Java_InstanceFieldAccess_accessField(JNIEnv *env, jobject obj) &#123;</span><br><span class="line">	<span class="regexp">//使用静态变量缓存</span></span><br><span class="line"><span class="regexp">	static jfieldID fid_s = NULL; /* cached field ID for s */</span></span><br><span class="line"><span class="regexp">	jclass cls = (*env)-&gt;GetObjectClass(env, obj);</span></span><br><span class="line"><span class="regexp">	jstring jstr;</span></span><br><span class="line"><span class="regexp">	const char *str;</span></span><br><span class="line"><span class="regexp">	//</span>判断是否是第一次</span><br><span class="line">	<span class="keyword">if</span> ( fid_s == NULL) &#123;</span><br><span class="line">		<span class="function"><span class="title">fid_s</span> = <span class="params">(*env)</span>-&gt;</span>GetFieldID(env, cls, <span class="string">"s"</span>,<span class="string">"Ljava/lang/String;"</span>);</span><br><span class="line">		<span class="keyword">if</span> ( fid_s == NULL) &#123;</span><br><span class="line">			<span class="keyword">return</span>; <span class="comment">/* exception already thrown */</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	printf(<span class="string">"In C:\n"</span>);</span><br><span class="line">	<span class="function"><span class="title">jstr</span> = <span class="params">(*env)</span>-&gt;</span>GetObjectField(env, obj, fid_s );</span><br><span class="line">	<span class="function"><span class="title">str</span> = <span class="params">(*env)</span>-&gt;</span>GetStringUTFChars(env, jstr, NULL);</span><br><span class="line">	<span class="keyword">if</span> (str == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span>; <span class="comment">/* out of memory */</span></span><br><span class="line">	&#125;</span><br><span class="line">	printf(<span class="string">" c.s = \"%s\"\n"</span>, str);</span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>ReleaseStringUTFChars(env, jstr, str);</span><br><span class="line">	<span class="function"><span class="title">jstr</span> = <span class="params">(*env)</span>-&gt;</span>NewStringUTF(env, <span class="string">"123"</span>);</span><br><span class="line">	<span class="keyword">if</span> (jstr == NULL) &#123;</span><br><span class="line">		<span class="keyword">return</span>; <span class="comment">/* out of memory */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="params">(*env)</span>-&gt;</span>SetObjectField(env, obj, fid_s , jstr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>类初始化时缓存：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">InstanceMethodCall</span> &#123;</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">static</span> native <span class="keyword">void</span> <span class="title">initIDs</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">private</span> native <span class="keyword">void</span> <span class="title">nativeMethod</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callback</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		System.out.<span class="built_in">println</span>(<span class="string">"In Java"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">String</span> args[])</span> </span>&#123;</span><br><span class="line">	InstanceMethodCall c = <span class="keyword">new</span> InstanceMethodCall();</span><br><span class="line">		c.nativeMethod();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">static</span> &#123;</span><br><span class="line">		System.loadLibrary(<span class="string">"InstanceMethodCall"</span>);</span><br><span class="line">		initIDs();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//在类初始化的时候就获取要使用方法id或者成员变量id，并缓存起来。</span></span><br><span class="line">jmethodID MID_InstanceMethodCall_callback;</span><br><span class="line">JNIEXPORT <span class="keyword">void</span> JNICALL</span><br><span class="line">Java_InstanceMethodCall_initIDs(JNIEnv *env, jclass cls)</span><br><span class="line">&#123;</span><br><span class="line">	MID_InstanceMethodCall_callback =</span><br><span class="line">	(*env)-&gt;GetMethodID(env, cls, <span class="string">"callback"</span>, <span class="string">"()V"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>那么到底用哪种方式比较合适呢？这个必须依据实际情况：<br>如果我们不能修改方法或者字段所在的类的源码的话，这时候就不用说得用使用时缓存，但是如果可以修改的话尽量使用静态初始化时缓存，因为在使用时缓存需要每次使用的时候都需要判断一下才能使用。这样效率往往不高。</p>
+<h4 id="是否需要引入jni"><a href="#是否需要引入jni" class="headerlink" title="是否需要引入jni"></a>是否需要引入jni</h4><p>在我们印象中引入jni会提高运行效率，事实并不是这样的java/native 比起 JVM 内部的 java/java 来说有一个调用转换过程,在把控制权和入口切换给本地方法之前,VM 必须做一些额外的操作来创建参数和栈帧。这个步骤会导致java/native 调用比java/java 要慢。我们再来看下native/java 调用和 java/native从技术角度来看, native/java 调用和 java/native 是相似的。但实际上 native/java调用很少见,因此VM 通常不会优化 native/java 这种回调方式。<br>这就导致了native/java 调用的消耗可以达到 java/java 调用的好几倍。并且引入jni会对调试引入极大的难度，所以不是万不得已最好不要引入Jni。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android进阶/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-JNI/">Android JNI</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/10/Android-进阶之JNI-开发-四-局部引用，全局引用和弱全局引用/" title="Android 进阶之JNI 开发 四 局部引用，全局引用和弱全局引用">
+  <span>
+  Android 进阶之JNI 开发 四 局部引用，全局引用和弱全局引用</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/07/08/Android-进阶之JNI-开发-二-基本数据类型介绍/"  title="Android 进阶之JNI 开发 二 JNI数据类型介绍">
+ <span>Android 进阶之JNI 开发 二 JNI数据类型介绍
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/09/Android-进阶之JNI-开发-三访问对象成员变量和成员方法/" data-title="Android 进阶之JNI 开发 三访问对象成员变量和成员方法" data-url="http://yoursite.com/2016/07/09/Android-进阶之JNI-开发-三访问对象成员变量和成员方法/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#访问对象的成员属性和成员方法："><span class="toc-number">1.</span> <span class="toc-text">访问对象的成员属性和成员方法：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#访问属性和方法总结："><span class="toc-number">2.</span> <span class="toc-text">访问属性和方法总结：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#访问父类方法和访问构造函数："><span class="toc-number">3.</span> <span class="toc-text">访问父类方法和访问构造函数：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓存FieldID-以及methodID"><span class="toc-number">4.</span> <span class="toc-text">缓存FieldID 以及methodID</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#是否需要引入jni"><span class="toc-number">5.</span> <span class="toc-text">是否需要引入jni</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-源码/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-签名/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-事件处理进阶/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-动画进阶/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-多线程开发/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-小经验/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-常用第三方库/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-开发流程/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-开源源码/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-绘图进阶/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-自动化测试/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-自定义View进阶/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-设计模式/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android其他/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android基础/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android开发流程/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android性能优化/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android混淆技术/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android质量管理工具/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android逆向工程/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-使用/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-使用/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-相关/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-工具使用/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-开源库分析/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-理论基础/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-进阶/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/代码规范/" style="font-size: 10px;">代码规范</a> <a href="/tags/博客分类目录/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/叨叨系列/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/工具的使用/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/开源代码分析/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/开源库分析/" style="font-size: 10px;">开源库分析</a> <a href="/tags/杂类/" style="font-size: 10px;">杂类</a> <a href="/tags/树莓派/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/直播/" style="font-size: 12.86px;">直播</a> <a href="/tags/编程技巧/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/网站收藏/" style="font-size: 10px;">网站收藏</a> <a href="/tags/重要控件/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2021 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

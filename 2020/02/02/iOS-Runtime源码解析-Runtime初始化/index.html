@@ -1,0 +1,739 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>iOS Runtime源码解析 Runtime初始化 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="前面我们介绍了Mach O的结构，App的启动，dyld的加载，以及通过dyld将镜像加载进来，经过rebase/Bind处理后，找到main入口，以及Runtime相关的数据结构，有了前面的一系列铺垫这里介绍Runtime初始化就显得相对轻松了，这篇博客我们从《iOS Runtime源码解析之dyld》结尾处接着介绍，《iOS Runtime源码解析之dyld》中介绍了从dyld入口__dyl">
+<meta name="keywords" content="Objective C 相关">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS Runtime源码解析 Runtime初始化">
+<meta property="og:url" content="http://yoursite.com/2020/02/02/iOS-Runtime源码解析-Runtime初始化/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="前面我们介绍了Mach O的结构，App的启动，dyld的加载，以及通过dyld将镜像加载进来，经过rebase/Bind处理后，找到main入口，以及Runtime相关的数据结构，有了前面的一系列铺垫这里介绍Runtime初始化就显得相对轻松了，这篇博客我们从《iOS Runtime源码解析之dyld》结尾处接着介绍，《iOS Runtime源码解析之dyld》中介绍了从dyld入口__dyl">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-02-04T17:52:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS Runtime源码解析 Runtime初始化">
+<meta name="twitter:description" content="前面我们介绍了Mach O的结构，App的启动，dyld的加载，以及通过dyld将镜像加载进来，经过rebase/Bind处理后，找到main入口，以及Runtime相关的数据结构，有了前面的一系列铺垫这里介绍Runtime初始化就显得相对轻松了，这篇博客我们从《iOS Runtime源码解析之dyld》结尾处接着介绍，《iOS Runtime源码解析之dyld》中介绍了从dyld入口__dyl">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto">等待执剑少年修炼归来！</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2020/02/02/iOS-Runtime源码解析-Runtime初始化/" title="iOS Runtime源码解析 Runtime初始化" itemprop="url">iOS Runtime源码解析 Runtime初始化</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2020-02-01T23:49:23.000Z" itemprop="datePublished"> Published 2020-02-02</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>前面我们介绍了Mach O的结构，App的启动，dyld的加载，以及通过dyld将镜像加载进来，经过rebase/Bind处理后，找到main入口，以及Runtime相关的数据结构，有了前面的一系列铺垫这里介绍Runtime初始化就显得相对轻松了，这篇博客我们从《iOS Runtime源码解析之dyld》结尾处接着介绍，《iOS Runtime源码解析之dyld》中介绍了从dyld入口__dyld_start作为起点，到找到并跳转到主函数入口期间的一系列工作：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>将主程序初始化为imageLoader</span><br><span class="line"><span class="bullet">2. </span>加载共享库到内存</span><br><span class="line"><span class="bullet">3. </span>加载插入的动态库</span><br><span class="line"><span class="bullet">4. </span>链接主程序,链接插入库</span><br><span class="line"><span class="bullet">5. </span>初始化主程序，插入库</span><br><span class="line"><span class="bullet">6. </span>寻找主程序入口点</span><br></pre></td></tr></table></figure>
+<p>这篇博客和《iOS Runtime源码解析之dyld》的衔接点就在于第5步初始化主程序，插入库这一步，在这个阶段，会调用使用attribute((constructor) 进行修饰的方法,其中有个十分重要的动态库初始化方法，<strong><strong>libSystem_initializer</strong></strong>：</p>
+<figure class="highlight delphi"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> __attribute__((<span class="function"><span class="keyword">constructor</span>)) </span></span><br><span class="line"><span class="function"><span class="title">void</span> <span class="title">libSystem_initializer</span><span class="params">(int argc, <span class="keyword">const</span> char* argv[], <span class="keyword">const</span> char* envp[], <span class="keyword">const</span> char* apple[], <span class="keyword">const</span> struct ProgramVars* vars)</span> <span class="comment">&#123;</span></span></span><br><span class="line"><span class="function"><span class="comment"></span></span></span><br><span class="line"><span class="function"><span class="comment">    //......</span></span></span><br><span class="line"><span class="function"><span class="comment"></span></span></span><br><span class="line"><span class="function"><span class="comment">    _libkernel_init(libkernel_funcs);</span></span></span><br><span class="line"><span class="function"><span class="comment"></span></span></span><br><span class="line"><span class="function"><span class="comment">    bootstrap_init();</span></span></span><br><span class="line"><span class="function"><span class="comment">    mach_init();</span></span></span><br><span class="line"><span class="function"><span class="comment">    pthread_init();</span></span></span><br><span class="line"><span class="function"><span class="comment">    __libc_init(vars, libSystem_atfork_prepare, libSystem_atfork_parent, libSystem_atfork_child, apple);</span></span></span><br><span class="line"><span class="function"><span class="comment">    __keymgr_initializer();</span></span></span><br><span class="line"><span class="function"><span class="comment">    _dyld_initializer();</span></span></span><br><span class="line"><span class="function"><span class="comment">    libdispatch_init();</span></span></span><br><span class="line"><span class="function"><span class="comment">    _libxpc_initializer();</span></span></span><br><span class="line"><span class="function"><span class="comment"></span></span></span><br><span class="line"><span class="function"><span class="comment">    __stack_logging_early_finished();</span></span></span><br><span class="line"><span class="function"><span class="comment">    //.......</span></span></span><br><span class="line"><span class="function"><span class="comment">    errno = 0;</span></span></span><br><span class="line"><span class="function"><span class="comment">&#125;</span></span></span><br></pre></td></tr></table></figure>
+<p>在libSystem.dylib的初始化方法libSystem_initializer中初始化了多了dylib库,比如:liblaunch.dylib,libc.a,libdispatch.a等等，这里最关键的是<strong><strong><a href="https://github.com/nickhutchinson/libdispatch" target="_blank" rel="noopener">libdispatch_init</a></strong></strong>:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">libdispatch_init</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    _os_object_init();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在libdispatch_init的最后部分会调用<strong><strong>_os_object_init</strong></strong>：</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span></span><br><span class="line">_os_object_init(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="function"><span class="keyword">return</span> <span class="title">_objc_init</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>_os_object_init</strong></strong>方法只有一行代码就是转调_objc_init，这就是我们十分关注的Runtime 初始化的入口。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">void</span> _objc_init(<span class="keyword">void</span>) &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">bool</span> initialized = <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">if</span> (initialized) <span class="keyword">return</span>;</span><br><span class="line">    initialized = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fixme defer initialization until an objc-using image is found?</span></span><br><span class="line">    environ_init();</span><br><span class="line">    tls_init();</span><br><span class="line">    static_init();</span><br><span class="line">    lock_init();</span><br><span class="line">    exception_init();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//_dyld_objc_notify_register(&amp;map_2_images, load_images, unmap_image);</span></span><br><span class="line">    <span class="comment">//向dyld注册了回调函数,当imagemap到内存中,当初始化完成image时和卸载image的时候都会回调注册者</span></span><br><span class="line">    _dyld_objc_notify_register(&amp;map_images, load_images, unmap_image);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>_objc_init</strong></strong>向dyld注册了map_images，load_images，unmap_image三个关键的回调函数,各个关键阶段节点常量定义如下：</p>
+<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">dyld_image_states</span></span></span><br><span class="line">&#123;</span><br><span class="line">    dyld_image_state_mapped                 = <span class="number">10</span>,       <span class="regexp">//</span> No batch notification <span class="keyword">for</span> this</span><br><span class="line">    dyld_image_state_dependents_mapped      = <span class="number">20</span>,       <span class="regexp">//</span> Only batch notification <span class="keyword">for</span> this</span><br><span class="line">    dyld_image_state_rebased                = <span class="number">30</span>,</span><br><span class="line">    dyld_image_state_bound                  = <span class="number">40</span>,</span><br><span class="line">    dyld_image_state_dependents_initialized = <span class="number">45</span>,       <span class="regexp">//</span> Only single notification <span class="keyword">for</span> this</span><br><span class="line">    dyld_image_state_initialized            = <span class="number">50</span>,</span><br><span class="line">    dyld_image_state_terminated             = <span class="number">60</span>        /<span class="regexp">/ Only single notification for this</span></span><br><span class="line"><span class="regexp">&#125;;</span></span><br></pre></td></tr></table></figure>
+<p>我们看下<strong><strong>_dyld_objc_notify_register</strong></strong>这个方法的注释，通过注释我们可以了解到，在runtime中可以通过这个方法可以向dyld注册用于处理镜像完成映射，取消映射和初始化之后的处理方法。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">//</span><br><span class="line">// Note: only for <span class="keyword">use</span> <span class="keyword">by</span> objc runtime</span><br><span class="line">// <span class="keyword">Register</span> handlers <span class="keyword">to</span> be called <span class="keyword">when</span> objc images <span class="keyword">are</span> mapped, unmapped, <span class="keyword">and</span> initialized.</span><br><span class="line">// Dyld will <span class="keyword">call</span> back the <span class="string">"mapped"</span> <span class="keyword">function</span> <span class="keyword">with</span> an <span class="built_in">array</span> <span class="keyword">of</span> images that contain an objc-image-info section.</span><br><span class="line">// Those images that <span class="keyword">are</span> dylibs will have the <span class="keyword">ref</span>-counts automatically bumped, so objc will <span class="keyword">no</span> longer need <span class="keyword">to</span></span><br><span class="line">// <span class="keyword">call</span> dlopen() <span class="keyword">on</span> them <span class="keyword">to</span> <span class="keyword">keep</span> them <span class="keyword">from</span> being unloaded.  During the <span class="keyword">call</span> <span class="keyword">to</span> _dyld_objc_notify_register(),</span><br><span class="line">// dyld will <span class="keyword">call</span> the <span class="string">"mapped"</span> <span class="keyword">function</span> <span class="keyword">with</span> already loaded objc images.  During <span class="keyword">any</span> later dlopen() <span class="keyword">call</span>,</span><br><span class="line">// dyld will also <span class="keyword">call</span> the <span class="string">"mapped"</span> function.  Dyld will <span class="keyword">call</span> the <span class="string">"init"</span> <span class="keyword">function</span> <span class="keyword">when</span> dyld would be called</span><br><span class="line">// initializers <span class="keyword">in</span> that image.  This <span class="keyword">is</span> <span class="keyword">when</span> objc calls <span class="keyword">any</span> +<span class="keyword">load</span> methods <span class="keyword">in</span> that image.</span><br><span class="line">// 通过这个方法可以向dyld注册用于处理镜像完成映射，取消映射和初始化之后的处理方法。</span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> _dyld_objc_notify_register(_dyld_objc_notify_mapped    mapped,</span><br><span class="line">                                _dyld_objc_notify_init      init,</span><br><span class="line">                                _dyld_objc_notify_unmapped  unmapped);</span><br></pre></td></tr></table></figure>
+<p>我们重点关注下<strong><strong>_dyld_objc_notify_mapped</strong></strong>以及<strong><strong>_dyld_objc_notify_init</strong></strong>，</p>
+<ul>
+<li><strong><strong>_dyld_objc_notify_mapped</strong></strong></li>
+</ul>
+<p><strong><strong>map_images</strong></strong>会在主程序以及其他库加载进来后调用<strong><strong>ImageLoader::setMapped</strong></strong>发出通知，调用map_images：</p>
+<figure class="highlight verilog"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> ImageLoader::setMapped(<span class="keyword">const</span> LinkContext&amp; <span class="keyword">context</span>)</span><br><span class="line">&#123;</span><br><span class="line">    fState = dyld_image_state_mapped;</span><br><span class="line">    <span class="keyword">context</span><span class="variable">.notifySingle</span>(dyld_image_state_mapped, <span class="keyword">this</span>);  <span class="comment">// note: can throw exception</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而<strong><strong>ImageLoader::setMapped</strong></strong>会在instantiateMainExecutable实例话主程序，instantiateFromFile实例化镜像的时候被调用：</p>
+<ul>
+<li><strong><strong>_dyld_objc_notify_init</strong></strong></li>
+</ul>
+<p>会在<strong><strong>ImageLoader::runInitializers</strong></strong> 方法中被调用，而<strong><strong>ImageLoader::runInitializers</strong></strong> 则会在 <strong><strong>initializeMainExecutable</strong></strong>中调用。</p>
+<p>也即是说在实例化主程序或者其他dylib库的时候都会发出_dyld_objc_notify_mapped通知，这时候会调用runtime 的 map_images方法进行后续处理，在这些初始化完成的时候会发出_dyld_objc_notify_init通知调用load_images方法进行后续处理。</p>
+<p>我们紧接着来看下<strong><strong>map_images</strong></strong>以及<strong><strong>load_images</strong></strong>的处理，其实在介绍分类的时候已经介绍过了map_images这里为保证整个文章的完整性再过一遍这部分内容：</p>
+<ul>
+<li><h5 id="map-images"><a href="#map-images" class="headerlink" title="map_images"></a><strong><strong>map_images</strong></strong></h5></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span></span><br><span class="line">map_images(<span class="keyword">unsigned</span> count, <span class="keyword">const</span> <span class="keyword">char</span> * <span class="keyword">const</span> paths[],</span><br><span class="line">           <span class="keyword">const</span> struct mach_header * <span class="keyword">const</span> mhdrs[])</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">mutex_locker_t</span> <span class="title">lock</span><span class="params">(runtimeLock)</span></span>;</span><br><span class="line">    <span class="keyword">return</span> map_images_nolock(count, paths, mhdrs);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> </span><br><span class="line">map_images_nolock(<span class="keyword">unsigned</span> mhCount, <span class="keyword">const</span> <span class="keyword">char</span> * <span class="keyword">const</span> mhPaths[],</span><br><span class="line">                  <span class="keyword">const</span> <span class="keyword">struct</span> mach_header * <span class="keyword">const</span> mhdrs[])</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">if</span> (hCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//读取镜像信息</span></span><br><span class="line">        _read_images(hList, hCount, totalClasses, unoptimizedTotalClasses);</span><br><span class="line">    &#125;</span><br><span class="line">    firstTime = <span class="literal">NO</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int unoptimizedTotalClasses)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// =================================查找classes=================================</span></span><br><span class="line">    <span class="comment">// Discover classes. Fix up unresolved future classes. Mark bundle classes.</span></span><br><span class="line">    <span class="keyword">for</span> (EACH_HEADER) &#123;</span><br><span class="line">        <span class="comment">//从Mach-O的 __DATA区 __objc_classlist 获取所有类,并加入gdb_objc_realized_classes list中</span></span><br><span class="line">        classref_t *classlist = _getObjc2ClassList(hi, &amp;count);</span><br><span class="line">        <span class="comment">//.......</span></span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">            Class cls = (Class)classlist[i];</span><br><span class="line">            Class newCls = readClass(cls, headerIsBundle, headerIsPreoptimized);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (newCls != cls  &amp;&amp;  newCls) &#123;</span><br><span class="line">                <span class="comment">// 类被移动了但是没有被删除的情况</span></span><br><span class="line">                <span class="comment">// Class was moved but not deleted. Currently this occurs </span></span><br><span class="line">                <span class="comment">// only when the new class resolved a future class.</span></span><br><span class="line">                <span class="comment">// Non-lazily realize the class below.</span></span><br><span class="line">                resolvedFutureClasses = (Class *)realloc(resolvedFutureClasses, (resolvedFutureClassCount+<span class="number">1</span>) * sizeof(Class));</span><br><span class="line">                resolvedFutureClasses[resolvedFutureClassCount++] = newCls;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: discover classes"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 修复重新映射的类</span></span><br><span class="line">    <span class="comment">// Fix up remapped classes</span></span><br><span class="line">    <span class="comment">// Class list and nonlazy class list remain unremapped.</span></span><br><span class="line">    <span class="comment">// Class refs and super refs are remapped for message dispatching.</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (!noClassesRemapped()) &#123;</span><br><span class="line">        <span class="keyword">for</span> (EACH_HEADER) &#123;</span><br><span class="line">            Class *classrefs = _getObjc2ClassRefs(hi, &amp;count);</span><br><span class="line">            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">                remapClassRef(&amp;classrefs[i]);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// fixme why doesn't test future1 catch the absence of this?</span></span><br><span class="line">            classrefs = _getObjc2SuperRefs(hi, &amp;count);</span><br><span class="line">            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">                remapClassRef(&amp;classrefs[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重新映射类</span></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: remap classes"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Fix up @selector references</span></span><br><span class="line">    static size_t UnfixedSelectors;</span><br><span class="line">    &#123;</span><br><span class="line">        mutex_locker_t lock(selLock);</span><br><span class="line">        <span class="keyword">for</span> (EACH_HEADER) &#123;</span><br><span class="line">            <span class="function"><span class="title">if</span> (hi-&gt;</span>isPreoptimized()) continue;</span><br><span class="line">            </span><br><span class="line">            <span class="function"><span class="title">bool</span> isBundle = hi-&gt;</span>isBundle();</span><br><span class="line">            SEL *sels = _getObjc2SelectorRefs(hi, &amp;count);</span><br><span class="line">            UnfixedSelectors += count;</span><br><span class="line">            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">                const char *<span class="keyword">name</span> = sel_cname(sels[i]);</span><br><span class="line">                <span class="comment">// 3. 注册Sel,并存储到全局变量namedSelectors的list中</span></span><br><span class="line">                sels[i] = sel_registerNameNoLock(<span class="keyword">name</span>, isBundle);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: fix up selector references"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Discover protocols. Fix up protocol refs.</span></span><br><span class="line">    <span class="keyword">for</span> (EACH_HEADER) &#123;</span><br><span class="line">        extern objc_class OBJC_CLASS_$_Protocol;</span><br><span class="line">        Class cls = (Class)&amp;OBJC_CLASS_$_Protocol;</span><br><span class="line">        assert(cls);</span><br><span class="line">        NXMapTable *protocol_map = protocols();</span><br><span class="line">        <span class="function"><span class="title">bool</span> isPreoptimized = hi-&gt;</span>isPreoptimized();</span><br><span class="line">        <span class="function"><span class="title">bool</span> isBundle = hi-&gt;</span>isBundle();</span><br><span class="line">        <span class="comment">//找到所有Protocol并处理引用</span></span><br><span class="line">        protocol_t **protolist = _getObjc2ProtocolList(hi, &amp;count);</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">            readProtocol(protolist[i], cls, protocol_map, </span><br><span class="line">                         isPreoptimized, isBundle);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: discover protocols"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Fix up @protocol references</span></span><br><span class="line">    <span class="comment">// Preoptimized images may have the right </span></span><br><span class="line">    <span class="comment">// answer already but we don't know for sure.</span></span><br><span class="line">    <span class="keyword">for</span> (EACH_HEADER) &#123;</span><br><span class="line">        protocol_t **protolist = _getObjc2ProtocolRefs(hi, &amp;count);</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">            remapProtocolRef(&amp;protolist[i]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: fix up @protocol references"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Realize non-lazy classes (for +load methods and static instances)</span></span><br><span class="line">    <span class="keyword">for</span> (EACH_HEADER) &#123;</span><br><span class="line">        classref_t *classlist = </span><br><span class="line">            _getObjc2NonlazyClassList(hi, &amp;count);</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">            Class cls = remapClass(classlist[i]);</span><br><span class="line">            <span class="keyword">if</span> (!cls) continue;</span><br><span class="line">            addClassTableEntry(cls);</span><br><span class="line">            realizeClass(cls);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: realize non-lazy classes"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Realize newly-resolved future classes, in case CF manipulates them</span></span><br><span class="line">    <span class="keyword">if</span> (resolvedFutureClasses) &#123;</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; resolvedFutureClassCount; i++) &#123;</span><br><span class="line">            realizeClass(resolvedFutureClasses[i]);</span><br><span class="line">            <span class="function"><span class="title">resolvedFutureClasses</span>[i]-&gt;</span>setInstancesRequireRawIsa(<span class="literal">false</span><span class="comment">/*inherited*/</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        free(resolvedFutureClasses);</span><br><span class="line">    &#125;    </span><br><span class="line"></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: realize future classes"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Discover categories. </span></span><br><span class="line">    <span class="keyword">for</span> (EACH_HEADER) &#123;</span><br><span class="line">        category_t **catlist = </span><br><span class="line">            _getObjc2CategoryList(hi, &amp;count);</span><br><span class="line">        <span class="comment">//查看是否包含属性</span></span><br><span class="line">        <span class="function"><span class="title">bool</span> hasClassProperties = hi-&gt;</span><span class="function"><span class="title">info</span>()-&gt;</span>hasCategoryClassProperties();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">            category_t *cat = catlist[i];</span><br><span class="line">            <span class="comment">//获取到所属的类</span></span><br><span class="line">            C<span class="function"><span class="title">lass</span> cls = remapClass(cat-&gt;</span>cls);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!cls) &#123;</span><br><span class="line">                <span class="comment">// Category's target class is missing (probably weak-linked).</span></span><br><span class="line">                <span class="comment">// Disavow any knowledge of this category.</span></span><br><span class="line">                catlist[i] = <span class="literal">nil</span>;</span><br><span class="line">                <span class="keyword">if</span> (PrintConnecting) &#123;</span><br><span class="line">                    _objc_inform(<span class="string">"CLASS: IGNORING category \?\?\?(%s) %p with "</span></span><br><span class="line">                                 <span class="string">"missing weak-linked target class"</span>, </span><br><span class="line">                                 <span class="function"><span class="title">cat</span>-&gt;</span><span class="keyword">name</span>, cat);</span><br><span class="line">                &#125;</span><br><span class="line">                continue;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Process this category. </span></span><br><span class="line">            <span class="comment">// First, register the category with its target class. </span></span><br><span class="line">            <span class="comment">// Then, rebuild the class's method lists (etc) if </span></span><br><span class="line">            <span class="comment">// the class is realized. </span></span><br><span class="line">            bool classExists = NO;</span><br><span class="line">            <span class="comment">//如果有实例方法，协议或者实例属性</span></span><br><span class="line">            <span class="function"><span class="title">if</span> (cat-&gt;</span><span class="function"><span class="title">instanceMethods</span> ||  cat-&gt;</span>protocols  </span><br><span class="line">                ||  <span class="function"><span class="title">cat</span>-&gt;</span>instanceProperties) </span><br><span class="line">            &#123;</span><br><span class="line">                addUnattachedCategoryForClass(cat, cls, hi);</span><br><span class="line">                <span class="function"><span class="title">if</span> (cls-&gt;</span>isRealized()) &#123;</span><br><span class="line">                    <span class="comment">//将分类添到属性，方法，协议添加到对应的类中</span></span><br><span class="line">                    remethodizeClass(cls);</span><br><span class="line">                    classExists = YES;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (PrintConnecting) &#123;</span><br><span class="line">                    _objc_inform(<span class="string">"CLASS: found category -%s(%s) %s"</span>, </span><br><span class="line">                                 <span class="function"><span class="title">cls</span>-&gt;</span><span class="function"><span class="title">nameForLogging</span>(), cat-&gt;</span><span class="keyword">name</span>, </span><br><span class="line">                                 classExists ? <span class="string">"on existing class"</span> : <span class="string">""</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//如果有类方法，协议或者类属性</span></span><br><span class="line">            <span class="function"><span class="title">if</span> (cat-&gt;</span><span class="function"><span class="title">classMethods</span>  ||  cat-&gt;</span>protocols  </span><br><span class="line">                ||  (<span class="function"><span class="title">hasClassProperties</span> &amp;&amp; cat-&gt;</span>_classProperties)) </span><br><span class="line">            &#123;</span><br><span class="line">                <span class="function"><span class="title">addUnattachedCategoryForClass</span>(cat, cls-&gt;</span>ISA(), hi);</span><br><span class="line">                <span class="function"><span class="title">if</span> (cls-&gt;</span>ISA()-&gt;isRealized()) &#123;</span><br><span class="line">                    <span class="function"><span class="title">remethodizeClass</span>(cls-&gt;</span>ISA());</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (PrintConnecting) &#123;</span><br><span class="line">                    _objc_inform(<span class="string">"CLASS: found category +%s(%s)"</span>, </span><br><span class="line">                                 <span class="function"><span class="title">cls</span>-&gt;</span><span class="function"><span class="title">nameForLogging</span>(), cat-&gt;</span><span class="keyword">name</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ts.<span class="built_in">log</span>(<span class="string">"IMAGE TIMES: discover categories"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Category discovery MUST BE LAST to avoid potential races </span></span><br><span class="line">    <span class="comment">// when other threads call the new category code before </span></span><br><span class="line">    <span class="comment">// this thread finishes its fixups.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// +load handled by prepare_load_methods()</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (DebugNonFragileIvars) &#123;</span><br><span class="line">        realizeAllClasses();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>map_images 最关键的代码在_read_images方法中，<strong><strong>_read_images</strong></strong>故名思议就是读取镜像，在这个方法中会从镜像的_DATA区域通过<strong><strong>_getObjc2XXXX</strong></strong>将该镜像的类列表，分类列表，协议列表读取出来，对应的方法以及读取的session部分可以查看如下声明，这里需要提一下_DATA区域中的这些session数据是由编译器写入的。</p>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">//      function name                 content type     section name</span><br><span class="line">GETSECT(<span class="name">_getObjc2SelectorRefs</span>,        SEL,             <span class="string">"__objc_selrefs"</span>)<span class="comment">; </span></span><br><span class="line">GETSECT(<span class="name">_getObjc2MessageRefs</span>,         message_ref_t,   <span class="string">"__objc_msgrefs"</span>)<span class="comment">; </span></span><br><span class="line">GETSECT(<span class="name">_getObjc2ClassRefs</span>,           Class,           <span class="string">"__objc_classrefs"</span>)<span class="comment">;</span></span><br><span class="line">GETSECT(<span class="name">_getObjc2SuperRefs</span>,           Class,           <span class="string">"__objc_superrefs"</span>)<span class="comment">;</span></span><br><span class="line">GETSECT(<span class="name">_getObjc2ClassList</span>,           classref_t,      <span class="string">"__objc_classlist"</span>)<span class="comment">;</span></span><br><span class="line">GETSECT(<span class="name">_getObjc2NonlazyClassList</span>,    classref_t,      <span class="string">"__objc_nlclslist"</span>)<span class="comment">;</span></span><br><span class="line">GETSECT(<span class="name">_getObjc2CategoryList</span>,        category_t *,    "__objc_catlist");</span><br><span class="line">GETSECT(_getObjc2NonlazyCategoryList, category_t *,    <span class="string">"__objc_nlcatlist"</span>)<span class="comment">;</span></span><br><span class="line">GETSECT(<span class="name">_getObjc2ProtocolList</span>,        protocol_t *,    "__objc_protolist");</span><br><span class="line">GETSECT(_getObjc2ProtocolRefs,        protocol_t *,    <span class="string">"__objc_protorefs"</span>)<span class="comment">;</span></span><br><span class="line">GETSECT(<span class="name">getLibobjcInitializers</span>,       UnsignedInitializer, <span class="string">"__objc_init_func"</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>这个方法的每个阶段结束都会调用ts.log(“IMAGE TIMES:XXXXXX)来提示每个阶段结束，在这些阶段中有我们之前分析过的Catogies 加载，以及协议加载。我们重点看下最末尾的realizeAllClasses方法：</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">static void realizeAllClasses(void)</span><br><span class="line">&#123;</span><br><span class="line">    runtimeLock.assertLocked()<span class="comment">;</span></span><br><span class="line">    header_info *hi<span class="comment">;</span></span><br><span class="line">    for (hi = FirstHeader<span class="comment">; hi; hi = hi-&gt;getNext()) &#123;</span></span><br><span class="line">        realizeAllClassesInImage(hi)<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">static void realizeAllClassesInImage(<span class="name">header_info</span> *hi) &#123;</span><br><span class="line"></span><br><span class="line">    runtimeLock.assertLocked();</span><br><span class="line"></span><br><span class="line">    size_t count, i;</span><br><span class="line">    classref_t *classlist<span class="comment">;</span></span><br><span class="line"></span><br><span class="line">    if (<span class="name">hi-&gt;areAllClassesRealized</span>()) return<span class="comment">;</span></span><br><span class="line"></span><br><span class="line">    classlist = _getObjc2ClassList(<span class="name">hi</span>, <span class="symbol">&amp;count</span>)<span class="comment">;</span></span><br><span class="line"></span><br><span class="line">    for (<span class="name">i</span> = <span class="number">0</span><span class="comment">; i &lt; count; i++) &#123;</span></span><br><span class="line">        realizeClass(<span class="name">remapClass</span>(<span class="name">classlist</span>[i]))<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    hi-&gt;setAllClassesRealized(<span class="name">YES</span>)<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>realizeAllClasses会对镜像中的所有class调用realizeClass方法。</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">static Class realizeClass(Class cls) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    const class_ro_t *ro;</span><br><span class="line">    class_rw_t *rw;</span><br><span class="line">    Class supercls;</span><br><span class="line">    Class metacls;</span><br><span class="line">    bool isMeta;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!cls) return <span class="literal">nil</span>;               <span class="comment">//cls 不能为空</span></span><br><span class="line">    <span class="function"><span class="title">if</span> (cls-&gt;</span>isRealized()) return cls;  <span class="comment">//cls 如果已经初始化直接返回</span></span><br><span class="line">    assert(cls == remapClass(cls));     <span class="comment">//cls 没有重新分配，remapClass 返回指向cls的实时指针</span></span><br><span class="line">    <span class="comment">// 【✨】获取只读结构体</span></span><br><span class="line">    <span class="function"><span class="title">ro</span> = (const class_ro_t *)cls-&gt;</span><span class="keyword">data</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Normal class. Allocate writeable class data.</span></span><br><span class="line">    rw = (class_rw_t *)calloc(sizeof(class_rw_t), <span class="number">1</span>);           <span class="comment">//分配读写数据</span></span><br><span class="line">    <span class="function"><span class="title">rw</span>-&gt;</span>ro = ro;                                                <span class="comment">//只写数据</span></span><br><span class="line">    <span class="function"><span class="title">rw</span>-&gt;</span>flags = RW_REALIZED|RW_REALIZING;                       <span class="comment">//设置已经初始化标志</span></span><br><span class="line">    <span class="function"><span class="title">cls</span>-&gt;</span>setData(rw);                                           <span class="comment">//为cls设置data数据</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">isMeta</span> = ro-&gt;</span>flags &amp; RO_META;                                   <span class="comment">//判断是否是元类</span></span><br><span class="line">    <span class="function"><span class="title">rw</span>-&gt;</span>version = isMeta ? <span class="number">7</span> : <span class="number">0</span>;  <span class="comment">// old runtime went up to 6      //版本信息，旧版本的版本信息为6</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">// Realize superclass and metaclass, if they aren't already.</span></span><br><span class="line">    <span class="comment">// This needs to be done after RW_REALIZED is set above, for root classes.</span></span><br><span class="line">    <span class="comment">// This needs to be done after class index is chosen, for root metaclasses.</span></span><br><span class="line">    <span class="comment">// 【✨】为supercls，metacls 分配空间</span></span><br><span class="line">    <span class="function"><span class="title">supercls</span> = realizeClass(remapClass(cls-&gt;</span>superclass));</span><br><span class="line">    <span class="function"><span class="title">metacls</span> = realizeClass(remapClass(cls-&gt;</span>ISA()));</span><br><span class="line"></span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 【✨】 Update superclass and metaclass in case of remapping</span></span><br><span class="line">    <span class="function"><span class="title">cls</span>-&gt;</span><span class="function"><span class="title">superclass</span> = supercls; //将supercls赋给 cls-&gt;</span>superclass</span><br><span class="line">    <span class="comment">//将上面分配的metacls赋给cls</span></span><br><span class="line">    <span class="function"><span class="title">cls</span>-&gt;</span>initClassIsa(metacls);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 调整实例变量的偏移和布局，这个将会重新分配class_ro_t</span></span><br><span class="line">    <span class="comment">// Reconcile instance variable offsets / layout.</span></span><br><span class="line">    <span class="comment">// This may reallocate class_ro_t, updating our ro variable.</span></span><br><span class="line">    <span class="keyword">if</span> (supercls  &amp;&amp;  !isMeta) reconcileInstanceVariables(cls, supercls, ro);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//设置对象尺寸</span></span><br><span class="line">    <span class="comment">// Set fastInstanceSize if it wasn't set already.</span></span><br><span class="line">    <span class="function"><span class="title">cls</span>-&gt;</span><span class="function"><span class="title">setInstanceSize</span>(ro-&gt;</span>instanceSize);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//【✨】从ro中拷贝部分标志位到rw 字段</span></span><br><span class="line">    <span class="comment">// Copy some flags from ro to rw</span></span><br><span class="line">    <span class="function"><span class="title">if</span> (ro-&gt;</span>flags &amp; RO_HAS_CXX_STRUCTORS) &#123;</span><br><span class="line">        <span class="function"><span class="title">cls</span>-&gt;</span>setHasCxxDtor();</span><br><span class="line">        <span class="function"><span class="title">if</span> (! (ro-&gt;</span>flags &amp; RO_HAS_CXX_DTOR_ONLY)) &#123;</span><br><span class="line">            <span class="function"><span class="title">cls</span>-&gt;</span>setHasCxxCtor();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 【✨】 Connect this class to its superclass's subclass lists</span></span><br><span class="line">    <span class="comment">// 将当前class与父类相关连</span></span><br><span class="line">    <span class="keyword">if</span> (supercls) &#123;</span><br><span class="line">        <span class="comment">//将当前类作为supercls的子类添加到父类的子类列表</span></span><br><span class="line">        addSubclass(supercls, cls);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//将当前类作为根类</span></span><br><span class="line">        addRootClass(cls);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//【✨】实例化类结构</span></span><br><span class="line">    <span class="comment">// Attach categories</span></span><br><span class="line">    <span class="comment">// 使得类有条理</span></span><br><span class="line">    methodizeClass(cls);</span><br><span class="line"></span><br><span class="line">    return cls;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>realizeClass 方法实际上是为类的class_rw_t，superclass，metacls等分配空间，并初始化。在最后的时候会调用methodizeClass进行进一步的初始化：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">static void methodizeClass(Class cls)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//检查锁</span></span><br><span class="line">    runtimeLock.assertLocked();</span><br><span class="line">    <span class="comment">//是否是元类</span></span><br><span class="line">    <span class="function"><span class="title">bool</span> isMeta = cls-&gt;</span>isMetaClass();</span><br><span class="line">    <span class="comment">//获取可读写字段</span></span><br><span class="line">    <span class="function"><span class="title">auto</span> rw = cls-&gt;</span><span class="keyword">data</span>();</span><br><span class="line">    <span class="comment">//获取只读字段</span></span><br><span class="line">    <span class="function"><span class="title">auto</span> ro = rw-&gt;</span>ro;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Install methods and properties that the class implements itself.</span></span><br><span class="line">    <span class="comment">// 加载类自身实现的方法和属性</span></span><br><span class="line">    <span class="function"><span class="title">method_list_t</span> *list = ro-&gt;</span>baseMethods();</span><br><span class="line">    <span class="keyword">if</span> (list) &#123;</span><br><span class="line">        prepareMethodLists(cls, &amp;list<span class="comment">/*自身实现的方法列表*/</span>, <span class="number">1</span>, YES, isBundleClass(cls));</span><br><span class="line">        <span class="comment">//将ro-&gt;baseMethods方法添加到rw-&gt;methods</span></span><br><span class="line">        <span class="function"><span class="title">rw</span>-&gt;</span>methods.attachLists(&amp;list, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">property_list_t</span> *proplist = ro-&gt;</span>baseProperties;</span><br><span class="line">    <span class="keyword">if</span> (proplist) &#123;</span><br><span class="line">        <span class="comment">//将ro-&gt;baseProperties方法添加到rw-&gt;properties</span></span><br><span class="line">        <span class="function"><span class="title">rw</span>-&gt;</span>properties.attachLists(&amp;proplist, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">protocol_list_t</span> *protolist = ro-&gt;</span>baseProtocols;</span><br><span class="line">    <span class="keyword">if</span> (protolist) &#123;</span><br><span class="line">        <span class="comment">//将ro-&gt;baseProtocols方法添加到rw-&gt;protocols</span></span><br><span class="line">        <span class="function"><span class="title">rw</span>-&gt;</span>protocols.attachLists(&amp;protolist, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Root classes get bonus method implementations if they don't have </span></span><br><span class="line">    <span class="comment">// them already. These apply before category replacements.</span></span><br><span class="line">    <span class="function"><span class="title">if</span> (cls-&gt;</span>isRootMetaclass()) &#123;</span><br><span class="line">        <span class="comment">// root metaclass</span></span><br><span class="line">        addMethod(cls, SEL_initialize, (IMP)&amp;objc_noop_imp, <span class="string">""</span>, NO);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Attach categories.</span></span><br><span class="line">    <span class="comment">// 获取未添加的分类</span></span><br><span class="line">    category_list *cats = unattachedCategoriesForClass(cls, <span class="literal">true</span> <span class="comment">/*realizing*/</span>);</span><br><span class="line">    <span class="comment">// 添加分类</span></span><br><span class="line">    attachCategories(cls, cats, <span class="literal">false</span> <span class="comment">/*don't flush caches*/</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (cats) free(cats);</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>methodizeClass方法则进一步初始化rw，这一步将ro中的属性，协议，方法拷贝到rw，以及将分类中对应的属性，协议，方法也拷贝到class中的rw对应字段。</p>
+<p>回顾整个map_image阶段就是在镜像实例话结束后，通过读取_DATA中的指定session数据，来读出整个镜像中各个class的关键数据，并构建objc_class数据结构对象，通过从_DATA中读取的数据来填充objc_class来完成整个类的实例化。</p>
+<ul>
+<li><h5 id="load-images"><a href="#load-images" class="headerlink" title="load_images"></a><strong><strong>load_images</strong></strong></h5></li>
+</ul>
+<p>load方法是我们在日常开发中可以接触到的调用时间最靠前的方法，它的调用不是惰性的，在主函数运行之前，load 方法就会调用，并且它只会在程序调用期间调用一次，最重要的是，如果在类与分类中都实现了 load 方法，它们都会被调用，<br>不像其它的在分类中实现的方法会被覆盖，但是在使用load方法的时候需要注意，由于load方法的运行时间过早，所以可能不是一个理想的环境，因为它不能保证某些类可能需要在在其它类之前加载，但是在这个时间点，所有的 framework 都已经加载到了运行时中，所以调用 framework 中的方法都是安全的，同时需要注意的是重载Class 的 +load 方法时不能调父类super，我们来看下这部分逻辑：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span></span><br><span class="line">load_images(<span class="keyword">const</span> <span class="keyword">char</span> *path __unused, <span class="keyword">const</span> struct mach_header *mh)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">// Discover load methods</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function"><span class="keyword">mutex_locker_t</span> <span class="title">lock2</span><span class="params">(runtimeLock)</span></span>;</span><br><span class="line">        <span class="comment">//prepare_load_methods方法中对load方法进行了前期准备</span></span><br><span class="line">        prepare_load_methods((<span class="keyword">const</span> headerType *)mh);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 调用+load方法</span></span><br><span class="line">    <span class="comment">// Call +load methods (without runtimeLock - re-entrant)</span></span><br><span class="line">    call_load_methods();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>load_images 方法中主要调用了prepare_load_methods 以及 call_load_methods</p>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">void prepare_load_methods(<span class="name">const</span> headerType *mhdr)</span><br><span class="line">&#123;</span><br><span class="line">    //....</span><br><span class="line">    //获取类</span><br><span class="line">    classref_t *classlist = </span><br><span class="line">        _getObjc2NonlazyClassList(<span class="name">mhdr</span>, <span class="symbol">&amp;count</span>)<span class="comment">;</span></span><br><span class="line">    for (<span class="name">i</span> = <span class="number">0</span><span class="comment">; i &lt; count; i++) &#123;</span></span><br><span class="line">        schedule_class_load(<span class="name">remapClass</span>(<span class="name">classlist</span>[i]))<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //添加分类</span><br><span class="line">    category_t **categorylist = _getObjc2NonlazyCategoryList(<span class="name">mhdr</span>, <span class="symbol">&amp;count</span>)<span class="comment">;</span></span><br><span class="line">    for (<span class="name">i</span> = <span class="number">0</span><span class="comment">; i &lt; count; i++) &#123;</span></span><br><span class="line">        category_t *cat = categorylist[i];</span><br><span class="line">        Class cls = remapClass(cat-&gt;cls);</span><br><span class="line">        if (!cls) continue;  // category for ignored weak-linked class</span><br><span class="line">        realizeClass(cls);</span><br><span class="line">        assert(cls-&gt;ISA()-&gt;isRealized());</span><br><span class="line">        add_category_to_loadable_list(cat);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> void schedule_class_load(<span class="class"><span class="keyword">Class</span> <span class="title">cls</span>)</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls) <span class="keyword">return</span>;</span><br><span class="line">    assert(cls-&gt;isRealized());  <span class="comment">// _read_images should realize</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (cls-&gt;data()-&gt;flags &amp; RW_LOADED) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//先加载父类</span></span><br><span class="line">    <span class="comment">// Ensure superclass-first ordering</span></span><br><span class="line">    <span class="comment">//分析这段代码，可以知道，在将子类添加到加载列表之前，其父类一定会优先加载到列表中。</span></span><br><span class="line">    <span class="comment">//这也是为何父类的+load方法在子类的+load方法之前调用的根本原因。</span></span><br><span class="line">    schedule_class_load(cls-&gt;superclass);</span><br><span class="line">    <span class="comment">//将类添加到可加载列表</span></span><br><span class="line">    add_class_to_loadable_list(cls);</span><br><span class="line">    cls-&gt;setInfo(RW_LOADED); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>prepare_load_methods 以及 schedule_class_load方法会按照父类，子类，分类的顺序将需要调用load方法的class添加到loadable_list中去</p>
+<figure class="highlight oxygene"><table><tr><td class="code"><pre><span class="line">void add_class_to_loadable_list(<span class="keyword">Class</span> cls)</span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">    IMP method;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    loadMethodLock.assertLocked();</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    //该类是否有load方法</span></span><br><span class="line"><span class="comment">    method = cls-&gt;getLoadMethod();</span></span><br><span class="line"><span class="comment">    if (!method) return;  // Don't bother if cls has no +load method</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    //........</span></span><br><span class="line"><span class="comment">    if (loadable_classes_used == loadable_classes_allocated) &#123;</span></span><br><span class="line"><span class="comment">        loadable_classes_allocated = loadable_classes_allocated*2 + 16;</span></span><br><span class="line"><span class="comment">        loadable_classes = (struct loadable_class *)</span></span><br><span class="line"><span class="comment">            realloc(loadable_classes,</span></span><br><span class="line"><span class="comment">                              loadable_classes_allocated *</span></span><br><span class="line"><span class="comment">                              sizeof(struct loadable_class));</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"></span><br><span class="line">    loadable_classes[loadable_classes_used].cls = cls;</span><br><span class="line">    loadable_classes[loadable_classes_used]<span class="function">.<span class="keyword">method</span> = <span class="title">method</span>;</span></span><br><span class="line">    loadable_classes_used++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight oxygene"><table><tr><td class="code"><pre><span class="line">void add_category_to_loadable_list(Category cat)</span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">    IMP method;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    loadMethodLock.assertLocked();</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    //该分类是否有load方法</span></span><br><span class="line"><span class="comment">    method = _category_getLoadMethod(cat);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    if (!method) return;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    if (loadable_categories_used == loadable_categories_allocated) &#123;</span></span><br><span class="line"><span class="comment">        loadable_categories_allocated = loadable_categories_allocated*2 + 16;</span></span><br><span class="line"><span class="comment">        loadable_categories = (struct loadable_category *)</span></span><br><span class="line"><span class="comment">            realloc(loadable_categories,</span></span><br><span class="line"><span class="comment">                              loadable_categories_allocated *</span></span><br><span class="line"><span class="comment">                              sizeof(struct loadable_category));</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"></span><br><span class="line">    loadable_categories[loadable_categories_used].cat = cat;</span><br><span class="line">    loadable_categories[loadable_categories_used]<span class="function">.<span class="keyword">method</span> = <span class="title">method</span>;</span></span><br><span class="line">    loadable_categories_used++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用类以及分类中的load方法</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="comment"><span class="markdown">/<span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span>*</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>call<span class="emphasis">_load_</span>methods</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>Call all pending class and category +load methods.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>Class +load methods </span>are<span class="markdown"> called superclass-first. </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>Category +load methods </span>are<span class="markdown"> not called until after </span>the<span class="markdown"> parent class's +load.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span></span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>This method must be RE-ENTRANT, because </span>a<span class="markdown"> +load could trigger </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span></span>more<span class="markdown"> image mapping. In addition, </span>the<span class="markdown"> superclass-first ordering </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>must be preserved in </span>the<span class="markdown"> face of re-entrant calls. Therefore, </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>only </span>the<span class="markdown"> OUTERMOST call of this function </span>will<span class="markdown"> do anything, and </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>that call </span>will<span class="markdown"> handle all loadable classes, even those generated </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>while it was running.</span></span></span><br><span class="line"><span class="comment"><span class="markdown">*</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>The sequence below preserves +load ordering in </span>the<span class="markdown"> face of </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>image loading during </span>a<span class="markdown"> +load, and make sure that no </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>+load method is forgotten because it was added during </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span></span>a<span class="markdown"> +load call.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>Sequence:</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>1. Repeatedly call class +loads until there aren't any </span>more</span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>2. Call category +loads ONCE.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>3. Run </span>more<span class="markdown"> +loads if:</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">*    </span>(</span>a<span class="markdown">) there </span>are<span class="markdown"> </span>more<span class="markdown"> classes to load, OR</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">*    </span>(b) there </span>are<span class="markdown"> some potential category +loads that have </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">*        </span>still never been attempted.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>Category +loads </span>are<span class="markdown"> only run once to ensure "parent class first" </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>ordering, even if </span>a<span class="markdown"> category +load triggers </span>a<span class="markdown"> new loadable class </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>and </span>a<span class="markdown"> new loadable category attached to that class. </span></span></span><br><span class="line"><span class="comment"><span class="markdown">*</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>Locking: loadMethodLock must be held by </span>the<span class="markdown"> caller </span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">*   </span>All other locks must not be held.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span>/</span></span></span><br><span class="line"><span class="keyword">void</span> call_load_methods(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">bool</span> loading = NO;</span><br><span class="line">    <span class="built_in">bool</span> more_categories;</span><br><span class="line"></span><br><span class="line">    loadMethodLock.assertLocked();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Re-entrant calls do nothing; the outermost call will finish the job.</span></span><br><span class="line">    <span class="keyword">if</span> (loading) <span class="keyword">return</span>;</span><br><span class="line">    loading = YES;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">void</span> *pool = objc_autoreleasePoolPush();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">// 1. Repeatedly call class +loads until there aren't any more</span></span><br><span class="line">        <span class="keyword">while</span> (loadable_classes_used &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">//调用类的load方法</span></span><br><span class="line">            call_class_loads();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. Call category +loads ONCE</span></span><br><span class="line">        <span class="comment">//调用分类的load方法</span></span><br><span class="line">        more_categories = call_category_loads();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. Run more +loads if there are classes OR more untried categories</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (loadable_classes_used &gt; <span class="number">0</span>  ||  more_categories);</span><br><span class="line"></span><br><span class="line">    objc_autoreleasePoolPop(pool);</span><br><span class="line"></span><br><span class="line">    loading = NO;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">call_class_loads</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// Detach current loadable list.</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">loadable_class</span> *<span class="title">classes</span> = <span class="title">loadable_classes</span>;</span><span class="comment">/*这是preppare阶段构造的*/</span></span><br><span class="line">    <span class="keyword">int</span> used = loadable_classes_used;</span><br><span class="line">    loadable_classes = nil;</span><br><span class="line">    loadable_classes_allocated = <span class="number">0</span>;</span><br><span class="line">    loadable_classes_used = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Call all +loads for the detached list.</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; used; i++) &#123;</span><br><span class="line">        Class cls = classes[i].cls;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">load_method_t</span> load_method = (<span class="keyword">load_method_t</span>)classes[i].method;</span><br><span class="line">        <span class="keyword">if</span> (!cls) <span class="keyword">continue</span>; </span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (PrintLoading) &#123;</span><br><span class="line">            _objc_inform(<span class="string">"LOAD: +[%s load]\n"</span>, cls-&gt;nameForLogging());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//调用+load方法</span></span><br><span class="line">        (*load_method)(cls, SEL_load);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Destroy the detached list.</span></span><br><span class="line">    <span class="keyword">if</span> (classes) <span class="built_in">free</span>(classes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line">static <span class="keyword">bool</span> <span class="built_in">call_category_loads</span>(void)</span><br><span class="line">&#123;</span><br><span class="line">    int i, shift;</span><br><span class="line">    <span class="keyword">bool</span> new_categories_added = NO;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Detach current loadable list.</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="type">loadable_category</span> *cats = loadable_categories;<span class="comment">/*数据来源 在prepare阶段构建*/</span></span><br><span class="line">    int used = loadable_categories_used;</span><br><span class="line">    int allocated = loadable_categories_allocated;</span><br><span class="line">    loadable_categories = nil;</span><br><span class="line">    loadable_categories_allocated = <span class="number">0</span>;</span><br><span class="line">    loadable_categories_used = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Call all +loads for the detached list.</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; used; i++) &#123;</span><br><span class="line">        Category cat = cats[i].cat;</span><br><span class="line">        load_method_t load_method = (load_method_t)cats[i].method;</span><br><span class="line">        Class <span class="keyword">cls</span>;</span><br><span class="line">        <span class="keyword">if</span> (!cat) <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">        cls = <span class="built_in">_category_getClass</span>(cat);</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">cls</span>  &amp;&amp;  <span class="keyword">cls</span>-&gt;<span class="built_in">isLoadable</span>()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (PrintLoading) &#123;</span><br><span class="line">                <span class="built_in">_objc_inform</span>(<span class="string">"LOAD: +[%s(%s) load]\n"</span>, </span><br><span class="line">                             cls-&gt;<span class="built_in">nameForLogging</span>(), </span><br><span class="line">                             <span class="built_in">_category_getName</span>(cat));</span><br><span class="line">            &#125;</span><br><span class="line">            (*load_method)(<span class="keyword">cls</span>, SEL_load);</span><br><span class="line">            cats[i].cat = nil;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Compact detached list (order-preserving)</span></span><br><span class="line">    shift = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; used; i++) &#123;</span><br><span class="line">        if (cats[i].cat) &#123;</span><br><span class="line">            cats[i-shift] = cats[i];</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            shift++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    used -= shift;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Copy any new +load candidates from the new list to the detached list.</span></span><br><span class="line">    new_categories_added = (loadable_categories_used &gt; <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; loadable_categories_used; i++) &#123;</span><br><span class="line">        if (used == allocated) &#123;</span><br><span class="line">            allocated = allocated*2 + 16;</span><br><span class="line">            cats = (<span class="keyword">struct</span> <span class="type">loadable_category</span> *)</span><br><span class="line">                <span class="built_in">realloc</span>(cats, allocated *</span><br><span class="line">                                  <span class="built_in">sizeof</span>(struct loadable_category));</span><br><span class="line">        &#125;</span><br><span class="line">        cats[used++] = loadable_categories[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Destroy the new list.</span></span><br><span class="line">    <span class="keyword">if</span> (loadable_categories) <span class="built_in">free</span>(loadable_categories);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Reattach the (now augmented) detached list. </span></span><br><span class="line">    <span class="comment">// But if there's nothing left to load, destroy the list.</span></span><br><span class="line">    <span class="keyword">if</span> (used) &#123;</span><br><span class="line">        loadable_categories = cats;</span><br><span class="line">        loadable_categories_used = used;</span><br><span class="line">        loadable_categories_allocated = allocated;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (cats) <span class="built_in">free</span>(cats);</span><br><span class="line">        loadable_categories = nil;</span><br><span class="line">        loadable_categories_used = <span class="number">0</span>;</span><br><span class="line">        loadable_categories_allocated = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PrintLoading) &#123;</span><br><span class="line">        <span class="keyword">if</span> (loadable_categories_used != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">_objc_inform</span>(<span class="string">"LOAD: %d categories still waiting for +load\n"</span>,</span><br><span class="line">                         loadable_categories_used);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> new_categories_added;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们在这篇博客的最后对整个过程进行一个简单的总结：</p>
+<p>在应用启动的时候会从镜像中查找dyld的地址，而后将dyld加载进来，找到dyld的入口地址__dyld_start,并将后续工作交给 dyld 负责：</p>
+<ol>
+<li>dyld 开始将程序二进制文件实例化为一个ImageLoader</li>
+<li>交由 ImageLoader 读取 image 其中包含了我们的类、方法等各种符号，以及根据Mach-O的Load Commands段加载所有依赖的动态库并完成链接，初始化工作。在主程序初始化阶段，runtime会向dyld绑定回调。</li>
+<li>当image加载到内存后，dyld 会通知 runtime 进行处理，runtime 接手后调用 map_images 做解析和处理，接下来 load_images 中调用 call_load_methods 方法，<br>遍历所有加载进来的 Class，按继承层级依次调用 Class 的 +load 方法和其 Category 的 +load 方法</li>
+<li>当map_images以及load_images执行完毕之后可执行文件中和动态库所有的符号（Class，Protocol，Selector，IMP，…）都已经按格式成功加载到内存中，被 runtime 所管理。</li>
+<li>所有初始化工作结束后，dyld 调用真正的 main 函数，紧接着dyld 会清理现场，将调用栈回归，只剩下main函数。</li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-相关/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2020/02/02/iOS-Runtime源码解析消息处理/" title="iOS Runtime源码解析消息处理">
+  <span>
+  iOS Runtime源码解析消息处理</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2020/02/02/iOS-Runtime源码解析重要的数据结构介绍/"  title="iOS Runtime源码解析重要的数据结构介绍">
+ <span>iOS Runtime源码解析重要的数据结构介绍
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2020/02/02/iOS-Runtime源码解析-Runtime初始化/" data-title="iOS Runtime源码解析 Runtime初始化" data-url="http://yoursite.com/2020/02/02/iOS-Runtime源码解析-Runtime初始化/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#map-images"><span class="toc-number">1.</span> <span class="toc-text">map_images</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#load-images"><span class="toc-number">2.</span> <span class="toc-text">load_images</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-源码/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-签名/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-事件处理进阶/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-动画进阶/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-多线程开发/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-小经验/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-常用第三方库/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-开发流程/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-开源源码/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-绘图进阶/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-自动化测试/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-自定义View进阶/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-设计模式/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android其他/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android基础/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android开发流程/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android性能优化/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android混淆技术/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android质量管理工具/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android逆向工程/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-使用/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-使用/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-相关/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-工具使用/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-开源库分析/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-理论基础/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-进阶/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/代码规范/" style="font-size: 10px;">代码规范</a> <a href="/tags/博客分类目录/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/叨叨系列/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/工具的使用/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/开源代码分析/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/开源库分析/" style="font-size: 10px;">开源库分析</a> <a href="/tags/杂类/" style="font-size: 10px;">杂类</a> <a href="/tags/树莓派/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/直播/" style="font-size: 12.86px;">直播</a> <a href="/tags/编程技巧/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/网站收藏/" style="font-size: 10px;">网站收藏</a> <a href="/tags/重要控件/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2021 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

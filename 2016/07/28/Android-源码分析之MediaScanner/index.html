@@ -1,0 +1,772 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>Android-源码分析之MediaScanner[1] | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="MediaScanner媒体扫描器顾名思义就是用于扫描手机内部多媒体文件的信息，并将这些信息存储到数据库中的模块。我们今天就针对MediaScanner这个模块进行分析学习一下： 普通文件的扫描流程扫描请求的接收者  MediaScannerReceiverMediaScannerReceiver 继承自BroadcastReceiver它是通过静态注册的方式进行注册的：&amp;lt;receiver">
+<meta name="keywords" content="AOSP 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android-源码分析之MediaScanner[1]">
+<meta property="og:url" content="http://yoursite.com/2016/07/28/Android-源码分析之MediaScanner/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="MediaScanner媒体扫描器顾名思义就是用于扫描手机内部多媒体文件的信息，并将这些信息存储到数据库中的模块。我们今天就针对MediaScanner这个模块进行分析学习一下： 普通文件的扫描流程扫描请求的接收者  MediaScannerReceiverMediaScannerReceiver 继承自BroadcastReceiver它是通过静态注册的方式进行注册的：&amp;lt;receiver">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2016-08-05T23:55:00.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android-源码分析之MediaScanner[1]">
+<meta name="twitter:description" content="MediaScanner媒体扫描器顾名思义就是用于扫描手机内部多媒体文件的信息，并将这些信息存储到数据库中的模块。我们今天就针对MediaScanner这个模块进行分析学习一下： 普通文件的扫描流程扫描请求的接收者  MediaScannerReceiverMediaScannerReceiver 继承自BroadcastReceiver它是通过静态注册的方式进行注册的：&amp;lt;receiver">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto">等待执剑少年修炼归来！</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/28/Android-源码分析之MediaScanner/" title="Android-源码分析之MediaScanner[1]" itemprop="url">Android-源码分析之MediaScanner[1]</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-28T04:37:45.000Z" itemprop="datePublished"> Published 2016-07-28</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>MediaScanner媒体扫描器顾名思义就是用于扫描手机内部多媒体文件的信息，并将这些信息存储到数据库中的模块。我们今天就针对MediaScanner这个模块进行分析学习一下：</p>
+<h4 id="普通文件的扫描流程"><a href="#普通文件的扫描流程" class="headerlink" title="普通文件的扫描流程"></a>普通文件的扫描流程</h4><h5 id="扫描请求的接收者-MediaScannerReceiver"><a href="#扫描请求的接收者-MediaScannerReceiver" class="headerlink" title="扫描请求的接收者  MediaScannerReceiver"></a>扫描请求的接收者  MediaScannerReceiver</h5><p>MediaScannerReceiver 继承自BroadcastReceiver它是通过静态注册的方式进行注册的：<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">receiver</span> <span class="attr">android:name</span>=<span class="string">"MediaScannerReceiver"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.BOOT_COMPLETED"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.MEDIA_MOUNTED"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">data</span> <span class="attr">android:scheme</span>=<span class="string">"file"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.MEDIA_UNMOUNTED"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">data</span> <span class="attr">android:scheme</span>=<span class="string">"file"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.MEDIA_SCANNER_SCAN_FILE"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">data</span> <span class="attr">android:scheme</span>=<span class="string">"file"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>从上面的代码可以看出MediaScannerReceiver接受三种扫描请求广播：</p>
+<ul>
+<li>Intent.ACTION_BOOT_COMPLETED:开机广播，在收到开机广播后会扫描内部和外部存储路径下的多媒体文件。</li>
+<li>Intent.ACTION_MEDIA_MOUNTED:在某个外部存储器加载的时候。</li>
+<li>Intent.ACTION_MEDIA_UNMOUNTED: 在某个外部存储器卸载的时候</li>
+<li>Intent.ACTION_MEDIA_SCANNER_SCAN_FILE：在接受到对某个文件进行扫描的请求的时候调用scanFile方法进行扫描。</li>
+</ul>
+<p>那每种广播到来的时候又会进行怎样的响应呢？<br><figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="literal">void</span> onReceive(Context context, Intent intent) &#123;</span><br><span class="line">    final <span class="built_in">String</span> action = intent.getAction();</span><br><span class="line">    final Uri uri = intent.getData();</span><br><span class="line">    <span class="comment">//收到开机广播后扫描</span></span><br><span class="line">    <span class="keyword">if</span> (Intent.ACTION_BOOT_COMPLETED.<span class="keyword">equals</span>(action)) &#123;</span><br><span class="line">        <span class="comment">// Scan both internal and external storage</span></span><br><span class="line">         <span class="comment">//扫描内部存储器中/system/media里面的内容，存放的是铃声等多媒体文件</span></span><br><span class="line">        scan(context, MediaProvider.INTERNAL_VOLUME);</span><br><span class="line">        <span class="comment">//扫描手机的外部存储实际扫描的是/mnt/sdcard/</span></span><br><span class="line">        scan(context, MediaProvider.EXTERNAL_VOLUME);</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (uri.getScheme().<span class="keyword">equals</span>(<span class="string">"file"</span>)) &#123;</span><br><span class="line">            <span class="comment">// handle intents related to external storage</span></span><br><span class="line">            <span class="built_in">String</span> path = uri.getPath();</span><br><span class="line">            <span class="built_in">String</span> externalStoragePath = Environment.getExternalStorageDirectory().getPath();</span><br><span class="line">            <span class="built_in">String</span> legacyPath = Environment.getLegacyExternalStorageDirectory().getPath();</span><br><span class="line">            try &#123;</span><br><span class="line">                path = <span class="literal">new</span> File(path).getCanonicalPath();</span><br><span class="line">            &#125; catch (IOException e) &#123;</span><br><span class="line">                <span class="keyword">Log</span>.e(<span class="built_in">TAG</span>, <span class="string">"couldn't canonicalize "</span> + path);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (path.startsWith(legacyPath)) &#123;</span><br><span class="line">                path = externalStoragePath + path.substring(legacyPath.length());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">Log</span>.d(<span class="built_in">TAG</span>, <span class="string">"action: "</span> + action + <span class="string">" path: "</span> + path);</span><br><span class="line">            <span class="comment">//收到外部存储器加载完成广播的扫描</span></span><br><span class="line">            <span class="keyword">if</span> (Intent.ACTION_MEDIA_MOUNTED.<span class="keyword">equals</span>(action)) &#123;</span><br><span class="line">                <span class="comment">// scan whenever any volume is mounted</span></span><br><span class="line">                scan(context, MediaProvider.EXTERNAL_VOLUME);</span><br><span class="line">                <span class="comment">//如果请求的是扫描路径，并且要扫描的属于外部存储路径则开始扫描</span></span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Intent.ACTION_MEDIA_SCANNER_SCAN_FILE.<span class="keyword">equals</span>(action) &amp;&amp;</span><br><span class="line">                    path != <span class="built_in">null</span> &amp;&amp; path.startsWith(externalStoragePath + <span class="string">"/"</span>)) &#123;</span><br><span class="line">                scanFile(context, path);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们看到整个扫描归结于scan和scanFile两个方法的调用。特别是scan方法既能够扫描外部存储又能扫描手机内存，唯一的区别是传入的参数不一样而已。我们接下来就来看下这部分的实现：</p>
+<figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">private void scan(Context <span class="built_in">context</span>, String volume) &#123;</span><br><span class="line">    Bundle <span class="built_in">args</span> = <span class="built_in">new</span> Bundle();</span><br><span class="line">    <span class="built_in">args</span>.putString(<span class="string">"volume"</span>, volume);</span><br><span class="line">    <span class="built_in">context</span>.startService(</span><br><span class="line">            <span class="built_in">new</span> Intent(<span class="built_in">context</span>, MediaScannerService.class).putExtras(<span class="built_in">args</span>));</span><br><span class="line">&#125;    </span><br><span class="line"></span><br><span class="line">private void scanFile(Context <span class="built_in">context</span>, String path) &#123;</span><br><span class="line">    Bundle <span class="built_in">args</span> = <span class="built_in">new</span> Bundle();</span><br><span class="line">    <span class="built_in">args</span>.putString(<span class="string">"filepath"</span>, path);</span><br><span class="line">    <span class="built_in">context</span>.startService(</span><br><span class="line">            <span class="built_in">new</span> Intent(<span class="built_in">context</span>, MediaScannerService.class).putExtras(<span class="built_in">args</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>很简单吧，就直接将路径传递给MediaScannerService就OK了，唯一的不同是携带数据的时候key不一样。</p>
+<p>当调用startService后就会启动MediaScannerService，接下来就来看下MediaSannerService</p>
+<h5 id="扫描处理的后台处理者-MediaScannerService"><a href="#扫描处理的后台处理者-MediaScannerService" class="headerlink" title="扫描处理的后台处理者 MediaScannerService"></a>扫描处理的后台处理者 MediaScannerService</h5><p>在Scan和ScanFile启动首次MediaScannerService的时候MediaScannerService会调用onCreate方法创建这个服务，在onCreate中最重要的工作是启动一个线程用于扫描任务，因为Service运行在主线程中，如果直接在Service中执行扫描任务的话会阻塞主线程。</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> onCreate()</span><br><span class="line">&#123;</span><br><span class="line">    PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);</span><br><span class="line">    mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);</span><br><span class="line">    StorageManager storageManager = (StorageManager)getSystemService(Context.STORAGE_SERVICE);</span><br><span class="line">    mExternalStoragePaths = storageManager.getVolumePaths();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Start up the thread running the service.  Note that we create a</span></span><br><span class="line">    <span class="comment">// separate thread because the service normally runs in the process's</span></span><br><span class="line">    <span class="comment">// main thread, which we don't want to block.</span></span><br><span class="line">    Thread thr = <span class="keyword">new</span> Thread(<span class="keyword">null</span>, <span class="keyword">this</span>, <span class="string">"MediaScannerService"</span>);</span><br><span class="line">    thr.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么在扫描线程thr中又是做了哪些工作呢？从run方法中可以看出在thr线程中主要是创建了一个ServiceHandler。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// reduce priority below other background threads to avoid interfering</span></span><br><span class="line">    <span class="comment">// with other services at boot time.</span></span><br><span class="line">    <span class="built_in">Process</span>.setThreadPriority(<span class="built_in">Process</span>.THREAD_PRIORITY_BACKGROUND +<span class="built_in">Process</span>.THREAD_PRIORITY_LESS_FAVORABLE);</span><br><span class="line">    Looper.<span class="built_in">prepare</span>();</span><br><span class="line"></span><br><span class="line">    mServiceLooper = Looper.myLooper();</span><br><span class="line">    mServiceHandler = <span class="keyword">new</span> ServiceHandler();</span><br><span class="line">    Looper.loop();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在之后调用startService的时候，MediaScannerService类中的onStartCommand方法将会被调用。在onStartCommand方法中向mServiceHandler发送扫描请求。在传递给mServiceHandler的消息中包含了从Intent中获取的extra信息，凭借着这个信息可以区分当前的扫描请求是扫描整个valum还是单个文件。</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">int</span> onStartCommand(Intent intent, <span class="keyword">int</span> flags, <span class="keyword">int</span> startId)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">while</span> (mServiceHandler == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                wait(<span class="number">100</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (intent == <span class="keyword">null</span>) &#123;</span><br><span class="line">        Log.e(TAG, <span class="string">"Intent is null in onStartCommand: "</span>,</span><br><span class="line">            <span class="keyword">new</span> NullPointerException());</span><br><span class="line">        <span class="keyword">return</span> Service.START_NOT_STICKY;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Message msg = mServiceHandler.obtainMessage();</span><br><span class="line">    msg.arg1 = startId;</span><br><span class="line">    msg.obj = intent.getExtras();</span><br><span class="line">    mServiceHandler.sendMessage(msg);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try again later if we are killed before we can finish scanning.</span></span><br><span class="line">    <span class="keyword">return</span> Service.START_REDELIVER_INTENT;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ServiceHandler</span> <span class="keyword">extends</span> <span class="title">Handler</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void handleMessage(<span class="type">Message</span> msg)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">Bundle</span> arguments = (<span class="type">Bundle</span>) msg.obj;</span><br><span class="line">        <span class="type">String</span> filePath = arguments.getString(<span class="string">"filepath"</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//这是扫描单个文件的情况</span></span><br><span class="line">            <span class="keyword">if</span> (filePath != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="type">IBinder</span> binder = arguments.getIBinder(<span class="string">"listener"</span>);</span><br><span class="line">                <span class="type">IMediaScannerListener</span> listener = </span><br><span class="line">                        (binder == <span class="literal">null</span> ? <span class="literal">null</span> : <span class="type">IMediaScannerListener</span>.<span class="type">Stub</span>.asInterface(binder));</span><br><span class="line">                <span class="type">Uri</span> uri = <span class="literal">null</span>;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="comment">//调用scanFile方法</span></span><br><span class="line">                    uri = scanFile(filePath, arguments.getString(<span class="string">"mimetype"</span>));</span><br><span class="line">                &#125; <span class="keyword">catch</span> (<span class="type">Exception</span> e) &#123;</span><br><span class="line">                    <span class="type">Log</span>.e(<span class="type">TAG</span>, <span class="string">"Exception scanning file"</span>, e);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (listener != <span class="literal">null</span>) &#123;</span><br><span class="line">                    listener.scanCompleted(filePath, uri);</span><br><span class="line">                &#125;</span><br><span class="line">            <span class="comment">//这是扫描一个目录的情况</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="type">String</span> volume = arguments.getString(<span class="string">"volume"</span>);</span><br><span class="line">                <span class="type">String</span>[] directories = <span class="literal">null</span>;</span><br><span class="line">                <span class="keyword">if</span> (<span class="type">MediaProvider</span>.<span class="type">INTERNAL_VOLUME</span>.equals(volume)) &#123;</span><br><span class="line">                    <span class="comment">//这是扫描内部存储的情况</span></span><br><span class="line">                    <span class="comment">// scan internal media storage</span></span><br><span class="line">                    directories = <span class="keyword">new</span> <span class="type">String</span>[] &#123;</span><br><span class="line">                            <span class="type">Environment</span>.getRootDirectory() + <span class="string">"/media"</span>,</span><br><span class="line">                            <span class="type">Environment</span>.getOemDirectory() + <span class="string">"/media"</span>,</span><br><span class="line">                    &#125;;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (<span class="type">MediaProvider</span>.<span class="type">EXTERNAL_VOLUME</span>.equals(volume)) &#123;</span><br><span class="line">                    <span class="comment">// scan external storage volumes</span></span><br><span class="line">                    <span class="comment">//这是扫描外部存储的情况</span></span><br><span class="line">                    directories = mExternalStoragePaths;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (directories != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (<span class="literal">false</span>) <span class="type">Log</span>.d(<span class="type">TAG</span>, <span class="string">"start scanning volume "</span> + volume + <span class="string">": "</span></span><br><span class="line">                            + <span class="type">Arrays</span>.toString(directories));</span><br><span class="line">                    <span class="comment">//调用scan方法</span></span><br><span class="line">                    scan(directories, volume);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="literal">false</span>) <span class="type">Log</span>.d(<span class="type">TAG</span>, <span class="string">"done scanning volume "</span> + volume);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (<span class="type">Exception</span> e) &#123;</span><br><span class="line">            <span class="type">Log</span>.e(<span class="type">TAG</span>, <span class="string">"Exception in handleMessage"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//扫描结束后退出服务</span></span><br><span class="line">        stopSelf(msg.arg1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>从上面代码中可以看出在mServiceHandler方法中，首先提取Intent中携带的信息，如果有携带关键字为filepath的数据则说明的是需要扫描的为文件，则调用scanFile方法对指定文件路径的文件进行扫描，如果携带的是关键字为volume的数据则说明当前扫描请求为扫描加载卷，调用的方法为scan方法。</p>
+<p>接下来我们重点关注对存储器加载卷的扫描过程。对单个文件的扫描原理大致相同。</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">private <span class="keyword">void</span> scan(<span class="built_in">String</span>[] directories, <span class="built_in">String</span> volumeName) &#123;</span><br><span class="line">    <span class="built_in">Uri</span> uri = <span class="built_in">Uri</span>.parse(<span class="string">"file://"</span> + directories[<span class="number">0</span>]);</span><br><span class="line">    <span class="comment">// don't sleep while scanning</span></span><br><span class="line">    <span class="comment">//获取唤醒锁，避免在扫描的时候手机发生睡眠</span></span><br><span class="line">    mWakeLock.acquire();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ContentValues values = <span class="keyword">new</span> ContentValues();</span><br><span class="line">        values.put(MediaStore.MEDIA_SCANNER_VOLUME, volumeName);</span><br><span class="line">        <span class="built_in">Uri</span> scanUri = getContentResolver().insert(MediaStore.getMediaScannerUri(), values);</span><br><span class="line">            </span><br><span class="line">        <span class="comment">//发送ACTION_MEDIA_SCANNER_STARTED广播通知系统其他部件扫描即将开始</span></span><br><span class="line">        sendBroadcast(<span class="keyword">new</span> Intent(Intent.ACTION_MEDIA_SCANNER_STARTED, uri));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (volumeName.equals(MediaProvider.EXTERNAL_VOLUME)) &#123;</span><br><span class="line">                openDatabase(volumeName);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//创建MediaScanner开始扫描</span></span><br><span class="line">            MediaScanner scanner = createMediaScanner();</span><br><span class="line">            scanner.scanDirectories(directories, volumeName);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            Log.e(TAG, <span class="string">"exception in MediaScanner.scan()"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        getContentResolver().delete(scanUri, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">//通知其他部件扫描结束</span></span><br><span class="line">        sendBroadcast(<span class="keyword">new</span> Intent(Intent.ACTION_MEDIA_SCANNER_FINISHED, uri));</span><br><span class="line">        <span class="comment">//释放唤醒锁</span></span><br><span class="line">        mWakeLock.release();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>于扫描过程是一个耗时的过程，因此在开始扫描之前必须获得电源锁，避免在扫描过程中手机休眠，在扫描结束后释放电源锁。在扫描开始之前会向系统发送一个Intent.ACTION_MEDIA_SCANNER_STARTED的广播，通知系统的其他部件扫描过程的开始，其他部件可以通过监听这个广播。来采取对应的处理，同样在扫描结束后会向系统发送一个Intent.ACTION_MEDIA_SCANNER_FINISHED广播。而扫描任务是通过创建一个MediaScanner对象，并调用scanDirectories方法来实现的。</p>
+<p>在应用层转了一圈后终于进入frameworks层了，我们看下frameworks层的MediaScanner类<br>在MediaScanner类中首先加载media_jni库，并调用native_init这个native方法。<br><figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">static &#123;</span><br><span class="line">    System.loadLibrary(<span class="string">"media_jni"</span>)<span class="comment">;</span></span><br><span class="line">    native_init()<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">public MediaScanner(Context c) &#123;</span><br><span class="line">    native_setup()<span class="comment">;</span></span><br><span class="line">    mContext = c<span class="comment">;</span></span><br><span class="line">    mPackageName = c.getPackageName()<span class="comment">;</span></span><br><span class="line">    mBitmapOptions.inSampleSize = <span class="number">1</span><span class="comment">;</span></span><br><span class="line">    mBitmapOptions.inJustDecodeBounds = true<span class="comment">;</span></span><br><span class="line"></span><br><span class="line">    setDefaultRingtoneFileNames()<span class="comment">;</span></span><br><span class="line"></span><br><span class="line">    mExternalStoragePath = Environment.getExternalStorageDirectory().getAbsolutePath()<span class="comment">;</span></span><br><span class="line">    mExternalIsEmulated = Environment.isExternalStorageEmulated()<span class="comment">;</span></span><br><span class="line">    //mClient.testGenreNameConverter()<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在MediaScanner的构造方法中最重要的是调用了native_setup()方法，native_setup也是一个native方法。<br>接下来我们看下native_init和native_setup这两个native方法。<br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">android_media_MediaScanner_native_init(JNIEnv *env)</span><br><span class="line">&#123;</span><br><span class="line">    jclass clazz = env-&gt;FindClass(kClassMediaScanner);</span><br><span class="line">    <span class="keyword">if</span> (clazz == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    fields.context = env-&gt;GetFieldID(clazz, <span class="string">"mNativeContext"</span>, <span class="string">"J"</span>);</span><br><span class="line">    <span class="keyword">if</span> (fields.context == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>native_init负责获取MediaScanner中的mNativeContext变量并保存到fields.context<br>native_setup负责创建一个MediaScanner的子类StagefrightMediaScanner并将native_init获取到的上下文传给StagefrightMediaScanner对象。<br><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">static void</span><br><span class="line">android_media_MediaScanner_native_setup(<span class="name">JNIEnv</span> *env, jobject thiz)</span><br><span class="line">&#123;</span><br><span class="line">    MediaScanner *mp = new StagefrightMediaScanner<span class="comment">;</span></span><br><span class="line">    if (<span class="name">mp</span> == NULL) &#123;</span><br><span class="line">        jniThrowException(<span class="name">env</span>, kRunTimeException, <span class="string">"Out of memory"</span>)<span class="comment">;</span></span><br><span class="line">        return<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">    env-&gt;SetLongField(<span class="name">thiz</span>, fields.context, (<span class="name">jlong</span>)mp)<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着我们看下scanDirectories方法：</p>
+<figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> scanDirectories(<span class="keyword">String</span>[] directories, <span class="keyword">String</span> volumeName) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="comment">//1.扫描前预处理</span></span><br><span class="line">    initialize(volumeName);</span><br><span class="line">    <span class="comment">//2. 预扫描</span></span><br><span class="line">    prescan(<span class="keyword">null</span>, <span class="keyword">true</span>);</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="keyword">if</span> (ENABLE_BULK_INSERTS) &#123;</span><br><span class="line">        <span class="comment">// create MediaInserter for bulk inserts</span></span><br><span class="line">        mMediaInserter = <span class="keyword">new</span> MediaInserter(mMediaProvider, mPackageName, <span class="number">500</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; directories.length; i++) &#123;</span><br><span class="line">        <span class="comment">//3.扫描某个目录</span></span><br><span class="line">        processDirectory(directories[i], mClient);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ENABLE_BULK_INSERTS) &#123;</span><br><span class="line">        <span class="comment">// flush remaining inserts</span></span><br><span class="line">        mMediaInserter.flushAll();</span><br><span class="line">        mMediaInserter = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//4. 扫描后处理</span></span><br><span class="line">    postscan(directories);</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面我们过滤掉所有的无关代码，我们看到整个扫描过程分成如下四个部分：</p>
+<ul>
+<li>initialize 扫描前预处理</li>
+<li>prescan  预扫描</li>
+<li>processDirectory扫描某个目录</li>
+<li>postscan扫描后处理</li>
+</ul>
+<ol>
+<li><p>扫描前预处理:<br>在initialize中主要初始化各种Uri地址：包括音频，视频，图像，图像缩略图，视频缩略图，文件等Uri地址。如果当前扫描的是外部存储器则需要处理播放列表以及风格。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">private void initialize(String volumeName) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="attr">mMediaProvider</span> = mContext.getContentResolver().acquireProvider(<span class="string">"media"</span>);</span><br><span class="line">    <span class="attr">mAudioUri</span> = Audio.Media.getContentUri(volumeName);</span><br><span class="line">    <span class="attr">mVideoUri</span> = Video.Media.getContentUri(volumeName);</span><br><span class="line">    <span class="attr">mImagesUri</span> = Images.Media.getContentUri(volumeName);</span><br><span class="line">    <span class="attr">mThumbsUri</span> = Images.Thumbnails.getContentUri(volumeName);</span><br><span class="line">    <span class="attr">mFilesUri</span> = Files.getContentUri(volumeName);</span><br><span class="line">    <span class="attr">mFilesUriNoNotify</span> = mFilesUri.buildUpon().appendQueryParameter(<span class="string">"nonotify"</span>, <span class="string">"1"</span>).build();</span><br><span class="line">    <span class="keyword">if</span> (!volumeName.equals(<span class="string">"internal"</span>)) &#123;</span><br><span class="line">        // we only support playlists on external media</span><br><span class="line">        <span class="attr">mProcessPlaylists</span> = <span class="literal">true</span>;</span><br><span class="line">        <span class="attr">mProcessGenres</span> = <span class="literal">true</span>;</span><br><span class="line">        <span class="attr">mPlaylistsUri</span> = Playlists.getContentUri(volumeName);</span><br><span class="line">        <span class="attr">mCaseInsensitivePaths</span> = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>预扫描处理:<br>预扫描处理主要完成如下工作：</p>
+</li>
+</ol>
+<ul>
+<li>建立mPlayLists，因为在主扫描过程中对于播放列表是放到后面处理的，所以要新建一个mPlayLists用于存储播放列表文件记录，在beginFile扫到播放列表的时候需要先将其存储到mPlayLists中，等到postscan阶段对其进行统一处理。</li>
+<li>扫描数据库并查找数据库中的每一项的本地文件是否存在，这里每次只扫描1000条数据，避免因为加载太多数据而出现卡顿现象，需要注意的是这里并不需要删除真实的文件这是因为如果文件确实消失了则不需要删除，如果是因为在扫描期间文件系统被卸载而后又挂载，这时候删除操作也是不需要的。如果当前项所对应的本地文件不存在，则看下是否是播放列表文件，如果不是播放列表文件则从数据库中删除。如果是播放列表类型则不删除，因为这有可能是由于播放列表信息被用户修改导致的。用户可以在播放器中删除它们。</li>
+<li>在清空缺乏实际文件的数据项后重新查询图片数目，音频，视频的数目</li>
+</ul>
+<figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> prescan(<span class="keyword">String</span> filePath, <span class="built_in">boolean</span> prescanFiles) <span class="keyword">throws</span> RemoteException &#123;</span><br><span class="line">    Cursor c = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">String</span> where = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">String</span>[] selectionArgs = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">//建立mPlayLists</span></span><br><span class="line">    <span class="keyword">if</span> (mPlayLists == <span class="keyword">null</span>) &#123;</span><br><span class="line">        mPlayLists = <span class="keyword">new</span> ArrayList&lt;FileEntry&gt;();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        mPlayLists.<span class="built_in">clear</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//通过上述处理mPlayLists将会被清空，</span></span><br><span class="line">    <span class="keyword">if</span> (filePath != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// query for only one file</span></span><br><span class="line">        where = MediaStore.Files.FileColumns._ID + <span class="string">"&gt;?"</span> +<span class="string">" AND "</span> + Files.FileColumns.DATA + <span class="string">"=?"</span>;</span><br><span class="line">        selectionArgs = <span class="keyword">new</span> <span class="keyword">String</span>[] &#123; <span class="string">""</span>, filePath &#125;;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        where = MediaStore.Files.FileColumns._ID + <span class="string">"&gt;?"</span>;</span><br><span class="line">        selectionArgs = <span class="keyword">new</span> <span class="keyword">String</span>[] &#123; <span class="string">""</span> &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Tell the provider to not delete the file.</span></span><br><span class="line">    <span class="comment">// If the file is truly gone the delete is unnecessary, and we want to avoid</span></span><br><span class="line">    <span class="comment">// accidentally deleting files that are really there (this may happen if the</span></span><br><span class="line">    <span class="comment">// filesystem is mounted and unmounted while the scanner is running).</span></span><br><span class="line">    <span class="comment">//在这里告诉provider不要删除那些通过扫描发现不存在的文件，</span></span><br><span class="line">    为的是避免在扫描的时候文件系统卸载了，但是在以后的时候又挂载上了。</span><br><span class="line">    Uri.Builder builder = mFilesUri.buildUpon();</span><br><span class="line">    builder.appendQueryParameter(MediaStore.PARAM_DELETE_DATA, <span class="string">"false"</span>);</span><br><span class="line">    MediaBulkDeleter deleter = <span class="keyword">new</span> MediaBulkDeleter(mMediaProvider, mPackageName,builder.build());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Build the list of files from the content provider</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (prescanFiles) &#123;</span><br><span class="line">            <span class="comment">// First read existing files from the files table.</span></span><br><span class="line">            <span class="comment">// Because we'll be deleting entries for missing files as we go,</span></span><br><span class="line">            <span class="comment">// we need to query the database in small batches, to avoid problems</span></span><br><span class="line">            <span class="comment">// with CursorWindow positioning.</span></span><br><span class="line">            <span class="keyword">long</span> lastId = Long.MIN_VALUE;</span><br><span class="line">            Uri limitUri = mFilesUri.buildUpon().appendQueryParameter(<span class="string">"limit"</span>, <span class="string">"1000"</span>).build();</span><br><span class="line">            mWasEmptyPriorToScan = <span class="keyword">true</span>;</span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                selectionArgs[<span class="number">0</span>] = <span class="string">""</span> + lastId;</span><br><span class="line">                <span class="keyword">if</span> (c != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    c.close();</span><br><span class="line">                    c = <span class="keyword">null</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                c = mMediaProvider.query(mPackageName, limitUri, FILES_PRESCAN_PROJECTION,where, selectionArgs, MediaStore.Files.FileColumns._ID, <span class="keyword">null</span>);</span><br><span class="line">                <span class="keyword">if</span> (c == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="built_in">int</span> num = c.getCount();</span><br><span class="line">                <span class="keyword">if</span> (num == <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="comment">//如果为0表示已经查询完全部文件信息,退出循环</span></span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                mWasEmptyPriorToScan = <span class="keyword">false</span>;</span><br><span class="line">                <span class="comment">//开始获取这一批查询到的要扫描的路径等信息</span></span><br><span class="line">                <span class="keyword">while</span> (c.moveToNext()) &#123;</span><br><span class="line">                    <span class="keyword">long</span> rowId = c.getLong(FILES_PRESCAN_ID_COLUMN_INDEX);</span><br><span class="line">                    <span class="keyword">String</span> path = c.getString(FILES_PRESCAN_PATH_COLUMN_INDEX);</span><br><span class="line">                    <span class="built_in">int</span> format = c.getInt(FILES_PRESCAN_FORMAT_COLUMN_INDEX);</span><br><span class="line">                    <span class="keyword">long</span> lastModified = c.getLong(FILES_PRESCAN_DATE_MODIFIED_COLUMN_INDEX);</span><br><span class="line">                    lastId = rowId;</span><br><span class="line">                    <span class="comment">// Only consider entries with absolute path names.</span></span><br><span class="line">                    <span class="comment">// This allows storing URIs in the database without the</span></span><br><span class="line">                    <span class="comment">// media scanner removing them.</span></span><br><span class="line">                    <span class="keyword">if</span> (path != <span class="keyword">null</span> &amp;&amp; path.startsWith(<span class="string">"/"</span>)) &#123;</span><br><span class="line">                        <span class="built_in">boolean</span> exists = <span class="keyword">false</span>;</span><br><span class="line">                        <span class="keyword">try</span> &#123;</span><br><span class="line">                            <span class="comment">//查看数据库中对应项的本地文件是否存在</span></span><br><span class="line">                            exists = Os.access(path, android.system.OsConstants.F_OK);</span><br><span class="line">                        &#125; <span class="keyword">catch</span> (ErrnoException e1) &#123;</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">if</span> (!exists &amp;&amp; !MtpConstants.isAbstractObject(format)) &#123;</span><br><span class="line">                            <span class="comment">// do not delete missing playlists, since they may have been</span></span><br><span class="line">                            <span class="comment">// modified by the user.</span></span><br><span class="line">                            <span class="comment">// The user can delete them in the media player instead.</span></span><br><span class="line">                            <span class="comment">// instead, clear the path and lastModified fields in the row</span></span><br><span class="line">                            MediaFile.MediaFileType mediaFileType = MediaFile.getFileType(path);</span><br><span class="line">                            <span class="built_in">int</span> fileType = (mediaFileType == <span class="keyword">null</span> ? <span class="number">0</span> : mediaFileType.fileType);</span><br><span class="line">                            </span><br><span class="line">                            <span class="comment">//如果当前记录在数据库中存在，在本地中文件并不存在，</span></span><br><span class="line">                            <span class="comment">//并且丢失的文件类型不是播放列表则将记录从数据库中删除</span></span><br><span class="line">                            <span class="comment">//如果是播放列表类型则不删除</span></span><br><span class="line">                            <span class="keyword">if</span> (!MediaFile.isPlayListFileType(fileType)) &#123;</span><br><span class="line">                                deleter.delete(rowId);</span><br><span class="line">                                <span class="keyword">if</span> (path.toLowerCase(Locale.US).endsWith(<span class="string">"/.nomedia"</span>)) &#123;</span><br><span class="line">                                    deleter.flush();</span><br><span class="line">                                    <span class="keyword">String</span> parent = <span class="keyword">new</span> File(path).getParent();</span><br><span class="line">                                    mMediaProvider.call(mPackageName, MediaStore.UNHIDE_CALL,parent, <span class="keyword">null</span>);</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (c != <span class="keyword">null</span>) &#123;</span><br><span class="line">            c.close();</span><br><span class="line">        &#125;</span><br><span class="line">        deleter.flush();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// compute original size of images</span></span><br><span class="line">    mOriginalCount = <span class="number">0</span>;</span><br><span class="line">    c = mMediaProvider.query(mPackageName, mImagesUri, ID_PROJECTION, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">    <span class="keyword">if</span> (c != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mOriginalCount = c.getCount();</span><br><span class="line">        c.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过预处理保证数据库的文件记录与本地的实际文件将一一对应。紧接着就进入了扫描阶段在scanDirectories方法中将会对每个需要扫描的目录调用processDirectory(directories[i], mClient);方法。processDirectory是一个nativie方法。<br>在JNI层的android_media_MediaScanner_processDirectory将会被调用，在该方法中将会调用native层的MediaScanner.cpp的processDirectory方法。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">android_media_MediaScanner_processDirectory(</span><br><span class="line">        JNIEnv *env, jobject thiz, jstring path, jobject client)</span><br><span class="line">&#123;</span><br><span class="line">    ALOGV(<span class="string">"processDirectory"</span>);</span><br><span class="line">    <span class="comment">//获得Native层的媒体扫描器</span></span><br><span class="line">    MediaScanner *mp = getNativeScanner_l(env, thiz);</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="comment">//这里新建一个MyMediaScannerClient对象然后将其作为参数传递到processDirectory中</span></span><br><span class="line">    <span class="function">MyMediaScannerClient <span class="title">myClient</span><span class="params">(env, client)</span></span>;</span><br><span class="line">    MediaScanResult result = mp-&gt;processDirectory(pathStr, myClient);</span><br><span class="line">    <span class="comment">//............</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight axapta"><table><tr><td class="code"><pre><span class="line">MediaScanResult MediaScanner::processDirectory(</span><br><span class="line">        const <span class="keyword">char</span> *path, MediaScannerClient &amp;<span class="keyword">client</span>) &#123;</span><br><span class="line">    <span class="comment">//..........</span></span><br><span class="line">    <span class="keyword">client</span>.setLocale(locale());</span><br><span class="line">    <span class="comment">////调用doProcessDirectory处理</span></span><br><span class="line">    MediaScanResult result = doProcessDirectory(pathBuffer, pathRemaining, <span class="keyword">client</span>, <span class="keyword">false</span>);</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们继续看下native层MediaScannner是如何完成扫描工作的：在MediaScannner中的processDirectory 方法中会对每个扫描路径调用一次processDirectory方法，这里的path为外部存储的或者内部存储的路径</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">MediaScanResult MediaScanner::doProcessDirectory(</span><br><span class="line">        <span class="keyword">char</span> *path, int pathRemaining, MediaScannerClient &amp;client, bool noMedia) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="keyword">DIR</span>* <span class="keyword">dir</span> = opendir(path);</span><br><span class="line">    <span class="comment">//...........</span></span><br><span class="line">    MediaScanResult result = MEDIA_SCAN_RESULT_OK;</span><br><span class="line">    <span class="keyword">while</span> ((entry = readdir(<span class="keyword">dir</span>))) &#123;</span><br><span class="line">        <span class="keyword">if</span> (doProcessDirectoryEntry(path, pathRemaining, client, noMedia, entry, fileSpot) == MEDIA_SCAN_RESULT_ERROR) &#123;</span><br><span class="line">            result = MEDIA_SCAN_RESULT_ERROR;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    closedir(<span class="keyword">dir</span>);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>doProcessDirectory这个方法会对每个主路径下的子文件调用doProcessDirectoryEntry进行扫描。<br>在开始扫描之前需事先判断当前的文件类型，并根据不同的文件类型进行不同的处理：</p>
+<ul>
+<li>如果当前文件类型为目录则直接调用client.scanFile方法，将扫描的工作交给MyMediaScannerClient，紧接着调用doProcessDirectory对该目录下的子文件再进行递归扫描。</li>
+<li>如果当前文件类型为普通文件类型则直接调用client.scanFile方法，但是与文件类型为目录不同的是当文件类型为普通文件类型的时候调用client.scanFile的时候传入isDirectory参数为false。</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">MediaScanResult <span class="title">MediaScanner::doProcessDirectoryEntry</span><span class="params">(<span class="keyword">char</span> *path, <span class="keyword">int</span> pathRemaining, MediaScannerClient &amp;client, <span class="keyword">bool</span> noMedia,struct dirent* entry, <span class="keyword">char</span>* fileSpot)</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">statbuf</span>;</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* name = entry-&gt;d_name;</span><br><span class="line">    <span class="keyword">if</span> (type == DT_DIR) &#123;</span><br><span class="line">        <span class="comment">// report the directory to the client</span></span><br><span class="line">        <span class="comment">//如果是目录类型</span></span><br><span class="line">        <span class="keyword">if</span> (stat(path, &amp;statbuf) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">//调用client.scanFile扫描目录：这里的isDirectory = true</span></span><br><span class="line">            <span class="keyword">status_t</span> status = client.scanFile(path, statbuf.st_mtime, <span class="number">0</span>,<span class="literal">true</span> <span class="comment">/*isDirectory*/</span>, childNoMedia);</span><br><span class="line">            <span class="keyword">if</span> (status) &#123;</span><br><span class="line">                <span class="keyword">return</span> MEDIA_SCAN_RESULT_ERROR;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// and now process its contents</span></span><br><span class="line">        <span class="comment">//在这个地方开始扫描该目录的子文件</span></span><br><span class="line">        <span class="built_in">strcat</span>(fileSpot, <span class="string">"/"</span>);</span><br><span class="line">        MediaScanResult result = doProcessDirectory(path, pathRemaining - nameLength - <span class="number">1</span>, client, childNoMedia);</span><br><span class="line">        <span class="keyword">if</span> (result == MEDIA_SCAN_RESULT_ERROR) &#123;</span><br><span class="line">            <span class="keyword">return</span> MEDIA_SCAN_RESULT_ERROR;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (type == DT_REG) &#123;</span><br><span class="line">        <span class="comment">//如果是普通文件  这里的isDirectory = false</span></span><br><span class="line">        stat(path, &amp;statbuf);</span><br><span class="line">        <span class="keyword">status_t</span> status = client.scanFile(path, statbuf.st_mtime, statbuf.st_size,<span class="literal">false</span> <span class="comment">/*isDirectory*/</span>, noMedia);</span><br><span class="line">        <span class="keyword">if</span> (status) &#123;</span><br><span class="line">            <span class="keyword">return</span> MEDIA_SCAN_RESULT_ERROR;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> MEDIA_SCAN_RESULT_OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不论怎样这里都是调用的client.scanFile只不过，传入的isDirectory不一样罢了。大家还记得client为MyMediaScannerClient吧，我们就来看下这个方法：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">status_t</span> <span class="title">scanFile</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* path, <span class="keyword">long</span> <span class="keyword">long</span> lastModified,</span></span></span><br><span class="line"><span class="function"><span class="params">            <span class="keyword">long</span> <span class="keyword">long</span> fileSize, <span class="keyword">bool</span> <span class="built_in">isDirectory</span>, <span class="keyword">bool</span> noMedia)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    mEnv-&gt;CallVoidMethod(mClient, mScanFileMethodID, pathStr, lastModified,</span><br><span class="line">            fileSize, <span class="built_in">isDirectory</span>, noMedia);</span><br><span class="line">     <span class="comment">//......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上述方法中主要调用的是mEnv-&gt;CallVoidMethod(mClient, mScanFileMethodID, pathStr, lastModified,fileSize, isDirectory, noMedia);这是调用哪个方法呢？要解决这个问题必须找到mScanFileMethodID<br><figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">MyMediaScannerClient(JNIEnv *env, jobject client)</span><br><span class="line">        :   mEnv(env),</span><br><span class="line">            <span class="function"><span class="title">mClient</span>(env-&gt;</span>NewGlobalRef(client)),</span><br><span class="line">            mScanFileMethodID(<span class="number">0</span>),</span><br><span class="line">            mHandleStringTagMethodID(<span class="number">0</span>),</span><br><span class="line">            mSetMimeTypeMethodID(<span class="number">0</span>)</span><br><span class="line">&#123;</span><br><span class="line">    jclass mediaScannerClientInterface =</span><br><span class="line">            <span class="function"><span class="title">env</span>-&gt;</span>FindClass(kClassMediaScannerClient);</span><br><span class="line">    <span class="comment">// static const char* const kClassMediaScannerClient =</span></span><br><span class="line">    <span class="string">"android/media/MediaScannerClient"</span>;</span><br><span class="line">    <span class="keyword">if</span> (mediaScannerClientInterface == NULL) &#123;</span><br><span class="line">        ALOGE(<span class="string">"Class %s not found"</span>, kClassMediaScannerClient);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="function"><span class="title">mScanFileMethodID</span> = env-&gt;</span>GetMethodID(</span><br><span class="line">                                mediaScannerClientInterface,</span><br><span class="line">                                <span class="string">"scanFile"</span>,</span><br><span class="line">                                <span class="string">"(Ljava/lang/String;JJZZ)V"</span>);</span><br><span class="line">        <span class="function"><span class="title">mHandleStringTagMethodID</span> = env-&gt;</span>GetMethodID(</span><br><span class="line">                                mediaScannerClientInterface,</span><br><span class="line">                                <span class="string">"handleStringTag"</span>,</span><br><span class="line">                                <span class="string">"(Ljava/lang/String;Ljava/lang/String;)V"</span>);</span><br><span class="line">        <span class="function"><span class="title">mSetMimeTypeMethodID</span> = env-&gt;</span>GetMethodID(</span><br><span class="line">                                mediaScannerClientInterface,</span><br><span class="line">                                <span class="string">"setMimeType"</span>,</span><br><span class="line">                                <span class="string">"(Ljava/lang/String;)V"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>从上面可以看出MyMediaScannerClient实例中的scanFile方法实际上是调用位于MediaScanner.java文件中的MyMediaScannerClient的ScanFile方法：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">scanFile</span><span class="params">(<span class="keyword">String</span> path, <span class="keyword">long</span> lastModified, <span class="keyword">long</span> fileSize,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">boolean</span> <span class="built_in">isDirectory</span>, <span class="keyword">boolean</span> noMedia)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// This is the callback funtion from native codes.</span></span><br><span class="line">    <span class="comment">// Log.v(TAG, "scanFile: "+path);</span></span><br><span class="line">    doScanFile(path, null, lastModified, fileSize, <span class="built_in">isDirectory</span>, <span class="literal">false</span>, noMedia);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ScanFile方法很简单就直接调用doScanFile方法。在doScanFile方法中将会进入下一个重要的阶段—获取音频视频文件的TAG数据。但是在介绍这个重要阶段之前还是先介绍下beginFile。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Uri <span class="title">doScanFile</span><span class="params">(<span class="keyword">String</span> path, <span class="keyword">String</span> mimeType, <span class="keyword">long</span> lastModified,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">long</span> fileSize, <span class="keyword">boolean</span> <span class="built_in">isDirectory</span>, <span class="keyword">boolean</span> scanAlways, <span class="keyword">boolean</span> noMedia)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//调用beginFile</span></span><br><span class="line">    FileEntry entry = beginFile(path, mimeType, lastModified,</span><br><span class="line">            fileSize, <span class="built_in">isDirectory</span>, noMedia);</span><br><span class="line">           </span><br><span class="line">    <span class="keyword">if</span> (entry != null &amp;&amp; (entry.mLastModifiedChanged || scanAlways)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (noMedia) &#123;</span><br><span class="line">            </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">String</span> lowpath = path.toLowerCase(Locale.ROOT);</span><br><span class="line">            <span class="keyword">boolean</span> ringtones = (lowpath.indexOf(RINGTONES_DIR) &gt; <span class="number">0</span>);</span><br><span class="line">            <span class="keyword">boolean</span> notifications = (lowpath.indexOf(NOTIFICATIONS_DIR) &gt; <span class="number">0</span>);</span><br><span class="line">            <span class="keyword">boolean</span> alarms = (lowpath.indexOf(ALARMS_DIR) &gt; <span class="number">0</span>);</span><br><span class="line">            <span class="keyword">boolean</span> podcasts = (lowpath.indexOf(PODCAST_DIR) &gt; <span class="number">0</span>);</span><br><span class="line">            <span class="keyword">boolean</span> music = (lowpath.indexOf(MUSIC_DIR) &gt; <span class="number">0</span>) ||</span><br><span class="line">                (!ringtones &amp;&amp; !notifications &amp;&amp; !alarms &amp;&amp; !podcasts);</span><br><span class="line">            <span class="keyword">boolean</span> isaudio = MediaFile.isAudioFileType(mFileType);</span><br><span class="line">            <span class="keyword">boolean</span> isvideo = MediaFile.isVideoFileType(mFileType);</span><br><span class="line">            <span class="keyword">boolean</span> isimage = MediaFile.isImageFileType(mFileType);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (isaudio || isvideo || isimage) &#123;</span><br><span class="line">                path = Environment.maybeTranslateEmulatedPathToInternal(<span class="keyword">new</span> <span class="built_in">File</span>(path))</span><br><span class="line">                        .getAbsolutePath();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//如果为音频或者视频文件抽取元数据</span></span><br><span class="line">            <span class="comment">// we only extract metadata for audio and video files</span></span><br><span class="line">            <span class="keyword">if</span> (isaudio || isvideo) &#123;</span><br><span class="line">                processFile(path, mimeType, <span class="keyword">this</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//如果是图像则调用processImageFile</span></span><br><span class="line">            <span class="keyword">if</span> (isimage) &#123;</span><br><span class="line">                processImageFile(path);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//调用endFile</span></span><br><span class="line">            result = endFile(entry, ringtones, notifications, alarms, music, podcasts);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>beginFile故名思议就是在扫描前进行的一些处理:</p>
+<ul>
+<li>如果当前扫描的文件是普通文件则确定当前普通文件的文件类型。</li>
+<li>使用当前path参数到数据库中进行查询，这时候有两种情况，该文件的记录已经存在数据库中了，这时候使用path在数据库中找到对应的文件信息，并使用这些信息来创建一个FileEntry，如果当前的文件是新添加的文件，则在数据中并没有关于这个文件的信息，则new出一个新的FileEntry：<br>entry = new FileEntry(0, path, lastModified,(isDirectory ? MtpConstants.FORMAT_ASSOCIATION : 0));</li>
+<li>如果当前文件是播放列表类型则将其先存储到mPlayLists中，在主扫描进程中先不做处理。</li>
+<li>清空元数据，为接下来的扫描做准备。<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">public FileEntry beginFile(String path, String mimeType, long lastModified,long fileSize, boolean isDirectory, boolean noMedia) &#123;</span><br><span class="line">    <span class="attr">mMimeType</span> = mimeType;</span><br><span class="line">    <span class="attr">mFileType</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="attr">mFileSize</span> = fileSize;</span><br><span class="line">    <span class="attr">mIsDrm</span> = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!isDirectory) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!noMedia &amp;&amp; isNoMediaFile(path)) &#123;</span><br><span class="line">            <span class="attr">noMedia</span> = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="attr">mNoMedia</span> = noMedia;</span><br><span class="line"></span><br><span class="line">        // try mimeType first, <span class="keyword">if</span> it is specified</span><br><span class="line">        <span class="keyword">if</span> (mimeType != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="attr">mFileType</span> = MediaFile.getFileTypeForMimeType(mimeType);</span><br><span class="line">        &#125;</span><br><span class="line">        // <span class="keyword">if</span> mimeType was not specified, compute file type based on file extension.</span><br><span class="line">        <span class="keyword">if</span> (<span class="attr">mFileType</span> == <span class="number">0</span>) &#123;</span><br><span class="line">            MediaFile.MediaFileType <span class="attr">mediaFileType</span> = MediaFile.getFileType(path);</span><br><span class="line">            <span class="keyword">if</span> (mediaFileType != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="attr">mFileType</span> = mediaFileType.fileType;</span><br><span class="line">                <span class="keyword">if</span> (<span class="attr">mMimeType</span> == <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="attr">mMimeType</span> = mediaFileType.mimeType;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (isDrmEnabled() &amp;&amp; MediaFile.isDrmFileType(mFileType)) &#123;</span><br><span class="line">            <span class="attr">mFileType</span> = getFileTypeFromDrm(path);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    //使用path查询数据库，在数据库中找到对应的文件信息，</span><br><span class="line">    并使用这些信息来创建一个FileEntry</span><br><span class="line">    FileEntry <span class="attr">entry</span> = makeEntryFor(path);</span><br><span class="line">    // add some slack to avoid a rounding error</span><br><span class="line">    long <span class="attr">delta</span> = (entry != <span class="literal">null</span>) ? (lastModified - entry.mLastModified) : <span class="number">0</span>;</span><br><span class="line">    boolean <span class="attr">wasModified</span> = delta &gt; <span class="number">1</span> || delta &lt; -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="attr">entry</span> == <span class="literal">null</span> || wasModified) &#123;</span><br><span class="line">        <span class="keyword">if</span> (wasModified) &#123;</span><br><span class="line">            entry.<span class="attr">mLastModified</span> = lastModified;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="attr">entry</span> = new FileEntry(<span class="number">0</span>, path, lastModified,</span><br><span class="line">                    (isDirectory ? MtpConstants.FORMAT_ASSOCIATION : <span class="number">0</span>));</span><br><span class="line">        &#125;</span><br><span class="line">        entry.<span class="attr">mLastModifiedChanged</span> = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">     //如果当前类型为播放列表类型</span><br><span class="line">    <span class="keyword">if</span> (mProcessPlaylists &amp;&amp; MediaFile.isPlayListFileType(mFileType)) &#123;</span><br><span class="line">        //将数据存储到队列中在后续的部分处理，不在主扫描过程中处理</span><br><span class="line">        mPlayLists.add(entry);</span><br><span class="line">        // we don't process playlists <span class="keyword">in</span> the main scan, so return <span class="literal">null</span></span><br><span class="line">        return <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    // clear all the metadata</span><br><span class="line">    <span class="attr">mArtist</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="attr">mAlbumArtist</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="attr">mAlbum</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="attr">mTitle</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="attr">mComposer</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="attr">mGenre</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="attr">mTrack</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="attr">mYear</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="attr">mDuration</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="attr">mPath</span> = path;</span><br><span class="line">    <span class="attr">mLastModified</span> = lastModified;</span><br><span class="line">    <span class="attr">mWriter</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="attr">mCompilation</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="attr">mWidth</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="attr">mHeight</span> = <span class="number">0</span>;</span><br><span class="line">    return entry;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>如果当前文件不是音频视频或者图像文件则直接在doScanFile中调用endFile将信息存储到数据库中。我们看下endFile这个方法。<br>在endFile方法中做了如下工作：</p>
+<ul>
+<li>如果歌手信息不存在则使用专辑作者作为歌手信息.</li>
+<li>接着调用toValues方法将文件的基本信息添加到ContentValues中</li>
+<li>对toValues方法添加的基本信息进行修正。</li>
+<li>如果是新添加的音频文件则将传入的ringtones，notifications，alarms，music，podcasts添加到ContentValues中，如果是图片则从ExifInterface中获取图片的长度宽度，经纬度，时区信息。</li>
+<li>如果当前扫描的文件是新增的则将当前的ContentValues插入到数据库中,如果当前的文件的记录在数据库中本来就有的则调用update对数据库原先存在的项进行更新。</li>
+<li>更新Setting上的相关设置.</li>
+</ul>
+<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line">private Uri <span class="built_in">endFile</span>(FileEntry entry, boolean ringtones, boolean notifications,</span><br><span class="line">        boolean alarms, boolean music, boolean podcasts)</span><br><span class="line">        throws RemoteException &#123;</span><br><span class="line">    <span class="comment">// update database</span></span><br><span class="line">    <span class="comment">// use album artist if artist is missing</span></span><br><span class="line">    <span class="keyword">if</span> (mArtist == <span class="built_in">null</span> || mArtist.length() == <span class="number">0</span>) &#123;</span><br><span class="line">        mArtist = mAlbumArtist;</span><br><span class="line">    &#125;</span><br><span class="line">    ContentValues values = <span class="built_in">toValues</span>();</span><br><span class="line">    <span class="keyword">String</span> title = values.getAsString(MediaStore.MediaColumns.<span class="built_in">TITLE</span>);</span><br><span class="line">    <span class="keyword">if</span> (title == <span class="built_in">null</span> || TextUtils.isEmpty(title.trim())) &#123;</span><br><span class="line">        title = MediaFile.getFileTitle(values.getAsString(MediaStore.MediaColumns.DATA));</span><br><span class="line">        values.put(MediaStore.MediaColumns.<span class="built_in">TITLE</span>, <span class="built_in">title</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">String</span> album = values.getAsString(Audio.Media.ALBUM);</span><br><span class="line">    <span class="keyword">if</span> (MediaStore.UNKNOWN_STRING.<span class="built_in">equals</span>(album)) &#123;</span><br><span class="line">        album = values.getAsString(MediaStore.MediaColumns.DATA);</span><br><span class="line">        <span class="comment">// extract last path segment before file name</span></span><br><span class="line">        int lastSlash = album.lastIndexOf('/');</span><br><span class="line">        <span class="keyword">if</span> (lastSlash &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            int previousSlash = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span> (true) &#123;</span><br><span class="line">                int idx = album.indexOf('/', previousSlash + <span class="number">1</span>);</span><br><span class="line">                <span class="keyword">if</span> (idx &lt; <span class="number">0</span> || idx &gt;= lastSlash) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                previousSlash = idx;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (previousSlash != <span class="number">0</span>) &#123;</span><br><span class="line">                album = album.substring(previousSlash + <span class="number">1</span>, lastSlash);</span><br><span class="line">                values.put(Audio.Media.ALBUM, album);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    long rowId = entry.mRowId;</span><br><span class="line">    <span class="keyword">if</span> (MediaFile.isAudioFileType(mFileType) &amp;&amp; (rowId == <span class="number">0</span> || mMtpObjectHandle != <span class="number">0</span>)) &#123;</span><br><span class="line">        <span class="comment">// Only set these for new entries. For existing entries, they</span></span><br><span class="line">        <span class="comment">// may have been modified later, and we want to keep the current</span></span><br><span class="line">        <span class="comment">// values so that custom ringtones still show up in the ringtone</span></span><br><span class="line">        <span class="comment">// picker.</span></span><br><span class="line">        values.put(Audio.Media.IS_RINGTONE, ringtones);</span><br><span class="line">        values.put(Audio.Media.IS_NOTIFICATION, notifications);</span><br><span class="line">        values.put(Audio.Media.IS_ALARM, alarms);</span><br><span class="line">        values.put(Audio.Media.IS_MUSIC, music);</span><br><span class="line">        values.put(Audio.Media.IS_PODCAST, podcasts);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mFileType == MediaFile.FILE_TYPE_JPEG &amp;&amp; !mNoMedia) &#123;</span><br><span class="line">        ExifInterface exif = <span class="built_in">null</span>;</span><br><span class="line">        try &#123;</span><br><span class="line">            exif = <span class="keyword">new</span> <span class="built_in">ExifInterface</span>(entry.mPath);</span><br><span class="line">        &#125; <span class="built_in">catch</span> (IOException ex) &#123;</span><br><span class="line">            <span class="comment">// exif is null</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (exif != <span class="built_in">null</span>) &#123;</span><br><span class="line">            float[] latlng = <span class="keyword">new</span> float[<span class="number">2</span>];</span><br><span class="line">            <span class="keyword">if</span> (exif.getLatLong(latlng)) &#123;</span><br><span class="line">                values.put(Images.Media.LATITUDE, latlng[<span class="number">0</span>]);</span><br><span class="line">                values.put(Images.Media.LONGITUDE, latlng[<span class="number">1</span>]);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            long time = exif.getGpsDateTime();</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">time</span> != <span class="number">-1</span>) &#123;</span><br><span class="line">                values.put(Images.Media.DATE_TAKEN, <span class="built_in">time</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// If no time zone information is available, we should consider using</span></span><br><span class="line">                <span class="comment">// EXIF local time as taken time if the difference between file time</span></span><br><span class="line">                <span class="comment">// and EXIF local time is not less than 1 Day, otherwise MediaProvider</span></span><br><span class="line">                <span class="comment">// will use file time as taken time.</span></span><br><span class="line">                time = exif.getDateTime();</span><br><span class="line">                <span class="keyword">if</span> (<span class="built_in">time</span> != <span class="number">-1</span> &amp;&amp; Math.abs(mLastModified * <span class="number">1000</span> - <span class="built_in">time</span>) &gt;= <span class="number">86400000</span>) &#123;</span><br><span class="line">                    values.put(Images.Media.DATE_TAKEN, <span class="built_in">time</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            int orientation = exif.getAttributeInt(</span><br><span class="line">                ExifInterface.TAG_ORIENTATION, <span class="number">-1</span>);</span><br><span class="line">            <span class="keyword">if</span> (orientation != <span class="number">-1</span>) &#123;</span><br><span class="line">                <span class="comment">// We only recognize a subset of orientation tag values.</span></span><br><span class="line">                int degree;</span><br><span class="line">                <span class="built_in">switch</span>(orientation) &#123;</span><br><span class="line">                    case ExifInterface.ORIENTATION_ROTATE_90:</span><br><span class="line">                        degree = <span class="number">90</span>;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    case ExifInterface.ORIENTATION_ROTATE_180:</span><br><span class="line">                        degree = <span class="number">180</span>;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    case ExifInterface.ORIENTATION_ROTATE_270:</span><br><span class="line">                        degree = <span class="number">270</span>;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    default:</span><br><span class="line">                        degree = <span class="number">0</span>;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                values.put(Images.Media.ORIENTATION, degree);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Uri tableUri = mFilesUri;</span><br><span class="line">    MediaInserter inserter = mMediaInserter;</span><br><span class="line">    <span class="keyword">if</span> (!mNoMedia) &#123;</span><br><span class="line">        <span class="keyword">if</span> (MediaFile.isVideoFileType(mFileType)) &#123;</span><br><span class="line">            tableUri = mVideoUri;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (MediaFile.isImageFileType(mFileType)) &#123;</span><br><span class="line">            tableUri = mImagesUri;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (MediaFile.isAudioFileType(mFileType)) &#123;</span><br><span class="line">            tableUri = mAudioUri;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    Uri result = <span class="built_in">null</span>;</span><br><span class="line">    boolean needToSetSettings = false;</span><br><span class="line">    <span class="keyword">if</span> (rowId == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mMtpObjectHandle != <span class="number">0</span>) &#123;</span><br><span class="line">            values.put(MediaStore.MediaColumns.MEDIA_SCANNER_NEW_OBJECT_ID, mMtpObjectHandle);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (tableUri == mFilesUri) &#123;</span><br><span class="line">            int format = entry.mFormat;</span><br><span class="line">            <span class="keyword">if</span> (format == <span class="number">0</span>) &#123;</span><br><span class="line">                format = MediaFile.getFormatCode(entry.mPath, mMimeType);</span><br><span class="line">            &#125;</span><br><span class="line">            values.put(Files.FileColumns.<span class="keyword">FORMAT</span>, <span class="keyword">format</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Setting a flag in order not to use bulk insert for the file related with</span></span><br><span class="line">        <span class="comment">// notifications, ringtones, and alarms, because the rowId of the inserted file is</span></span><br><span class="line">        <span class="comment">// needed.</span></span><br><span class="line">        <span class="keyword">if</span> (mWasEmptyPriorToScan) &#123;</span><br><span class="line">            <span class="keyword">if</span> (notifications &amp;&amp; !mDefaultNotificationSet) &#123;</span><br><span class="line">                <span class="keyword">if</span> (TextUtils.isEmpty(mDefaultNotificationFilename) ||</span><br><span class="line">                        <span class="built_in">doesPathHaveFilename</span>(entry.mPath, mDefaultNotificationFilename)) &#123;</span><br><span class="line">                    needToSetSettings = true;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ringtones &amp;&amp; !mDefaultRingtoneSet) &#123;</span><br><span class="line">                <span class="keyword">if</span> (TextUtils.isEmpty(mDefaultRingtoneFilename) ||</span><br><span class="line">                        <span class="built_in">doesPathHaveFilename</span>(entry.mPath, mDefaultRingtoneFilename)) &#123;</span><br><span class="line">                    needToSetSettings = true;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (alarms &amp;&amp; !mDefaultAlarmSet) &#123;</span><br><span class="line">                <span class="keyword">if</span> (TextUtils.isEmpty(mDefaultAlarmAlertFilename) ||</span><br><span class="line">                        <span class="built_in">doesPathHaveFilename</span>(entry.mPath, mDefaultAlarmAlertFilename)) &#123;</span><br><span class="line">                    needToSetSettings = true;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// New file, insert it.</span></span><br><span class="line">        <span class="comment">// Directories need to be inserted before the files they contain, so they</span></span><br><span class="line">        <span class="comment">// get priority when bulk inserting.</span></span><br><span class="line">        <span class="comment">// If the rowId of the inserted file is needed, it gets inserted immediately,</span></span><br><span class="line">        <span class="comment">// bypassing the bulk inserter.</span></span><br><span class="line">        <span class="keyword">if</span> (inserter == <span class="built_in">null</span> || needToSetSettings) &#123;</span><br><span class="line">            <span class="keyword">if</span> (inserter != <span class="built_in">null</span>) &#123;</span><br><span class="line">                inserter.flushAll();</span><br><span class="line">            &#125;</span><br><span class="line">            result = mMediaProvider.insert(mPackageName, tableUri, values);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (entry.mFormat == MtpConstants.FORMAT_ASSOCIATION) &#123;</span><br><span class="line">            inserter.insertwithPriority(tableUri, values);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            inserter.insert(tableUri, values);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (result != <span class="built_in">null</span>) &#123;</span><br><span class="line">            rowId = ContentUris.parseId(result);</span><br><span class="line">            entry.mRowId = rowId;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// updated file</span></span><br><span class="line">        result = ContentUris.withAppendedId(tableUri, rowId);</span><br><span class="line">        <span class="comment">// path should never change, and we want to avoid replacing mixed cased paths</span></span><br><span class="line">        <span class="comment">// with squashed lower case paths</span></span><br><span class="line">        values.remove(MediaStore.MediaColumns.DATA);</span><br><span class="line"></span><br><span class="line">        int mediaType = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (!MediaScanner.isNoMediaPath(entry.mPath)) &#123;</span><br><span class="line">            int fileType = MediaFile.getFileTypeForMimeType(mMimeType);</span><br><span class="line">            <span class="keyword">if</span> (MediaFile.isAudioFileType(fileType)) &#123;</span><br><span class="line">                mediaType = FileColumns.MEDIA_TYPE_AUDIO;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (MediaFile.isVideoFileType(fileType)) &#123;</span><br><span class="line">                mediaType = FileColumns.MEDIA_TYPE_VIDEO;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (MediaFile.isImageFileType(fileType)) &#123;</span><br><span class="line">                mediaType = FileColumns.MEDIA_TYPE_IMAGE;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (MediaFile.isPlayListFileType(fileType)) &#123;</span><br><span class="line">                mediaType = FileColumns.MEDIA_TYPE_PLAYLIST;</span><br><span class="line">            &#125;</span><br><span class="line">            values.put(FileColumns.MEDIA_TYPE, mediaType);</span><br><span class="line">        &#125;</span><br><span class="line">        mMediaProvider.update(mPackageName, result, values, <span class="built_in">null</span>, <span class="built_in">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(needToSetSettings) &#123;</span><br><span class="line">        <span class="keyword">if</span> (notifications) &#123;</span><br><span class="line">            <span class="built_in">setSettingIfNotSet</span>(Settings.System.NOTIFICATION_SOUND, tableUri, rowId);</span><br><span class="line">            mDefaultNotificationSet = true;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ringtones) &#123;</span><br><span class="line">            <span class="built_in">setSettingIfNotSet</span>(Settings.System.RINGTONE, tableUri, rowId);</span><br><span class="line">            mDefaultRingtoneSet = true;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (alarms) &#123;</span><br><span class="line">            <span class="built_in">setSettingIfNotSet</span>(Settings.System.ALARM_ALERT, tableUri, rowId);</span><br><span class="line">            mDefaultAlarmSet = true;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到目前为止processDirectory方法的整个流程已经介绍完毕，如果是非视频音频图像文件则已经结束了整个扫描的过程，但是我们上面介绍的时候还忽略了播放列表文件。所以在下面的部分介绍播放列表文件，音频，视频，图像文件的处理。</p>
+<h4 id="播放列表的处理"><a href="#播放列表的处理" class="headerlink" title="播放列表的处理:"></a>播放列表的处理:</h4><p>我们在介绍beginFile方法的时候说到在主扫描进程中并不对扫描到的播放列表进行处理，只是将其放到mPlayLists中。那么这些播放列表是什么时候处理呢？又将如何处理这些播放列表？在MediaScanner中播放列表文件的处理位于postscan方法中，这时候我们已经知道了存储器中有哪些多媒体文件。在processPlayLists方法中只处理最新的和上次扫描以后修改后的播放列表文件，通过获取播放列表的类型，再根据播放列表的类型调用不同的方法处理播放列表文件。<br><figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">void</span> <span class="title">postscan</span><span class="params">(String[] directories)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// handle playlists last, after we know what media files are on the storage.</span></span><br><span class="line">    <span class="comment">//如果当前扫描路径为外部存储路径则，则处理播放列表</span></span><br><span class="line">    <span class="keyword">if</span> (mProcessPlaylists) &#123;</span><br><span class="line">        <span class="comment">//只处理最新的和上次扫描以后修改后的播放列表文件,</span></span><br><span class="line">        <span class="comment">//获得最后的名字以及最后的修改时间,</span></span><br><span class="line">        <span class="comment">//并根据播放列表的类型调用不同的方法处理播放列表文件</span></span><br><span class="line">        processPlayLists();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mOriginalCount == <span class="number">0</span> &amp;&amp; mImagesUri.equals(Images.Media.getContentUri(<span class="string">"external"</span>)))</span><br><span class="line">        pruneDeadThumbnailFiles();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// allow GC to clean up</span></span><br><span class="line">    mPlayLists = <span class="keyword">null</span>;</span><br><span class="line">    mMediaProvider = <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>processPlayLists方法中首先获取全部的音频文件，并使用全部的音频文件作为参数，传入processPlayList，这个参数在后续将会介绍，其实之所以传入全部音频文件是用于获取每个播放列表的Playlist Member（播放列表成员歌曲）</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">void</span> <span class="title">processPlayLists</span><span class="params">()</span> <span class="keyword">throws</span> RemoteException </span>&#123;</span><br><span class="line">        Iterator&lt;FileEntry&gt; iterator = mPlayLists.iterator();</span><br><span class="line">        Cursor fileList = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// use the files uri and projection because we need the format column,</span></span><br><span class="line">            <span class="comment">// but restrict the query to just audio files</span></span><br><span class="line">            /获取全部的音频文件</span><br><span class="line">            fileList = mMediaProvider.query(mPackageName, mFilesUri, FILES_PRESCAN_PROJECTION,</span><br><span class="line">                    <span class="string">"media_type=2"</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">                FileEntry entry = iterator.next();</span><br><span class="line">                <span class="comment">// only process playlist files if they are new or have been modified since the last scan</span></span><br><span class="line">                <span class="comment">// 只处理最新的和上次扫描以后修改后的播放列表文件</span></span><br><span class="line">                <span class="keyword">if</span> (entry.mLastModifiedChanged) &#123;</span><br><span class="line">                    processPlayList(entry, fileList);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RemoteException e1) &#123;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (fileList != <span class="keyword">null</span>) &#123;</span><br><span class="line">                fileList.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>我们看下对每个播放列表是怎么处理的，在处理前必须确保有一个播放列表的名字，首先通过查找MediaStore.Audio.Playlists.NAME对应的值，看下是否存在，如果不存在则从MediaStore.MediaColumns.TITLE中获取，如果还是没有值，就再尝试从文件名中获取。如果当前的播放列表是新增的则往数据库中插入新的播放列表信息，并获取播放列表成员的Uri，如果当前播放列表存在的话就更新其内容并且删除原来的member Uri。最后获取播放列表文件的类型，根据不同的文件类型调用不同的方法调用不同的方法处理。<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processPlayList</span><span class="params">(FileEntry entry, Cursor fileList)</span> throws RemoteException </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">String</span> path = entry.mPath;</span><br><span class="line">    ContentValues values = <span class="keyword">new</span> ContentValues();</span><br><span class="line">    <span class="keyword">int</span> lastSlash = path.lastIndexOf(<span class="string">'/'</span>);</span><br><span class="line">    <span class="keyword">if</span> (lastSlash &lt; <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"bad path "</span> + path);</span><br><span class="line">    Uri uri, membersUri;</span><br><span class="line">    <span class="comment">//从FileEnty中获取rowId</span></span><br><span class="line">    <span class="keyword">long</span> rowId = entry.mRowId;</span><br><span class="line">    <span class="comment">// 确保有一个播放列表名字，首先查看MediaStore.Audio.Playlists.NAME</span></span><br><span class="line">    <span class="comment">// 再查看MediaStore.MediaColumns.TITLE 如果还是为空则获取最后的.后面的字符</span></span><br><span class="line">    <span class="keyword">String</span> name = values.getAsString(MediaStore.<span class="built_in">Audio</span>.Playlists.NAME);</span><br><span class="line">    <span class="keyword">if</span> (name == null) &#123;</span><br><span class="line">        name = values.getAsString(MediaStore.MediaColumns.TITLE);</span><br><span class="line">        <span class="keyword">if</span> (name == null) &#123;</span><br><span class="line">            <span class="comment">// 从文件中获取播放列表名字</span></span><br><span class="line">            <span class="keyword">int</span> lastDot = path.lastIndexOf(<span class="string">'.'</span>);</span><br><span class="line">            name = (lastDot &lt; <span class="number">0</span> ? path.substring(lastSlash + <span class="number">1</span>): </span><br><span class="line">                   path.substring(lastSlash + <span class="number">1</span>, lastDot));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//将播放列表的名字和修改时间添加到数据库中</span></span><br><span class="line">    values.<span class="built_in">put</span>(MediaStore.<span class="built_in">Audio</span>.Playlists.NAME, name);</span><br><span class="line">    values.<span class="built_in">put</span>(MediaStore.<span class="built_in">Audio</span>.Playlists.DATE_MODIFIED, entry.mLastModified);</span><br><span class="line">    <span class="keyword">if</span> (rowId == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//如果不存在的话插入新的播放列表信息</span></span><br><span class="line">        values.<span class="built_in">put</span>(MediaStore.<span class="built_in">Audio</span>.Playlists.DATA, path);</span><br><span class="line">        <span class="comment">//这时候value包含NAME  DATA  DATE_MODIFIED</span></span><br><span class="line">        uri = mMediaProvider.insert(mPackageName, mPlaylistsUri, values);</span><br><span class="line">        rowId = ContentUris.parseId(uri);</span><br><span class="line">        <span class="comment">//获得插入的行id </span></span><br><span class="line">        <span class="comment">//获得播放列表成员的Uri</span></span><br><span class="line">        membersUri = Uri.withAppendedPath(uri, Playlists.Members.CONTENT_DIRECTORY);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//如果存在的话就更新并且删除原来的member Uri</span></span><br><span class="line">        uri = ContentUris.withAppendedId(mPlaylistsUri, rowId);</span><br><span class="line">        mMediaProvider.update(mPackageName, uri, values, null, null);</span><br><span class="line">        membersUri = Uri.withAppendedPath(uri, Playlists.Members.CONTENT_DIRECTORY);</span><br><span class="line">        mMediaProvider.<span class="keyword">delete</span>(mPackageName, membersUri, null, null);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//获取播放列表的目录</span></span><br><span class="line">    <span class="keyword">String</span> playListDirectory = path.substring(<span class="number">0</span>, lastSlash + <span class="number">1</span>);</span><br><span class="line">    <span class="comment">//获取播放列表的文件类型</span></span><br><span class="line">    MediaFile.MediaFileType mediaFileType = MediaFile.getFileType(path);</span><br><span class="line">    <span class="keyword">int</span> fileType = (mediaFileType == null ? <span class="number">0</span> : mediaFileType.fileType);</span><br><span class="line">    <span class="comment">//根据不同的文件类型调用不同的方法调用不同的方法处理</span></span><br><span class="line">    <span class="keyword">if</span> (fileType == MediaFile.FILE_TYPE_M3U) &#123;</span><br><span class="line">        processM3uPlayList(path, playListDirectory, membersUri, values, fileList);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (fileType == MediaFile.FILE_TYPE_PLS) &#123;</span><br><span class="line">        processPlsPlayList(path, playListDirectory, membersUri, values, fileList);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (fileType == MediaFile.FILE_TYPE_WPL) &#123;</span><br><span class="line">        processWplPlayList(path, playListDirectory, membersUri, values, fileList);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果是M3U播放列表：则调用processM3uPlayList方法处理：<br>在processM3uPlayList方法打开播放列表文件，并读取播放列表内容，将读取到的播放列表成员记录添加到mPlsylist队列中调用processCachedPlaylist处理。<br><figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> processM3uPlayList(<span class="keyword">String</span> path, <span class="keyword">String</span> playListDirectory, Uri uri,</span><br><span class="line">        ContentValues values, Cursor fileList) &#123;</span><br><span class="line">    <span class="keyword">BufferedReader</span> reader = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        File f = <span class="keyword">new</span> File(path);</span><br><span class="line">        <span class="comment">//判断播放列表文件是否存在，如果存在则调用cachePlaylistEntry</span></span><br><span class="line">        <span class="comment">//读取后添加到mPlsylist队列中调用processCachedPlaylist处理</span></span><br><span class="line">        <span class="keyword">if</span> (f.exists()) &#123;</span><br><span class="line">            reader = <span class="keyword">new</span> <span class="keyword">BufferedReader</span>(<span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(f)), </span><br><span class="line">            <span class="number">8192</span>);</span><br><span class="line">            <span class="keyword">String</span> <span class="built_in">line</span> = reader.readLine();</span><br><span class="line">            <span class="comment">//清除播放列表缓冲列表</span></span><br><span class="line">            mPlaylistEntries.<span class="built_in">clear</span>();</span><br><span class="line">            <span class="keyword">while</span> (<span class="built_in">line</span> != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">// 忽略注释行</span></span><br><span class="line">                <span class="keyword">if</span> (<span class="built_in">line</span>.length() &gt; <span class="number">0</span> &amp;&amp; <span class="built_in">line</span>.charAt(<span class="number">0</span>) != <span class="string">'#'</span>) &#123;</span><br><span class="line">                    <span class="comment">//如果不是注释行，则表示为播放列表信息，则将其处理后添加到mPlsylist队列中</span></span><br><span class="line">                    cachePlaylistEntry(<span class="built_in">line</span>, playListDirectory);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="built_in">line</span> = reader.readLine();</span><br><span class="line">            &#125;</span><br><span class="line">            processCachedPlaylist(fileList, values, uri);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (reader != <span class="keyword">null</span>)</span><br><span class="line">                reader.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果是PLS格式的播放列表则将包含“File = ”开头的行，则将等号后面的内容读取出来（这些就是播放列表成员的记录）并存储到mPlsylist中，并调用processCachedPlaylist进行处理。<br><figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> processPlsPlayList(<span class="keyword">String</span> path, <span class="keyword">String</span> playListDirectory, Uri uri,</span><br><span class="line">    ContentValues values, Cursor fileList) &#123;</span><br><span class="line">    <span class="keyword">BufferedReader</span> reader = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        File f = <span class="keyword">new</span> File(path);</span><br><span class="line">        <span class="keyword">if</span> (f.exists()) &#123;</span><br><span class="line">            reader = <span class="keyword">new</span> <span class="keyword">BufferedReader</span>(</span><br><span class="line">            <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(f)), <span class="number">8192</span>);</span><br><span class="line">            <span class="keyword">String</span> <span class="built_in">line</span> = reader.readLine();</span><br><span class="line">            mPlaylistEntries.<span class="built_in">clear</span>();</span><br><span class="line">            <span class="keyword">while</span> (<span class="built_in">line</span> != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">//如果是File开头的行则表示是PLS格式的播放列表信息</span></span><br><span class="line">                <span class="keyword">if</span> (<span class="built_in">line</span>.startsWith(<span class="string">"File"</span>)) &#123;</span><br><span class="line">                    <span class="built_in">int</span> equals = <span class="built_in">line</span>.indexOf(<span class="string">'='</span>);</span><br><span class="line">                    <span class="keyword">if</span> (equals &gt; <span class="number">0</span>) &#123;</span><br><span class="line">             <span class="comment">//将=后面的内容添加到mPlsylist中，调用processCachedPlaylist进行处理</span></span><br><span class="line">                        cachePlaylistEntry(<span class="built_in">line</span>.substring(equals + <span class="number">1</span>), playListDirectory);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="built_in">line</span> = reader.readLine();</span><br><span class="line">            &#125;</span><br><span class="line">            processCachedPlaylist(fileList, values, uri);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (reader != <span class="keyword">null</span>)</span><br><span class="line">                reader.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果是WPL格式的播放列表文件则使用Xml解析器对其进行解析。同样最后也是调用processCachedPlaylist对其中的播放列表进行处理。<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processWplPlayList</span><span class="params">(<span class="keyword">String</span> path, <span class="keyword">String</span> playListDirectory, Uri uri,</span></span></span><br><span class="line"><span class="function"><span class="params">        ContentValues values, Cursor fileList)</span> </span>&#123;</span><br><span class="line">    Xlog.i(TAG,<span class="string">"MediaScanner#processWplPlayList()"</span>);</span><br><span class="line">    FileInputStream fis = null;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="built_in">File</span> f = <span class="keyword">new</span> <span class="built_in">File</span>(path);</span><br><span class="line">        <span class="keyword">if</span> (f.<span class="built_in">exists</span>()) &#123;</span><br><span class="line">            fis = <span class="keyword">new</span> FileInputStream(f);</span><br><span class="line">            mPlaylistEntries.<span class="built_in">clear</span>();</span><br><span class="line">            Xml.parse(fis, Xml.findEncodingByName(<span class="string">"UTF-8"</span>),</span><br><span class="line">                    <span class="keyword">new</span> WplHandler(playListDirectory, uri, fileList).getContentHandler());</span><br><span class="line">            processCachedPlaylist(fileList, values, uri);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SAXException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (fis != null)</span><br><span class="line">                fis.<span class="built_in">close</span>();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            Xlog.e(TAG, <span class="string">"IOException in MediaScanner.processWplPlayList()"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>cachePlaylistEntry负责讲从播放列表文件中读取到的播放列表行进行处理后添加到mPlaylistEntries中。<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">cachePlaylistEntry</span><span class="params">(<span class="keyword">String</span> <span class="built_in">line</span>, <span class="keyword">String</span> playListDirectory)</span> </span>&#123;</span><br><span class="line">    PlaylistEntry entry = <span class="keyword">new</span> PlaylistEntry();</span><br><span class="line">    <span class="comment">// 去除尾部的空白符</span></span><br><span class="line">    <span class="keyword">int</span> entryLength = <span class="built_in">line</span>.length();</span><br><span class="line">    <span class="keyword">while</span> (entryLength &gt; <span class="number">0</span> &amp;&amp; Character.isWhitespace(<span class="built_in">line</span>.charAt(entryLength - <span class="number">1</span>))) entryLength--;</span><br><span class="line">    <span class="keyword">if</span> (entryLength &lt; <span class="number">3</span>) <span class="keyword">return</span>;<span class="comment">//如果小于三个字符则不合法</span></span><br><span class="line">    <span class="keyword">if</span> (entryLength &lt; <span class="built_in">line</span>.length()) <span class="built_in">line</span> = <span class="built_in">line</span>.substring(<span class="number">0</span>, entryLength);</span><br><span class="line">    <span class="comment">//如果entryLength小于line.length()表示尾部有空格则删除尾部的空白符</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//当前路径是否是绝对路径？</span></span><br><span class="line">    <span class="keyword">char</span> ch1 = <span class="built_in">line</span>.charAt(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">boolean</span> fullPath = (ch1 == <span class="string">'/'</span> ||</span><br><span class="line">            (Character.isLetter(ch1) &amp;&amp; <span class="built_in">line</span>.charAt(<span class="number">1</span>) == <span class="string">':'</span> &amp;&amp; <span class="built_in">line</span>.charAt(<span class="number">2</span>) == <span class="string">'\\'</span>));</span><br><span class="line">    <span class="comment">// 如果是一个相对路径，则通过和playListDirectory进行合并构成全路径</span></span><br><span class="line">    <span class="keyword">if</span> (!fullPath)</span><br><span class="line">        <span class="built_in">line</span> = playListDirectory + <span class="built_in">line</span>;</span><br><span class="line">    entry.path = <span class="built_in">line</span>;</span><br><span class="line">    <span class="comment">// 将全路径保存到mPlaylistEntries</span></span><br><span class="line">    mPlaylistEntries.add(entry);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>processCachedPlaylist方法中将数据库中全部音频文件数据与存储在mPlaylistEntries的当前播放列表的成员歌曲记录进行匹配，匹配过程是调用matchEntries方法来完成的，它会使用全部音频文件与mPlaylistEntries中未匹配的项进行对比，如果路径相同则认为找到匹配的，如果不完全一致就通过对比路径的各个部分，寻找最匹配的那个。 如果mPlaylistEntries中全部项都匹配了，则返回true。最后将mPlaylistEntries中的成员作为当前播放列表的playlist member添加到数据库中。<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processCachedPlaylist</span><span class="params">(Cursor fileList, ContentValues values, Uri playlistUri)</span> </span>&#123;</span><br><span class="line">    fileList.moveToPosition(<span class="number">-1</span>);</span><br><span class="line">    <span class="keyword">while</span> (fileList.moveToNext()) &#123;</span><br><span class="line">        <span class="keyword">long</span> rowId = fileList.getLong(FILES_PRESCAN_ID_COLUMN_INDEX);</span><br><span class="line">        <span class="keyword">String</span> data = fileList.getString(FILES_PRESCAN_PATH_COLUMN_INDEX);</span><br><span class="line">        <span class="comment">// mPlaylistEntries中全部项都匹配了</span></span><br><span class="line">        <span class="keyword">if</span> (matchEntries(rowId, data)) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> len = mPlaylistEntries.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        PlaylistEntry entry = mPlaylistEntries.<span class="built_in">get</span>(i);</span><br><span class="line">        <span class="keyword">if</span> (entry.bestmatchlevel &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">//将mPlaylistEntries中的成员作为当前播放列表的playlist member</span></span><br><span class="line">                <span class="comment">//添加到数据库中。</span></span><br><span class="line">                values.<span class="built_in">clear</span>();</span><br><span class="line">                values.<span class="built_in">put</span>(MediaStore.<span class="built_in">Audio</span>.Playlists.Members.PLAY_ORDER, </span><br><span class="line">                Integer.valueOf(index));</span><br><span class="line">                values.<span class="built_in">put</span>(MediaStore.<span class="built_in">Audio</span>.Playlists.Members.AUDIO_ID, </span><br><span class="line">                Long.valueOf(entry.bestmatchid));</span><br><span class="line">                mMediaProvider.insert(mPackageName, playlistUri, values);</span><br><span class="line">                index++;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line">    mPlaylistEntries.<span class="built_in">clear</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> boolean matchEntries(long rowId, String <span class="keyword">data</span>) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">int</span> len = mPlaylistEntries.<span class="built_in">size</span>();</span><br><span class="line">    boolean done = true;</span><br><span class="line">    for (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        PlaylistEntry <span class="built_in">entry</span> = mPlaylistEntries.get(i);</span><br><span class="line">        //如果<span class="built_in">entry</span>.bestmatchlevel == <span class="keyword">Integer</span>.MAX_VALUE 则表示已经被匹配了</span><br><span class="line">        //这种情况下将当前的与mPlaylistEntries的进行比较</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">entry</span>.bestmatchlevel == <span class="keyword">Integer</span>.MAX_VALUE) &#123;</span><br><span class="line">            <span class="keyword">continue</span>; </span><br><span class="line">        &#125;</span><br><span class="line">        //开始比较的时候先将done置为false</span><br><span class="line">        done = false;</span><br><span class="line">        //<span class="keyword">data</span>字段已经匹配不需要进行路径匹配了</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">data</span>.equalsIgnoreCase(<span class="built_in">entry</span>.path)) &#123;</span><br><span class="line">            <span class="built_in">entry</span>.bestmatchid = rowId;</span><br><span class="line">            <span class="built_in">entry</span>.bestmatchlevel = <span class="keyword">Integer</span>.MAX_VALUE;</span><br><span class="line">            <span class="keyword">continue</span>; </span><br><span class="line">        &#125;</span><br><span class="line">        //通过比对路径的每个字段寻找最比配的那个播放列表</span><br><span class="line">        <span class="built_in">int</span> matchLength = matchPaths(<span class="keyword">data</span>, <span class="built_in">entry</span>.path);</span><br><span class="line">        <span class="keyword">if</span> (matchLength &gt; <span class="built_in">entry</span>.bestmatchlevel) &#123;</span><br><span class="line">            <span class="built_in">entry</span>.bestmatchid = rowId;</span><br><span class="line">            <span class="built_in">entry</span>.bestmatchlevel = matchLength;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> done;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>总结以下，播放列表的处理是将播放列表文件进行解析，然后将播放列表文件中的成员添加到一个容器中，然后对容器进行遍历，并在数据库中对其进行匹配，如果匹配则添加到Playlist Member中</p>
+<h4 id="缩略图处理："><a href="#缩略图处理：" class="headerlink" title="缩略图处理："></a>缩略图处理：</h4><p>在MediaScanner中对缩略图处理也是位于Postscan方法中。在pruneDeadThumbnailFiles方法中先获取DCIM/thumbnails目录下的所有文件列表，在这个文件夹下存放的是所有的缩略图，而后再查看数据库中的视频和图像的缩略图信息，如果在数据库中存在该记录则表示该缩略图有用，从existingFiles中移除，到最后existingFiles中剩余的就是那些数据库中不需要的缩略图了，这些不需要的缩略图可以从DCIM/.thumbnails中删除，最后删除Mini 缩略图文件。<br><figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void pruneDeadThumbnailFiles() &#123;</span><br><span class="line">    HashSet&lt;<span class="keyword">String</span>&gt; existingFiles = <span class="keyword">new</span> <span class="type">HashSet</span>&lt;<span class="keyword">String</span>&gt;();</span><br><span class="line">    <span class="keyword">String</span> directory = <span class="string">"/sdcard/DCIM/.thumbnails"</span>;</span><br><span class="line">    <span class="keyword">String</span> [] files = (<span class="keyword">new</span> <span class="type">File</span>(directory)).list();</span><br><span class="line">    Cursor c = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (files == <span class="literal">null</span>)</span><br><span class="line">        files = <span class="keyword">new</span> <span class="type">String</span>[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; files.length; i++) &#123;</span><br><span class="line">        <span class="keyword">String</span> fullPathString = directory + <span class="string">"/"</span> + files[i];</span><br><span class="line">        existingFiles.add(fullPathString);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        c = mMediaProvider.query(</span><br><span class="line">                mPackageName,</span><br><span class="line">                mThumbsUri,</span><br><span class="line">                <span class="keyword">new</span> <span class="type">String</span> [] &#123; <span class="string">"_data"</span> &#125;,</span><br><span class="line">                <span class="literal">null</span>,</span><br><span class="line">                <span class="literal">null</span>,</span><br><span class="line">                <span class="literal">null</span>, <span class="literal">null</span>);</span><br><span class="line">        Log.v(TAG, <span class="string">"pruneDeadThumbnailFiles... "</span> + c);</span><br><span class="line">        <span class="keyword">if</span> (c != <span class="literal">null</span> &amp;&amp; c.moveToFirst()) &#123;</span><br><span class="line">            <span class="keyword">do</span> &#123;</span><br><span class="line">                <span class="keyword">String</span> fullPathString = c.getString(<span class="number">0</span>);</span><br><span class="line">                existingFiles.remove(fullPathString);</span><br><span class="line">            &#125; <span class="keyword">while</span> (c.moveToNext());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">String</span> fileToDelete : <span class="type">existingFiles</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="literal">false</span>)</span><br><span class="line">                Log.v(TAG, <span class="string">"fileToDelete is "</span> + fileToDelete);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                (<span class="keyword">new</span> <span class="type">File</span>(fileToDelete)).delete();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (SecurityException ex) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Log.v(TAG, <span class="string">"/pruneDeadThumbnailFiles... "</span> + c);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">        <span class="comment">// We will soon be killed...</span></span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        <span class="keyword">if</span> (c != <span class="literal">null</span>) &#123;</span><br><span class="line">            c.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h5 id="音频视频文件帧信息的获取"><a href="#音频视频文件帧信息的获取" class="headerlink" title="音频视频文件帧信息的获取"></a>音频视频文件帧信息的获取</h5><p>这部分比较复杂我们将放在下一篇博客中介绍</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android-源码分析/">Android 源码分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/AOSP-源码/">AOSP 源码</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/29/Android-源码分析之MediaScanner-2/" title="Android 源码分析之MediaScanner[2]">
+  <span>
+  Android 源码分析之MediaScanner[2]</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/07/28/Android-源码分析之Binder/"  title="Android-源码分析之Binder">
+ <span>Android-源码分析之Binder
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/28/Android-源码分析之MediaScanner/" data-title="Android-源码分析之MediaScanner[1]" data-url="http://yoursite.com/2016/07/28/Android-源码分析之MediaScanner/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#普通文件的扫描流程"><span class="toc-number">1.</span> <span class="toc-text">普通文件的扫描流程</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#扫描请求的接收者-MediaScannerReceiver"><span class="toc-number">1.1.</span> <span class="toc-text">扫描请求的接收者  MediaScannerReceiver</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#扫描处理的后台处理者-MediaScannerService"><span class="toc-number">1.2.</span> <span class="toc-text">扫描处理的后台处理者 MediaScannerService</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#播放列表的处理"><span class="toc-number">2.</span> <span class="toc-text">播放列表的处理:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缩略图处理："><span class="toc-number">3.</span> <span class="toc-text">缩略图处理：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#音频视频文件帧信息的获取"><span class="toc-number">3.1.</span> <span class="toc-text">音频视频文件帧信息的获取</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-源码/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-签名/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-事件处理进阶/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-动画进阶/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-多线程开发/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-小经验/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-常用第三方库/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-开发流程/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-开源源码/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-绘图进阶/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-自动化测试/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-自定义View进阶/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-设计模式/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android其他/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android基础/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android开发流程/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android性能优化/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android混淆技术/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android质量管理工具/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android逆向工程/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-使用/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-使用/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-相关/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-工具使用/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-开源库分析/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-理论基础/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-进阶/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/代码规范/" style="font-size: 10px;">代码规范</a> <a href="/tags/博客分类目录/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/叨叨系列/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/工具的使用/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/开源代码分析/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/开源库分析/" style="font-size: 10px;">开源库分析</a> <a href="/tags/杂类/" style="font-size: 10px;">杂类</a> <a href="/tags/树莓派/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/直播/" style="font-size: 12.86px;">直播</a> <a href="/tags/编程技巧/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/网站收藏/" style="font-size: 10px;">网站收藏</a> <a href="/tags/重要控件/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2021 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
