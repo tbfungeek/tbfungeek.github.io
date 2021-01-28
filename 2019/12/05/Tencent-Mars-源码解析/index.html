@@ -1,0 +1,874 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>Tencent Mars 源码解析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="源码信息Mars 是微信官方的终端基础组件，是一个使用 C++ 编写的业务性无关，平台性无关的基础组件，目前已经开源，下面是官方的源码以及文档地址：  Mars Mars 文档地址  Mars 概览 整个项目主要包含如下几个模块： COMM：基础库，包括socket、线程、消息队列、协程等基础工具；XLOG：通用日志模块，充分考虑移动终端的特点，提供高性能、高可用、安全性、容错性的日志功能；SDT">
+<meta name="keywords" content="iOS 开源库分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tencent Mars 源码解析">
+<meta property="og:url" content="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="源码信息Mars 是微信官方的终端基础组件，是一个使用 C++ 编写的业务性无关，平台性无关的基础组件，目前已经开源，下面是官方的源码以及文档地址：  Mars Mars 文档地址  Mars 概览 整个项目主要包含如下几个模块： COMM：基础库，包括socket、线程、消息队列、协程等基础工具；XLOG：通用日志模块，充分考虑移动终端的特点，提供高性能、高可用、安全性、容错性的日志功能；SDT">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/00001.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/00002.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/00003.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/00004.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/00005.png">
+<meta property="og:updated_time" content="2019-12-19T13:47:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tencent Mars 源码解析">
+<meta name="twitter:description" content="源码信息Mars 是微信官方的终端基础组件，是一个使用 C++ 编写的业务性无关，平台性无关的基础组件，目前已经开源，下面是官方的源码以及文档地址：  Mars Mars 文档地址  Mars 概览 整个项目主要包含如下几个模块： COMM：基础库，包括socket、线程、消息队列、协程等基础工具；XLOG：通用日志模块，充分考虑移动终端的特点，提供高性能、高可用、安全性、容错性的日志功能；SDT">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto">等待执剑少年修炼归来！</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/works">MyWorkSet</a></li>
+					
+						<li><a href="/release">Realeases</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/12/05/Tencent-Mars-源码解析/" title="Tencent Mars 源码解析" itemprop="url">Tencent Mars 源码解析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-12-05T13:17:29.000Z" itemprop="datePublished"> Published 2019-12-05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="源码信息"><a href="#源码信息" class="headerlink" title="源码信息"></a>源码信息</h5><p>Mars 是微信官方的终端基础组件，是一个使用 C++ 编写的业务性无关，平台性无关的基础组件，目前已经开源，下面是官方的源码以及文档地址：</p>
+<ul>
+<li><a href="https://github.com/Tencent/mars" target="_blank" rel="noopener">Mars</a></li>
+<li><a href="https://github.com/Tencent/mars/wiki" target="_blank" rel="noopener">Mars 文档地址</a></li>
+</ul>
+<h5 id="Mars-概览"><a href="#Mars-概览" class="headerlink" title="Mars 概览"></a>Mars 概览</h5><p><img src="/2019/12/05/Tencent-Mars-源码解析/00001.png" alt></p>
+<p>整个项目主要包含如下几个模块：</p>
+<p><strong><strong>COMM</strong></strong>：基础库，包括socket、线程、消息队列、协程等基础工具；<br><strong><strong>XLOG</strong></strong>：通用日志模块，充分考虑移动终端的特点，提供高性能、高可用、安全性、容错性的日志功能；<br><strong><strong>SDT</strong></strong>：网络诊断模块；<br><strong><strong>STN</strong></strong>：是微信的信令传输网络模块,它是基于Socket层的网络解决方案（它并不支持完整的 HTTP 协议），负责终端与服务器的小数据信令通道。是微信日常中使用最频繁的网络通道，STN中包含了很多其他方面的实用设计：包括自定义DNS、容灾设计、负载考量、APP的前后台考量、休眠机制考量、省电机制等等。网络通道上，目前STN提供了长连、短连两种类型的通道，用于满足不同的需求。使用STN后，应用开发者只需关注业务开发。<br><strong><strong>CDN</strong></strong>: 数据分发网络，负责大数据传输，这部分涉及具体的业务，所以未开源</p>
+<p>下面是几种网络开源库的对比：</p>
+<p><img src="/2019/12/05/Tencent-Mars-源码解析/00002.png" alt></p>
+<h5 id="Mars-Sample-代码分析"><a href="#Mars-Sample-代码分析" class="headerlink" title="Mars Sample 代码分析"></a>Mars Sample 代码分析</h5><p><strong><strong>1. 让Sample项目跑起来</strong></strong></p>
+<p>微信官方有专门的接入文档:<br><a href="https://github.com/Tencent/mars/wiki/Mars-iOS%EF%BC%8FOS-X-%E6%8E%A5%E5%85%A5%E6%8C%87%E5%8D%97" target="_blank" rel="noopener">Mars iOS／OS X 接入指南</a> 一种是以framework形式引入的，一般实际开发项目中会以这种方式接入，另一种是调试模式，初期分析Mars Sample代码的时候需要以这种方式引入，这里需要注意的是编译成功后需要将mars.framework拷贝到项目文件夹下再添加到项目中。不然会提示找不到某些头文件。</p>
+<p>这里还需要注意的是如果要以调试模式进行接入，运行编译脚本的时候需要选择3,否则找不到<strong><strong>mars.xcodeproj</strong></strong></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">Enter menu:</span></span><br><span class="line"><span class="number">1</span><span class="string">.</span> <span class="string">Clean</span> <span class="string">&amp;&amp;</span> <span class="string">build</span> <span class="string">mars.</span></span><br><span class="line"><span class="number">2</span><span class="string">.</span> <span class="string">Clean</span> <span class="string">&amp;&amp;</span> <span class="string">build</span> <span class="string">xlog.</span></span><br><span class="line"><span class="number">3</span><span class="string">.</span> <span class="string">Gen</span> <span class="string">iOS</span> <span class="string">mars</span> <span class="string">Project.</span></span><br><span class="line"><span class="number">4</span><span class="string">.</span> <span class="string">Exit</span></span><br></pre></td></tr></table></figure>
+<p>下面就以调试模式来开始我们mars源码的分析：</p>
+<p><strong><strong>2. Sample代码分析</strong></strong></p>
+<p>Mars Sample 业务层核心部分主要由<strong><strong>NetworkStatus</strong></strong>，<strong><strong>NetworkService</strong></strong>，<strong><strong>NetworkEvent</strong></strong> 三大部分构成，在介绍Mars Sample 业务层代码之前我们先过下这部分功能。</p>
+<p><strong><strong>NetworkStatus</strong></strong></p>
+<p>这个类用于监听网络状态的，具体的思想和AFNetWorking 里面的AFNetworkReachabilityManager思路是一致的，只不过代码有点…..所以不贴代码了。大家可以看下之前介绍AFNetWorking的源码分析博客。</p>
+<p>只要调用了Start方法之后在网络状态改变后都会调用它的<strong><strong>ChangeReach</strong></strong>方法。</p>
+<p>这里我们在Appdelegate类中将<strong><strong>NetworkService</strong></strong>作为Start参数,也就是说在网络状态改变的时候会调用NetworkService的<strong><strong>ChangeReach</strong></strong>方法。</p>
+<p><strong><strong>NetworkService</strong></strong></p>
+<p>是整个业务层比较重要的一个类，它和底层mars关系最为密切。它主要有如下功能：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1. </span>Mars 的上层调用</span><br><span class="line"><span class="bullet">2. </span>网络状态NetworkStatus的监听器，并将这个网络状态传递给Mars底层的mars::baseevent</span><br><span class="line"><span class="bullet">3. </span>将Mars底层的callback通知到<span class="strong">****NetworkEvent**</span>**</span><br></pre></td></tr></table></figure>
+<p><strong><strong>NetworkEvent</strong></strong></p>
+<p>NetworkEvent 管理着<strong><strong>tasks</strong></strong>，<strong><strong>controllers</strong></strong> 和 <strong><strong>pushrecvers</strong></strong>：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NetworkEvent</span> : <span class="title">NSObject</span>&lt;<span class="title">NetworkDelegate</span>&gt; </span>&#123;</span><br><span class="line">    <span class="built_in">NSMutableDictionary</span>   *tasks;</span><br><span class="line">    <span class="built_in">NSMutableDictionary</span>* controllers;</span><br><span class="line">    <span class="built_in">NSMutableDictionary</span>* pushrecvers;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在有数据需要分发下去的时候可以通过它来分发，一般事件的起源都是从Mars底层callback产生的，然后经过<strong><strong>NetworkService</strong></strong>传递给<strong><strong>NetworkEvent</strong></strong>，<strong><strong>NetworkEvent</strong></strong>负责分发给对应的对象。下面是这三者之间的关系，整体如下图所示：</p>
+<p><img src="/2019/12/05/Tencent-Mars-源码解析/00003.png" alt></p>
+<p><strong><strong>NetworkService</strong></strong> 负责设置 <strong><strong>Mars</strong></strong>,由于在<strong><strong>NetworkService</strong></strong> setCallBack中设置了对应的回调所以<strong><strong>Mars</strong></strong>一旦有回调就传给<strong><strong>NetworkService</strong></strong>，<strong><strong>NetworkService</strong></strong> 将 Mars上传的事件传递给<strong><strong>NetworkEvent</strong></strong>，<strong><strong>NetworkEvent</strong></strong>再将事件传递给对应的controllers，pushrecvers。</p>
+<p>接下来我们会以如下几个部分对业务层代码进行解析:</p>
+<p><strong><strong>2.1 Mars 网络层初始化</strong></strong></p>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line">- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 设置NetworkEvent为NetworkService的代理以便将NetworkService感知的事件传递给NetworkEvent进行分发</span></span><br><span class="line">    [<span class="meta">NetworkService sharedInstance</span>].<span class="keyword">delegate</span> = [[NetworkEvent alloc] init];</span><br><span class="line">    <span class="comment">// 监听Mars的底层回调，在Mars有关键事件发生的时候可以通知到NetworkService</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] setCallBack];</span><br><span class="line">    <span class="comment">// 创建Mars</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] createMars];</span><br><span class="line">    <span class="comment">// 设置客户端版本</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] setClientVersion:<span class="number">200</span>];</span><br><span class="line">    <span class="comment">// 添加长链接地址和端口</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] setLongLinkAddress:<span class="string">@"localhost"</span> port:<span class="number">8081</span>];</span><br><span class="line">    <span class="comment">// 添加短链接监听端口</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] setShortLinkPort:<span class="number">8080</span>];</span><br><span class="line">    <span class="comment">// 上报当前应用处于前台状态</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] reportEvent_OnForeground:YES];</span><br><span class="line">    <span class="comment">// 确保长链接已经连接上</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] makesureLongLinkConnect];</span><br><span class="line">    <span class="comment">// 启动网络状态监听</span></span><br><span class="line">    [<span class="meta">[NetworkStatus sharedInstance</span>] Start:[NetworkService sharedInstance]];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> YES;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)applicationDidEnterBackground:(UIApplication *)application &#123;</span><br><span class="line">    <span class="comment">//上报当前应用处于后台状态</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] reportEvent_OnForeground:NO];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)applicationWillEnterForeground:(UIApplication *)application &#123;</span><br><span class="line">    <span class="comment">//上报当前应用处于前端状态</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] reportEvent_OnForeground:YES];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)applicationWillTerminate:(UIApplication *)application &#123;</span><br><span class="line">    <span class="comment">// 销毁Mars</span></span><br><span class="line">    [<span class="meta">[NetworkService sharedInstance</span>] destroyMars];</span><br><span class="line">    appender_close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这部分我们先埋个坑，在介绍Mars底层代码的时候我们再展开介绍。</p>
+<p><strong><strong>2.2 通过Mars 拉取数据</strong></strong></p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)loadView &#123;</span><br><span class="line">    [<span class="keyword">super</span> loadView];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    converSations = [[NSArray alloc] init];</span><br><span class="line">    CGITask *convlstCGI = [[CGITask alloc] <span class="string">initAll:</span>ChannelType_ShortConn <span class="string">AndCmdId:</span>kConvLst <span class="string">AndCGIUri:</span>@<span class="string">"/mars/getconvlist"</span> <span class="string">AndHost:</span>@<span class="string">"localhost"</span>];</span><br><span class="line">    [[NetworkService sharedInstance] <span class="string">startTask:</span>convlstCGI <span class="string">ForUI:</span>self];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (NSData*)requestSendData &#123;</span><br><span class="line">    ConversationListRequest *convlstRequest = [ConversationListRequest <span class="keyword">new</span>];</span><br><span class="line">    convlstRequest.type = <span class="number">0</span>;</span><br><span class="line">    convlstRequest.accessToken = @<span class="string">"123456"</span>;</span><br><span class="line">    NSData *data = [convlstRequest data];</span><br><span class="line">    <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">int</span>)<span class="string">onPostDecode:</span>(NSData*)responseData &#123;</span><br><span class="line">    convlstResponse = [ConversationListResponse <span class="string">parseFromData:</span>responseData <span class="string">error:</span>nil];</span><br><span class="line">    self-&gt;converSations = convlstResponse.listArray;</span><br><span class="line">    LOG_INFO(kModuleViewController, @<span class="string">"recv conversation list, size: %lu"</span>, (unsigned <span class="keyword">long</span>)[self-&gt;converSations count]);</span><br><span class="line">    <span class="keyword">return</span> [self-&gt;converSations count] &gt; <span class="number">0</span> ? 0 : <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">int</span>)<span class="string">onTaskEnd:</span>(uint32_t)tid <span class="string">errType:</span>(uint32_t)errtype <span class="string">errCode:</span>(uint32_t)errcode &#123;</span><br><span class="line">    dispatch_async(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">        [self.tableView reloadData];</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>2.2 通过Mars 监听下发的数据</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)viewDidLoad &#123;</span><br><span class="line">    [<span class="keyword">super</span> viewDidLoad];</span><br><span class="line">    <span class="keyword">self</span>.title = _conversation.notice;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    _messages = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    [[NetworkService sharedInstance] addPushObserver:<span class="keyword">self</span> withCmdId:kPushMessageCmdId];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">-(<span class="built_in">NSData</span>*)requestSendData &#123;</span><br><span class="line">    SendMessageRequest *sendMsgRequest = [SendMessageRequest new];</span><br><span class="line">    sendMsgRequest.from = [<span class="keyword">self</span> username];</span><br><span class="line">    sendMsgRequest.to = <span class="string">@"all"</span>;</span><br><span class="line">    sendMsgRequest.text = _textField.text;</span><br><span class="line">    sendMsgRequest.accessToken = <span class="string">@"123456"</span>;</span><br><span class="line">    sendMsgRequest.topic = _conversation.topic;</span><br><span class="line">    LOG_INFO(kModuleViewController, <span class="string">@"send msg to topic:%@"</span>, _conversation.notice);</span><br><span class="line">    <span class="built_in">NSData</span>* data = [sendMsgRequest data];</span><br><span class="line">    <span class="built_in">dispatch_async</span>(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">        _textField.text = <span class="string">@""</span>;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">-(<span class="keyword">int</span>)onPostDecode:(<span class="built_in">NSData</span>*)responseData &#123;</span><br><span class="line">    SendMessageResponse *sendMsgResponse = [SendMessageResponse parseFromData:responseData error:<span class="literal">nil</span>];</span><br><span class="line">    <span class="built_in">dispatch_async</span>(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">        <span class="built_in">NSString</span> *recvtext = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%@ : %@"</span>, sendMsgResponse.from, sendMsgResponse.text];</span><br><span class="line">        [<span class="keyword">self</span>.messages addObject:recvtext];</span><br><span class="line">        [<span class="keyword">self</span>.tableView reloadData];</span><br><span class="line">        <span class="built_in">NSIndexPath</span> *indexPath = [<span class="built_in">NSIndexPath</span> indexPathForRow:<span class="keyword">self</span>.messages.count<span class="number">-1</span> inSection:<span class="number">0</span>];</span><br><span class="line">        [<span class="keyword">self</span>.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:<span class="built_in">UITableViewScrollPositionBottom</span> animated:<span class="literal">YES</span>];</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> sendMsgResponse.errCode == <span class="number">0</span> ? <span class="number">0</span> : <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)sendMessage &#123;</span><br><span class="line">    <span class="built_in">CGITask</span> *sendMsgCGI = [[<span class="built_in">CGITask</span> alloc] initAll:ChannelType_LongConn AndCmdId:kSendMsg AndCGIUri:<span class="string">@"/mars/sendmessage"</span> AndHost:<span class="string">@"localhost"</span>];</span><br><span class="line">    [[NetworkService sharedInstance] startTask:sendMsgCGI ForUI:<span class="keyword">self</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)notifyPushMessage:(<span class="built_in">NSData</span>*)pushData withCmdId:(<span class="keyword">int</span>)cmdId &#123;</span><br><span class="line">    MessagePush* messagePush = [MessagePush parseFromData:pushData error:<span class="literal">nil</span>];</span><br><span class="line">    <span class="keyword">if</span> (messagePush != <span class="literal">nil</span>) &#123;</span><br><span class="line">        <span class="built_in">dispatch_async</span>(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">            <span class="built_in">NSString</span> *recvtext = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%@ : %@"</span>, messagePush.from, messagePush.content];</span><br><span class="line">            [<span class="keyword">self</span>.messages addObject:recvtext];</span><br><span class="line">            [<span class="keyword">self</span>.tableView reloadData];</span><br><span class="line">            <span class="built_in">NSIndexPath</span> *indexPath = [<span class="built_in">NSIndexPath</span> indexPathForRow:<span class="keyword">self</span>.messages.count<span class="number">-1</span> inSection:<span class="number">0</span>];</span><br><span class="line">            [<span class="keyword">self</span>.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:<span class="built_in">UITableViewScrollPositionBottom</span> animated:<span class="literal">YES</span>];</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">int</span>)onTaskEnd:(uint32_t)tid errType:(uint32_t)errtype errCode:(uint32_t)errcode &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Sameple 例子中每个请求都被定义成一个<strong><strong>CGITask</strong></strong>，这里面包含了任务id，长链接，短链接通道的选择，用于表示标示某个请求的id，url 以及host地址。</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> <span class="attribute">CGITask </span>: NSObject</span><br><span class="line"></span><br><span class="line"><span class="variable">@property</span>(nonatomic) uint32_t           taskid;</span><br><span class="line"><span class="variable">@property</span>(nonatomic) ChannelType        channel_select;</span><br><span class="line"><span class="variable">@property</span>(nonatomic) uint32_t           cmdid;</span><br><span class="line"><span class="variable">@property</span>(nonatomic, copy) NSString     *cgi;</span><br><span class="line"><span class="variable">@property</span>(nonatomic, copy) NSString     *host;</span><br><span class="line"></span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure>
+<p>紧接着调用startTask启动任务：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[[NetworkService sharedInstance]</span> <span class="selector-tag">startTask</span><span class="selector-pseudo">:convlstCGI</span> <span class="selector-tag">ForUI</span><span class="selector-pseudo">:self</span>];</span><br></pre></td></tr></table></figure>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">int</span>)<span class="string">startTask:</span>(CGITask *)task <span class="string">ForUI:</span>(id&lt;UINotifyDelegate&gt;)delegateUI &#123;</span><br><span class="line">    Task ctask;</span><br><span class="line">    ctask.cmdid = task.cmdid;</span><br><span class="line">    ctask.channel_select = task.channel_select;</span><br><span class="line">    ctask.cgi = <span class="string">std:</span>:string(task.cgi.UTF8String);</span><br><span class="line">    ctask.shortlink_host_list.push_back(<span class="string">std:</span>:string(task.host.UTF8String));</span><br><span class="line">    ctask.user_context = (__bridge <span class="keyword">void</span>*)task;</span><br><span class="line">    </span><br><span class="line"><span class="symbol">    mars:</span>:<span class="string">stn:</span>:StartTask(ctask);</span><br><span class="line">    </span><br><span class="line">    NSString *taskIdKey = [NSString <span class="string">stringWithFormat:</span>@<span class="string">"%d"</span>, ctask.taskid];</span><br><span class="line">    [_delegate <span class="string">addObserver:</span>delegateUI <span class="string">forKey:</span>taskIdKey];</span><br><span class="line">    [_delegate <span class="string">addCGITasks:</span>task <span class="string">forKey:</span>taskIdKey];</span><br><span class="line">    <span class="keyword">return</span> ctask.taskid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在startTask方法中会将CGITask转换为Task，并调用<strong><strong>mars::stn::StartTask</strong></strong> 然后将当前当前对象，以及task添加到NetworkEvent中，这样一旦有事件就会通知到它们。我们看下<strong><strong>NetworkEvent</strong></strong> 中与controllers有关的方法，这些方法都是task请求触发的。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">NSData</span>*)Request2BufferWithTaskID:(uint32_t)tid task:(<span class="built_in">CGITask</span> *)task &#123;</span><br><span class="line">    <span class="built_in">NSData</span>* data = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="built_in">NSString</span> *taskIdKey = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%d"</span>, tid];</span><br><span class="line">    <span class="keyword">id</span>&lt;<span class="built_in">UINotifyDelegate</span>&gt; uiObserver = [controllers objectForKey:taskIdKey];</span><br><span class="line">    <span class="keyword">if</span> (uiObserver != <span class="literal">nil</span>) &#123;</span><br><span class="line">        data = [uiObserver requestSendData];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="built_in">NSInteger</span>)Buffer2ResponseWithTaskID:(uint32_t)tid responseData:(<span class="built_in">NSData</span> *)data task:(<span class="built_in">CGITask</span> *)task &#123;</span><br><span class="line">    <span class="keyword">int</span> returnType = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">NSString</span> *taskIdKey = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%d"</span>, tid];</span><br><span class="line">    <span class="keyword">id</span>&lt;<span class="built_in">UINotifyDelegate</span>&gt; uiObserver = [controllers objectForKey:taskIdKey];</span><br><span class="line">    <span class="keyword">if</span> (uiObserver != <span class="literal">nil</span>) &#123;</span><br><span class="line">        returnType = [uiObserver onPostDecode:data];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        returnType = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> returnType;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="built_in">NSInteger</span>)OnTaskEndWithTaskID:(uint32_t)tid task:(<span class="built_in">CGITask</span> *)task errType:(uint32_t)errtype errCode:(uint32_t)errcode &#123;</span><br><span class="line">    <span class="built_in">NSString</span> *taskIdKey = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%d"</span>, tid];</span><br><span class="line">    [tasks removeObjectForKey:taskIdKey];</span><br><span class="line">    <span class="keyword">id</span>&lt;<span class="built_in">UINotifyDelegate</span>&gt; uiObserver = [controllers objectForKey:taskIdKey];</span><br><span class="line">    [uiObserver onTaskEnd:tid errType:errtype errCode:errcode];</span><br><span class="line">    [controllers removeObjectForKey:taskIdKey];</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也就是说在<strong><strong>Request2BufferWithTaskID</strong></strong>，<strong><strong>Buffer2ResponseWithTaskID</strong></strong>，<strong><strong>OnTaskEndWithTaskID</strong></strong> 会分别触发 发起 Task类的<strong><strong>requestSendData</strong></strong>，<strong><strong>onPostDecode</strong></strong>，<strong><strong>OnTaskEndWithTaskID</strong></strong>方法。</p>
+<p>而这三者在会在<strong><strong>stn_callback.mm</strong></strong>中的<strong><strong>StnCallBack::Req2Buf</strong></strong>，<strong><strong>StnCallBack::Buf2Resp</strong></strong>，<strong><strong>StnCallBack::OnTaskEnd</strong></strong> 调用NetworkService的<strong><strong>Request2BufferWithTaskID</strong></strong>，<strong><strong>Buffer2ResponseWithTaskID</strong></strong>，<strong><strong>OnTaskEndWithTaskID</strong></strong>方法。</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">bool <span class="string">StnCallBack:</span>:Req2Buf(uint32_t _taskid, <span class="keyword">void</span>* const _user_context, AutoBuffer&amp; _outbuffer, AutoBuffer&amp; _extend, <span class="keyword">int</span>&amp; _error_code, const <span class="keyword">int</span> _channel_select) &#123;</span><br><span class="line">    NSData* requestData =  [[NetworkService sharedInstance] <span class="string">Request2BufferWithTaskID:</span>_taskid <span class="string">userContext:</span>_user_context];</span><br><span class="line">    <span class="keyword">if</span> (requestData == nil) &#123;</span><br><span class="line">        requestData = [[NSData alloc] init];</span><br><span class="line">    &#125;</span><br><span class="line">    _outbuffer.AllocWrite(requestData.length);</span><br><span class="line">    _outbuffer.Write(requestData.bytes,requestData.length);</span><br><span class="line">    <span class="keyword">return</span> requestData.length &gt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> <span class="string">StnCallBack:</span>:Buf2Resp(uint32_t _taskid, <span class="keyword">void</span>* const _user_context, const AutoBuffer&amp; _inbuffer, const AutoBuffer&amp; _extend, <span class="keyword">int</span>&amp; _error_code, const <span class="keyword">int</span> _channel_select) &#123;</span><br><span class="line">    <span class="keyword">int</span> handle_type = <span class="string">mars:</span>:<span class="string">stn:</span>:kTaskFailHandleNormal;</span><br><span class="line">    NSData* responseData = [NSData <span class="string">dataWithBytes:</span>(const <span class="keyword">void</span> *) _inbuffer.Ptr() <span class="string">length:</span>_inbuffer.Length()];</span><br><span class="line">    NSInteger errorCode = [[NetworkService sharedInstance] <span class="string">Buffer2ResponseWithTaskID:</span>_taskid <span class="string">ResponseData:</span>responseData <span class="string">userContext:</span>_user_context];</span><br><span class="line">    <span class="keyword">if</span> (errorCode != <span class="number">0</span>) &#123;</span><br><span class="line">        handle_type = <span class="string">mars:</span>:<span class="string">stn:</span>:kTaskFailHandleDefault;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> handle_type;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> <span class="string">StnCallBack:</span>:OnTaskEnd(uint32_t _taskid, <span class="keyword">void</span>* const _user_context, <span class="keyword">int</span> _error_type, <span class="keyword">int</span> _error_code) &#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">int</span>)[[NetworkService sharedInstance] <span class="string">OnTaskEndWithTaskID:</span>_taskid <span class="string">userContext:</span>_user_context <span class="string">errType:</span>_error_type <span class="string">errCode:</span>_error_code];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>至于stn_callback什么时候被调用这里先不做过多的介绍，后续介绍底层的时候再来揭开这个答案。</p>
+<p>现在我们看下通过上层拉取一个接口是怎样的一个过程：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="number">1.</span> 构建一个CGITask,传入使用哪种渠道：长链接？短链接？地址，域名，命令id</span><br><span class="line"><span class="number">2.</span> 调用mars::stn::StartTask</span><br><span class="line"><span class="number">3.</span> 将当前类添加到NetWorkEvent的controller列表，</span><br><span class="line"><span class="number">4.</span> 调用mars::stn::StartTask后，Mars 对应的事件会从底层传给NetWorkService,再通过NetWorkEvent分发给对应的controller，我们可以在requestSendData，onPostDecode，OnTaskEndWithTaskID做响应的处理。</span><br></pre></td></tr></table></figure>
+<p>看完拉取请求后，其实接收推送的过程也差不多类似：</p>
+<p><strong><strong>stn_callback.mm</strong></strong></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">StnCallBack::OnPush</span><span class="params">(<span class="keyword">uint64_t</span> _channel_id, <span class="keyword">uint32_t</span> _cmdid, <span class="keyword">uint32_t</span> _taskid, <span class="keyword">const</span> AutoBuffer&amp; _body, <span class="keyword">const</span> AutoBuffer&amp; _extend)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (_body.Length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        NSData* recvData = [NSData dataWithBytes:(<span class="keyword">const</span> <span class="keyword">void</span> *) _body.Ptr() length:_body.Length()];</span><br><span class="line">        [[NetworkService sharedInstance] OnPushWithCmd:_cmdid data:recvData];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>NetworkService.m</strong></strong></p>
+<figure class="highlight haskell"><table><tr><td class="code"><pre><span class="line">- (void)<span class="type">OnPushWithCmd</span>:(<span class="type">NSInteger</span>)cid <span class="class"><span class="keyword">data</span>:(<span class="type">NSData</span> *)<span class="keyword">data</span> &#123;</span></span><br><span class="line"><span class="class">    <span class="title">return</span> [<span class="title">_delegate</span> <span class="type">OnPushWithCmd</span>:<span class="title">cid</span> <span class="title">data</span>:<span class="title">data</span>];</span></span><br><span class="line"><span class="class">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong><strong>NetworkEvent.m</strong></strong><br><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line">- (void)OnPushWithCmd:(NSInteger)cid <span class="meta">data</span>:(NSData *)<span class="meta">data</span> &#123;</span><br><span class="line">    id&lt;<span class="keyword">PushNotifyDelegate&gt; </span><span class="keyword">pushObserver </span>= [<span class="keyword">pushrecvers </span>objectForKey:[NSString <span class="keyword">stringWithFormat:@"%d", </span>cid]]<span class="comment">;</span></span><br><span class="line">    <span class="meta">if</span> (<span class="keyword">pushObserver </span>!= nil) &#123;</span><br><span class="line">        [<span class="keyword">pushObserver </span>notifyPushMessage:<span class="meta">data</span> withCmdId:cid]<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong><strong>注册监听下发对象</strong></strong></p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[[NetworkService sharedInstance]</span> <span class="selector-tag">addPushObserver</span><span class="selector-pseudo">:self</span> <span class="selector-tag">withCmdId</span><span class="selector-pseudo">:kPushMessageCmdId</span>];</span><br></pre></td></tr></table></figure>
+<p><strong><strong>3. Mars 底层源码解析</strong></strong></p>
+<p><strong><strong>3.1 回调设置</strong></strong></p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">-</span> (<span class="selector-tag">void</span>)<span class="selector-tag">setCallBack</span> &#123;</span><br><span class="line">    <span class="attribute">mars</span>::stn::<span class="built_in">SetCallback</span>(mars::stn::StnCallBack::Instance());</span><br><span class="line">    <span class="attribute">mars</span>::app::<span class="built_in">SetCallback</span>(mars::app::AppCallBack::Instance());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在PublicComponentV2 文件夹下面有 <strong><strong>app_callback</strong></strong> 以及 <strong><strong>stn_callback</strong></strong>两组文件：</p>
+<p><strong><strong>stn_callback</strong></strong>这个文件是STN模块的回调接口，<strong><strong>app_callback</strong></strong>是应用相关的回调接口，Mars 通过这些回调接口从上层获取对应的定制化服务，从而将部分可定制的内容放在应用层来做，将这部分业务相关的从底层抽取出来。我们来看下这部分接口，至于具体的时候在介绍到对应的逻辑的时候再介绍，这里主要是了解，回调有哪些接口，这些接口在底层怎么使用：</p>
+<p>StnCallBack 接口定义如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StnCallBack</span> :</span> <span class="keyword">public</span> Callback &#123;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">//流量统计</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">TrafficData</span><span class="params">(<span class="keyword">ssize_t</span> _send, <span class="keyword">ssize_t</span> _recv)</span></span>;</span><br><span class="line">    <span class="comment">//底层询问上层该host对应的ip列表</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt; <span class="title">OnNewDns</span><span class="params">(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; _host)</span></span>;</span><br><span class="line">    <span class="comment">//网络层收到push消息回调</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnPush</span><span class="params">(<span class="keyword">uint64_t</span> _channel_id, <span class="keyword">uint32_t</span> _cmdid, <span class="keyword">uint32_t</span> _taskid, <span class="keyword">const</span> AutoBuffer&amp; _body, <span class="keyword">const</span> AutoBuffer&amp; _extend)</span></span>;</span><br><span class="line">    <span class="comment">//底层获取task要发送的数据</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">Req2Buf</span><span class="params">(<span class="keyword">uint32_t</span> _taskid, <span class="keyword">void</span>* <span class="keyword">const</span> _user_context, AutoBuffer&amp; _outbuffer, AutoBuffer&amp; _extend, <span class="keyword">int</span>&amp; _error_code, <span class="keyword">const</span> <span class="keyword">int</span> _channel_select)</span></span>;</span><br><span class="line">    <span class="comment">//底层回包返回给上层解析</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">int</span> <span class="title">Buf2Resp</span><span class="params">(<span class="keyword">uint32_t</span> _taskid, <span class="keyword">void</span>* <span class="keyword">const</span> _user_context, <span class="keyword">const</span> AutoBuffer&amp; _inbuffer, <span class="keyword">const</span> AutoBuffer&amp; _extend, <span class="keyword">int</span>&amp; _error_code, <span class="keyword">const</span> <span class="keyword">int</span> _channel_select)</span></span>;</span><br><span class="line">    <span class="comment">//任务执行结束</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">int</span>  <span class="title">OnTaskEnd</span><span class="params">(<span class="keyword">uint32_t</span> _taskid, <span class="keyword">void</span>* <span class="keyword">const</span> _user_context, <span class="keyword">int</span> _error_type, <span class="keyword">int</span> _error_code)</span></span>;</span><br><span class="line">    <span class="comment">//上报网络连接状态</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">ReportConnectStatus</span><span class="params">(<span class="keyword">int</span> _status, <span class="keyword">int</span> longlink_status)</span></span>;</span><br><span class="line">    <span class="comment">//长连信令校验 ECHECK_NOW, ECHECK_NEVER = 1, ECHECK_NEXT = 2</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">int</span>  <span class="title">GetLonglinkIdentifyCheckBuffer</span><span class="params">(AutoBuffer&amp; _identify_buffer, AutoBuffer&amp; _buffer_hash, <span class="keyword">int32_t</span>&amp; _cmdid)</span></span>;</span><br><span class="line">    <span class="comment">//长连信令校验回包</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">OnLonglinkIdentifyResponse</span><span class="params">(<span class="keyword">const</span> AutoBuffer&amp; _response_buffer, <span class="keyword">const</span> AutoBuffer&amp; _identify_buffer_hash)</span></span>;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">static</span> StnCallBack* instance_;</span><br><span class="line">    </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>AppCallBack 接口定义如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AppCallBack</span> :</span> <span class="keyword">public</span> Callback &#123;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">//获取应用路径</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">GetAppFilePath</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="comment">//获取当前用户信息</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> AccountInfo <span class="title">GetAccountInfo</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="comment">//获取版本信息</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">GetClientVersion</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="comment">//获取设备信息</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> DeviceInfo <span class="title">GetDeviceInfo</span><span class="params">()</span></span>;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">static</span> AppCallBack* instance_;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>调用SetCallback后就会将对应的callback保存到sg_callback中：<br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SetCallback</span><span class="params">(Callback* <span class="keyword">const</span> callback)</span> </span>&#123;</span><br><span class="line">	sg_callback = callback;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>StnCallBack 将会在<strong><strong>stn_logic.cc</strong></strong>被注册到Mars底层的stn模块中，AppCallBack 将会在 <strong><strong>app_logic.cc</strong></strong>中被注入到Mars底层的app模块中，至于这些模块的作用我们后面会具体介绍。设置完回调之后就可以通过这些回调就可以将与业务相关的逻辑交给业务层，比如流量统计这部分在Mars的stn模块就可以通过如下方式调用上层逻辑：</p>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">void (*TrafficData)(ssize_t _send, ssize_t _recv)</span><br><span class="line">= [](ssize_t _send, ssize_t _recv) &#123;</span><br><span class="line">    xassert2(sg_callback != NULL);</span><br><span class="line">    return sg_callback-&gt;TrafficData(_send, _recv);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>3.2 创建Mars</strong></strong></p>
+<p>Mars的创建是通过createMars方法进行创建的：</p>
+<figure class="highlight scheme"><table><tr><td class="code"><pre><span class="line">[[<span class="name">NetworkService</span> sharedInstance] createMars]<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>这里调用了mars::baseevent的OnCreate</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">-</span> (<span class="selector-tag">void</span>) <span class="selector-tag">createMars</span> &#123;</span><br><span class="line">    <span class="attribute">mars</span>::baseevent::<span class="built_in">OnCreate</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在继续介绍Mars创建的过程之前我们先看下mars::baseevent的工作机制：</p>
+<p>mars::baseevent里面除了OnCreate外还有如下几个方法，它们的用法看方法名就可以看出，我们这里不介绍这些方法。<br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">OnCreate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">OnDestroy</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">OnSingalCrash</span><span class="params">(<span class="keyword">int</span> _sig)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">OnExceptionCrash</span><span class="params">()</span> </span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">OnForeground</span><span class="params">(<span class="keyword">bool</span> _isforeground)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">OnNetworkChange</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<p>mars::baseevent::OnCreate() 实现如下：<br><figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">void</span> <span class="selector-tag">OnCreate</span>() &#123;</span><br><span class="line">    <span class="selector-tag">GetSignalOnCreate</span>()();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在<strong><strong>baseprjevent.cc</strong></strong>实现如下，这里利用了boost这个c++库的signals2信号槽的机制，接触过qt编程的大家都会理解信号槽这个概念。它相当于将一个信号与一个方法绑定在一起，只要发起那个信号，对应绑定的方法就会触发。</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="string">boost:</span>:<span class="string">signals2:</span>:signal&lt;<span class="keyword">void</span> ()&gt;&amp; GetSignalOnCreate() &#123;</span><br><span class="line">	<span class="keyword">static</span> <span class="string">boost:</span>:<span class="string">signals2:</span>:signal&lt;<span class="keyword">void</span> ()&gt; SignalOnCreate;</span><br><span class="line">	<span class="keyword">return</span> SignalOnCreate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么这个绑定关系是在哪里绑定的呢？</p>
+<p>我们可以看到BOOT_RUN_STARTUP宏的定义，这些方法是会在启动的时候执行，</p>
+<figure class="highlight hsp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BOOT_RUN_STARTUP(<span class="meta-keyword">func</span>) VARIABLE_IS_NOT_USED static int __anonymous_run_variable_startup_##<span class="meta-keyword">func</span> = __boot_run_atstartup(<span class="meta-keyword">func</span>)</span></span><br></pre></td></tr></table></figure>
+<p>下面罗列出了包含BOOT_RUN_STARTUP的类</p>
+<p><strong><strong>message_queue.cc</strong></strong><br><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">BOOT_RUN_STARTUP(<span class="name">__RgisterANRCheckCallback</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p><strong><strong>app_logic.cc</strong></strong><br><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">BOOT_RUN_STARTUP(<span class="name">__InitbindBaseprjevent</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p><strong><strong>active_logic.cc</strong></strong><br><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">BOOT_RUN_STARTUP(<span class="name">__initbind_baseprjevent</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p><strong><strong>active_logic.cc</strong></strong><br><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">BOOT_RUN_STARTUP(<span class="name">__initbind_baseprjevent</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p><strong><strong>sdt_logic.cc</strong></strong><br><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">BOOT_RUN_STARTUP(<span class="name">__initbind_baseprjevent</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p><strong><strong>stn_logic.cc</strong></strong><br><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">BOOT_RUN_STARTUP(<span class="name">__initbind_baseprjevent</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p>我们可以看到:<strong><strong>sdt_logic.cc</strong></strong></p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">static</span> <span class="selector-tag">void</span> <span class="selector-tag">__initbind_baseprjevent</span>() &#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="selector-tag">GetSignalOnCreate</span>()<span class="selector-class">.connect</span>(&amp;onCreate);</span><br><span class="line">    <span class="selector-tag">GetSignalOnDestroy</span>()<span class="selector-class">.connect</span>(<span class="number">5</span>, &amp;onDestroy);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以及<strong><strong>stn_logic.cc</strong></strong></p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">static</span> <span class="selector-tag">void</span> <span class="selector-tag">__initbind_baseprjevent</span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="selector-tag">GetSignalOnCreate</span>()<span class="selector-class">.connect</span>(&amp;onCreate);</span><br><span class="line">    <span class="selector-tag">GetSignalOnDestroy</span>()<span class="selector-class">.connect</span>(&amp;onDestroy);   <span class="comment">//low priority signal func</span></span><br><span class="line">    <span class="selector-tag">GetSignalOnSingalCrash</span>()<span class="selector-class">.connect</span>(&amp;onSingalCrash);</span><br><span class="line">    <span class="selector-tag">GetSignalOnExceptionCrash</span>()<span class="selector-class">.connect</span>(&amp;onExceptionCrash);</span><br><span class="line">    <span class="selector-tag">GetSignalOnNetworkChange</span>()<span class="selector-class">.connect</span>(<span class="number">5</span>, &amp;onNetworkChange);    <span class="comment">//define group 5</span></span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="selector-tag">GetSignalOnNetworkDataChange</span>()<span class="selector-class">.connect</span>(&amp;OnNetworkDataChange);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>都包含将GetSignalOnCreate信号通过信号槽与对应方法进行绑定的工作：因此sdt_logic.cc以及stn_logic.cc中的onCreate方法就是我们调用createMars时候底层的所有操作：</p>
+<p><strong><strong>sdt_logic.cc</strong></strong><br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    SdtCore::Singleton::Instance();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>SdtCore 模块的初始化：</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="string">SdtCore:</span>:SdtCore()</span><br><span class="line">    : thread_(<span class="string">boost:</span>:bind(&amp;<span class="string">SdtCore:</span>:__RunOn, <span class="keyword">this</span>))</span><br><span class="line">    , check_list_(<span class="string">std:</span>:list&lt;BaseChecker*&gt;())</span><br><span class="line">    , cancel_(<span class="literal">false</span>)</span><br><span class="line">    , checking_(<span class="literal">false</span>) &#123;</span><br><span class="line">    xinfo_function();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>stn_logic.cc</strong></strong><br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    ActiveLogic::Singleton::Instance();</span><br><span class="line">    NetCore::Singleton::Instance();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">ActiveLogic::ActiveLogic()</span><br><span class="line">: isforeground_(<span class="keyword">false</span>), isactive_(<span class="keyword">true</span>)</span><br><span class="line">, alarm_(boost::bind(&amp;ActiveLogic::__OnInActive, this), <span class="keyword">false</span>)</span><br><span class="line">, lastforegroundchangetime_(::gettickcount())</span><br><span class="line">&#123;</span><br><span class="line">    /<span class="regexp">/....</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">NetCore::NetCore()</span><br><span class="line">    : messagequeue_creater_(<span class="literal">true</span>, XLOGGER_TAG)</span><br><span class="line">    <span class="comment">//很长很长的初始化</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这两个文件中分别初始化了<strong><strong>SdtCore</strong></strong>，<strong><strong>NetCore</strong></strong>，<strong><strong>ActiveLogic</strong></strong>模块。</p>
+<p><strong><strong>3.3 设置长链接地址和短链接地址</strong></strong></p>
+<p>设置长链接地址：</p>
+<figure class="highlight scheme"><table><tr><td class="code"><pre><span class="line">[[<span class="name">NetworkService</span> sharedInstance] setLongLinkAddress:@<span class="string">"localhost"</span> port:8081]<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> (*SetLonglinkSvrAddr)(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; host, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">uint16_t</span>&gt; ports, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; debugip)</span><br><span class="line">= [](<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; host, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">uint16_t</span>&gt; ports, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; debugip) &#123;</span><br><span class="line">	<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt; hosts;</span><br><span class="line">	<span class="keyword">if</span> (!host.empty()) &#123;</span><br><span class="line">		hosts.push_back(host);</span><br><span class="line">	&#125;</span><br><span class="line">	NetSource::SetLongLink(hosts, ports, debugip);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>设置短链接地址：<br><figure class="highlight scheme"><table><tr><td class="code"><pre><span class="line">[[<span class="name">NetworkService</span> sharedInstance] setShortLinkPort:8080]<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> (*SetShortlinkSvrAddr)(<span class="keyword">const</span> <span class="keyword">uint16_t</span> port, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; debugip)</span><br><span class="line">= [](<span class="keyword">const</span> <span class="keyword">uint16_t</span> port, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; debugip) &#123;</span><br><span class="line">	NetSource::SetShortlink(port, debugip);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NetSource::SetLongLink</span><span class="params">(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt;&amp; _hosts, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">uint16_t</span>&gt;&amp; _ports, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; _debugip)</span> </span>&#123;</span><br><span class="line">	<span class="function">ScopedLock <span class="title">lock</span><span class="params">(sg_ip_mutex)</span></span>;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">if</span> (!_hosts.empty()) &#123;</span><br><span class="line">    	sg_longlink_hosts = _hosts;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">    	<span class="comment">//.......</span></span><br><span class="line">    &#125;</span><br><span class="line">	sg_longlink_ports = _ports;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NetSource::SetShortlink</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint16_t</span> _port, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; _debugip)</span> </span>&#123;</span><br><span class="line">	<span class="function">ScopedLock <span class="title">lock</span><span class="params">(sg_ip_mutex)</span></span>;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">	sg_shortlink_port = _port;</span><br><span class="line">    sg_shortlink_debugip = _debugip;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终会将长链接，短链接的host以及port存到NetSource的<strong><strong>sg_longlink_hosts</strong></strong>，<strong><strong>sg_longlink_ports</strong></strong>，<strong><strong>sg_shortlink_port</strong></strong>数组中。</p>
+<p><strong><strong>3.3 上报处于前台后台的状态</strong></strong></p>
+<figure class="highlight scheme"><table><tr><td class="code"><pre><span class="line">[[<span class="name">NetworkService</span> sharedInstance] reportEvent_OnForeground:YES/NO]<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>同样它也是依靠信号来触发的，最终的绑定在<strong><strong>active_logic.cc</strong></strong>中：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> __initbind_baseprjevent() &#123;</span><br><span class="line">    GetSignalOnForeground().<span class="built_in">connect</span>(&amp;onForeground);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onForeground</span><span class="params">(<span class="keyword">bool</span> _isforeground)</span> </span>&#123;</span><br><span class="line">    ActiveLogic::Singleton::Instance()-&gt;OnForeground(_isforeground);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ActiveLogic::OnForeground</span><span class="params">(<span class="keyword">bool</span> _isforeground)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    <span class="keyword">if</span> (_isforeground == isforeground_) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">bool</span> oldisactive = isactive_;</span><br><span class="line">    isactive_ = <span class="literal">true</span>;</span><br><span class="line">    isforeground_ = _isforeground;</span><br><span class="line">    lastforegroundchangetime_ = ::gettickcount();</span><br><span class="line">    alarm_.Cancel();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="keyword">bool</span> isnotify = oldisactive!=isactive_;</span><br><span class="line">    SignalForeground(isforeground_);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (isnotify) &#123;</span><br><span class="line">    	SignalActive(isactive_);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<strong><strong>ActiveLogic::OnForeground</strong></strong>方法中最重要的就是<strong><strong>SignalForeground</strong></strong>，以及<strong><strong>SignalActive</strong></strong>的调用,这也是通过信号来发送的，所以直接略过中间的环境，看下最终的底层调用：</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="string">LongLinkConnectMonitor:</span>:LongLinkConnectMonitor(ActiveLogic&amp; _activelogic, LongLink&amp; _longlink, <span class="string">MessageQueue:</span>:MessageQueue_t _id)</span><br><span class="line">    : asyncreg_(<span class="string">MessageQueue:</span>:InstallAsyncHandler(_id))</span><br><span class="line">    , activelogic_(_activelogic), longlink_(_longlink), alarm_(<span class="string">boost:</span>:bind(&amp;<span class="string">LongLinkConnectMonitor:</span>:__OnAlarm, <span class="keyword">this</span>), _id)</span><br><span class="line">    , status_(<span class="string">LongLink:</span>:kDisConnected)</span><br><span class="line">    , last_connect_time_(<span class="number">0</span>)</span><br><span class="line">    , last_connect_net_type_(kNoNet)</span><br><span class="line">    , thread_(<span class="string">boost:</span>:bind(&amp;<span class="string">LongLinkConnectMonitor:</span>:__Run, <span class="keyword">this</span>), XLOGGER_TAG<span class="string">"::con_mon"</span>)</span><br><span class="line">    , conti_suc_count_(<span class="number">0</span>)</span><br><span class="line">    , isstart_(<span class="literal">false</span>) &#123;</span><br><span class="line">    <span class="comment">/*SignalActive 信号绑定*/</span></span><br><span class="line">    activelogic_.SignalActive.connect(<span class="string">boost:</span>:bind(&amp;<span class="string">LongLinkConnectMonitor:</span>:__OnSignalActive, <span class="keyword">this</span>, _1));</span><br><span class="line">    <span class="comment">/*SignalForeground 信号绑定*/</span></span><br><span class="line">    activelogic_.SignalForeground.connect(<span class="string">boost:</span>:bind(&amp;<span class="string">LongLinkConnectMonitor:</span>:__OnSignalForeground, <span class="keyword">this</span>, _1));</span><br><span class="line">    longlink_.SignalConnection.connect(<span class="string">boost:</span>:bind(&amp;<span class="string">LongLinkConnectMonitor:</span>:__OnLongLinkStatuChanged, <span class="keyword">this</span>, _1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> LongLinkConnectMonitor::__OnSignalForeground(<span class="keyword">bool</span> _isForeground) &#123;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="keyword">if</span> (_isForeground) &#123;</span><br><span class="line">        longlink_.GetLastRecvTime().<span class="built_in">get</span>(), <span class="keyword">int64_t</span>(<span class="keyword">tickcount_t</span>().gettickcount() - longlink_.GetLastRecvTime()));</span><br><span class="line">        <span class="keyword">if</span> ((longlink_.ConnectStatus() == LongLink::kConnected) &amp;&amp;</span><br><span class="line">                (<span class="keyword">tickcount_t</span>().gettickcount() - longlink_.GetLastRecvTime() &gt; <span class="keyword">tickcountdiff_t</span>(<span class="number">4.5</span> * <span class="number">60</span> * <span class="number">1000</span>))) &#123;</span><br><span class="line">            <span class="comment">//如果超过4.5 分钟的话就会重新连接</span></span><br><span class="line">            __ReConnect();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    /.......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>SignalForeground 只有应用在前台的情况下如果当前时间与上一次长链接接收时间超过4.5 分钟的话就会重新连接</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> LongLinkConnectMonitor::__OnSignalActive(<span class="keyword">bool</span> _isactive) &#123;</span><br><span class="line">    __AutoIntervalConnect();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">uint64_t</span> LongLinkConnectMonitor::__AutoIntervalConnect() &#123;</span><br><span class="line">    alarm_.Cancel();</span><br><span class="line">    <span class="keyword">uint64_t</span> remain = __IntervalConnect(kLongLinkConnect);</span><br><span class="line">    alarm_.Start((<span class="keyword">int</span>)remain);</span><br><span class="line">    <span class="keyword">return</span> remain;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>SignalActive 会在<strong>IntervalConnect 间隔时间内自动连接，</strong>IntervalConnect 会根据连接类型，以及当前的应用的状态来查询下面的表格，进而确定间隔时间。</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">                            <span class="string">kForgroundOneMinute</span> <span class="string">|</span> <span class="string">kForgroundTenMinute</span> <span class="string">|</span> <span class="string">kForgroundActive</span> <span class="string">|</span> <span class="string">kBackgroundActive</span> <span class="string">|</span> <span class="string">kInactive</span></span><br><span class="line"><span class="string">static</span> <span class="string">unsigned</span> <span class="string">long</span> <span class="string">const</span> <span class="string">sg_interval[][5]</span>  <span class="string">=</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">kTaskConnect:</span>           <span class="string">&#123;</span>   <span class="number">5</span><span class="string">,</span>                         <span class="number">10</span><span class="string">,</span>                 <span class="number">20</span><span class="string">,</span>                 <span class="number">30</span><span class="string">,</span>             <span class="number">300</span><span class="string">&#125;,</span></span><br><span class="line">    <span class="attr">kLongLinkConnect:</span>       <span class="string">&#123;</span>   <span class="number">15</span><span class="string">,</span>                        <span class="number">30</span><span class="string">,</span>                 <span class="number">240</span><span class="string">,</span>                <span class="number">300</span><span class="string">,</span>            <span class="number">600</span><span class="string">&#125;,</span></span><br><span class="line">    <span class="attr">kNetworkChangeConnect:</span>  <span class="string">&#123;</span>   <span class="number">0</span><span class="string">,</span>                          <span class="number">0</span><span class="string">,</span>                   <span class="number">0</span><span class="string">,</span>                  <span class="number">0</span><span class="string">,</span>              <span class="number">0</span><span class="string">&#125;,</span></span><br><span class="line"><span class="string">&#125;;</span></span><br></pre></td></tr></table></figure>
+<p>整个重连机制会在介绍长链接的时候进一步介绍。</p>
+<p><strong><strong>3.4 检测长链接状态,保证长链接处于连接状态</strong></strong></p>
+<p>我们继续来看Appdelegate中的Mars初始化最后一步<strong><strong>makesureLongLinkConnect</strong></strong>：</p>
+<figure class="highlight scheme"><table><tr><td class="code"><pre><span class="line">[[<span class="name">NetworkService</span> sharedInstance] makesureLongLinkConnect]<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>下面是层层的调用关系：<br><figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">-</span> (<span class="selector-tag">void</span>)<span class="selector-tag">makesureLongLinkConnect</span> &#123;</span><br><span class="line">    <span class="attribute">mars</span>::stn::<span class="built_in">MakesureLonglinkConnected</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">void (*MakesureLonglinkConnected)()</span><br><span class="line">= []() &#123;</span><br><span class="line">   STN_WEAK_CALL(MakeSureLongLinkConnect());</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NetCore::MakeSureLongLinkConnect</span><span class="params">()</span> </span>&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> USE_LONG_LINK</span></span><br><span class="line">    ASYNC_BLOCK_START</span><br><span class="line">    longlink_task_manager_-&gt;LongLinkChannel().MakeSureConnected();</span><br><span class="line">    ASYNC_BLOCK_END</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line">bool LongLink:<span class="type"></span>:MakeSureConnected(bool* _new<span class="type">one</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (_new<span class="type">one</span>) *_new<span class="type">one</span> = <span class="literal">false</span>;</span><br><span class="line">    ScopedLock lock(mutex_);</span><br><span class="line">    <span class="keyword">if</span> (kConnected == ConnectStatus()) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    bool <span class="keyword">new</span><span class="type">one</span> = <span class="literal">false</span>;</span><br><span class="line">    thread_.start(&amp;<span class="keyword">new</span><span class="type">one</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">new</span><span class="type">one</span>) &#123;</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (_new<span class="type">one</span>) *_new<span class="type">one</span> = <span class="keyword">new</span><span class="type">one</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>LongLink::MakeSureConnected中最关键的是调用了<strong><strong>thread_.start(&amp;newone)</strong></strong></p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">LongLink::LongLink(<span class="keyword">const</span> mq::MessageQueue_t&amp; _messagequeueid, NetSource&amp; _netsource)</span><br><span class="line">    : asyncreg_(MessageQueue::InstallAsyncHandler(_messagequeueid))</span><br><span class="line">    , netsource_(_netsource)</span><br><span class="line">    <span class="comment">/*绑定__Run方法*/</span></span><br><span class="line">    , thread_(boost::bind(&amp;LongLink::__Run, this), XLOGGER_TAG <span class="string">"::lonklink"</span>)</span><br><span class="line">	, connectstatus_(kConnectIdle)</span><br><span class="line">	, disconnectinternalcode_(kNone)</span><br><span class="line">    , smartheartbeat_(<span class="keyword">NULL</span>)</span><br><span class="line">    , wakelock_(<span class="keyword">NULL</span>)</span><br><span class="line">&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>在初始化LongLink的时候已经通过boost::bind将thread_绑定到了<strong>Run所以，在调用start的时候调用的是</strong>Run方法：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> LongLink::__Run() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    </span><br><span class="line">    SOCKET sock = __RunConnect(conn_profile);</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    ErrCmdType errtype = kEctOK;</span><br><span class="line">    <span class="keyword">int</span> errcode = <span class="number">0</span>;</span><br><span class="line">    __RunReadWrite(sock, errtype, errcode, conn_profile);</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Run中最关键的部分是</strong>RunConnect以及__RunReadWrite：前者是执行socket连接，后者是在一个循环中等待执行数据的读写。关于数据的读写后面会专门介绍。</p>
+<p><strong><strong>3.5 发起请求</strong></strong></p>
+<p>我们上面代码可以看出发起请求是通过如下代码来实现的：</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">int</span>)<span class="string">startTask:</span>(CGITask *)task <span class="string">ForUI:</span>(id&lt;UINotifyDelegate&gt;)delegateUI &#123;</span><br><span class="line">    Task ctask;</span><br><span class="line">    ctask.cmdid = task.cmdid;</span><br><span class="line">    ctask.channel_select = task.channel_select;</span><br><span class="line">    ctask.cgi = <span class="string">std:</span>:string(task.cgi.UTF8String);</span><br><span class="line">    ctask.shortlink_host_list.push_back(<span class="string">std:</span>:string(task.host.UTF8String));</span><br><span class="line">    ctask.user_context = (__bridge <span class="keyword">void</span>*)task;</span><br><span class="line">    </span><br><span class="line"><span class="symbol">    mars:</span>:<span class="string">stn:</span>:StartTask(ctask);</span><br><span class="line">    </span><br><span class="line">    NSString *taskIdKey = [NSString <span class="string">stringWithFormat:</span>@<span class="string">"%d"</span>, ctask.taskid];</span><br><span class="line">    [_delegate <span class="string">addObserver:</span>delegateUI <span class="string">forKey:</span>taskIdKey];</span><br><span class="line">    [_delegate <span class="string">addCGITasks:</span>task <span class="string">forKey:</span>taskIdKey];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ctask.taskid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面创建了一个Task对象，将请求所需要的全部数据都放在Task上，然后通过<strong><strong>mars::stn::StartTask(ctask)</strong></strong> 调用Mars发起请求：</p>
+<p><strong><strong>stn_logic.cc</strong></strong><br><figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">bool (*StartTask)(const Task&amp; _task)</span><br><span class="line">= [](const Task&amp; _task) &#123;</span><br><span class="line">    STN_RETURN_WEAK_CALL(StartTask(_task));</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p><strong><strong>stn_logic.cc</strong></strong><br><figure class="highlight zephir"><table><tr><td class="code"><pre><span class="line">void NetCore::StartTask(<span class="keyword">const</span> Task&amp; _task) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    Task task = _task;</span><br><span class="line">    <span class="comment">//判断当前请求是否有效，如果是下面的情况下就会返回错误</span></span><br><span class="line">    <span class="comment">//1. 服务端处理时间超过2分钟</span></span><br><span class="line">    <span class="comment">//2. 尝试次数超过30次</span></span><br><span class="line">    <span class="comment">//3. 超时10分钟</span></span><br><span class="line">    <span class="comment">//4. 长连接cmdid为0</span></span><br><span class="line">    <span class="comment">//5. 短连接cgi为空</span></span><br><span class="line">    <span class="keyword">if</span> (!__ValidAndInitDefault(task, group)) &#123;</span><br><span class="line">        OnTaskEnd(task.taskid, task.user_context, kEctLocal, kEctLocalTaskParam);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> == task.channel_select) &#123;</span><br><span class="line">        <span class="comment">//通道类型错误 </span></span><br><span class="line">        OnTaskEnd(task.taskid, task.user_context, kEctLocal, kEctLocalChannelSelect);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//没有网络，并且在长链接的情况下未连接</span></span><br><span class="line">    <span class="keyword">if</span> (task.network_status_sensitive &amp;&amp; kNoNet ==::getNetInfo()</span><br><span class="line"><span class="comment">#ifdef USE_LONG_LINK</span></span><br><span class="line">        &amp;&amp; LongLink::kConnected != longlink_task_manager_-&gt;LongLinkChannel().ConnectStatus()</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line">        ) &#123;</span><br><span class="line">        OnTaskEnd(task.taskid, task.user_context, kEctLocal, kEctLocalNoNet);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">bool</span> start_ok = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//如果发现长链接未连接，并且在前台超过15分钟没有发送消息了，就必须重新连接长链接。</span></span><br><span class="line">    <span class="keyword">if</span> (LongLink::kConnected != longlink_task_manager_-&gt;LongLinkChannel().ConnectStatus()</span><br><span class="line">            &amp;&amp; (Task::kChannelLong &amp; task.channel_select) &amp;&amp; ActiveLogic::Singleton::Instance()-&gt;IsForeground()</span><br><span class="line">            &amp;&amp; (<span class="number">15</span> * <span class="number">60</span> * <span class="number">1000</span> &gt;= gettickcount() - ActiveLogic::Singleton::Instance()-&gt;LastForegroundChangeTime()))</span><br><span class="line">        longlink_task_manager_-&gt;getLongLinkConnectMonitor().MakeSureConnected();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (task.channel_select) &#123;</span><br><span class="line">    <span class="keyword">case</span> Task::kChannelBoth: &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">#ifdef USE_LONG_LINK</span></span><br><span class="line">        <span class="comment">// 长链接已经连接并且当前长链接任务数目小于长链接所能支持的最大任务数，如果连接策略为kChannelFastStrategy的情况下使用长链接，</span></span><br><span class="line">        <span class="comment">// 也就是说在长链接允许的情况下优先使用长链接。</span></span><br><span class="line">        <span class="keyword">bool</span> bUseLongLink = LongLink::kConnected == longlink_task_manager_-&gt;LongLinkChannel().ConnectStatus();</span><br><span class="line">        <span class="keyword">if</span> (bUseLongLink &amp;&amp; task.channel_strategy == Task::kChannelFastStrategy) &#123;</span><br><span class="line">            bUseLongLink = bUseLongLink &amp;&amp; (longlink_task_manager_-&gt;GetTaskCount() &lt;= kFastSendUseLonglinkTaskCntLimit);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (bUseLongLink)</span><br><span class="line">            start_ok = longlink_task_manager_-&gt;StartTask(task);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line">            start_ok = shortlink_task_manager_-&gt;StartTask(task);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="comment">#ifdef USE_LONG_LINK</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> Task::kChannelLong:</span><br><span class="line">        start_ok = longlink_task_manager_-&gt;StartTask(task);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> Task::kChannelShort:</span><br><span class="line">        start_ok = shortlink_task_manager_-&gt;StartTask(task);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        xassert2(<span class="keyword">false</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在NetCore::StartTask中最主要的工作就是根据channel_select来选择调用长链接模块还是短链接模块的StartTask。当channel_select为kChannelBoth的时候在长链接允许的情况下优先使用长链接。</p>
+<p><strong><strong>3.5.1 短链接StartTask</strong></strong></p>
+<p>我们先看下短链接的情况下的StartTask：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">ShortLinkTaskManager::StartTask</span><span class="params">(<span class="keyword">const</span> <span class="built_in">Task</span>&amp; _task)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="function">TaskProfile <span class="title">task</span><span class="params">(_task)</span></span>;</span><br><span class="line">    task.link_type = <span class="built_in">Task</span>::kChannelShort;</span><br><span class="line">    <span class="comment">//添加到列表中，并按照优先级排序</span></span><br><span class="line">    lst_cmd_.push_back(task);</span><br><span class="line">    lst_cmd_.sort(__CompareTask);</span><br><span class="line">    <span class="comment">//在__RunLoop中处理请求</span></span><br><span class="line">    __RunLoop();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>短链接的情况下的StartTask会将Task添加到lst_cmd_然后启动<strong>RunLoop中处理task，我们再来看下</strong>RunLoop</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">void</span> <span class="selector-tag">ShortLinkTaskManager</span><span class="selector-pseudo">::__RunLoop()</span> &#123;</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    <span class="selector-tag">__RunOnTimeout</span>();</span><br><span class="line">    <span class="selector-tag">__RunOnStartTask</span>();</span><br><span class="line"></span><br><span class="line">    <span class="selector-tag">if</span> (!lst_cmd_.empty()) &#123;</span><br><span class="line">        <span class="attribute">MessageQueue</span>::FasterMessage(asyncreg_.Get(),</span><br><span class="line">                                    <span class="attribute">MessageQueue</span>::Message((<span class="attribute">MessageQueue</span>::MessageTitle_t)this, <span class="attribute">boost</span>::bind(&amp;<span class="attribute">ShortLinkTaskManager</span>::__RunLoop, this), <span class="string">"ShortLinkTaskManager::__RunLoop"</span>),</span><br><span class="line">                                    <span class="attribute">MessageQueue</span>::MessageTiming(<span class="number">1000</span>));</span><br><span class="line">    &#125; <span class="selector-tag">else</span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<strong>RunLoop方法中主要调用了<em>**</em></strong>RunOnTimeout<strong><strong>，</strong></strong><strong>RunOnStartTask<em>**</em>然后如果lst_cmd_不为空的话会在间隔1秒后重新执行</strong>RunLoop，从而形成一个循环。<br><strong>RunOnTimeout 主要处理请求超时的任务。而</strong>RunOnStartTask才是发起请求的关键：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">void ShortLinkTaskManager::__RunOnStartTask() &#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">while</span> (first != last) &#123;</span><br><span class="line">        std::list&lt;TaskProfile&gt;::iterator next = first;</span><br><span class="line">        ++next;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//如果当前任务正在执行</span></span><br><span class="line">        <span class="function"><span class="title">if</span> (first-&gt;</span>running_id) &#123;</span><br><span class="line">            ++sent_count;</span><br><span class="line">            first = next;</span><br><span class="line">            continue;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//当前间隔时间小于重试间隔时间</span></span><br><span class="line">        <span class="function"><span class="title">if</span> (first-&gt;</span><span class="function"><span class="title">retry_time_interval</span> &gt; curtime - first-&gt;</span>retry_start_time) &#123;</span><br><span class="line">            <span class="function"><span class="title">xdebug2</span>(TSF"retry interval, taskid:%0, task retry late task, wait:%1", first-&gt;</span><span class="function"><span class="title">task</span>.taskid, (curtime - first-&gt;</span>transfer_profile.loop_start_task_time) / <span class="number">1000</span>);</span><br><span class="line">            first = next;</span><br><span class="line">            continue;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果需要登录的话，确保登录成功</span></span><br><span class="line">        <span class="function"><span class="title">if</span> (first-&gt;</span>task.need_authed) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!ismakesureauthruned) &#123;</span><br><span class="line">                ismakesureauthruned = <span class="literal">true</span>;</span><br><span class="line">                ismakesureauthsuccess = MakesureAuthed();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!ismakesureauthsuccess) &#123;</span><br><span class="line">                xinfo2_if(curtime % <span class="number">3</span> == <span class="number">1</span>, TSF<span class="string">"makeSureAuth retsult=%0"</span>, ismakesureauthsuccess);</span><br><span class="line">                first = next;</span><br><span class="line">                continue;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        AutoBuffer bufreq;</span><br><span class="line">        AutoBuffer buffer_extension;</span><br><span class="line">        int error_code = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//调用上层方法构建请求</span></span><br><span class="line">        <span class="function"><span class="title">if</span> (!Req2Buf(first-&gt;</span><span class="function"><span class="title">task</span>.taskid, first-&gt;</span>task.user_context, bufreq, buffer_extension, error_code, Task::kChannelShort)) &#123;</span><br><span class="line">            __S<span class="function"><span class="title">ingleRespHandle</span>(first, kEctEnDecode, error_code, kTaskFailHandleTaskEnd, 0, first-&gt;</span><span class="function"><span class="title">running_id</span> ? ((ShortLinkInterface*)first-&gt;</span><span class="function"><span class="title">running_id</span>)-&gt;</span>Profile() : ConnectProfile());</span><br><span class="line">            first = next;</span><br><span class="line">            continue;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//雪崩检测</span></span><br><span class="line">        xassert2(fun_anti_avalanche_check_);</span><br><span class="line">        <span class="function"><span class="title">if</span> (!fun_anti_avalanche_check_(first-&gt;</span>task, bufreq.Ptr(), (int)bufreq.Length())) &#123;</span><br><span class="line">            __S<span class="function"><span class="title">ingleRespHandle</span>(first, kEctLocal, kEctLocalAntiAvalanche, kTaskFailHandleTaskEnd, 0, first-&gt;</span><span class="function"><span class="title">running_id</span> ? ((ShortLinkInterface*)first-&gt;</span><span class="function"><span class="title">running_id</span>)-&gt;</span>Profile() : ConnectProfile());</span><br><span class="line">            first = next;</span><br><span class="line">            continue;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span>transfer_profile.loop_start_task_time = ::gettickcount();</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">transfer_profile</span>.first_pkg_timeout = __FirstPkgTimeout(first-&gt;</span>task.server_process_cost, bufreq.Length(), sent_count, dynamic_timeout_.GetStatus());</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">current_dyntime_status</span> = (first-&gt;</span>task.server_process_cost &lt;= <span class="number">0</span>) ? dynamic_timeout_.GetStatus() : kEValuating;</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">transfer_profile</span>.read_write_timeout = __ReadWriteTimeout(first-&gt;</span>transfer_profile.first_pkg_timeout);</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span>transfer_profile.send_data_size = bufreq.Length();</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">use_proxy</span> =  (first-&gt;</span><span class="function"><span class="title">remain_retry_count</span> == 0 &amp;&amp; first-&gt;</span>task.retry_count &gt; <span class="number">0</span>) ? !default_use_proxy_ : default_use_proxy_;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//创建短链接接口</span></span><br><span class="line">        S<span class="function"><span class="title">hortLinkInterface</span>* worker = ShortLinkChannelFactory::Create(MessageQueue::Handler2Queue(asyncreg_.Get()), net_source_, first-&gt;</span><span class="function"><span class="title">task</span>, first-&gt;</span>use_proxy);</span><br><span class="line">        <span class="comment">//将ShortLinkTaskManager 的 __OnSend，__OnRecv， __OnResponse 绑定到ShortLinkInterface</span></span><br><span class="line">        <span class="function"><span class="title">worker</span>-&gt;</span>OnSend.set(boost::bind(&amp;ShortLinkTaskManager::__OnSend, this, _1), AYNC_HANDLER);</span><br><span class="line">        <span class="function"><span class="title">worker</span>-&gt;</span>OnRecv.set(boost::bind(&amp;ShortLinkTaskManager::__OnRecv, this, _1, _2, _3), AYNC_HANDLER);</span><br><span class="line">        <span class="function"><span class="title">worker</span>-&gt;</span>OnResponse.set(boost::bind(&amp;ShortLinkTaskManager::__OnResponse, this, _1, _2, _3, _4, _5, _6, _7), AYNC_HANDLER);</span><br><span class="line">        <span class="comment">//设置running_id，也就是发起请求后会有一个非0的running_id</span></span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span>running_id = (intptr_t)worker;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="title">worker</span>-&gt;</span>func_network_report.set(fun_notify_network_err_);</span><br><span class="line">        <span class="comment">//调用SendRequest发送请求</span></span><br><span class="line">        <span class="function"><span class="title">worker</span>-&gt;</span>SendRequest(bufreq, buffer_extension);</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">        <span class="comment">//发送计数+1</span></span><br><span class="line">        ++sent_count;</span><br><span class="line">        first = next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面是给出的详细代码注释，我们接下来看下当中的关键代码：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"> <span class="comment">//调用上层方法构建请求</span></span><br><span class="line"><span class="function"><span class="title">if</span> (!Req2Buf(first-&gt;</span><span class="function"><span class="title">task</span>.taskid, first-&gt;</span>task.user_context, bufreq, buffer_extension, error_code, Task::kChannelShort)) &#123;</span><br><span class="line">    __S<span class="function"><span class="title">ingleRespHandle</span>(first, kEctEnDecode, error_code, kTaskFailHandleTaskEnd, 0, first-&gt;</span><span class="function"><span class="title">running_id</span> ? ((ShortLinkInterface*)first-&gt;</span><span class="function"><span class="title">running_id</span>)-&gt;</span>Profile() : ConnectProfile());</span><br><span class="line">    first = next;</span><br><span class="line">    continue;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建短链接接口</span></span><br><span class="line">S<span class="function"><span class="title">hortLinkInterface</span>* worker = ShortLinkChannelFactory::Create(MessageQueue::Handler2Queue(asyncreg_.Get()), net_source_, first-&gt;</span><span class="function"><span class="title">task</span>, first-&gt;</span>use_proxy);</span><br><span class="line"><span class="comment">//将ShortLinkTaskManager 的 __OnSend，__OnRecv， __OnResponse 绑定到ShortLinkInterface</span></span><br><span class="line"><span class="function"><span class="title">worker</span>-&gt;</span>OnSend.set(boost::bind(&amp;ShortLinkTaskManager::__OnSend, this, _1), AYNC_HANDLER);</span><br><span class="line"><span class="function"><span class="title">worker</span>-&gt;</span>OnRecv.set(boost::bind(&amp;ShortLinkTaskManager::__OnRecv, this, _1, _2, _3), AYNC_HANDLER);</span><br><span class="line"><span class="function"><span class="title">worker</span>-&gt;</span>OnResponse.set(boost::bind(&amp;ShortLinkTaskManager::__OnResponse, this, _1, _2, _3, _4, _5, _6, _7), AYNC_HANDLER);</span><br><span class="line"><span class="comment">//设置running_id，也就是发起请求后会有一个非0的running_id</span></span><br><span class="line"><span class="function"><span class="title">first</span>-&gt;</span>running_id = (intptr_t)worker;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="comment">//调用SendRequest发送请求</span></span><br><span class="line"><span class="function"><span class="title">worker</span>-&gt;</span>SendRequest(bufreq, buffer_extension);</span><br></pre></td></tr></table></figure>
+<p>从上面可以看出在经过一系列的检查后调用上层的<strong><strong>Req2Buf</strong></strong>方法，然后会通过<strong><strong>ShortLinkChannelFactory</strong></strong>创建<strong><strong>ShortLinkInterface</strong></strong>（ShortLink 对象）然后将ShortLinkInterface的OnSend，OnRecv，OnResponse与ShortLinkTaskManager进行绑定，然后为当前任务分配一个running_id，最后调用SendRequest将请求数据发送出去。</p>
+<p>我们继续看<strong><strong>ShortLink::SendRequest</strong></strong></p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">void</span> <span class="selector-tag">ShortLink</span><span class="selector-pseudo">::SendRequest(AutoBuffer</span><span class="selector-tag">&amp;</span> <span class="selector-tag">_buf_req</span>, <span class="selector-tag">AutoBuffer</span><span class="selector-tag">&amp;</span> <span class="selector-tag">_buffer_extend</span>) &#123;</span><br><span class="line">    <span class="selector-tag">send_body_</span><span class="selector-class">.Attach</span>(_buf_req);</span><br><span class="line">    <span class="selector-tag">send_extend_</span><span class="selector-class">.Attach</span>(_buffer_extend);</span><br><span class="line">    <span class="selector-tag">thread_</span><span class="selector-class">.start</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ShortLink::SendRequest最关键的就是调用了thread_.start()方法，从而运行__Run方法：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> ShortLink::__Run() &#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line"></span><br><span class="line">    SOCKET fd_socket = __RunConnect(conn_profile);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (INVALID_SOCKET == fd_socket) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">if</span> (OnSend) &#123;</span><br><span class="line">        OnSend(<span class="keyword">this</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//....</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    __RunReadWrite(fd_socket, errtype, errcode, conn_profile);</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    socket_close(fd_socket);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ShortLink::<strong>Run 紧接着调用<em>**</em></strong>RunConnect<strong><strong>，</strong></strong><strong>RunReadWrite<strong><strong>,在</strong></strong></strong>RunConnect<em>**</em>方法中主要任务是创建短链接，用于发送请求：</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">SOCKET ShortLink::<span class="variable">__RunConnect</span>(ConnectProfile&amp; <span class="variable">_conn_profile</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    ShortLinkConnectObserver connect_observer(*this);</span><br><span class="line">	ComplexConnect conn(kShortlinkConnTimeout, kShortlinkConnInterval);</span><br><span class="line">    </span><br><span class="line">    SOCKET sock = conn.ConnectImpatient(vecaddr, breaker_, &amp;connect_observer, <span class="variable">_conn_profile</span>.proxy_info.<span class="built_in">type</span>, proxy_addr, <span class="variable">_conn_profile</span>.proxy_info.username, <span class="variable">_conn_profile</span>.proxy_info.password);</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    return sock;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>__RunConnect</strong></strong>同样方法很长，我们只看最关键的部分它调用ComplexConnect::ConnectImpatient来创建一个SOCKET返回：</p>
+<figure class="highlight zephir"><table><tr><td class="code"><pre><span class="line">SOCKET ComplexConnect::ConnectImpatient(<span class="keyword">const</span> std::vector&lt;socket_address&gt;&amp; _vecaddr, SocketBreaker&amp; _breaker, MComplexConnect* _observer,</span><br><span class="line">                                            mars::comm::ProxyType _proxy_type, <span class="keyword">const</span> socket_address* _proxy_addr,</span><br><span class="line">                                            <span class="keyword">const</span> std::string&amp; _proxy_username, <span class="keyword">const</span> std::string&amp; _proxy_pwd) &#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">for</span> (unsigned <span class="keyword">int</span> i = <span class="number">0</span>; i &lt; _vecaddr.size(); ++i) &#123;</span><br><span class="line">        ConnectCheckFSM* ic = <span class="keyword">NULL</span>;</span><br><span class="line">        <span class="keyword">if</span> (mars::comm::kProxyHttpTunel == _proxy_type &amp;&amp; _proxy_addr) &#123;</span><br><span class="line">            ic = <span class="keyword">new</span> ConnectHttpTunelCheckFSM(_vecaddr[i], *_proxy_addr, _proxy_username, _proxy_pwd, timeout_, i, _observer);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mars::comm::kProxySocks5 == _proxy_type &amp;&amp; _proxy_addr) &#123;</span><br><span class="line">            ic = <span class="keyword">new</span> ConnectSocks5CheckFSM(_vecaddr[i], *_proxy_addr, _proxy_username, _proxy_pwd, timeout_, i, _observer);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ic = <span class="keyword">new</span> ConnectCheckFSM(_vecaddr[i], timeout_, i, _observer);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//创建 ConnectCheckFSM 添加到vecsocketfsm</span></span><br><span class="line">        vecsocketfsm.push_back(ic);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    SOCKET retsocket = INVALID_SOCKET;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">   </span><br><span class="line">        <span class="comment">// socket</span></span><br><span class="line">        <span class="keyword">for</span> (unsigned <span class="keyword">int</span> i = <span class="number">0</span>; i &lt; index; ++i) &#123;</span><br><span class="line">            <span class="comment">//......</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (TcpClientFSM::EReadWrite == vecsocketfsm[i]-&gt;Status() &amp;&amp; ConnectCheckFSM::ECheckOK == vecsocketfsm[i]-&gt;CheckStatus()) &#123;</span><br><span class="line">                <span class="keyword">if</span> (_observer) _observer-&gt;OnFinished(i, socket_address(&amp;vecsocketfsm[i]-&gt;Address()), vecsocketfsm[i]-&gt;Socket(), vecsocketfsm[i]-&gt;Error(),</span><br><span class="line">                                                         vecsocketfsm[i]-&gt;Rtt(), vecsocketfsm[i]-&gt;TotalRtt(), (<span class="keyword">int</span>)(gettickcount() - starttime));</span><br><span class="line">                <span class="comment">//....</span></span><br><span class="line">                retsocket = vecsocketfsm[i]-&gt;Socket();</span><br><span class="line">                <span class="comment">//....</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (<span class="keyword">true</span>);</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    <span class="keyword">return</span> retsocket;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来就是最关键的收发数据的阶段了，我们看下<strong><strong>ShortLink::__RunReadWrite</strong></strong>:</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> ShortLink::__RunReadWrite(SOCKET _socket, <span class="keyword">int</span>&amp; _err_type, <span class="keyword">int</span>&amp; _err_code, ConnectProfile&amp; _conn_profile) &#123;</span><br><span class="line">	xmessage2_define(message)(TSF<span class="string">"taskid:%_, cgi:%_, @%_"</span>, task_.taskid, task_.cgi, <span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">std</span>::<span class="built_in">string</span> url;</span><br><span class="line">	<span class="built_in">std</span>::<span class="built_in">map</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>, <span class="built_in">std</span>::<span class="built_in">string</span>&gt; headers;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">	<span class="keyword">if</span> (kIPSourceProxy == _conn_profile.ip_type) &#123;</span><br><span class="line">		url += <span class="string">"http://"</span>;</span><br><span class="line">		url += _conn_profile.host;</span><br><span class="line">	&#125;</span><br><span class="line">	url += task_.cgi;</span><br><span class="line">    <span class="comment">//http:// + _conn_profile.host + task_.cgi</span></span><br><span class="line">	headers[http::HeaderFields::KStringHost] = _conn_profile.host;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//构建出请求后，将请求输出到out_buff</span></span><br><span class="line">	AutoBuffer out_buff;</span><br><span class="line">    shortlink_pack(url, headers, send_body_, send_extend_, out_buff, tracker_.<span class="built_in">get</span>());</span><br><span class="line"></span><br><span class="line">    <span class="comment">//发送请求数据</span></span><br><span class="line">	<span class="keyword">int</span> send_ret = block_socket_send(_socket, (<span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">char</span>*)out_buff.Ptr(), (<span class="keyword">unsigned</span> <span class="keyword">int</span>)out_buff.Length(), breaker_, _err_code);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">	<span class="comment">//recv response</span></span><br><span class="line">    AutoBuffer body;</span><br><span class="line">	AutoBuffer recv_buf;</span><br><span class="line">	AutoBuffer extension;</span><br><span class="line">    <span class="keyword">int</span>        status_code = <span class="number">-1</span>;</span><br><span class="line">	<span class="keyword">off_t</span> recv_pos = <span class="number">0</span>;</span><br><span class="line">	MemoryBodyReceiver* receiver = <span class="keyword">new</span> MemoryBodyReceiver(body);</span><br><span class="line">	<span class="function">http::Parser <span class="title">parser</span><span class="params">(receiver, <span class="literal">true</span>)</span></span>;</span><br><span class="line">	<span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">		<span class="keyword">int</span> recv_ret = block_socket_recv(_socket, recv_buf, KBufferSize, breaker_, _err_code, <span class="number">5000</span>);</span><br><span class="line">		<span class="comment">//错误校验</span></span><br><span class="line">		Parser::TRecvStatus parse_status = parser.Recv(recv_buf.Ptr(recv_buf.Length() - recv_ret), recv_ret);</span><br><span class="line">        <span class="keyword">if</span> (parser.FirstLineReady()) &#123;</span><br><span class="line">            <span class="comment">//获取状态码</span></span><br><span class="line">            status_code = parser.Status().StatusCode();</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="keyword">if</span> (parse_status == http::Parser::kFirstLineError) &#123;</span><br><span class="line">            <span class="comment">//....</span></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> (parse_status == http::Parser::kHeaderFieldsError) &#123;</span><br><span class="line">            <span class="comment">//....</span></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> (parse_status == http::Parser::kBodyError) &#123;</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> (parse_status == http::Parser::kEnd) &#123;</span><br><span class="line">			<span class="keyword">if</span> (status_code != <span class="number">200</span>) &#123;</span><br><span class="line">                <span class="comment">//......</span></span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				__OnResponse(kEctOK, status_code, body, extension, _conn_profile, <span class="literal">true</span>);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">//........</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>ShortLink::__RunReadWrite</strong></strong> 会先调用shortlink_pack将所有的请求打包，然后通过block_socket_send发出去，然后不断轮询调用block_socket_recv获得请求，如果获得成功那么调用<strong>OnResponse，我们之前在介绍创建ShortLink的时候会将ShortLink的</strong>OnResponse方法与ShortLinkTaskManager::<strong>OnResponse进行绑定，所以这里会触发ShortLinkTaskManager::</strong>OnResponse的调用。</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="string">ShortLinkTaskManager:</span>:__OnResponse(ShortLinkInterface* _worker, ErrCmdType _err_type, <span class="keyword">int</span> _status, AutoBuffer&amp; _body, AutoBuffer&amp; _extension, bool _cancel_retry, ConnectProfile&amp; _conn_profile) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="keyword">int</span> handle_type = Buf2Resp(it-&gt;task.taskid, it-&gt;task.user_context, _body, _extension, err_code, <span class="string">Task:</span>:kChannelShort);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span>(handle_type)&#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">kTaskFailHandleNoError:</span> &#123;</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">        &#125; <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">kTaskFailHandleSessionTimeout:</span>&#123;</span><br><span class="line">            <span class="comment">//....</span></span><br><span class="line">        &#125; <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">kTaskFailHandleRetryAllTasks:</span> &#123;</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">        &#125; <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">kTaskFailHandleTaskEnd:</span> &#123;</span><br><span class="line">           <span class="comment">//.....</span></span><br><span class="line">        &#125; <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">kTaskFailHandleDefault:</span> &#123;</span><br><span class="line">            <span class="comment">//...</span></span><br><span class="line">        &#125; <span class="keyword">break</span>;</span><br><span class="line"><span class="symbol">        default:</span> &#123;</span><br><span class="line">            <span class="comment">//...</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上面的方法中通过Buf2Resp回调将底层Socket 返回数据传递到业务逻辑层进行处理。</p>
+<p><strong><strong>短链接的收发数据大致流程如下图所示</strong></strong>：</p>
+<p><img src="/2019/12/05/Tencent-Mars-源码解析/00004.png" alt></p>
+<p><strong><strong>3.5.2 长链接StartTask</strong></strong></p>
+<p>介绍了短链接的整个数据通信流程后再来看长链接会显得相对轻松点，在长链接部分我们最需要注意的是心跳包的处理，为了完整起见这里还是从NetWorkService的StartTask开始介绍：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">LongLinkTaskManager::StartTask</span><span class="params">(<span class="keyword">const</span> <span class="built_in">Task</span>&amp; _task)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//将task放置到lst_cmd_数组</span></span><br><span class="line">    lst_cmd_.push_back(task);</span><br><span class="line">    lst_cmd_.sort(__CompareTask);</span><br><span class="line">    <span class="comment">//执行RunLoop</span></span><br><span class="line">    __RunLoop();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>LongLinkTaskManager::StartTask</strong></strong> 和 <strong><strong>ShortLinkTaskManager::StartTask</strong></strong> 一样都是将任务添加到lst_cmd_，然后执行__RunLoop。</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="selector-tag">void</span> <span class="selector-tag">LongLinkTaskManager</span><span class="selector-pseudo">::__RunLoop()</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="selector-tag">__RunOnTimeout</span>();</span><br><span class="line">    <span class="selector-tag">__RunOnStartTask</span>();</span><br><span class="line"></span><br><span class="line">    <span class="selector-tag">if</span> (!lst_cmd_.empty()) &#123;</span><br><span class="line">      <span class="comment">//........</span></span><br><span class="line">      <span class="attribute">MessageQueue</span>::FasterMessage(asyncreg_.Get(),</span><br><span class="line">                                  <span class="attribute">MessageQueue</span>::Message((<span class="attribute">MessageQueue</span>::MessageTitle_t)this, <span class="attribute">boost</span>::bind(&amp;<span class="attribute">LongLinkTaskManager</span>::__RunLoop, this), <span class="string">"LongLinkTaskManager::__RunLoop"</span>),</span><br><span class="line">                                  <span class="attribute">MessageQueue</span>::MessageTiming(<span class="number">1000</span>));</span><br><span class="line">    &#125; <span class="selector-tag">else</span> &#123;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>__RunLoop</strong></strong>和短连接也没啥两样，最主要的工作还是放在<strong>RunOnStartTask中，然后每间隔1秒重新发送一个FasterMessage。继续执行</strong>RunLoop：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">void LongLinkTaskManager::__RunOnStartTask() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    bool canretry = curtime - lastbatcherrortime_ &gt;= retry_interval_;<span class="comment">//超时间隔是否达到指定的要求</span></span><br><span class="line">    bool canprint = <span class="literal">true</span>;</span><br><span class="line">    int sent_count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (first != last) &#123;</span><br><span class="line">        std::list&lt;TaskProfile&gt;::iterator next = first;</span><br><span class="line">        ++next;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//当前任务已经在运行了</span></span><br><span class="line">        <span class="comment">//.......</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//重试间隔, 不影响第一次发送的任务</span></span><br><span class="line">        <span class="comment">//.......</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 登录处理</span></span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line"></span><br><span class="line">        AutoBuffer bufreq;</span><br><span class="line">        AutoBuffer buffer_extension;</span><br><span class="line">        int error_code = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//如果未进行雪崩检测则进行一次雪崩检测</span></span><br><span class="line">        <span class="function"><span class="title">if</span> (!first-&gt;</span>antiavalanche_checked) &#123;</span><br><span class="line">            <span class="comment">//...</span></span><br><span class="line">           <span class="function"><span class="title">first</span>-&gt;</span>antiavalanche_checked = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//确保长链接处于连接状态</span></span><br><span class="line">		<span class="function"><span class="title">if</span> (!longlinkconnectmon_-&gt;</span>MakeSureConnected()) &#123;</span><br><span class="line">            <span class="comment">//........</span></span><br><span class="line">		&#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//如果当前请求缓存是空的则再次通过Req2Buf从上层拿到上层构建的请求</span></span><br><span class="line">		<span class="keyword">if</span> (<span class="number">0</span> == bufreq.Length()) &#123;</span><br><span class="line">			<span class="function"><span class="title">if</span> (!Req2Buf(first-&gt;</span><span class="function"><span class="title">task</span>.taskid, first-&gt;</span>task.user_context, bufreq, buffer_extension, error_code, Task::kChannelLong)) &#123;</span><br><span class="line">				__S<span class="function"><span class="title">ingleRespHandle</span>(first, kEctEnDecode, error_code, kTaskFailHandleTaskEnd, longlink_-&gt;</span>Profile());</span><br><span class="line">				first = next;</span><br><span class="line">				continue;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="comment">// 雪崩检测</span></span><br><span class="line">            <span class="comment">//......</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="title">first</span>-&gt;</span>transfer_profile.loop_start_task_time = ::gettickcount();</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">transfer_profile</span>.first_pkg_timeout = __FirstPkgTimeout(first-&gt;</span>task.server_process_cost, bufreq.Length(), sent_count, dynamic_timeout_.GetStatus());</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">current_dyntime_status</span> = (first-&gt;</span>task.server_process_cost &lt;= <span class="number">0</span>) ? dynamic_timeout_.GetStatus() : kEValuating;</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">transfer_profile</span>.read_write_timeout = __ReadWriteTimeout(first-&gt;</span>transfer_profile.first_pkg_timeout);</span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span>transfer_profile.send_data_size = bufreq.Length();</span><br><span class="line">        <span class="comment">//调用longlink_-&gt;Send 发送数据</span></span><br><span class="line">        <span class="function"><span class="title">first</span>-&gt;</span><span class="function"><span class="title">running_id</span> = longlink_-&gt;</span>S<span class="function"><span class="title">end</span>(bufreq, buffer_extension, first-&gt;</span>task);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//.......</span></span><br><span class="line">        ++sent_count;</span><br><span class="line">        first = next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>__RunOnStartTask 中最关键的部分在于<strong><strong>MakeSureConnected*</strong></strong> 以及 <strong><strong>LongLink::Send</strong></strong></p>
+<p>MakeSureConnected 起始在初始化Mars的时候已经简单介绍过了，我们这里展开介绍下，主要还是看，心跳包的控制：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="built_in">bool</span> LongLinkConnectMonitor::MakeSureConnected() &#123;</span><br><span class="line">    __IntervalConnect(kTaskConnect);</span><br><span class="line">    <span class="keyword">return</span> LongLink::kConnected == longlink_.ConnectStatus();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">uint64_t LongLinkConnectMonitor::__IntervalConnect(int _<span class="keyword">type</span>) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//如果连接状态为正在连接或者已经连接的情况下返回0，这时候不会自动重连</span></span><br><span class="line">    <span class="keyword">if</span> (LongLink::kConnecting == longlink_.ConnectStatus() || LongLink::kConnected == longlink_.ConnectStatus()) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//获取下一次心跳时间</span></span><br><span class="line">    uint64_t interval =  __Interval(_<span class="keyword">type</span>, activelogic_) * <span class="number">1000</span>ULL;</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    <span class="keyword">if</span> (posttime &gt;= interval) &#123;</span><br><span class="line">        <span class="built_in">bool</span> ret = longlink_.MakeSureConnected(&amp;newone);</span><br><span class="line">        <span class="comment">//....</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//....</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们重点看下<strong><strong>__Interval*</strong></strong>：<br><figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">static unsigned long <span class="variable">__Interval</span>(int <span class="variable">_type</span>, const ActiveLogic&amp; <span class="variable">_activelogic</span>) &#123;</span><br><span class="line">    </span><br><span class="line">    unsigned long interval = sg_interval[<span class="variable">_type</span>][<span class="variable">__CurActiveState</span>(<span class="variable">_activelogic</span>)];<span class="comment">/*获得间隔时间*/</span></span><br><span class="line">    <span class="keyword">if</span> (kLongLinkConnect != <span class="variable">_type</span>) return interval;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">__CurActiveState</span>(<span class="variable">_activelogic</span>) == kInactive || <span class="variable">__CurActiveState</span>(<span class="variable">_activelogic</span>) == kForgroundActive) &#123;  <span class="comment">// now - LastForegroundChangeTime&gt;10min</span></span><br><span class="line">        <span class="comment">//不活跃的情况下用户名为空</span></span><br><span class="line">        <span class="keyword">if</span> (!<span class="variable">_activelogic</span>.IsActive() &amp;&amp; GetAccountInfo().username.empty()) &#123;</span><br><span class="line">            interval = kNoAccountInfoInactiveInterval;</span><br><span class="line">            xwarn2(TSF<span class="string">"no account info and inactive, interval:%_"</span>, interval);</span><br><span class="line">        <span class="comment">//无网络的情况下</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (kNoNet == getNetInfo()) &#123;</span><br><span class="line">            interval = interval * kNoNetSaltRate + kNoNetSaltRise;</span><br><span class="line">            xinfo2(TSF<span class="string">"no net, interval:%0"</span>, interval);</span><br><span class="line">        <span class="comment">//无用户名的情况下</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (GetAccountInfo().username.empty()) &#123;</span><br><span class="line">            interval = interval * kNoAccountInfoSaltRate + kNoAccountInfoSaltRise;</span><br><span class="line">            xinfo2(TSF<span class="string">"no account info, interval:%0"</span>, interval);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// default value</span></span><br><span class="line">			interval += rand() % (<span class="number">20</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return interval;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>它会根据连接类型，当前设备活跃状态设置下一次心跳的时间，它的值存在二维数组sg_interval中：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">                            <span class="string">kForgroundOneMinute</span> <span class="string">|</span> <span class="string">kForgroundTenMinute</span> <span class="string">|</span> <span class="string">kForgroundActive</span> <span class="string">|</span> <span class="string">kBackgroundActive</span> <span class="string">|</span> <span class="string">kInactive</span></span><br><span class="line"><span class="string">static</span> <span class="string">unsigned</span> <span class="string">long</span> <span class="string">const</span> <span class="string">sg_interval[][5]</span>  <span class="string">=</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">kTaskConnect:</span>           <span class="string">&#123;</span>   <span class="number">5</span><span class="string">,</span>                         <span class="number">10</span><span class="string">,</span>                 <span class="number">20</span><span class="string">,</span>                 <span class="number">30</span><span class="string">,</span>             <span class="number">300</span><span class="string">&#125;,</span></span><br><span class="line">    <span class="attr">kLongLinkConnect:</span>       <span class="string">&#123;</span>   <span class="number">15</span><span class="string">,</span>                        <span class="number">30</span><span class="string">,</span>                 <span class="number">240</span><span class="string">,</span>                <span class="number">300</span><span class="string">,</span>            <span class="number">600</span><span class="string">&#125;,</span></span><br><span class="line">    <span class="attr">kNetworkChangeConnect:</span>  <span class="string">&#123;</span>   <span class="number">0</span><span class="string">,</span>                          <span class="number">0</span><span class="string">,</span>                   <span class="number">0</span><span class="string">,</span>                  <span class="number">0</span><span class="string">,</span>              <span class="number">0</span><span class="string">&#125;,</span></span><br><span class="line"><span class="string">&#125;;</span></span><br></pre></td></tr></table></figure>
+<p>我们继续回到<strong><strong>LongLink::MakeSureConnected</strong></strong></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">LongLink::MakeSureConnected</span><span class="params">(<span class="keyword">bool</span>* _newone)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    thread_.start(&amp;newone);</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>LongLink::MakeSureConnected</strong></strong>的处理非常简单只是调用了thread_.start，实际上会执行<strong><strong>LongLink::__Run</strong></strong>方法：</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">void LongLink::<span class="variable">__Run</span>() &#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    SOCKET sock = <span class="variable">__RunConnect</span>(conn_profile);</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="variable">__RunReadWrite</span>(sock, errtype, errcode, conn_profile);</span><br><span class="line">    </span><br><span class="line">    socket_close(sock);</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>LongLink::__Run</strong></strong>方法和短链接一样都只执行两个方法<strong><strong>__RunConnect</strong></strong>创建SOCKET，<strong><strong>__RunReadWrite</strong></strong>开始运行读写循环。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">SOCKET LongLink::__RunConnect(ConnectProfile&amp; _conn_profile) &#123;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    <span class="function">LongLinkConnectObserver <span class="title">connect_observer</span><span class="params">(*<span class="keyword">this</span>, ip_items)</span></span>;</span><br><span class="line">    <span class="function">ComplexConnect <span class="title">com_connect</span><span class="params">(kLonglinkConnTimeout, kLonglinkConnInteral, kLonglinkConnInteral, kLonglinkConnMax)</span></span>;</span><br><span class="line">    SOCKET sock = com_connect.ConnectImpatient(vecaddr, connectbreak_, &amp;connect_observer, proxy_info.type, proxy_addr, proxy_info.username, proxy_info.password);</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">return</span> sock;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>长短链接最大的区别还是在<strong><strong>__RunReadWrite</strong></strong>方法上：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> LongLink::__RunReadWrite(SOCKET _sock, ErrCmdType&amp; _errtype, <span class="keyword">int</span>&amp; _errcode, ConnectProfile&amp; _profile) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//心跳间隔时间一到就执行__OnAlarm</span></span><br><span class="line">    <span class="function">Alarm <span class="title">alarmnoopinterval</span><span class="params">(boost::bind(&amp;LongLink::__OnAlarm, <span class="keyword">this</span>), <span class="literal">false</span>)</span></span>;</span><br><span class="line">    <span class="comment">//超时定时器</span></span><br><span class="line">    <span class="function">Alarm <span class="title">alarmnooptimeout</span><span class="params">(boost::bind(&amp;LongLink::__OnAlarm, <span class="keyword">this</span>), <span class="literal">false</span>)</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!alarmnoopinterval.IsWaiting()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (first_noop_sent &amp;&amp; alarmnoopinterval.Status() != Alarm::kOnAlarm) &#123;</span><br><span class="line">                xassert2(<span class="literal">false</span>, <span class="string">"noop interval alarm not running"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">          </span><br><span class="line">            <span class="keyword">if</span>(first_noop_sent &amp;&amp; alarmnoopinterval.Status() == Alarm::kOnAlarm) &#123;</span><br><span class="line">              __NotifySmartHeartbeatJudgeDozeStyle();</span><br><span class="line">            &#125;</span><br><span class="line">            xgroup2_define(noop_xlog);</span><br><span class="line">            <span class="keyword">uint64_t</span> last_noop_interval = alarmnoopinterval.After();</span><br><span class="line">            <span class="keyword">uint64_t</span> last_noop_actual_interval = (alarmnoopinterval.Status() == Alarm::kOnAlarm) ? alarmnoopinterval.ElapseTime() : <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">bool</span> has_late_toomuch = (last_noop_actual_interval &gt;= (<span class="number">15</span>*<span class="number">60</span>*<span class="number">1000</span>));</span><br><span class="line">            </span><br><span class="line">            <span class="comment">//发送起始心跳</span></span><br><span class="line">            <span class="keyword">if</span> (__NoopReq(noop_xlog, alarmnooptimeout, has_late_toomuch)) &#123;</span><br><span class="line">                nooping = <span class="literal">true</span>;</span><br><span class="line">                __NotifySmartHeartbeatHeartReq(_profile, last_noop_interval, last_noop_actual_interval);</span><br><span class="line">            &#125;</span><br><span class="line">            first_noop_sent = <span class="literal">true</span>;</span><br><span class="line">            <span class="comment">//获得下一个心跳时间</span></span><br><span class="line">            <span class="keyword">uint64_t</span> noop_interval = __GetNextHeartbeatInterval();</span><br><span class="line">            alarmnoopinterval.Cancel();</span><br><span class="line">            <span class="comment">//启动心跳计时</span></span><br><span class="line">            alarmnoopinterval.Start((<span class="keyword">int</span>)noop_interval);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//.........    </span></span><br><span class="line">        <span class="keyword">if</span> (sel.Write_FD_ISSET(_sock) &amp;&amp; !lstsenddata_.empty()) &#123;</span><br><span class="line">            xgroup2_define(xlog_group);</span><br><span class="line">            xinfo2(TSF<span class="string">"task socket send sock:%0, "</span>, _sock) &gt;&gt; xlog_group;</span><br><span class="line">            </span><br><span class="line">            iovec* vecwrite = (iovec*)<span class="built_in">calloc</span>(lstsenddata_.<span class="built_in">size</span>(), <span class="keyword">sizeof</span>(iovec));</span><br><span class="line">            <span class="keyword">unsigned</span> <span class="keyword">int</span> offset = <span class="number">0</span>;</span><br><span class="line">            <span class="comment">//将数据放到缓存中，lstsenddata_是Send方法添加的。</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">auto</span> it = lstsenddata_.<span class="built_in">begin</span>(); it != lstsenddata_.<span class="built_in">end</span>(); ++it) &#123;</span><br><span class="line">                vecwrite[offset].iov_base = it-&gt;second-&gt;PosPtr();</span><br><span class="line">                vecwrite[offset].iov_len = it-&gt;second-&gt;PosLength();</span><br><span class="line">                ++offset;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//写到发送端口，将数据发送出去</span></span><br><span class="line">            <span class="keyword">ssize_t</span> writelen = writev(_sock, vecwrite, (<span class="keyword">int</span>)lstsenddata_.<span class="built_in">size</span>());</span><br><span class="line">            <span class="built_in">free</span>(vecwrite);</span><br><span class="line">            <span class="comment">//获得下一个心跳时间</span></span><br><span class="line">            <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span> noop_interval = __GetNextHeartbeatInterval();</span><br><span class="line">            alarmnoopinterval.Cancel();</span><br><span class="line">            alarmnoopinterval.Start((<span class="keyword">int</span>)noop_interval);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">auto</span> it = lstsenddata_.<span class="built_in">begin</span>();</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">while</span> (it != lstsenddata_.<span class="built_in">end</span>() &amp;&amp; <span class="number">0</span> &lt; writelen) &#123;</span><br><span class="line">                <span class="keyword">if</span> (<span class="number">0</span> == it-&gt;second-&gt;Pos() &amp;&amp; OnSend) OnSend(it-&gt;first.taskid);</span><br><span class="line">                <span class="keyword">if</span> ((<span class="keyword">size_t</span>)writelen &gt;= it-&gt;second-&gt;PosLength()) &#123;</span><br><span class="line">                   <span class="comment">//......</span></span><br><span class="line">                    <span class="function">LongLinkNWriteData <span class="title">nwrite</span><span class="params">(it-&gt;second-&gt;Length(), it-&gt;first)</span></span>;</span><br><span class="line">                    nsent_datas.push_back(nwrite);</span><br><span class="line">                    it = lstsenddata_.erase(it);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">//......</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (sel.Read_FD_ISSET(_sock)) &#123;</span><br><span class="line">            bufrecv.AllocWrite(<span class="number">64</span> * <span class="number">1024</span>, <span class="literal">false</span>);</span><br><span class="line">            <span class="keyword">ssize_t</span> recvlen = recv(_sock, bufrecv.PosPtr(), <span class="number">64</span> * <span class="number">1024</span>, <span class="number">0</span>);</span><br><span class="line">            <span class="comment">//.......</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="number">0</span> &lt; bufrecv.Length()) &#123;</span><br><span class="line">                <span class="keyword">uint32_t</span> cmdid = <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">uint32_t</span> taskid = <span class="built_in">Task</span>::kInvalidTaskID;</span><br><span class="line">                <span class="keyword">size_t</span> packlen = <span class="number">0</span>;</span><br><span class="line">                AutoBuffer body;</span><br><span class="line">                AutoBuffer extension;</span><br><span class="line">                <span class="comment">//读取数据，解压数据</span></span><br><span class="line">                <span class="keyword">int</span> unpackret = longlink_unpack(bufrecv, cmdid, taskid, packlen, body, extension, tracker_.<span class="built_in">get</span>());</span><br><span class="line">                </span><br><span class="line">                <span class="comment">//.......</span></span><br><span class="line">                <span class="keyword">if</span> (LONGLINK_UNPACK_STREAM_PACKAGE == unpackret) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (OnRecv)</span><br><span class="line">                        OnRecv(taskid, packlen, packlen);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!__NoopResp(cmdid, taskid, stream_resp.stream, stream_resp.extension, alarmnooptimeout, nooping, _profile)) &#123;</span><br><span class="line">                    <span class="comment">//交给上层处理</span></span><br><span class="line">                    <span class="keyword">if</span> (OnResponse)</span><br><span class="line">                        OnResponse(kEctOK, <span class="number">0</span>, cmdid, taskid, stream_resp.stream, stream_resp.extension, _profile);</span><br><span class="line">					sent_taskids.erase(taskid);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> <span class="comment">//............</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="built_in">bool</span> LongLink::<span class="built_in">Send</span>(<span class="keyword">const</span> AutoBuffer&amp; _body, <span class="keyword">const</span> AutoBuffer&amp; _extension, <span class="keyword">const</span> Task&amp; _task) &#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    lstsenddata_.push_back(std::make_pair(_task, move_wrapper&lt;AutoBuffer&gt;(AutoBuffer())));</span><br><span class="line">    longlink_pack(_task.cmdid, _task.taskid, _body, _extension, lstsenddata_.back().second, tracker_.get());</span><br><span class="line">    lstsenddata_.back().second-&gt;Seek(<span class="number">0</span>, AutoBuffer::ESeekStart);</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关于长链接的数据收发，在发送的时候会调用<strong><strong>LongLink::Send</strong></strong>这时候会将数据放置到lstsenddata_，在有写数据的socket的时候，会将lstsenddata_的数据调用writev写到网络端口，从而发送出去，而读数据和短链接流程类似都是将数据从端口读出，然后通过onResponse将数据交给LongLink,再由LongLink将数据交给LongLinkManager,LongLinkManager再将数据通过持有的Req2Buf callback，将数据传递到应用层。</p>
+<p>整个Mars的流程图如下所示：<br><img src="/2019/12/05/Tencent-Mars-源码解析/00005.png" alt></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-开源库分析/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/12/06/MJRefresh-使用及源码分析/" title="MJRefresh 使用及源码分析">
+  <span>
+  MJRefresh 使用及源码分析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/12/04/YYAsyncLayer-源码解析/"  title="YYAsyncLayer 源码解析">
+ <span>YYAsyncLayer 源码解析
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/12/05/Tencent-Mars-源码解析/" data-title="Tencent Mars 源码解析" data-url="http://yoursite.com/2019/12/05/Tencent-Mars-源码解析/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#源码信息"><span class="toc-number">1.</span> <span class="toc-text">源码信息</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Mars-概览"><span class="toc-number">2.</span> <span class="toc-text">Mars 概览</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Mars-Sample-代码分析"><span class="toc-number">3.</span> <span class="toc-text">Mars Sample 代码分析</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-源码/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-签名/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-事件处理进阶/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-动画进阶/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-多线程开发/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-小经验/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-常用第三方库/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-开发流程/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-开源源码/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-绘图进阶/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-自动化测试/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-自定义View进阶/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-设计模式/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android其他/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android基础/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android开发流程/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android性能优化/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android混淆技术/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android质量管理工具/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android逆向工程/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-使用/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-使用/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-相关/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-工具使用/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-开源库分析/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-理论基础/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-进阶/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/代码规范/" style="font-size: 10px;">代码规范</a> <a href="/tags/博客分类目录/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/叨叨系列/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/工具的使用/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/开源代码分析/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/开源库分析/" style="font-size: 10px;">开源库分析</a> <a href="/tags/杂类/" style="font-size: 10px;">杂类</a> <a href="/tags/树莓派/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/直播/" style="font-size: 12.86px;">直播</a> <a href="/tags/编程技巧/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/网站收藏/" style="font-size: 10px;">网站收藏</a> <a href="/tags/重要控件/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2021 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

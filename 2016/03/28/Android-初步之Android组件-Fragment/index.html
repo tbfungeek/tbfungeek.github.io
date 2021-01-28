@@ -1,0 +1,775 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>Android 初步之Android组件  Fragment | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Fragment是Android 3.0 新增加的部分，它的作用是将Activity拆分成多个完全独立封装的可重用的组件，每个组件都有它们的生命周期和UI布局。这样就可以为不同屏幕大小的设备创建动态灵活的UI。一个Fragment必须被嵌入到一个Activity中，它的生命周期被其所属的宿主Acitivity的生命周期所影响。当Acitivity被暂停的时候，其中的所有Fragment被暂停，当A">
+<meta name="keywords" content="Android基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 初步之Android组件  Fragment">
+<meta property="og:url" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Fragment是Android 3.0 新增加的部分，它的作用是将Activity拆分成多个完全独立封装的可重用的组件，每个组件都有它们的生命周期和UI布局。这样就可以为不同屏幕大小的设备创建动态灵活的UI。一个Fragment必须被嵌入到一个Activity中，它的生命周期被其所属的宿主Acitivity的生命周期所影响。当Acitivity被暂停的时候，其中的所有Fragment被暂停，当A">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/33.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/5.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/8.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/9.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/10.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/11.png">
+<meta property="og:updated_time" content="2016-07-25T09:29:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 初步之Android组件  Fragment">
+<meta name="twitter:description" content="Fragment是Android 3.0 新增加的部分，它的作用是将Activity拆分成多个完全独立封装的可重用的组件，每个组件都有它们的生命周期和UI布局。这样就可以为不同屏幕大小的设备创建动态灵活的UI。一个Fragment必须被嵌入到一个Activity中，它的生命周期被其所属的宿主Acitivity的生命周期所影响。当Acitivity被暂停的时候，其中的所有Fragment被暂停，当A">
+<meta name="twitter:image" content="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto">等待执剑少年修炼归来！</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/works">MyWorkSet</a></li>
+					
+						<li><a href="/release">Realeases</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/03/28/Android-初步之Android组件-Fragment/" title="Android 初步之Android组件  Fragment" itemprop="url">Android 初步之Android组件  Fragment</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-03-28T14:27:21.000Z" itemprop="datePublished"> Published 2016-03-28</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>Fragment是Android 3.0 新增加的部分，它的作用是将Activity拆分成多个完全独立封装的可重用的组件，每个组件都有它们的生命周期和UI布局。这样就可以为不同屏幕大小的设备创建动态灵活的UI。<br>一个Fragment必须被嵌入到一个Activity中，它的生命周期被其所属的宿主Acitivity的生命周期所影响。当Acitivity被暂停的时候，其中的所有Fragment被暂停，当Acitivity被销毁的时候，所有隶属于它的Fragment也将被销毁，当Acitivity处于Resumed状态的时候，可以单独得对每个Fragment进行添加或者删除操作。<br>和Activity不同的是Fragment不需要在Android Manifest文件中注册。</p>
+<h4 id="创建并添加Fragment"><a href="#创建并添加Fragment" class="headerlink" title="创建并添加Fragment"></a>创建并添加Fragment</h4><p>在layout文件夹下新建一个名为fragment1.xml的布局文件<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>  &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"This is fragment 1"</span>  /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>新建一个fragment2.xml<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>  &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"This is fragment 2"</span>   /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>新建一个类Fragment1，这个类继承自Fragment<br><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">Fragment1</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;  </span><br><span class="line">    public <span class="type">View</span> onCreateView(<span class="type">LayoutInflater</span> inflater, <span class="type">ViewGroup</span> container, <span class="type">Bundle</span>   savedInstanceState) &#123;  </span><br><span class="line">        <span class="keyword">return</span> inflater.inflate(<span class="type">R</span>.layout.fragment1, container, <span class="literal">false</span>); </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>新建一个类Fragment2 ：</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">Fragment2</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;  </span><br><span class="line">    public <span class="type">View</span> onCreateView(<span class="type">LayoutInflater</span> inflater, <span class="type">ViewGroup</span> container, <span class="type">Bundle</span> savedInstanceState) &#123;  </span><br><span class="line">        <span class="keyword">return</span> inflater.inflate(<span class="type">R</span>.layout.fragment2, container, <span class="literal">false</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="静态创建Fragment"><a href="#静态创建Fragment" class="headerlink" title="静态创建Fragment"></a>静态创建Fragment</h4><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">然后打开或新建activity_main.xml作为主Activity的布局文件，在里面加入两个Fragment的引用，使用android:<span class="built_in">name</span>前缀来引用具体的Fragment：</span><br><span class="line">&lt;LinearLayout xmlns:android=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span><br><span class="line">    android:layout_width=<span class="string">"match_parent"</span>  </span><br><span class="line">    android:layout_height=<span class="string">"match_parent"</span>  </span><br><span class="line">    android:baselineAligned=<span class="string">"false"</span> &gt;  </span><br><span class="line">    &lt;fragment  </span><br><span class="line">        android:<span class="built_in">id</span>=<span class="string">"@+id/fragment1"</span>  </span><br><span class="line">        android:<span class="built_in">name</span>=<span class="string">"com.example.fragmentdemo.Fragment1"</span>  </span><br><span class="line">        android:layout_width=<span class="string">"0dip"</span>  </span><br><span class="line">        android:layout_height=<span class="string">"match_parent"</span>  </span><br><span class="line">        android:layout_weight=<span class="string">"1"</span> /&gt;  </span><br><span class="line">    &lt;fragment  </span><br><span class="line">        android:<span class="built_in">id</span>=<span class="string">"@+id/fragment2"</span>  </span><br><span class="line">        android:<span class="built_in">name</span>=<span class="string">"com.example.fragmentdemo.Fragment2"</span>  </span><br><span class="line">        android:layout_width=<span class="string">"0dip"</span>  </span><br><span class="line">        android:layout_height=<span class="string">"match_parent"</span>  </span><br><span class="line">        android:layout_weight=<span class="string">"1"</span> /&gt;  </span><br><span class="line">&lt;/LinearLayout&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/1.png" alt></p>
+<h4 id="动态创建Fragment-Fragment-Manager"><a href="#动态创建Fragment-Fragment-Manager" class="headerlink" title="动态创建Fragment Fragment Manager"></a>动态创建Fragment Fragment Manager</h4><p>每个Activity都包含一个Fragment Manager来管理寄生于它的Fragment们，可以通过使用getFragmentManager方法来访问FragmentManger:<br><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">FragmentManager fragmentManager</span> = getFragmentManager();</span><br></pre></td></tr></table></figure></p>
+<p>获得FragmentManager后可以做如下操作:</p>
+<ol>
+<li>通过findFragmentById()或findFragmentByTag()，获取activity中的Fragment引用。</li>
+<li>通过popBackStack()方法，从activity的后退栈中弹出fragment</li>
+<li>通过addOnBackStackChangedListerner()注册一个侦听器监视后退栈的变化。</li>
+<li><p>通过beginTransaction()获取FragmentTransaction。</p>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/2.png" alt></p>
+</li>
+</ol>
+<p>Fragment Transaction 用来在Activity内添加，删除替换Fragment，使用Fragment Transaction 可以让布局成为动态。提交一组Fragment的变化叫做一个事务。事务通过FragmentTransaction来执行。还可以把每个事务保存在activity的后退栈中，这样就可以让用户在Fragment变化之间导航.<br><figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">FragmentTransaction fragtransaction = fragmentManager.beginTransaction()<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p>添加Fragment</p>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line">fragmentsaction.<span class="keyword">add</span>(用于存放flagment的容器ID,Fragment对象);</span><br><span class="line"><span class="comment">//将Fragment对象添加到Fragment容器标签所指定的地方。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>删除Fragment</p>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">Fragment <span class="keyword">fragment</span> = <span class="keyword">fragment</span>Manerger.findFragmentById(Fragment容器ID)；</span><br><span class="line">fragmentsaction.remove(<span class="keyword">fragment</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>替换Fragment</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">fragmentsaction.replace(用于存放flagment的容器<span class="keyword">ID</span>,Fragment对象);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当用户想要Back按键会返回到前一个布局，或者想要回滚到前一个已经执行的Transaction可以在调用commit方法前，调用addToBackStack将Fragment添加到back堆栈</p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line">fragtransaction.addToBackStack(<span class="literal">null</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置切换动画</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">transaction.setTransition(FragmentTransaction.TRANSIT_ENTER_MASK);</span><br><span class="line">transaction.setCustomAnimations(enter, <span class="keyword">exit</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>提交事务</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">fragtransaction.commit()<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>主界面布局<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">"@+id/main_layout"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>  &gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">protected</span> void onCreate(<span class="type">Bundle</span> savedInstanceState) &#123;  </span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);  </span><br><span class="line">        setContentView(<span class="type">R</span>.layout.activity_main);  </span><br><span class="line">        <span class="type">Display</span> display = getWindowManager().getDefaultDisplay();  </span><br><span class="line">        <span class="keyword">if</span> (display.getWidth() &gt; display.getHeight()) &#123;  </span><br><span class="line">            <span class="type">Fragment1</span> fragment1 = <span class="keyword">new</span> <span class="type">Fragment1</span>();  </span><br><span class="line">            getFragmentManager().beginTransaction().replace(<span class="type">R</span>.id.main_layout, fragment1).commit();  </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">            <span class="type">Fragment2</span> fragment2 = <span class="keyword">new</span> <span class="type">Fragment2</span>();  </span><br><span class="line">           getFragmentManager().beginTransaction().replace(<span class="type">R</span>.id.main_layout, fragment2).commit();  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Fragment生命周期与Activity生命周期"><a href="#Fragment生命周期与Activity生命周期" class="headerlink" title="Fragment生命周期与Activity生命周期"></a>Fragment生命周期与Activity生命周期</h4><p><img src="/2016/03/28/Android-初步之Android组件-Fragment/3.png" alt></p>
+<ul>
+<li>onAttach：当fragment和它的父activity有关联的时候被调用，在此处可以获取Activity的引用。为进一步初始化做准备。</li>
+<li>onCreate:调用该方法来进行Fragment的初始化。与Activity不同Fragment UI不在onCreate方法中初始化。</li>
+<li>onCreateView:一旦Fragment被创建，要创建它自己的用户界面的时候调用该方法，在里面主要完成创建或者填充Fragment UI的工作，获取它所包含的View的引用以及绑定到该View的数据，创建所需的Server和Timer。</li>
+<li>onActivityCreated:一旦父Activity和Fragment的UI创建后，通知fragment  activity已经创建完成，在这个方法中主要完成父Activity被初始化完成或者Fragment的View被完全填充后才能做的事情。要和父Activity的UI交互也要等到这个阶段。</li>
+<li>onStart:使fragment对用户可见(基于包含它的activity已经启动了)</li>
+<li><p>onResume:使fragment与用户可进行交互(基于包含它的activity已经处于resume状态)在这个方法中主要工作是恢复所有暂停的Fragment需要的UI更新，线程或进程。这些在非活动状态是处于暂停的。</p>
+</li>
+<li><p>onPause:fragment不再与用户进行交互，要么由于activity处于暂停态，要么由于在activity中一个fragment的操作正在被修改，需要暂停UI的更新，挂起线程或者暂停那些不需要更新的CPU的集中处理，由于调用这个方法后，进程可能被终止，所以要保存所有的编辑和状态改变信息。</p>
+</li>
+<li>onStop:fragment不再与用户可见，要么因为它的activity被停止，要么因为在activity中一个fragment的操作正在被修改，在这里暂停其余的UI更新，挂起线程或者暂停不需要的处理</li>
+<li>onDestroyView: 当Fragment的View被分离的时候调用该方法，这里主要用于清除资源相关的View。</li>
+<li>onDestroy: 在整个生命周期结束的时候调用该方法去做fragment状态的最终清理，包括清除所有的资源，包括线程和关闭数据库连接。</li>
+<li>onDetach:当fragment与其父activity分离的时候调用该方法。</li>
+</ul>
+<p>onPause:fragment不再与用户进行交互，要么由于activity处于暂停态，要么由于在activity中一个fragment的操作正在被修改，需要暂停UI的更新，挂起线程或者暂停那些不需要更新的CPU的集中处理，由于调用这个方法后，进程可能被终止，所以要保存所有的编辑和状态改变信息。<br>onStop:fragment不再与用户可见，要么因为它的activity被停止，要么因为在activity中一个fragment的操作正在被修改，在这里暂停其余的UI更新，挂起线程或者暂停不需要的处理<br>onDestroyView: 当Fragment的View被分离的时候调用该方法，这里主要用于清除资源相关的View。<br>onDestroy: 在整个生命周期结束的时候调用该方法去做fragment状态的最终清理，包括清除所有的资源，包括线程和关闭数据库连接。<br>onDetach:当fragment与其父activity分离的时候调用该方法。</p>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/33.png" alt></p>
+<h4 id="内置的Fragment"><a href="#内置的Fragment" class="headerlink" title="内置的Fragment"></a>内置的Fragment</h4><ul>
+<li>DialogFragment<br>对话框式的Fragments。可以把fragmentdialog并入到到activity的返回栈中，使用户能再返回到这个对话框。</li>
+<li>ListFragment<br>显示一个列表控件，就像ListActivity类，它提供了很多管理列表的方法，onListItemClick和setListAdapter等。</li>
+<li>PreferenceFragment<br>显示一个Preference对象组成的列表，类似PreferenceActivity，主要用来创建设置界面。</li>
+</ul>
+<h4 id="Fragment之间进行通信"><a href="#Fragment之间进行通信" class="headerlink" title="Fragment之间进行通信"></a>Fragment之间进行通信</h4><p>通常情况下，Activity都会包含多个Fragment，这时会遇到多个Fragment之间如何进行通信的问题。</p>
+<p>fragment1.xml<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>    &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/fragment1_text"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"This is fragment 1"</span>  /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>fragment2.xml<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"vertical"</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"This is fragment 2"</span>  /&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">Button</span>   </span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/button"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"Get fragment1 text"</span>  </span></span><br><span class="line"><span class="tag">        /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Fragment2</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="function">View <span class="title">onCreateView</span><span class="params">(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)</span> </span>&#123;  </span><br><span class="line">        <span class="function"><span class="keyword">return</span> inflater.<span class="title">inflate</span><span class="params">(R.layout.fragment2, container, <span class="keyword">false</span>)</span></span>;  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">onActivityCreated</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;  </span><br><span class="line">        <span class="keyword">super</span>.onActivityCreated(savedInstanceState);  </span><br><span class="line">        Button button = (Button) getActivity().findViewById(R.id.button);  </span><br><span class="line">        button.setOnClickListener(<span class="keyword">new</span> OnClickListener() &#123;  </span><br><span class="line">            <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;  </span><br><span class="line">                TextView textView = (TextView)  		 			</span><br><span class="line">	            getActivity().findViewById(R.id.fragment1_text);  </span><br><span class="line">                Toast.makeText(getActivity(), textView.getText(), Toast.LENGTH_LONG).show();  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="兼容多种屏幕方案"><a href="#兼容多种屏幕方案" class="headerlink" title="兼容多种屏幕方案"></a>兼容多种屏幕方案</h4><h5 id="创建窄屏主布局文件"><a href="#创建窄屏主布局文件" class="headerlink" title="创建窄屏主布局文件"></a>创建窄屏主布局文件</h5><p>打开或新建res/layout/activity_main.xml作为程序的主布局文件<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">"http://schemas.android.com/tools"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"horizontal"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">".MainActivity"</span> &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">fragment</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/menu_fragment"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:name</span>=<span class="string">"com.example.fragmentdemo.MenuFragment"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span>/&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/4.png" alt></p>
+<h5 id="创建宽屏主布局文件"><a href="#创建宽屏主布局文件" class="headerlink" title="创建宽屏主布局文件"></a>创建宽屏主布局文件</h5><p>在res目录下新建layout-large目录，然后这个目录下创建新的activity_main.xml<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">"http://schemas.android.com/tools"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"horizontal"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:baselineAligned</span>=<span class="string">"false"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">".MainActivity"</span>  </span></span><br><span class="line"><span class="tag">    &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">fragment</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/left_fragment"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:name</span>=<span class="string">"com.example.fragmentdemo.MenuFragment"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"0dip"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_weight</span>=<span class="string">"1"</span>  </span></span><br><span class="line"><span class="tag">        /&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">FrameLayout</span>   </span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/details_layout"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"0dip"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_weight</span>=<span class="string">"3"</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">FrameLayout</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/5.png" alt></p>
+<p>menu_fragment.xml文件<br>左边菜单面板的布局，这个是窄屏的第一个页面，用于触发两个子活动，宽屏的时候作为左面板<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span> &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">ListView</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/menu_list"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span>  </span></span><br><span class="line"><span class="tag">        &gt;</span><span class="tag">&lt;/<span class="name">ListView</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/8.png" alt><br><img src="/2016/03/28/Android-初步之Android组件-Fragment/9.png" alt></p>
+<figure class="highlight axapta"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MenuFragment</span> <span class="keyword">extends</span> <span class="title">Fragment</span> <span class="keyword">implements</span> <span class="title">OnItemClickListener</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">private</span> ListView menuList;  </span><br><span class="line">    <span class="keyword">private</span> ArrayAdapter&lt;String&gt; adapter;  </span><br><span class="line">    <span class="keyword">private</span> String[] menuItems = &#123; <span class="string">"Sound"</span>, <span class="string">"Display"</span> &#125;;  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> isTwoPane;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> onAttach(Activity activity) &#123;  </span><br><span class="line">        <span class="keyword">super</span>.onAttach(activity);  </span><br><span class="line">        adapter = <span class="keyword">new</span> ArrayAdapter&lt;String&gt;(activity, android.R.layout.simple_list_item_1, menuItems);  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">public</span> View onCreateView(LayoutInflater inflater, ViewGroup <span class="keyword">container</span>, Bundle savedInstanceState) &#123;  </span><br><span class="line">        View view = inflater.inflate(R.layout.menu_fragment, <span class="keyword">container</span>, <span class="keyword">false</span>);  </span><br><span class="line">        menuList = (ListView) view.findViewById(R.id.menu_list);  </span><br><span class="line">        menuList.setAdapter(adapter);  </span><br><span class="line">        menuList.setOnItemClickListener(<span class="keyword">this</span>);  </span><br><span class="line">        <span class="keyword">return</span> view;  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> onActivityCreated(Bundle savedInstanceState) &#123;  </span><br><span class="line">        <span class="keyword">super</span>.onActivityCreated(savedInstanceState);  </span><br><span class="line">        <span class="keyword">if</span> (getActivity().findViewById(R.id.details_layout) != <span class="keyword">null</span>) &#123;  </span><br><span class="line">            isTwoPane = <span class="keyword">true</span>;  </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">            isTwoPane = <span class="keyword">false</span>;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> onItemClick(AdapterView&lt;?&gt; arg0, View view, <span class="keyword">int</span> <span class="keyword">index</span>, <span class="keyword">long</span> arg3)&#123;  </span><br><span class="line">        <span class="keyword">if</span> (isTwoPane) &#123;  </span><br><span class="line">            Fragment fragment = <span class="keyword">null</span>;  </span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">index</span> == <span class="number">0</span>) &#123;  </span><br><span class="line">                fragment = <span class="keyword">new</span> SoundFragment();  </span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">index</span> == <span class="number">1</span>) &#123;  </span><br><span class="line">                fragment = <span class="keyword">new</span> DisplayFragment();  </span><br><span class="line">            &#125;  </span><br><span class="line">            getFragmentManager().beginTransaction().replace(R.id.details_layout, fragment).commit();  </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">            Intent intent = <span class="keyword">null</span>;  </span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">index</span> == <span class="number">0</span>) &#123;  </span><br><span class="line">                intent = <span class="keyword">new</span> Intent(getActivity(), SoundActivity<span class="class">.<span class="keyword">class</span>);  </span></span><br><span class="line"><span class="class">            &#125; <span class="title">else</span> <span class="title">if</span> (<span class="title">index</span> == 1) </span>&#123;  </span><br><span class="line">                intent = <span class="keyword">new</span> Intent(getActivity(), DisplayActivity<span class="class">.<span class="keyword">class</span>);  </span></span><br><span class="line"><span class="class">            &#125;  </span></span><br><span class="line"><span class="class">            <span class="title">startActivity</span>(<span class="title">intent</span>);  </span></span><br><span class="line"><span class="class">        &#125;  </span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>sound_fragment.xml布局文件<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">RelativeLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:background</span>=<span class="string">"#00ff00"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"vertical"</span> &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span>   </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_centerInParent</span>=<span class="string">"true"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:textSize</span>=<span class="string">"28sp"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:textColor</span>=<span class="string">"#000000"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"This is sound view"</span>  </span></span><br><span class="line"><span class="tag">        /&gt;</span> </span><br><span class="line"><span class="tag">&lt;/<span class="name">RelativeLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>SoundFragment类</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">SoundFragment</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;  </span><br><span class="line">    public <span class="type">View</span> onCreateView(<span class="type">LayoutInflater</span> inflater, <span class="type">ViewGroup</span> container, <span class="type">Bundle</span> savedInstanceState) &#123;  </span><br><span class="line">        <span class="type">View</span> view = inflater.inflate(<span class="type">R</span>.layout.sound_fragment, container, <span class="literal">false</span>);  </span><br><span class="line">        <span class="keyword">return</span> view;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>display_fragment.xml布局文件<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">RelativeLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:background</span>=<span class="string">"#0000ff"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"vertical"</span> &gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span>   </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_centerInParent</span>=<span class="string">"true"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:textSize</span>=<span class="string">"28sp"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:textColor</span>=<span class="string">"#000000"</span>  </span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"This is display view"</span>  </span></span><br><span class="line"><span class="tag">        /&gt;</span> </span><br><span class="line"><span class="tag">&lt;/<span class="name">RelativeLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>DisplayFragment类</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">DisplayFragment</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;  </span><br><span class="line">    public <span class="type">View</span> onCreateView(<span class="type">LayoutInflater</span> inflater, <span class="type">ViewGroup</span> container, <span class="type">Bundle</span> savedInstanceState) &#123;  </span><br><span class="line">        <span class="type">View</span> view = inflater.inflate(<span class="type">R</span>.layout.display_fragment, container, <span class="literal">false</span>);  </span><br><span class="line">        <span class="keyword">return</span> view;  </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>sound_activity.xml<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">fragment</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">"@+id/sound_fragment"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">"com.example.fragmentdemo.SoundFragment"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span> &gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">fragment</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>SoundActivity<br><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">SoundActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">protected</span> void onCreate(<span class="type">Bundle</span> savedInstanceState) &#123;  </span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);  </span><br><span class="line">        setContentView(<span class="type">R</span>.layout.sound_activity);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/10.png" alt></p>
+<p>display_activity.xml<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">fragment</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">"@+id/display_fragment"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">"com.example.fragmentdemo.DisplayFragment"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>  </span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span> &gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">fragment</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>DisplayActivity类<br><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">DisplayActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">protected</span> void onCreate(<span class="type">Bundle</span> savedInstanceState) &#123;  </span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);  </span><br><span class="line">        setContentView(<span class="type">R</span>.layout.display_activity);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/2016/03/28/Android-初步之Android组件-Fragment/11.png" alt></p>
+<h4 id="Fragment与Activity共享事件处理方法"><a href="#Fragment与Activity共享事件处理方法" class="headerlink" title="Fragment与Activity共享事件处理方法"></a>Fragment与Activity共享事件处理方法</h4><p>在Fragment需要和主Activity共享和事件的地方，可以在Fragment中创建一个callback接口，主Acitivity来实现它：如下所示:<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">Public<span class="built_in"> interface </span>sharedFunction&#123;</span><br><span class="line">	public void sharefun();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在Acitivity中实现后，在Fragment中可以如下访问:<br><figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line"><span class="keyword">sharedFunction </span><span class="keyword">shared </span>= (<span class="keyword">sharedFunction </span>)activity;</span><br><span class="line"><span class="keyword">Shared. </span><span class="keyword">sharefun();</span></span><br></pre></td></tr></table></figure></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android初步/">Android初步</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android基础/">Android基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/03/29/Android-初步之布局管理/" title="Android 初步之布局管理">
+  <span>
+  Android 初步之布局管理</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/03/27/我的Vim-配置/"  title="我的Vim 配置">
+ <span>我的Vim 配置
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/03/28/Android-初步之Android组件-Fragment/" data-title="Android 初步之Android组件  Fragment" data-url="http://yoursite.com/2016/03/28/Android-初步之Android组件-Fragment/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#创建并添加Fragment"><span class="toc-number">1.</span> <span class="toc-text">创建并添加Fragment</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#静态创建Fragment"><span class="toc-number">2.</span> <span class="toc-text">静态创建Fragment</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#动态创建Fragment-Fragment-Manager"><span class="toc-number">3.</span> <span class="toc-text">动态创建Fragment Fragment Manager</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Fragment生命周期与Activity生命周期"><span class="toc-number">4.</span> <span class="toc-text">Fragment生命周期与Activity生命周期</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内置的Fragment"><span class="toc-number">5.</span> <span class="toc-text">内置的Fragment</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Fragment之间进行通信"><span class="toc-number">6.</span> <span class="toc-text">Fragment之间进行通信</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#兼容多种屏幕方案"><span class="toc-number">7.</span> <span class="toc-text">兼容多种屏幕方案</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#创建窄屏主布局文件"><span class="toc-number">7.1.</span> <span class="toc-text">创建窄屏主布局文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#创建宽屏主布局文件"><span class="toc-number">7.2.</span> <span class="toc-text">创建宽屏主布局文件</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Fragment与Activity共享事件处理方法"><span class="toc-number">8.</span> <span class="toc-text">Fragment与Activity共享事件处理方法</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-源码/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-签名/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-事件处理进阶/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-动画进阶/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-多线程开发/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-小经验/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-常用第三方库/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-开发流程/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-开源源码/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-绘图进阶/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-自动化测试/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-自定义View进阶/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-设计模式/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android其他/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android基础/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android开发流程/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android性能优化/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android混淆技术/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android质量管理工具/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android逆向工程/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-使用/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-使用/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-相关/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-工具使用/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-开源库分析/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-理论基础/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-进阶/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/代码规范/" style="font-size: 10px;">代码规范</a> <a href="/tags/博客分类目录/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/叨叨系列/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/工具的使用/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/开源代码分析/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/开源库分析/" style="font-size: 10px;">开源库分析</a> <a href="/tags/杂类/" style="font-size: 10px;">杂类</a> <a href="/tags/树莓派/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/直播/" style="font-size: 12.86px;">直播</a> <a href="/tags/编程技巧/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/网站收藏/" style="font-size: 10px;">网站收藏</a> <a href="/tags/重要控件/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2021 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

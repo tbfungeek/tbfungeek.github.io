@@ -1,0 +1,780 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>Android 开源框架源码分析之picasso | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="今天开始我将对目前较为流行的开源库以及开源框架的源码进行分析，希望能够通过学习这些源码背后的设计思想，从而让自己的编程和设计能力有所提高。废话不多说，切入正题。今天给大家介绍的picasso是一个图片缓存库，想必很多人对他都很熟悉了，它支持三级缓存，它的使用极为简单，同时也支持十分灵活的配置方式。大家可以通过如下地址下载到源码 http://square.github.io/picasso/  分">
+<meta name="keywords" content="Android 开源源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 开源框架源码分析之picasso">
+<meta property="og:url" content="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="今天开始我将对目前较为流行的开源库以及开源框架的源码进行分析，希望能够通过学习这些源码背后的设计思想，从而让自己的编程和设计能力有所提高。废话不多说，切入正题。今天给大家介绍的picasso是一个图片缓存库，想必很多人对他都很熟悉了，它支持三级缓存，它的使用极为简单，同时也支持十分灵活的配置方式。大家可以通过如下地址下载到源码 http://square.github.io/picasso/  分">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/5.png">
+<meta property="og:updated_time" content="2016-10-30T15:50:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 开源框架源码分析之picasso">
+<meta name="twitter:description" content="今天开始我将对目前较为流行的开源库以及开源框架的源码进行分析，希望能够通过学习这些源码背后的设计思想，从而让自己的编程和设计能力有所提高。废话不多说，切入正题。今天给大家介绍的picasso是一个图片缓存库，想必很多人对他都很熟悉了，它支持三级缓存，它的使用极为简单，同时也支持十分灵活的配置方式。大家可以通过如下地址下载到源码 http://square.github.io/picasso/  分">
+<meta name="twitter:image" content="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto">等待执剑少年修炼归来！</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/works">MyWorkSet</a></li>
+					
+						<li><a href="/release">Realeases</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/10/30/Android-开源框架源码分析一-picasso/" title="Android 开源框架源码分析之picasso" itemprop="url">Android 开源框架源码分析之picasso</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-10-30T14:24:18.000Z" itemprop="datePublished"> Published 2016-10-30</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>今天开始我将对目前较为流行的开源库以及开源框架的源码进行分析，希望能够通过学习这些源码背后的设计思想，从而让自己的编程和设计能力有所提高。<br>废话不多说，切入正题。今天给大家介绍的picasso是一个图片缓存库，想必很多人对他都很熟悉了，它支持三级缓存，它的使用极为简单，同时也支持十分灵活的配置方式。大家可以通过如下地址下载到源码 <a href="http://square.github.io/picasso/" target="_blank" rel="noopener">http://square.github.io/picasso/</a></p>
+<ol>
+<li>分析情景介绍</li>
+</ol>
+<p>我们以一个最简单的使用情景来对源码进行分析：<br><figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line">Picasso.with<span class="params">(context)</span><span class="string">.load</span><span class="params">("http://image.baidu.com/search/detail?<span class="attr">z</span>=0&amp;<span class="attr">ipn</span>=")</span><span class="string">.into</span><span class="params">(imageView)</span>;</span><br></pre></td></tr></table></figure></p>
+<p>上面的代码是执行从网络上加载地址为<a href="http://image.baidu.com/search/detail?z=0&amp;ipn=" target="_blank" rel="noopener">http://image.baidu.com/search/detail?z=0&amp;ipn=</a> 的图片到指定的imageView控件中。</p>
+<ol start="2">
+<li>代码组织结构介绍</li>
+</ol>
+<p>在分析源码之前我们先看下整个开源库的代码组织，但是大家如果将代码下载到本地后会感到失望，因为个人认为picasso的代码组织是极为不规范的，整个源码只有一个package。下面是我根据自己的理解将其源码进行重新的组织。总共分成5个包，</p>
+<p><img src="/2016/10/30/Android-开源框架源码分析一-picasso/1.png" alt></p>
+<ul>
+<li>action包包含有：Action抽象类，FetchAction，GetAction，ImageViewAction，RemoteViewsAction，Target，TargetAction。</li>
+<li>requst包中包含的是：Request，RequestCreator，DeferredRequestCreator</li>
+<li>requesthandler包中包含的是：AssetRequestHandler，ContactsPhotoRequestHandler，ContentStreamRequestHandler，FileRequestHandler，MediaStoreRequestHandler，NetworkRequestHandler，ResourceRequestHandler，RequestHandler</li>
+<li>core包中包含有如下几个文件：</li>
+</ul>
+<p><img src="/2016/10/30/Android-开源框架源码分析一-picasso/2.png" alt></p>
+<p>为什么这样分包大家可以在源码分析完后对整个流程以及每个类对职责有较为深入了解后进行思考。</p>
+<p>3 .详细流程介绍</p>
+<p>3.1 with  流程解析：<br>with阶段的主要任务是创建全局默认的Picasso实例，所创建的实例一般来说能够适合于绝大多数应用场景，如果不满足可以自己通过Builder来创建，也可以通过setSingletonInstance来注入我们自己创建的Picasso，但是这个方法需要在with方法前调用，因为这里创建picasso使用对是单例模式。</p>
+<p>picasso默认对配置如下：<br>(1) 缓存使用LRU 缓存方式，缓存大小占用应用可用存储的15% RAM<br>(2) 硬盘缓存空间占用手机存储的2%，并且大小不小于5M，最大50MB。<br>(3) 具有3个线程用于磁盘和网络访问<br>(4) 缓存位于应用目录下对picasso-cache目录。</p>
+<p>我们看下它是如何完成这部分的工作的，首先它使用建造者模式结合单例来创建picasso对象，之所以采用建造者模式是因为这种模式能够给配置参数多的对象的构建带来很大的方便。</p>
+<figure class="highlight d"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Picasso <span class="keyword">with</span>(<span class="keyword">@NonNull</span> Context context) &#123;</span><br><span class="line">  <span class="keyword">if</span> (context == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"context == null"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (singleton == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (Picasso.<span class="keyword">class</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (singleton == <span class="literal">null</span>) &#123;</span><br><span class="line">        singleton = <span class="keyword">new</span> Builder(context).build();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> singleton;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们能从Builder对象中获取到什么信息呢？一般一个对象的Builder是用于向外面暴露设置内部组件的接口（此接口非彼接口），通过暴露的接口来注入我们自定义的对象。Picasso 的 Builder也是一样的。通过它我们可以注入自定义的下载器，线程池，缓存，请求转换器，请求处理器，内部事件监听。它还有一个builder方法，它的用处就是在全部设置后，检查重要的组件是否有设置了，如果没有设置，那么就创建初始化组件来使用。</p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> final Context context;                <span class="comment">//上下文</span></span><br><span class="line">  <span class="keyword">private</span> Downloader downloader;                <span class="comment">//自定义的下载器</span></span><br><span class="line">  <span class="keyword">private</span> ExecutorService service;              <span class="comment">//自定义的线程池</span></span><br><span class="line">  <span class="keyword">private</span> Cache cache;                          <span class="comment">//自定义的缓存</span></span><br><span class="line">  <span class="keyword">private</span> Listener listener;                    <span class="comment">//监听器</span></span><br><span class="line">  <span class="keyword">private</span> RequestTransformer transformer;       <span class="comment">//请求转换器</span></span><br><span class="line">  <span class="keyword">private</span> List&lt;RequestHandler&gt; requestHandlers; <span class="comment">//请求处理器</span></span><br><span class="line">  <span class="keyword">private</span> Bitmap.Config defaultBitmapConfig;    <span class="comment">//图像配置</span></span><br><span class="line">  <span class="keyword">private</span> boolean indicatorsEnabled;            <span class="comment">//是否显示指示标志</span></span><br><span class="line">  <span class="keyword">private</span> boolean loggingEnabled;               <span class="comment">//是否开启Log</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/**Builder构造方法*/</span></span><br><span class="line">  <span class="keyword">public</span> Builder(@NonNull Context context) &#123;</span><br><span class="line">    <span class="keyword">if</span> (context == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Context must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.context = context.getApplicationContext();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/**指定默认用于解码图片的的BitmapConfig*/</span></span><br><span class="line">  <span class="keyword">public</span> Builder defaultBitmapConfig(@NonNull Bitmap.Config bitmapConfig) &#123;</span><br><span class="line">    <span class="keyword">if</span> (bitmapConfig == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Bitmap config must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.defaultBitmapConfig = bitmapConfig;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/**指定用于下载图片的下载器*/</span></span><br><span class="line">  <span class="keyword">public</span> Builder downloader(@NonNull Downloader downloader) &#123;</span><br><span class="line">    <span class="keyword">if</span> (downloader == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Downloader must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.downloader != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"Downloader already set."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.downloader = downloader;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** 指定用于在后台下载图片的后台线程池 */</span></span><br><span class="line">  <span class="keyword">public</span> Builder executor(@NonNull ExecutorService executorService) &#123;</span><br><span class="line">    <span class="keyword">if</span> (executorService == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Executor service must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.service != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"Executor service already set."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.service = executorService;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** 指定用于存放最近使用的图片的缓存 */</span></span><br><span class="line">  <span class="keyword">public</span> Builder memoryCache(@NonNull Cache memoryCache) &#123;</span><br><span class="line">    <span class="keyword">if</span> (memoryCache == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Memory cache must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.cache != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"Memory cache already set."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.cache = memoryCache;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** 指定一个用于监听事件的监听器 */</span></span><br><span class="line">  <span class="keyword">public</span> Builder listener(@NonNull Listener listener) &#123;</span><br><span class="line">    <span class="keyword">if</span> (listener == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Listener must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.listener != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"Listener already set."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.listener = listener;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/**指定一个对所有到来请求进行转换的请求转换器*/</span></span><br><span class="line">  <span class="keyword">public</span> Builder requestTransformer(@NonNull RequestTransformer transformer) &#123;</span><br><span class="line">    <span class="keyword">if</span> (transformer == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Transformer must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.transformer != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"Transformer already set."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.transformer = transformer;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** 添加请求处理器 */</span></span><br><span class="line">  <span class="keyword">public</span> Builder addRequestHandler(@NonNull RequestHandler requestHandler) &#123;</span><br><span class="line">    <span class="keyword">if</span> (requestHandler == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"RequestHandler must not be null."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (requestHandlers == <span class="literal">null</span>) &#123;</span><br><span class="line">      requestHandlers = <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;RequestHandler&gt;();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (requestHandlers.contains(requestHandler)) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"RequestHandler already registered."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    requestHandlers.add(requestHandler);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** 是否显示调试的标志在图片上 */</span></span><br><span class="line">  <span class="keyword">public</span> Builder indicatorsEnabled(boolean enabled) &#123;</span><br><span class="line">    <span class="built_in">this</span>.indicatorsEnabled = enabled;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** 是否显示Log*/</span></span><br><span class="line">  <span class="keyword">public</span> Builder loggingEnabled(boolean enabled) &#123;</span><br><span class="line">    <span class="built_in">this</span>.loggingEnabled = enabled;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** 配置了诸如默认的下载器，请求转换器，默认的memory cache等： */</span></span><br><span class="line">  <span class="keyword">public</span> Picasso build() &#123;</span><br><span class="line">    <span class="comment">//如果某些没有进行自定义那么就在这里使用默认的配置</span></span><br><span class="line">    Context context = <span class="built_in">this</span>.context;</span><br><span class="line">    <span class="keyword">if</span> (downloader == <span class="literal">null</span>) &#123;</span><br><span class="line">      downloader = Utils.createDefaultDownloader(context);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (cache == <span class="literal">null</span>) &#123;</span><br><span class="line">      cache = <span class="keyword">new</span> <span class="type">LruCache</span>(context);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (service == <span class="literal">null</span>) &#123;</span><br><span class="line">      service = <span class="keyword">new</span> <span class="type">PicassoExecutorService</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (transformer == <span class="literal">null</span>) &#123;</span><br><span class="line">      transformer = RequestTransformer.IDENTITY;</span><br><span class="line">    &#125;</span><br><span class="line">    Stats stats = <span class="keyword">new</span> <span class="type">Stats</span>(cache);</span><br><span class="line">    Dispatcher dispatcher = <span class="keyword">new</span> <span class="type">Dispatcher</span>(context, service, HANDLER, downloader, cache, stats);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">Picasso</span>(context, dispatcher, cache, listener, transformer, requestHandlers, stats,</span><br><span class="line">        defaultBitmapConfig, indicatorsEnabled, loggingEnabled);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来我们重点看下builder方法，如果我们没有注入自定义的下载器，那么就会调用createDefaultDownloader创建出一个下载器：<br>下面这种写法也是比较值得借鉴的。下面的create方法只是在应用缓存目录下创建一个picasso-cache的缓存目录。后续下载的图片都缓存在这个目录下。<br>/**</p>
+<ul>
+<li>优先选用OKHttp3.如果没有那么就使用OkHttp，再没有那么使用Android 默认的下载方式<br>*/<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function">Downloader <span class="title">createDefaultDownloader</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (SDK_INT &gt;= GINGERBREAD) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      Class.forName(<span class="string">"okhttp3.OkHttpClient"</span>);</span><br><span class="line">      <span class="comment">//这里会先创建一个缓存目录</span></span><br><span class="line">      <span class="function"><span class="keyword">return</span> OkHttp3DownloaderCreator.<span class="title">create</span><span class="params">(context)</span></span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ClassNotFoundException ignored) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      Class.forName(<span class="string">"com.squareup.okhttp.OkHttpClient"</span>);</span><br><span class="line">      <span class="comment">//这里会先创建一个缓存目录</span></span><br><span class="line">      <span class="function"><span class="keyword">return</span> OkHttpDownloaderCreator.<span class="title">create</span><span class="params">(context)</span></span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ClassNotFoundException ignored) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> UrlConnectionDownloader(context);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>接着我们看下默认缓存的设置：</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">LruCache</span>(<span class="variable">@NonNull</span> Context context) &#123;</span><br><span class="line">  <span class="selector-tag">this</span>(Utils.calculateMemoryCacheSize(context));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>根据是否是大堆栈类型，如果是则获取大堆栈存储，否则获取标准堆栈存储。然后使用大概15%的存储空间作为缓存。</p>
+<figure class="highlight verilog"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> calculateMemoryCacheSize(Context <span class="keyword">context</span>) &#123;</span><br><span class="line">  ActivityManager am = getService(<span class="keyword">context</span>, ACTIVITY_SERVICE);</span><br><span class="line">  boolean largeHeap = (<span class="keyword">context</span><span class="variable">.getApplicationInfo</span>()<span class="variable">.flags</span> &amp; FLAG_LARGE_HEAP) != <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> memoryClass = am<span class="variable">.getMemoryClass</span>();</span><br><span class="line">  <span class="keyword">if</span> (largeHeap &amp;&amp; SDK_INT &gt;= HONEYCOMB) &#123;</span><br><span class="line">    memoryClass = ActivityManagerHoneycomb<span class="variable">.getLargeMemoryClass</span>(am);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Target ~15% of the available heap.</span></span><br><span class="line">  <span class="keyword">return</span> (<span class="keyword">int</span>) (<span class="number">1024</span>L * <span class="number">1024</span>L * memoryClass / <span class="number">7</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接着我们看下默认的线程池的设置：<br>它是继承自ThreadPoolExcutor<br><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PicassoExecutorService</span> <span class="keyword">extends</span> <span class="title">ThreadPoolExecutor</span></span></span><br><span class="line"><span class="class"><span class="title">PicassoExecutorService</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * corePoolSize  线程池中容纳的核心线程数目，即使这些线程是空闲的，它会被保留在线程池中，除非allowCoreThreadTimeOut设置为true</span></span><br><span class="line"><span class="comment">   * maximumPoolSize  最大线程池大小</span></span><br><span class="line"><span class="comment">   * keepAliveTime    存活时间 当线程池中的线程数大于核心线程数的时候，在达到这个时间的时候等待新任务的空闲线程将会被终止</span></span><br><span class="line"><span class="comment">   * unit  keepAliveTime 参数的单位</span></span><br><span class="line"><span class="comment">   * workQueue 用于在任务执行前保存任务的队列，这个队列将只会保留通过execute方法提交的Runnable任务</span></span><br><span class="line"><span class="comment">   * threadFactory 在excutor创建一个线程时候使用的工厂类</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">super</span>(<span class="type">DEFAULT_THREAD_COUNT</span>, <span class="type">DEFAULT_THREAD_COUNT</span>, <span class="number">0</span>, <span class="type">TimeUnit</span>.<span class="type">MILLISECONDS</span>,</span><br><span class="line">      <span class="keyword">new</span> <span class="type">PriorityBlockingQueue</span>&lt;<span class="type">Runnable</span>&gt;(), <span class="keyword">new</span> <span class="type">Utils</span>.<span class="type">PicassoThreadFactory</span>());</span><br><span class="line">&#125;</span><br><span class="line">static <span class="class"><span class="keyword">class</span> <span class="title">PicassoThreadFactory</span> <span class="title">implements</span> <span class="title">ThreadFactory</span> </span>&#123;</span><br><span class="line">  <span class="meta">@SuppressWarnings</span>(<span class="string">"NullableProblems"</span>)</span><br><span class="line">  public <span class="type">Thread</span> newThread(<span class="type">Runnable</span> r) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">PicassoThread</span>(r);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">private</span> static <span class="class"><span class="keyword">class</span> <span class="title">PicassoThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">  public <span class="type">PicassoThread</span>(<span class="type">Runnable</span> r) &#123;</span><br><span class="line">    <span class="keyword">super</span>(r);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@Override</span> public void run() &#123;</span><br><span class="line">    <span class="type">Process</span>.setThreadPriority(<span class="type">THREAD_PRIORITY_BACKGROUND</span>);</span><br><span class="line">    <span class="keyword">super</span>.run();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>紧接着我们来看下请求转换器：<br>请求转换器会在每次请求被提交的时候被调用，它主要用于修改某个请求的信息。我们看到默认的请求，并没有对请求做任何事情，只是简单的将原先的请求返回。<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public<span class="built_in"> interface </span>RequestTransformer &#123;</span><br><span class="line">  Request transformRequest(Request request);</span><br><span class="line">  RequestTransformer<span class="built_in"> IDENTITY </span>= new RequestTransformer() &#123;</span><br><span class="line">    @Override public Request transformRequest(Request request) &#123;</span><br><span class="line">      return request;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Picasso 还有一个统计对象States，用于统计Picasso中的各种事件。它的主要对象只有三个带有消息处理能力的HandlerThread线程，一个Cache引用，一个Handler。<br><figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">final</span> HandlerThread statsThread;</span><br><span class="line"><span class="keyword">final</span> Cache cache;</span><br><span class="line"><span class="keyword">final</span> Handler <span class="keyword">handler</span>;</span><br><span class="line">它的统计对象数据有：</span><br><span class="line"><span class="keyword">long</span> cacheHits;                            <span class="comment">//通过缓存获取到图片</span></span><br><span class="line"><span class="keyword">long</span> cacheMisses;                  <span class="comment">//通过其他方式获取图片</span></span><br><span class="line"><span class="keyword">long</span> totalDownloadSize;              <span class="comment">//下载的总数据量大小</span></span><br><span class="line"><span class="keyword">long</span> totalOriginalBitmapSize;              <span class="comment">//解码后统计总图片大小</span></span><br><span class="line"><span class="keyword">long</span> totalTransformedBitmapSize;           <span class="comment">//图像转换大小</span></span><br><span class="line"><span class="keyword">long</span> averageDownloadSize;                  <span class="comment">//平均下载大小</span></span><br><span class="line"><span class="keyword">long</span> averageOriginalBitmapSize;            <span class="comment">//平均解码后图片大小</span></span><br><span class="line"><span class="keyword">long</span> averageTransformedBitmapSize;         <span class="comment">//平均转换后图片大小</span></span><br><span class="line"><span class="keyword">int</span> downloadCount;                 <span class="comment">//下载次数</span></span><br><span class="line"><span class="keyword">int</span> originalBitmapCount;             <span class="comment">//原始图片数量</span></span><br><span class="line"><span class="keyword">int</span> transformedBitmapCount;                                 <span class="comment">//转换图片数量</span></span><br></pre></td></tr></table></figure></p>
+<p>整个流程如下所示：<br>外界通过State对象调用dispatchXXXX方法，在dispatch方法中往Handler中发送事件，然后再调用performXXXX来处理这个事件。<br><img src="/2016/10/30/Android-开源框架源码分析一-picasso/3.png" alt></p>
+<p>接下来我们继续看下Dispatcher，它负责分发Action的：<br>我们先看下她的构造方法：<br><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">Dispatcher(Context context, ExecutorService service, Handler mainThreadHandler,</span><br><span class="line">    Downloader downloader, Cache cache, Stats stats) &#123;</span><br><span class="line">  <span class="comment">//分发线程</span></span><br><span class="line">  <span class="keyword">this</span>.dispatcherThread = new DispatcherThread();</span><br><span class="line">  <span class="keyword">this</span>.dispatcherThread.start();</span><br><span class="line">  <span class="comment">//分发Handler</span></span><br><span class="line">  <span class="keyword">this</span>.handler = new DispatcherHandler(dispatcherThread.getLooper(), <span class="keyword">this</span>);  </span><br><span class="line">  <span class="comment">//主线程Handler</span></span><br><span class="line">  <span class="keyword">this</span>.mainThreadHandler = mainThreadHandler;</span><br><span class="line">  <span class="comment">//线程池</span></span><br><span class="line">  <span class="keyword">this</span>.service = service;</span><br><span class="line">  <span class="keyword">this</span>.hunterMap = new LinkedHashMap&lt;String, BitmapHunter&gt;();</span><br><span class="line">  <span class="keyword">this</span>.failedActions = new WeakHashMap&lt;Object, Action&gt;();</span><br><span class="line">  <span class="keyword">this</span>.pausedActions = new WeakHashMap&lt;Object, Action&gt;();</span><br><span class="line">  <span class="keyword">this</span>.pausedTags = new HashSet&lt;Object&gt;();</span><br><span class="line">  <span class="comment">//下载器</span></span><br><span class="line">  <span class="keyword">this</span>.downloader = downloader;</span><br><span class="line">  <span class="keyword">this</span>.cache = cache;</span><br><span class="line">  <span class="keyword">this</span>.stats = stats;</span><br><span class="line">  <span class="keyword">this</span>.batch = new ArrayList&lt;BitmapHunter&gt;(<span class="number">4</span>);</span><br><span class="line">  <span class="keyword">this</span>.airplaneMode = Utils.isAirplaneModeOn(<span class="keyword">this</span>.context);</span><br><span class="line">  <span class="keyword">this</span>.scansNetworkChanges = hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE);</span><br><span class="line">  <span class="comment">//网络监听器</span></span><br><span class="line">  <span class="keyword">this</span>.receiver = new NetworkBroadcastReceiver(<span class="keyword">this</span>);</span><br><span class="line">  receiver.register();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p> 整个流程还是和State对象一致，也是由HandlerThread + Handler构成，外部调用dispatchXXX方法传递事件，在Handler中周转下最终调用performXXXX进行处理。这个具体涉及到的时候再重点介绍。<br>在build最后新建一个Picass对象返回，我们看下Picass对象的构造方法：<br>/**</p>
+<ul>
+<li>Picasso 有如下几个重要的对象：</li>
+<li>RequestTransformer:请求转换器</li>
+<li>Dispatcher：请求分发器</li>
+<li>allRequestHandlers:请求处理器</li>
+<li>Cache 缓存器</li>
+<li>Stats 事件统计</li>
+<li>CleanupThread 清除线程<br>*/<figure class="highlight processing"><table><tr><td class="code"><pre><span class="line">Picasso(Context context, Dispatcher dispatcher, Cache cache, Listener listener,</span><br><span class="line">    RequestTransformer requestTransformer, List&lt;RequestHandler&gt; extraRequestHandlers, Stats stats,</span><br><span class="line">    Bitmap.Config defaultBitmapConfig, <span class="built_in">boolean</span> indicatorsEnabled, <span class="built_in">boolean</span> loggingEnabled) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">this</span>.context = context;</span><br><span class="line">  <span class="keyword">this</span>.dispatcher = dispatcher;</span><br><span class="line">  <span class="keyword">this</span>.cache = cache;</span><br><span class="line">  <span class="keyword">this</span>.listener = listener;</span><br><span class="line">  <span class="keyword">this</span>.requestTransformer = requestTransformer;</span><br><span class="line">  <span class="keyword">this</span>.defaultBitmapConfig = defaultBitmapConfig;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//内部有7个请求处理器，额外的有一个</span></span><br><span class="line">  <span class="built_in">int</span> builtInHandlers = <span class="number">7</span>; <span class="comment">// Adjust this as internal handlers are added or removed.</span></span><br><span class="line">  <span class="built_in">int</span> extraCount = (extraRequestHandlers != <span class="keyword">null</span> ? extraRequestHandlers.<span class="built_in">size</span>() : <span class="number">0</span>);</span><br><span class="line">  List&lt;RequestHandler&gt; allRequestHandlers = <span class="keyword">new</span> ArrayList&lt;RequestHandler&gt;(builtInHandlers + extraCount);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//将各个RequestHandler添加到allRequestHandlers</span></span><br><span class="line">  allRequestHandlers.<span class="built_in">add</span>(<span class="keyword">new</span> ResourceRequestHandler(context));</span><br><span class="line">  <span class="keyword">if</span> (extraRequestHandlers != <span class="keyword">null</span>) &#123;</span><br><span class="line">    allRequestHandlers.addAll(extraRequestHandlers);</span><br><span class="line">  &#125;</span><br><span class="line">  allRequestHandlers.<span class="built_in">add</span>(<span class="keyword">new</span> ContactsPhotoRequestHandler(context));</span><br><span class="line">  allRequestHandlers.<span class="built_in">add</span>(<span class="keyword">new</span> MediaStoreRequestHandler(context));</span><br><span class="line">  allRequestHandlers.<span class="built_in">add</span>(<span class="keyword">new</span> ContentStreamRequestHandler(context));</span><br><span class="line">  allRequestHandlers.<span class="built_in">add</span>(<span class="keyword">new</span> AssetRequestHandler(context));</span><br><span class="line">  allRequestHandlers.<span class="built_in">add</span>(<span class="keyword">new</span> FileRequestHandler(context));</span><br><span class="line">  allRequestHandlers.<span class="built_in">add</span>(<span class="keyword">new</span> NetworkRequestHandler(dispatcher.downloader, stats));</span><br><span class="line">  requestHandlers = Collections.unmodifiableList(allRequestHandlers);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">this</span>.stats = stats;</span><br><span class="line">  <span class="comment">//用于存储Traget和Action的Map</span></span><br><span class="line">  <span class="keyword">this</span>.targetToAction = <span class="keyword">new</span> WeakHashMap&lt;<span class="keyword">Object</span>, Action&gt;();</span><br><span class="line">  <span class="keyword">this</span>.targetToDeferredRequestCreator = <span class="keyword">new</span> WeakHashMap&lt;ImageView, DeferredRequestCreator&gt;();</span><br><span class="line">  <span class="comment">//软引用队列</span></span><br><span class="line">  <span class="keyword">this</span>.referenceQueue = <span class="keyword">new</span> ReferenceQueue&lt;<span class="keyword">Object</span>&gt;();</span><br><span class="line">  <span class="comment">//清除线程</span></span><br><span class="line">  <span class="keyword">this</span>.cleanupThread = <span class="keyword">new</span> CleanupThread(referenceQueue, HANDLER);</span><br><span class="line">  <span class="keyword">this</span>.cleanupThread.start();</span><br><span class="line">  <span class="comment">//调试相关</span></span><br><span class="line">  <span class="keyword">this</span>.indicatorsEnabled = indicatorsEnabled;</span><br><span class="line">  <span class="keyword">this</span>.loggingEnabled = loggingEnabled;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>我们可以看到在构造方法中添加了很多的requestHandler，用于对请求进行处理，这个在后面介绍流程的时候在进行介绍。<br>到目前为止我们知道了整个Picasso的大体结构入下图所示:<br><img src="/2016/10/30/Android-开源框架源码分析一-picasso/4.png" alt><br>主要包括请求转换器，请求处理类，请求分发器，而请求分发器则负责将请求的分发和执行。</p>
+<p>with流程总结：<br>在with阶段主要是使用建造模式和单例模式，创建Picasso对象。在通过Picasso的Builder接口我们可以看出Picasso可以允许我们注入自定义的下载器，线程池，缓存，请求转换器，请求处理器，内部事件监听。然后通过build方法中检查哪些对象还没创建，如果还没创建就使用默认的方案，在创建Picasso对象的阶段会注册系列的请求处理器为后续的请求处理做准备。<br>我们可以从这个部分学到什么？</p>
+<ol>
+<li>Builder + 单例模式创建对象</li>
+<li>通过Builder注入自定义对象，这里的自定义对象一般是抽象类或者接口，这样可以提供一个模板，用户可以通过这种方式来根据模板创建需要的对象。</li>
+</ol>
+<p>3.2   load流程：<br><figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">RequestCreator</span> <span class="selector-tag">load</span>(<span class="variable">@Nullable</span> Uri uri) &#123;</span><br><span class="line">  <span class="selector-tag">return</span> <span class="selector-tag">new</span> <span class="selector-tag">RequestCreator</span>(this, uri, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在load阶段传递的是用于标示图片的Uri. path resourceId等。返回的是RequestCreator<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">RequestCreator(Picasso picasso, Uri uri, <span class="keyword">int</span> resourceId) &#123;</span><br><span class="line">  <span class="keyword">if</span> (picasso.<span class="built_in">shutdown</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(</span><br><span class="line">        <span class="string">"Picasso instance already shut down. Cannot submit new requests."</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">this</span>.picasso = picasso;</span><br><span class="line">  <span class="keyword">this</span>.data = <span class="keyword">new</span> Request.Builder(uri, resourceId, picasso.defaultBitmapConfig);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p> 这里实际上只是创建了一个Request.Builder为创建请求对象做准备。load阶段很简单吧。 这个阶段重点记住load提供的接口有如下几种：<br><figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">RequestCreator</span> <span class="selector-tag">load</span>(<span class="variable">@Nullable</span> Uri uri) </span><br><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">RequestCreator</span> <span class="selector-tag">load</span>(<span class="variable">@Nullable</span> String path)    <span class="comment">//android.resource:   file:  content:</span></span><br><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">RequestCreator</span> <span class="selector-tag">load</span>(<span class="variable">@NonNull</span> File file)        </span><br><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">RequestCreator</span> <span class="selector-tag">load</span>(<span class="variable">@DrawableRes</span> int resourceId)</span><br></pre></td></tr></table></figure></p>
+<p>load阶段总结：<br>load阶段就完成两个任务，一个是创建一个RequestCreator，另一个是创建Requst.Builder.为into阶段做准备。</p>
+<p>3.3  into流程分析：<br>下面代码是整个流程的代码，每个步骤我们将会在后面一一展开。<br><figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">into</span><span class="params">(ImageView <span class="keyword">target</span>, Callback callback)</span> </span>&#123;</span><br><span class="line">  <span class="comment">//获取创建请求的时间</span></span><br><span class="line">  <span class="keyword">long</span> started = System.nanoTime();</span><br><span class="line">  <span class="comment">//注意into阶段必须在主线程，所以在这个阶段需要检查下当前是否是在主线程</span></span><br><span class="line">  checkMain();</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">target</span> == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Target must not be null."</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//对输入的Uri进行检查，如果没有Uri或者resourceId那么就取消请求，根据要求看下是否显示占位图</span></span><br><span class="line">  <span class="keyword">if</span> (!data.hasImage()) &#123;</span><br><span class="line">    picasso.cancelRequest(<span class="keyword">target</span>);</span><br><span class="line">    <span class="keyword">if</span> (setPlaceholder) &#123;</span><br><span class="line">      setPlaceholder(<span class="keyword">target</span>, getPlaceholderDrawable());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (deferred) &#123;</span><br><span class="line">    <span class="keyword">if</span> (data.hasSize()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Fit cannot be used with resize."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> width = <span class="keyword">target</span>.getWidth();</span><br><span class="line">    <span class="keyword">int</span> height = <span class="keyword">target</span>.getHeight();</span><br><span class="line">    <span class="keyword">if</span> (width == <span class="number">0</span> || height == <span class="number">0</span> || <span class="keyword">target</span>.isLayoutRequested()) &#123;</span><br><span class="line">      <span class="keyword">if</span> (setPlaceholder) &#123;</span><br><span class="line">        setPlaceholder(<span class="keyword">target</span>, getPlaceholderDrawable());</span><br><span class="line">      &#125;</span><br><span class="line">      picasso.defer(<span class="keyword">target</span>, <span class="keyword">new</span> DeferredRequestCreator(<span class="keyword">this</span>, <span class="keyword">target</span>, callback));</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    data.resize(width, height);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//创建请求，请求有两个重要的元素id以及创建时间，创建完后需要通过请求转换器先进行初步的转换</span></span><br><span class="line">  Request request = createRequest(started);</span><br><span class="line">  <span class="comment">//使用请求信息，生成一个请求的key</span></span><br><span class="line">  String requestKey = createKey(request);</span><br><span class="line">  <span class="comment">//查看请求策略，是否需要从缓存中获取数据</span></span><br><span class="line">  <span class="keyword">if</span> (shouldReadFromMemoryCache(memoryPolicy)) &#123;</span><br><span class="line">    <span class="comment">//使用请求的key在cache中尝试获取图像，并统计获取结果</span></span><br><span class="line">    Bitmap bitmap = picasso.quickMemoryCacheCheck(requestKey);</span><br><span class="line">    <span class="comment">//如果获取到了就取消请求，并设置图片，回调返回</span></span><br><span class="line">    <span class="keyword">if</span> (bitmap != <span class="keyword">null</span>) &#123;</span><br><span class="line">      picasso.cancelRequest(<span class="keyword">target</span>);</span><br><span class="line">      setBitmap(<span class="keyword">target</span>, picasso.context, bitmap, MEMORY, noFade, picasso.indicatorsEnabled);</span><br><span class="line">      <span class="keyword">if</span> (picasso.loggingEnabled) &#123;</span><br><span class="line">        log(OWNER_MAIN, VERB_COMPLETED, request.plainId(), <span class="string">"from "</span> + MEMORY);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (callback != <span class="keyword">null</span>) &#123;</span><br><span class="line">        callback.onSuccess();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//如果需要从其他地方获取，那么就先显示占位图</span></span><br><span class="line">  <span class="keyword">if</span> (setPlaceholder) &#123;</span><br><span class="line">    setPlaceholder(<span class="keyword">target</span>, getPlaceholderDrawable());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//初始化一个Action并提交</span></span><br><span class="line">  Action action = <span class="keyword">new</span> ImageViewAction(picasso, <span class="keyword">target</span>, request, memoryPolicy,networkPolicy, errorResId, errorDrawable, requestKey, tag, callback, noFade);</span><br><span class="line">  picasso.enqueueAndSubmit(action);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>3.1.1  Request的创建过程</p>
+<p>into阶段会先对传入的Uri进行判断，如果为空就取消请求。并根据需要决定是否显示占位符<br>然后使用load阶段创建的Request.Builder来创建请求。每个请求都有两个关键的成员，一个id一个创建时间。创建完Request对象后会通过请求转换器对其进行转换。<br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Request <span class="title">createRequest</span><span class="params">(<span class="keyword">long</span> started)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> id = nextId.getAndIncrement(); <span class="comment">//获得id</span></span><br><span class="line">  Request request = data.build();    <span class="comment">//调用RequestBuidler 创建请求对象Requst</span></span><br><span class="line">  request.id = id;                   <span class="comment">//给请求设置id以及创建时间</span></span><br><span class="line">  request.started = started;         <span class="comment">//请求是通过这两个来标示一个请求对象的</span></span><br><span class="line">  Request transformed = picasso.transformRequest(request);  <span class="comment">//对请求进行转换，默认的请求转换器为空操作，直接返回原来的请求</span></span><br><span class="line">  <span class="keyword">return</span> transformed;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们先来看下Request.Builder 的 build方法：<br><figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> Request build() &#123;</span><br><span class="line">    <span class="keyword">if</span> (centerInside &amp;&amp; centerCrop) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"Center crop and center inside can not be used together."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (centerCrop &amp;&amp; (targetWidth == <span class="number">0</span> &amp;&amp; targetHeight == <span class="number">0</span>)) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(</span><br><span class="line">          <span class="string">"Center crop requires calling resize with positive width and height."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (centerInside &amp;&amp; (targetWidth == <span class="number">0</span> &amp;&amp; targetHeight == <span class="number">0</span>)) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(</span><br><span class="line">          <span class="string">"Center inside requires calling resize with positive width and height."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (priority == <span class="literal">null</span>) &#123;</span><br><span class="line">      priority = Priority.NORMAL;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">Request</span>(uri, resourceId, stableKey, transformations, targetWidth, targetHeight,</span><br><span class="line">        centerCrop, centerInside, centerCropGravity, onlyScaleDown, rotationDegrees,</span><br><span class="line">        rotationPivotX, rotationPivotY, hasRotationPivot, purgeable, config, priority);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上述的build过程首先对参数进行检查，通过上述的Requst对象中注入了包括uri在内的众多参数。<br>紧接着就是根据request对象来生成用于标示Requst的RequestKey。<br><figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">String</span> createKey(Request data, StringBuilder builder) &#123;</span><br><span class="line">  <span class="keyword">if</span> (data.stableKey != <span class="keyword">null</span>) &#123;</span><br><span class="line">    builder.ensureCapacity(data.stableKey.length() + KEY_PADDING);</span><br><span class="line">    builder.<span class="built_in">append</span>(data.stableKey);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (data.uri != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">String</span> path = data.uri.toString();</span><br><span class="line">    builder.ensureCapacity(path.length() + KEY_PADDING);</span><br><span class="line">    builder.<span class="built_in">append</span>(path);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    builder.ensureCapacity(KEY_PADDING);</span><br><span class="line">    builder.<span class="built_in">append</span>(data.resourceId);</span><br><span class="line">  &#125;</span><br><span class="line">  builder.<span class="built_in">append</span>(KEY_SEPARATOR);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (data.rotationDegrees != <span class="number">0</span>) &#123;</span><br><span class="line">    builder.<span class="built_in">append</span>(<span class="string">"rotation:"</span>).<span class="built_in">append</span>(data.rotationDegrees);</span><br><span class="line">    <span class="keyword">if</span> (data.hasRotationPivot) &#123;</span><br><span class="line">      builder.<span class="built_in">append</span>(<span class="string">'@'</span>).<span class="built_in">append</span>(data.rotationPivotX).<span class="built_in">append</span>(<span class="string">'x'</span>).<span class="built_in">append</span>(data.rotationPivotY);</span><br><span class="line">    &#125;</span><br><span class="line">    builder.<span class="built_in">append</span>(KEY_SEPARATOR);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (data.hasSize()) &#123;</span><br><span class="line">    builder.<span class="built_in">append</span>(<span class="string">"resize:"</span>).<span class="built_in">append</span>(data.targetWidth).<span class="built_in">append</span>(<span class="string">'x'</span>).<span class="built_in">append</span>(data.targetHeight);</span><br><span class="line">    builder.<span class="built_in">append</span>(KEY_SEPARATOR);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (data.centerCrop) &#123;</span><br><span class="line">    builder.<span class="built_in">append</span>(<span class="string">"centerCrop:"</span>).<span class="built_in">append</span>(data.centerCropGravity).<span class="built_in">append</span>(KEY_SEPARATOR);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (data.centerInside) &#123;</span><br><span class="line">    builder.<span class="built_in">append</span>(<span class="string">"centerInside"</span>).<span class="built_in">append</span>(KEY_SEPARATOR);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (data.transformations != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">//noinspection ForLoopReplaceableByForEach</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>, count = data.transformations.<span class="built_in">size</span>(); i &lt; count; i++) &#123;</span><br><span class="line">      builder.<span class="built_in">append</span>(data.transformations.<span class="built_in">get</span>(i).<span class="built_in">key</span>());</span><br><span class="line">      builder.<span class="built_in">append</span>(KEY_SEPARATOR);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> builder.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>3.1.2  发起请求</p>
+<p>( 1 ) 从缓存预取<br>在发起请求的时候首先查看下缓存策略，看下是否优先从缓存中获取图片数据，如果是的话就调用picasso.quickMemoryCacheCheck来检查缓存中是否已经有需要的数据了。如果有就返回，并且将结果传递给统计对象。然后取消现有的请求，并将图像设置到ImageView上。<br><figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Bitmap </span>quickMemoryCacheCheck(String key) &#123;</span><br><span class="line">  <span class="keyword">Bitmap </span><span class="keyword">cached </span>= <span class="keyword">cache.get(key);</span></span><br><span class="line"><span class="keyword"> </span> if (<span class="keyword">cached </span>!= null) &#123;</span><br><span class="line">    stats.<span class="keyword">dispatchCacheHit();</span></span><br><span class="line"><span class="keyword"> </span> &#125; else &#123;</span><br><span class="line">    stats.<span class="keyword">dispatchCacheMiss();</span></span><br><span class="line"><span class="keyword"> </span> &#125;</span><br><span class="line">  return <span class="keyword">cached;</span></span><br><span class="line"><span class="keyword">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<p>(2) 创建Action 通过其他途径获取<br>紧接着创建一个ImageViewAction然后调用picasso.enqueueAndSubmit将Action发出。接下来这部分是非常重要的，所以在进行这部分介绍之前进行一下总结：</p>
+<p>在into阶段首先会使用load阶段创建的RequstCreator来创建一个Request，并设置Requst的id以及启动时间这两个关键，参数，在创建Request这个过程中会先检查一系列的参数，然后再new出一个Requst对象出来。然后再使用创建出的Requst对象的参数创建出作为Request标示的requestKey。<br>再根据缓存策略，查看是否优先使用缓存中的图像，如果是的话那么就使用上面创建出来的requstKey从缓存中获取，并将结果反馈给stats对象进行统计，如果不优先使用缓存中的图像的话那么就创建出一个Action，然后调用picasso.enqueueAndSubmit将Action发出。<br>Action 是Target 以及Request的封装，它有个重要的方法abstract void complete(Bitmap result, Picasso.LoadedFrom from)在请求结束的时候会调用这个进行处理，这个后续会进行介绍，Action的子类目前有GetAction  FetchAction  TargetAction ImageViewAction RmoteViewAction这些。</p>
+<p>我们继续看接下来的流程：<br>在提交到分发器之前需要先检查当前Action的对象是否绑定了另外的Action，如果是的话那么取消原先的请求，将当前的Action和Target放到targetToAction。然后提交到分发器上。<br><figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line">void enqueueAndSubmit(<span class="keyword">Action</span> <span class="keyword">action</span>) &#123;</span><br><span class="line">  //获取<span class="keyword">Action</span>中的<span class="keyword">target</span></span><br><span class="line">  Object <span class="keyword">target</span> = <span class="keyword">action</span>.getTarget();</span><br><span class="line">  //如果当前targetToAction 中记录的 <span class="keyword">Target</span>中指定的<span class="keyword">action</span>不是当前的<span class="keyword">action</span> 说明之前已经指定了，那么取消原先的</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">target</span> <span class="comment">!= null &amp;&amp; targetToAction.get(target) != action) &#123;</span></span><br><span class="line">    cancelExistingRequest(<span class="keyword">target</span>);</span><br><span class="line">    //提交到targetToAction</span><br><span class="line">    targetToAction.put(<span class="keyword">target</span>, <span class="keyword">action</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  //提交到分发器</span><br><span class="line">  submit(<span class="keyword">action</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>分发器分发请求：<br><figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">void submit(<span class="built_in">Action</span> <span class="built_in">action</span>) &#123;</span><br><span class="line">   <span class="comment">//分发器分发请求</span></span><br><span class="line">  dispatcher.dispatchSubmit(<span class="built_in">action</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">dispatchSubmit</span><span class="params">(Action action)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">handler</span>.sendMessage(<span class="keyword">handler</span>.obtainMessage(REQUEST_SUBMIT, action));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span> </span><br><span class="line">  <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">handleMessage</span><span class="params">(<span class="keyword">final</span> Message msg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">switch</span> (msg.what) &#123;</span><br><span class="line">      <span class="keyword">case</span> REQUEST_SUBMIT: &#123;</span><br><span class="line">        Action action = (Action) msg.obj;</span><br><span class="line">        dispatcher.performSubmit(action);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">     <span class="comment">//...............</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">void performSubmit(<span class="built_in">Action</span> <span class="built_in">action</span>) &#123;</span><br><span class="line">  performSubmit(<span class="built_in">action</span>, <span class="literal">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的流程在之前已经介绍了，由外部调用dispatchXXXX方法，然后传递给Hander，然后再由performXXXXX进行处理。</p>
+<p>匹配requestHandler封装到BitmapHunter：<br>在performSubmit中根据Action来判断那个requstHandler可以处理这个请求，然后将这个requstHandler传递到新创建的BitmapHunter中。<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">performSubmit</span><span class="params">(Action action, <span class="keyword">boolean</span> dismissFailed)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (pausedTags.contains(action.getTag())) &#123;</span><br><span class="line">    pausedActions.<span class="built_in">put</span>(action.getTarget(), action);</span><br><span class="line">    <span class="comment">//查看是否在停止的列表中</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//从hunterMap通过RequestKey查找是否有已经存在的BitmapHunter(搜索者)</span></span><br><span class="line">  BitmapHunter hunter = hunterMap.<span class="built_in">get</span>(action.<span class="built_in">getKey</span>());</span><br><span class="line">  <span class="keyword">if</span> (hunter != null) &#123;</span><br><span class="line">    hunter.<span class="built_in">attach</span>(action);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//查找能够处理请求的RequestHandler，并将其封装到BitmapHunter</span></span><br><span class="line">  hunter = forRequest(action.getPicasso(), <span class="keyword">this</span>, cache, stats, action);</span><br><span class="line">  <span class="comment">//BitmapHunter 实际上是一个线程，在这里将其丢到线程池进行执行，进入线程池后会调用其中的run方法</span></span><br><span class="line">  hunter.<span class="built_in">future</span> = service.submit(hunter);</span><br><span class="line">  <span class="comment">//添加到hunterMap</span></span><br><span class="line">  hunterMap.<span class="built_in">put</span>(action.<span class="built_in">getKey</span>(), hunter);</span><br><span class="line">  <span class="keyword">if</span> (dismissFailed) &#123;</span><br><span class="line">    failedActions.<span class="built_in">remove</span>(action.getTarget());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>forRequst 方法中取出请求，以及请求处理器列表。依次调用请求处理器的canHandleRequst来判断当前requstHandler是否能够处理当前的请求。<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> BitmapHunter <span class="title">forRequest</span><span class="params">(Picasso picasso, Dispatcher dispatcher, Cache cache, Stats stats, Action action)</span> </span>&#123;</span><br><span class="line">  <span class="comment">//获取Action中封装的请求</span></span><br><span class="line">  Request request = action.getRequest();</span><br><span class="line">  <span class="comment">//获取Picasso注册的RequestHandlers</span></span><br><span class="line">  List&lt;RequestHandler&gt; requestHandlers = picasso.getRequestHandlers();</span><br><span class="line">  <span class="comment">//遍历每个RequestHandler 看下那个Handler能够处理这个请求</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, count = requestHandlers.<span class="built_in">size</span>(); i &lt; count; i++) &#123;</span><br><span class="line">    RequestHandler requestHandler = requestHandlers.<span class="built_in">get</span>(i);</span><br><span class="line">    <span class="comment">//使用请求的Uri来判断那个Handler进行处理</span></span><br><span class="line">    <span class="keyword">if</span> (requestHandler.canHandleRequest(request)) &#123; <span class="comment">//如果可以处理当前请求那么就将Action传递给新建的BitmapHunter</span></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> BitmapHunter(picasso, dispatcher, cache, stats, action, requestHandler);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> BitmapHunter(picasso, dispatcher, cache, stats, action, ERRORING_HANDLER);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>每个requestHandler都有一个canHandleRequst的方法，将request进去，在这个方法中将根据请求的Uri来进行匹配。当前是否可以处理这个类型的请求。所以在new Picasso 对象的时候各个requestHandler的请求对象的添加顺序很关键。<br>下面是网络请求处理器的canHandleRequest的实现。<br><figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="built_in">boolean</span> canHandleRequest(Request <span class="built_in">data</span>) &#123;</span><br><span class="line">  <span class="built_in">String</span> scheme = <span class="built_in">data</span>.uri.getScheme();</span><br><span class="line">  <span class="keyword">return</span> (SCHEME_HTTP.<span class="keyword">equals</span>(scheme) || SCHEME_HTTPS.<span class="keyword">equals</span>(scheme));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在添加到线程池后将会调用BitmapHunter的run方法。在run方法中主要是获取最终的Bitmap，然后再通过分发器来返回结果。<br><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> void run() &#123;</span><br><span class="line">    <span class="comment">//修改线程名字</span></span><br><span class="line">    updateThreadName(<span class="keyword">data</span>);</span><br><span class="line">    <span class="comment">//获取图片并完成转换，首先会先从缓存中获取，然后调用RequestHandler load方法进行获取，最后再进行内部转换以及自定义的图片转换</span></span><br><span class="line">    result = hunt();</span><br><span class="line">    <span class="comment">//向分发器返回结果</span></span><br><span class="line">    <span class="keyword">if</span> (result == <span class="literal">null</span>) &#123;</span><br><span class="line">      dispatcher.dispatchFailed(<span class="keyword">this</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      dispatcher.dispatchComplete(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过requestHandler中的load方法加载图片数据：<br>获取图片主要是通过hunt方法，在这个方法中会先尝试从缓存中获取，如果缓存中没有，那么通过requstHandler中的load方法，这时候会有两种可能，一种是直接返回Bitmap。另一种是返回一个InputStream。如果是Bitmap那么就直接进入下一步，如果是输入流的话需要将从流中对其进行解码。<br><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">Bitmap hunt() throws IOException &#123;</span><br><span class="line">  Bitmap bitmap = <span class="literal">null</span>;</span><br><span class="line">  <span class="comment">//先尝试从缓存中获取图片</span></span><br><span class="line">  <span class="keyword">if</span> (shouldReadFromMemoryCache(memoryPolicy)) &#123;</span><br><span class="line">    bitmap = cache.<span class="keyword">get</span>(key);</span><br><span class="line">    <span class="keyword">if</span> (bitmap != <span class="literal">null</span>) &#123;</span><br><span class="line">      stats.dispatchCacheHit();</span><br><span class="line">      loadedFrom = MEMORY;</span><br><span class="line">      <span class="keyword">return</span> bitmap;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">data</span>.networkPolicy = retryCount == <span class="number">0</span> ? NetworkPolicy.OFFLINE.index : networkPolicy;</span><br><span class="line">  <span class="comment">//调用requestHandler的load方法进行加载图片</span></span><br><span class="line">  RequestHandler.Result result = requestHandler.load(<span class="keyword">data</span>, networkPolicy);</span><br><span class="line">  <span class="keyword">if</span> (result != <span class="literal">null</span>) &#123;</span><br><span class="line">    loadedFrom = result.getLoadedFrom();</span><br><span class="line">    exifOrientation = result.getExifOrientation();</span><br><span class="line">    bitmap = result.getBitmap();</span><br><span class="line">    <span class="comment">//首先会尝试直接获取Bitmap</span></span><br><span class="line">    <span class="keyword">if</span> (bitmap == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">//如果不行的话尝试获取输入流</span></span><br><span class="line">      InputStream <span class="keyword">is</span> = result.getStream();</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//使用输入流来创建Bitmap</span></span><br><span class="line">        bitmap = decodeStream(<span class="keyword">is</span>, <span class="keyword">data</span>);</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        Utils.closeQuietly(<span class="keyword">is</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (bitmap != <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">//统计解码</span></span><br><span class="line">    stats.dispatchBitmapDecoded(bitmap);</span><br><span class="line">    <span class="comment">//如果需要进行图片转换那么就进行转换</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">data</span>.needsTransformation() || exifOrientation != <span class="number">0</span>) &#123;</span><br><span class="line">      synchronized (DECODE_LOCK) &#123;</span><br><span class="line">        <span class="comment">//调用transformResult进行图片转换</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">data</span>.needsMatrixTransform() || exifOrientation != <span class="number">0</span>) &#123;</span><br><span class="line">          bitmap = transformResult(<span class="keyword">data</span>, bitmap, exifOrientation);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//如果有自定义的转换效果那么就调用applyCustomTransformations 应用图片转换</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">data</span>.hasCustomTransformations()) &#123;</span><br><span class="line">          bitmap = applyCustomTransformations(<span class="keyword">data</span>.transformations, bitmap);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">//统计转换</span></span><br><span class="line">      <span class="keyword">if</span> (bitmap != <span class="literal">null</span>) &#123;</span><br><span class="line">        stats.dispatchBitmapTransformed(bitmap);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> bitmap;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">load</span>(<span class="params">Request request, <span class="keyword">int</span> networkPolicy</span>) throws IOException</span> &#123;</span><br><span class="line">  <span class="comment">//调用Downloader进行下载</span></span><br><span class="line">  Response response = downloader.load(request.uri, request.networkPolicy);</span><br><span class="line">  <span class="keyword">if</span> (response == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//查看是从哪里下载的？</span></span><br><span class="line">  Picasso.LoadedFrom loadedFrom = response.cached ? DISK : NETWORK;</span><br><span class="line">  <span class="comment">//获取返回的图片</span></span><br><span class="line">  Bitmap bitmap = response.getBitmap();</span><br><span class="line">  <span class="comment">//如果图片数据不为空那么返回图片</span></span><br><span class="line">  <span class="keyword">if</span> (bitmap != <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Result(bitmap, loadedFrom);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  InputStream <span class="keyword">is</span> = response.getInputStream();</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">is</span> == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (loadedFrom == DISK &amp;&amp; response.getContentLength() == <span class="number">0</span>) &#123;</span><br><span class="line">    Utils.closeQuietly(<span class="keyword">is</span>);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> ContentLengthException(<span class="string">"Received response with 0 content-length header."</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (loadedFrom == NETWORK &amp;&amp; response.getContentLength() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    stats.dispatchDownloadFinished(response.getContentLength());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> Result(<span class="keyword">is</span>, loadedFrom);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>图像执行内部以及自定义变换处理：<br>获取到Bitmap数据之后接着就进行图像的转换，首先进行内部的转换，这个是通过调用transformRequst进行的。<br><figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line">static Bitmap transformResult(Request <span class="keyword">data</span>, Bitmap result, <span class="built_in">int</span> exifOrientation) &#123;</span><br><span class="line">  <span class="built_in">int</span> inWidth = result.getWidth();</span><br><span class="line">  <span class="built_in">int</span> inHeight = result.getHeight();</span><br><span class="line">  boolean onlyScaleDown = <span class="keyword">data</span>.onlyScaleDown;</span><br><span class="line">  <span class="built_in">int</span> drawX = <span class="number">0</span>;</span><br><span class="line">  <span class="built_in">int</span> drawY = <span class="number">0</span>;</span><br><span class="line">  <span class="built_in">int</span> drawWidth = inWidth;</span><br><span class="line">  <span class="built_in">int</span> drawHeight = inHeight;</span><br><span class="line">  Matrix matrix = new Matrix();</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">data</span>.needsMatrixTransform() || exifOrientation <span class="comment">!= 0) &#123;</span></span><br><span class="line">    <span class="built_in">int</span> targetWidth = <span class="keyword">data</span>.targetWidth;</span><br><span class="line">    <span class="built_in">int</span> targetHeight = <span class="keyword">data</span>.targetHeight;</span><br><span class="line">    <span class="built_in">float</span> targetRotation = <span class="keyword">data</span>.rotationDegrees;</span><br><span class="line">    <span class="keyword">if</span> (targetRotation <span class="comment">!= 0) &#123;</span></span><br><span class="line">      <span class="keyword">double</span> cosR = Math.<span class="built_in">cos</span>(Math.toRadians(targetRotation));</span><br><span class="line">      <span class="keyword">double</span> sinR = Math.<span class="built_in">sin</span>(Math.toRadians(targetRotation));</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">data</span>.hasRotationPivot) &#123;</span><br><span class="line">        matrix.setRotate(targetRotation, <span class="keyword">data</span>.rotationPivotX, <span class="keyword">data</span>.rotationPivotY);</span><br><span class="line">        // Recalculate dimensions after rotation around pivot point</span><br><span class="line">        <span class="keyword">double</span> x1T = <span class="keyword">data</span>.rotationPivotX * (<span class="number">1.0</span> - cosR) + (<span class="keyword">data</span>.rotationPivotY * sinR);</span><br><span class="line">        <span class="keyword">double</span> y1T = <span class="keyword">data</span>.rotationPivotY * (<span class="number">1.0</span> - cosR) - (<span class="keyword">data</span>.rotationPivotX * sinR);</span><br><span class="line">        <span class="keyword">double</span> x2T = x1T + (<span class="keyword">data</span>.targetWidth * cosR);</span><br><span class="line">        <span class="keyword">double</span> y2T = y1T + (<span class="keyword">data</span>.targetWidth * sinR);</span><br><span class="line">        <span class="keyword">double</span> x3T = x1T + (<span class="keyword">data</span>.targetWidth * cosR) - (<span class="keyword">data</span>.targetHeight * sinR);</span><br><span class="line">        <span class="keyword">double</span> y3T = y1T + (<span class="keyword">data</span>.targetWidth * sinR) + (<span class="keyword">data</span>.targetHeight * cosR);</span><br><span class="line">        <span class="keyword">double</span> x4T = x1T - (<span class="keyword">data</span>.targetHeight * sinR);</span><br><span class="line">        <span class="keyword">double</span> y4T = y1T + (<span class="keyword">data</span>.targetHeight * cosR);</span><br><span class="line">        <span class="keyword">double</span> maxX = Math.<span class="built_in">max</span>(x4T, Math.<span class="built_in">max</span>(x3T, Math.<span class="built_in">max</span>(x1T, x2T)));</span><br><span class="line">        <span class="keyword">double</span> minX = Math.<span class="built_in">min</span>(x4T, Math.<span class="built_in">min</span>(x3T, Math.<span class="built_in">min</span>(x1T, x2T)));</span><br><span class="line">        <span class="keyword">double</span> maxY = Math.<span class="built_in">max</span>(y4T, Math.<span class="built_in">max</span>(y3T, Math.<span class="built_in">max</span>(y1T, y2T)));</span><br><span class="line">        <span class="keyword">double</span> minY = Math.<span class="built_in">min</span>(y4T, Math.<span class="built_in">min</span>(y3T, Math.<span class="built_in">min</span>(y1T, y2T)));</span><br><span class="line">        targetWidth = (<span class="built_in">int</span>) Math.<span class="built_in">floor</span>(maxX - minX);</span><br><span class="line">        targetHeight  = (<span class="built_in">int</span>) Math.<span class="built_in">floor</span>(maxY - minY);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        matrix.setRotate(targetRotation);</span><br><span class="line">        // Recalculate dimensions after rotation (around origin)</span><br><span class="line">        <span class="keyword">double</span> x1T = <span class="number">0.0</span>;</span><br><span class="line">        <span class="keyword">double</span> y1T = <span class="number">0.0</span>;</span><br><span class="line">        <span class="keyword">double</span> x2T = (<span class="keyword">data</span>.targetWidth * cosR);</span><br><span class="line">        <span class="keyword">double</span> y2T = (<span class="keyword">data</span>.targetWidth * sinR);</span><br><span class="line">        <span class="keyword">double</span> x3T = (<span class="keyword">data</span>.targetWidth * cosR) - (<span class="keyword">data</span>.targetHeight * sinR);</span><br><span class="line">        <span class="keyword">double</span> y3T = (<span class="keyword">data</span>.targetWidth * sinR) + (<span class="keyword">data</span>.targetHeight * cosR);</span><br><span class="line">        <span class="keyword">double</span> x4T = -(<span class="keyword">data</span>.targetHeight * sinR);</span><br><span class="line">        <span class="keyword">double</span> y4T = (<span class="keyword">data</span>.targetHeight * cosR);</span><br><span class="line">        <span class="keyword">double</span> maxX = Math.<span class="built_in">max</span>(x4T, Math.<span class="built_in">max</span>(x3T, Math.<span class="built_in">max</span>(x1T, x2T)));</span><br><span class="line">        <span class="keyword">double</span> minX = Math.<span class="built_in">min</span>(x4T, Math.<span class="built_in">min</span>(x3T, Math.<span class="built_in">min</span>(x1T, x2T)));</span><br><span class="line">        <span class="keyword">double</span> maxY = Math.<span class="built_in">max</span>(y4T, Math.<span class="built_in">max</span>(y3T, Math.<span class="built_in">max</span>(y1T, y2T)));</span><br><span class="line">        <span class="keyword">double</span> minY = Math.<span class="built_in">min</span>(y4T, Math.<span class="built_in">min</span>(y3T, Math.<span class="built_in">min</span>(y1T, y2T)));</span><br><span class="line">        targetWidth = (<span class="built_in">int</span>) Math.<span class="built_in">floor</span>(maxX - minX);</span><br><span class="line">        targetHeight  = (<span class="built_in">int</span>) Math.<span class="built_in">floor</span>(maxY - minY);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (exifOrientation <span class="comment">!= 0) &#123;</span></span><br><span class="line">      <span class="built_in">int</span> exifRotation = getExifRotation(exifOrientation);</span><br><span class="line">      <span class="built_in">int</span> exifTranslation = getExifTranslation(exifOrientation);</span><br><span class="line">      <span class="keyword">if</span> (exifRotation <span class="comment">!= 0) &#123;</span></span><br><span class="line">        matrix.preRotate(exifRotation);</span><br><span class="line">        <span class="keyword">if</span> (exifRotation == <span class="number">90</span> || exifRotation == <span class="number">270</span>) &#123;</span><br><span class="line">           // Recalculate dimensions after exif rotation</span><br><span class="line">           <span class="built_in">int</span> tmpHeight = targetHeight;</span><br><span class="line">           targetHeight = targetWidth;</span><br><span class="line">           targetWidth = tmpHeight;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (exifTranslation <span class="comment">!= 1) &#123;</span></span><br><span class="line">        matrix.postScale(exifTranslation, <span class="number">1</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">data</span>.centerCrop) &#123;</span><br><span class="line">      // Keep aspect ratio <span class="keyword">if</span> one <span class="keyword">dimension</span> is set to <span class="number">0</span></span><br><span class="line">      <span class="built_in">float</span> widthRatio =</span><br><span class="line">          targetWidth <span class="comment">!= 0 ? targetWidth / (float) inWidth : targetHeight / (float) inHeight;</span></span><br><span class="line">      <span class="built_in">float</span> heightRatio =</span><br><span class="line">          targetHeight <span class="comment">!= 0 ? targetHeight / (float) inHeight : targetWidth / (float) inWidth;</span></span><br><span class="line">      <span class="built_in">float</span> scaleX, scaleY;</span><br><span class="line">      <span class="keyword">if</span> (widthRatio &gt; heightRatio) &#123;</span><br><span class="line">        <span class="built_in">int</span> newSize = (<span class="built_in">int</span>) Math.ceil(inHeight * (heightRatio / widthRatio));</span><br><span class="line">        <span class="keyword">if</span> ((<span class="keyword">data</span>.centerCropGravity &amp; Gravity.TOP) == Gravity.TOP) &#123;</span><br><span class="line">          drawY = <span class="number">0</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="keyword">data</span>.centerCropGravity &amp; Gravity.BOTTOM) == Gravity.BOTTOM) &#123;</span><br><span class="line">          drawY = inHeight - newSize;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          drawY = (inHeight - newSize) / <span class="number">2</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        drawHeight = newSize;</span><br><span class="line">        scaleX = widthRatio;</span><br><span class="line">        scaleY = targetHeight / (<span class="built_in">float</span>) drawHeight;</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (widthRatio &lt; heightRatio) &#123;</span><br><span class="line">        <span class="built_in">int</span> newSize = (<span class="built_in">int</span>) Math.ceil(inWidth * (widthRatio / heightRatio));</span><br><span class="line">        <span class="keyword">if</span> ((<span class="keyword">data</span>.centerCropGravity &amp; Gravity.LEFT) == Gravity.LEFT) &#123;</span><br><span class="line">          drawX = <span class="number">0</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="keyword">data</span>.centerCropGravity &amp; Gravity.RIGHT) == Gravity.RIGHT) &#123;</span><br><span class="line">          drawX = inWidth - newSize;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          drawX = (inWidth - newSize) / <span class="number">2</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        drawWidth = newSize;</span><br><span class="line">        scaleX = targetWidth / (<span class="built_in">float</span>) drawWidth;</span><br><span class="line">        scaleY = heightRatio;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        drawX = <span class="number">0</span>;</span><br><span class="line">        drawWidth = inWidth;</span><br><span class="line">        scaleX = scaleY = heightRatio;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (shouldResize(onlyScaleDown, inWidth, inHeight, targetWidth, targetHeight)) &#123;</span><br><span class="line">        matrix.preScale(scaleX, scaleY);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">data</span>.centerInside) &#123;</span><br><span class="line">      // Keep aspect ratio <span class="keyword">if</span> one <span class="keyword">dimension</span> is set to <span class="number">0</span></span><br><span class="line">      <span class="built_in">float</span> widthRatio =</span><br><span class="line">          targetWidth <span class="comment">!= 0 ? targetWidth / (float) inWidth : targetHeight / (float) inHeight;</span></span><br><span class="line">      <span class="built_in">float</span> heightRatio =</span><br><span class="line">          targetHeight <span class="comment">!= 0 ? targetHeight / (float) inHeight : targetWidth / (float) inWidth;</span></span><br><span class="line">      <span class="built_in">float</span> <span class="built_in">scale</span> = widthRatio &lt; heightRatio ? widthRatio : heightRatio;</span><br><span class="line">      <span class="keyword">if</span> (shouldResize(onlyScaleDown, inWidth, inHeight, targetWidth, targetHeight)) &#123;</span><br><span class="line">        matrix.preScale(<span class="built_in">scale</span>, <span class="built_in">scale</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((targetWidth <span class="comment">!= 0 || targetHeight != 0) //</span></span><br><span class="line">        &amp;&amp; (targetWidth <span class="comment">!= inWidth || targetHeight != inHeight)) &#123;</span></span><br><span class="line">      // <span class="keyword">If</span> an explicit <span class="keyword">target</span> <span class="built_in">size</span> has been specified and they <span class="keyword">do</span> not match the results bounds,</span><br><span class="line">      // pre-<span class="built_in">scale</span> the existing matrix appropriately.</span><br><span class="line">      // Keep aspect ratio <span class="keyword">if</span> one <span class="keyword">dimension</span> is set to <span class="number">0.</span></span><br><span class="line">      <span class="built_in">float</span> sx =</span><br><span class="line">          targetWidth <span class="comment">!= 0 ? targetWidth / (float) inWidth : targetHeight / (float) inHeight;</span></span><br><span class="line">      <span class="built_in">float</span> sy =</span><br><span class="line">          targetHeight <span class="comment">!= 0 ? targetHeight / (float) inHeight : targetWidth / (float) inWidth;</span></span><br><span class="line">      <span class="keyword">if</span> (shouldResize(onlyScaleDown, inWidth, inHeight, targetWidth, targetHeight)) &#123;</span><br><span class="line">        matrix.preScale(sx, sy);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  Bitmap newResult = Bitmap.createBitmap(result, drawX, drawY, drawWidth, drawHeight, matrix, true);</span><br><span class="line">  <span class="keyword">if</span> (newResult <span class="comment">!= result) &#123;</span></span><br><span class="line">    result.recycle();</span><br><span class="line">    result = newResult;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接下来就是进行自定义的处理，这个是我们可以进行自己设置的。</p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> Bitmap applyCustomTransformations(List&lt;Transformation&gt; transformations, Bitmap result) &#123;</span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>, count = transformations.size(); i &lt; count; i++) &#123;</span><br><span class="line">    final Transformation transformation = transformations.<span class="keyword">get</span>(i);</span><br><span class="line">    Bitmap <span class="keyword">new</span><span class="type">Result</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">new</span><span class="type">Result</span> = transformation.transform(result);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (final RuntimeException e) &#123;</span><br><span class="line">      <span class="comment">//.................</span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    result = <span class="keyword">new</span><span class="type">Result</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>往主线程中返回处理后的Bitmap：</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">dispatchComplete</span><span class="params">(BitmapHunter hunter)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">handler</span>.sendMessage(<span class="keyword">handler</span>.obtainMessage(HUNTER_COMPLETE, hunter));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">case HUNTER_COMPLETE: &#123;</span><br><span class="line">  <span class="keyword">BitmapHunter </span>hunter = (<span class="keyword">BitmapHunter) </span>msg.obj;</span><br><span class="line">  <span class="keyword">dispatcher.performComplete(hunter);</span></span><br><span class="line"><span class="keyword"> </span> <span class="keyword">break;</span></span><br><span class="line"><span class="keyword">&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">performComplete</span><span class="params">(BitmapHunter hunter)</span> </span>&#123;</span><br><span class="line">  <span class="comment">//是否需要写入到缓存中</span></span><br><span class="line">  <span class="keyword">if</span> (shouldWriteToMemoryCache(hunter.getMemoryPolicy())) &#123;</span><br><span class="line">    cache.<span class="built_in">set</span>(hunter.<span class="built_in">getKey</span>(), hunter.<span class="built_in">getResult</span>());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//移除hunterMap中注册的信息</span></span><br><span class="line">  hunterMap.<span class="built_in">remove</span>(hunter.<span class="built_in">getKey</span>());</span><br><span class="line">  <span class="comment">//将图片展现出来</span></span><br><span class="line">  batch(hunter);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">void</span> <span class="title">batch</span><span class="params">(BitmapHunter hunter)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (hunter.isCancelled()) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  batch.add(hunter);</span><br><span class="line">  <span class="keyword">if</span> (!<span class="keyword">handler</span>.hasMessages(HUNTER_DELAY_NEXT_BATCH)) &#123;</span><br><span class="line">    <span class="keyword">handler</span>.sendEmptyMessageDelayed(HUNTER_DELAY_NEXT_BATCH, BATCH_DELAY);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="keyword">case</span> <span class="string">HUNTER_DELAY_NEXT_BATCH:</span> &#123;</span><br><span class="line">  dispatcher.performBatchComplete();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里将上面的BitmapHandler数组返回给主线程。<br><figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> performBatchComplete() &#123;</span><br><span class="line">  List&lt;BitmapHunter&gt; <span class="built_in">copy</span> = <span class="keyword">new</span> ArrayList&lt;BitmapHunter&gt;(batch);</span><br><span class="line">  batch.<span class="built_in">clear</span>();</span><br><span class="line">  <span class="comment">//这里是将其转送到Picasso类中进行处理，mainThreadHandler是在初始化DisPatcher的时候传入的HANDLER</span></span><br><span class="line">  mainThreadHandler.sendMessage(mainThreadHandler.obtainMessage(HUNTER_BATCH_COMPLETE, <span class="built_in">copy</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>显示图片处理：<br>在complete阶段每个BitmapHunter都会将自己传递给Picasso complete中进行处理。<br><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">case</span> HUNTER_BATCH_COMPLETE: &#123;</span><br><span class="line">  //获取<span class="keyword">BitmapHunter列表</span></span><br><span class="line"><span class="keyword"> </span> List&lt;<span class="keyword">BitmapHunter&gt; </span><span class="keyword">batch </span>= (List&lt;<span class="keyword">BitmapHunter&gt;) </span>msg.obj<span class="comment">;</span></span><br><span class="line">  //对<span class="keyword">BitmapHandler列表中的每个handler调用complete方法进行处理。</span></span><br><span class="line"><span class="keyword"> </span> for (int i = <span class="number">0</span>, n = <span class="keyword">batch.size(); </span>i &lt; n<span class="comment">; i++) &#123;</span></span><br><span class="line">    //调用complete进行处理</span><br><span class="line">    <span class="keyword">BitmapHunter </span>hunter = <span class="keyword">batch.get(i);</span></span><br><span class="line"><span class="keyword"> </span>   hunter.picasso.complete(hunter)<span class="comment">;</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">break;</span></span><br><span class="line"><span class="keyword">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<p>在Picasso的complete方法中将会从BitmapHunter中获取到图片数据。通过deliverAction进行图片的显示。<br><figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> complete(BitmapHunter hunter) &#123;</span><br><span class="line">  Action single = hunter.getAction();</span><br><span class="line">  List&lt;Action&gt; joined = hunter.getActions();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">boolean</span> hasMultiple = joined != <span class="keyword">null</span> &amp;&amp; !joined.isEmpty();</span><br><span class="line">  <span class="keyword">boolean</span> shouldDeliver = single != <span class="keyword">null</span> || hasMultiple;</span><br><span class="line">  <span class="keyword">if</span> (!shouldDeliver) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//从hunter中获取Uri Exception result以及图片的来源</span></span><br><span class="line">  Uri uri = hunter.getData().uri;</span><br><span class="line">  Exception exception = hunter.getException();</span><br><span class="line">  Bitmap result = hunter.getResult();</span><br><span class="line">  LoadedFrom <span class="keyword">from</span> = hunter.getLoadedFrom();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (single != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">//显示图片</span></span><br><span class="line">    deliverAction(result, <span class="keyword">from</span>, single);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (hasMultiple) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, n = joined.<span class="keyword">size</span>(); i &lt; n; i++) &#123;</span><br><span class="line">      Action <span class="keyword">join</span> = joined.get(i);</span><br><span class="line">      deliverAction(result, <span class="keyword">from</span>, <span class="keyword">join</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//通过回调返回结果</span></span><br><span class="line">  <span class="keyword">if</span> (listener != <span class="keyword">null</span> &amp;&amp; exception != <span class="keyword">null</span>) &#123;</span><br><span class="line">    listener.onImageLoadFailed(<span class="keyword">this</span>, uri, exception);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在deliverAction中将会调用Action中的complete方法进行将图像显示到控件上。<br><figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void deliverAction(Bitmap result, LoadedFrom <span class="keyword">from</span>, <span class="built_in">Action</span> <span class="built_in">action</span>) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (result != null) &#123;</span><br><span class="line">    <span class="comment">//调用Action的complete方法</span></span><br><span class="line">    <span class="built_in">action</span>.complete(result, <span class="keyword">from</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">action</span>.error();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最终是调用PicassoDrawable的setBitmap方法显示到ImageView上的。<br><figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span> <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">complete</span><span class="params">(Bitmap result, Picasso.LoadedFrom from)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (result == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError(</span><br><span class="line">        String.format(<span class="string">"Attempted to complete action with no result!\n%s"</span>, <span class="keyword">this</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//取出要显示图片的ImageView</span></span><br><span class="line">  ImageView <span class="keyword">target</span> = <span class="keyword">this</span>.<span class="keyword">target</span>.get();</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">target</span> == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Context context = picasso.context;</span><br><span class="line">  <span class="comment">//使用PicassoDrawable  setBitmap 方法将图片显示到ImageView上</span></span><br><span class="line">  PicassoDrawable.setBitmap(<span class="keyword">target</span>, context, result, from, noFade, indicatorsEnabled);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//回调放回结果</span></span><br><span class="line">  <span class="keyword">if</span> (callback != <span class="keyword">null</span>) &#123;</span><br><span class="line">    callback.onSuccess();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> setBitmap(ImageView <span class="keyword">target</span>, Context context, Bitmap bitmap,</span><br><span class="line">    Picasso.LoadedFrom loadedFrom, <span class="keyword">boolean</span> noFade, <span class="keyword">boolean</span> debugging) &#123;</span><br><span class="line">  Drawable placeholder = <span class="keyword">target</span>.getDrawable();</span><br><span class="line">  <span class="keyword">if</span> (placeholder <span class="keyword">instanceof</span> AnimationDrawable) &#123;</span><br><span class="line">    ((AnimationDrawable) placeholder).stop();</span><br><span class="line">  &#125;</span><br><span class="line">  PicassoDrawable drawable = <span class="keyword">new</span> PicassoDrawable(context, bitmap, placeholder, loadedFrom, noFade, debugging);</span><br><span class="line">  <span class="comment">//最终显示图片</span></span><br><span class="line">  <span class="keyword">target</span>.setImageDrawable(drawable);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>整个流程大致如下：</p>
+<p><img src="/2016/10/30/Android-开源框架源码分析一-picasso/5.png" alt></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android-源码分析/">Android 源码分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-开源源码/">Android 开源源码</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/10/30/Android-开源项目学习之Retrofit2-0使用篇/" title="Android 开源项目学习之Retrofit2.0使用篇">
+  <span>
+  Android 开源项目学习之Retrofit2.0使用篇</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/08/22/Android-源码分析之TODO-MVP-Loaders/"  title="Android 源码分析之TODO MVP Loaders">
+ <span>Android 源码分析之TODO MVP Loaders
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/10/30/Android-开源框架源码分析一-picasso/" data-title="Android 开源框架源码分析之picasso" data-url="http://yoursite.com/2016/10/30/Android-开源框架源码分析一-picasso/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-源码/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-签名/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-事件处理进阶/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-动画进阶/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-多线程开发/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-小经验/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-常用第三方库/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-开发流程/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-开源源码/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-绘图进阶/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-自动化测试/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-自定义View进阶/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-设计模式/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android其他/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android基础/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android开发流程/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android性能优化/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android混淆技术/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android质量管理工具/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android逆向工程/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-使用/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-使用/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-相关/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-工具使用/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-开源库分析/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-理论基础/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-进阶/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/代码规范/" style="font-size: 10px;">代码规范</a> <a href="/tags/博客分类目录/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/叨叨系列/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/工具的使用/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/开源代码分析/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/开源库分析/" style="font-size: 10px;">开源库分析</a> <a href="/tags/杂类/" style="font-size: 10px;">杂类</a> <a href="/tags/树莓派/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/直播/" style="font-size: 12.86px;">直播</a> <a href="/tags/编程技巧/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/网站收藏/" style="font-size: 10px;">网站收藏</a> <a href="/tags/重要控件/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2021 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

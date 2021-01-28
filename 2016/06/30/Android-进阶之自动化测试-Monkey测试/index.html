@@ -1,0 +1,681 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之自动化测试 Monkey测试 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Monkey主要是用来对软件的稳定性与压力测试的工具。它会模拟用户向手机发送伪随机事件。 保存Monkey结果保存在PC中    adb shell monkey [option] &amp;lt;count&amp;gt; &amp;gt; /local/monkey.txt保存在手机中  monkey [optinon] &amp;lt;count&amp;gt;  &amp;gt; /mnt/sdcard/monkey.txt标准流与错误">
+<meta name="keywords" content="Android 自动化测试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之自动化测试 Monkey测试">
+<meta property="og:url" content="http://yoursite.com/2016/06/30/Android-进阶之自动化测试-Monkey测试/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Monkey主要是用来对软件的稳定性与压力测试的工具。它会模拟用户向手机发送伪随机事件。 保存Monkey结果保存在PC中    adb shell monkey [option] &amp;lt;count&amp;gt; &amp;gt; /local/monkey.txt保存在手机中  monkey [optinon] &amp;lt;count&amp;gt;  &amp;gt; /mnt/sdcard/monkey.txt标准流与错误">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2016-07-18T22:11:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 进阶之自动化测试 Monkey测试">
+<meta name="twitter:description" content="Monkey主要是用来对软件的稳定性与压力测试的工具。它会模拟用户向手机发送伪随机事件。 保存Monkey结果保存在PC中    adb shell monkey [option] &amp;lt;count&amp;gt; &amp;gt; /local/monkey.txt保存在手机中  monkey [optinon] &amp;lt;count&amp;gt;  &amp;gt; /mnt/sdcard/monkey.txt标准流与错误">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto">等待执剑少年修炼归来！</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/works">MyWorkSet</a></li>
+					
+						<li><a href="/release">Realeases</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/06/30/Android-进阶之自动化测试-Monkey测试/" title="Android 进阶之自动化测试 Monkey测试" itemprop="url">Android 进阶之自动化测试 Monkey测试</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-06-29T17:11:13.000Z" itemprop="datePublished"> Published 2016-06-30</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>Monkey主要是用来对软件的稳定性与压力测试的工具。它会模拟用户向手机发送伪随机事件。</p>
+<h5 id="保存Monkey结果"><a href="#保存Monkey结果" class="headerlink" title="保存Monkey结果"></a>保存Monkey结果</h5><figure class="highlight dts"><table><tr><td class="code"><pre><span class="line">保存在PC中    adb shell monkey [option] <span class="params">&lt;count&gt;</span> &gt; <span class="meta-keyword">/local/</span>monkey.txt</span><br><span class="line">保存在手机中  monkey [optinon] <span class="params">&lt;count&gt;</span>  &gt; <span class="meta-keyword">/mnt/</span>sdcard/monkey.txt</span><br><span class="line">标准流与错误流分开保存  monkey [optinon] <span class="params">&lt;count&gt;</span>  <span class="number">1</span>&gt; <span class="meta-keyword">/mnt/</span>sdcard/monkey.txt <span class="number">2</span>&gt; <span class="meta-keyword">/mnt/</span>sdcard/error.txt</span><br></pre></td></tr></table></figure>
+<h5 id="Monkey测试参数"><a href="#Monkey测试参数" class="headerlink" title="Monkey测试参数"></a>Monkey测试参数</h5><figure class="highlight diff"><table><tr><td class="code"><pre><span class="line">Monkey向命令行打印输出的log信息级别</span><br><span class="line">默认级别0：-v  只打印启动信息，测试完成信息和最终结果信息</span><br><span class="line">级别1：-v -v 打印执行时的一些信息，如发送事件</span><br><span class="line">级别2：-v -v -v  打印最详细信息</span><br><span class="line"><span class="deletion">-p &lt;允许执行的包名列表&gt;</span></span><br><span class="line"><span class="deletion">-c &lt;意图的种类&gt; 主要用于测试没有桌面图标的应用 -c 后面添加catory</span></span><br><span class="line"><span class="deletion">-s &lt;随机数种子&gt; 如果用相同的seed值再次运行Monkey，它将生成相同的事件序列</span></span><br><span class="line"><span class="deletion">--throttle &lt;毫秒&gt; 在事件之间插入固定延迟。通过这个选项可以减缓Monkey的执行速度。</span></span><br><span class="line"></span><br><span class="line"><span class="deletion">--pct-touch &lt;percent&gt;调整触摸事件的百分比</span></span><br><span class="line"><span class="deletion">--pct-motion &lt;percent&gt;调整动作事件的百分比</span></span><br><span class="line"><span class="deletion">--pct-trackball &lt;percent&gt; 调整轨迹事件的百分比</span></span><br><span class="line"><span class="deletion">--pct-nav &lt;percent&gt; 调整“基本”导航事件的百分比</span></span><br><span class="line"><span class="deletion">--pct-majornav &lt;percent&gt; 调整“主要”导航事件的百分比</span></span><br><span class="line"><span class="deletion">--pct-syskeys &lt;percent&gt;调整“系统”按键事件的百分比</span></span><br><span class="line"><span class="deletion">--pct-appswitch &lt;percent&gt;调整启动Activity的百分比。</span></span><br><span class="line"><span class="deletion">--pct-anyevent &lt;percent&gt; 调整其它类型事件的百分比。</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="deletion">--hprof 设置此选项，将在Monkey事件序列之前和之后立即生成profiling报告。这将会在data/misc中生成大文件(~5Mb)</span></span><br><span class="line"><span class="deletion">--ignore-crashes 如果设置此选项，当发生崩溃的时候Monkey将继续向系统发送事件，直到计数完成</span></span><br><span class="line"><span class="deletion">--ignore-timeouts 如果设置此选项，当发生AMR的时候Monkey将继续向系统发送事件，直到计数完成</span></span><br><span class="line"><span class="deletion">--ignore-security-exceptions如果设置了此选项，当发生权限问题的时候Monkey将继续向系统发送事件，直到计数完成</span></span><br><span class="line"><span class="deletion">--ignore-native-crashes 当发生C++/C层发生错误的时候Monkey将继续向系统发送事件，直到计数完成</span></span><br><span class="line"></span><br><span class="line">白名单和黑名单要push到手机中的/data/local/tmp</span><br><span class="line"><span class="deletion">--pkg-blacklist-file PACKAGE_BLACKLIST_FILE（文件路径） 添加到黑名，位于黑名单中的引用将不进行测试</span></span><br><span class="line"><span class="deletion">--pkg-whitelist-file PACKAGE_WHITELIST_FILE（文件路径） 添加到黑名，位于黑名单中的引用将不进行测试</span></span><br></pre></td></tr></table></figure>
+<h5 id="如何组合测试参数"><a href="#如何组合测试参数" class="headerlink" title="如何组合测试参数"></a>如何组合测试参数</h5><p>上面介绍了很多的参数，大家并不需要记住，需要用的时候直接使用adb shell monkey -help即可输出，但是还是要牢记这些参数的意义的，参数这么多我们要怎么确定这些参数呢？<br>一般我们会根据我们需要测试的目的进行对测试事件百分比进行分配。并且还要结合要复现的问题进行忽略设计，有时候还得考虑某些应用如果随意测试会产生某些不良影响的时候还需要考虑到把这些应用添加到黑名单中。<br>总之这些参数要怎么设置需要结合实际需求来决定。</p>
+<h5 id="常见事件"><a href="#常见事件" class="headerlink" title="常见事件"></a>常见事件</h5><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line">事件0 --pct-touch</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_DOWN):</span> 0:(299.0,255.0)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_UP):</span> 0:(302.0262,250.57063)</span><br><span class="line">事件1 --pct-motion</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_DOWN):</span> 0:(328.0,220.0)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(317.66824,217.7649)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(315.09308,217.11836)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(304.76135,214.29372)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_UP):</span> 0:(291.04208,211.98477)</span><br><span class="line">事件3 --pct-trackball</span><br><span class="line"><span class="meta">:Sending Trackball (ACTION_MOVE):</span> 0:(0.0,1.0)</span><br><span class="line"><span class="meta">:Sending Trackball (ACTION_MOVE):</span> 0:(-1.0,-4.0)</span><br><span class="line"><span class="meta">:Sending Trackball (ACTION_MOVE):</span> 0:(1.0,1.0)</span><br><span class="line">事件4--pct-pinchzoom</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_DOWN):</span> 0:(487.0,209.0)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_POINTER_DOWN 1):</span> 0:(486.9106,205.45831) 1:(194.0,366.0)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(484.5785,183.66449) 1:(206.95853,375.98056)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(471.26563,161.93521) 1:(218.35042,380.1656)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(457.90872,153.87688) 1:(222.07701,383.26407)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(452.51602,142.13242) 1:(242.29489,384.48602)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(444.63513,124.26505) 1:(255.93825,391.4393)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(444.01697,120.63037) 1:(273.75214,395.4244)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_MOVE):</span> 0:(434.89807,117.38953) 1:(294.31616,402.74707)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_POINTER_UP 1):</span> 0:(428.31845,98.71772) 1:(294.42966,402.80002)</span><br><span class="line"><span class="meta">:Sending Touch (ACTION_UP):</span> 0:(415.8634,86.58714)</span><br><span class="line">事件5 --pct-nav</span><br><span class="line"><span class="meta">:Sending Key (ACTION_UP):</span> 19    // KEYCODE<span class="emphasis">_DPAD_</span>UP</span><br><span class="line"><span class="meta">:Sending Key (ACTION_DOWN):</span> 20    // KEYCODE<span class="emphasis">_DPAD_</span>DOWN</span><br><span class="line"><span class="meta">:Sending Key (ACTION_UP):</span> 21    // KEYCODE<span class="emphasis">_DPAD_</span>LEFT</span><br><span class="line"><span class="meta">:Sending Key (ACTION_DOWN):</span> 22    // KEYCODE<span class="emphasis">_DPAD_</span>RIGHT</span><br><span class="line"><span class="code"> 事件6 --pct-majornav</span></span><br><span class="line"><span class="meta">:Sending Key (ACTION_DOWN):</span> 82    // KEYCODE<span class="emphasis">_MENU</span></span><br><span class="line"><span class="emphasis">:Sending Key (ACTION_</span>DOWN): 23    // KEYCODE<span class="emphasis">_DPAD_</span>CENTER</span><br><span class="line">事件7 --pct-syskeys</span><br><span class="line"><span class="meta">:Sending Key (ACTION_DOWN):</span> 4    // KEYCODE<span class="emphasis">_BACK</span></span><br><span class="line"><span class="emphasis">:Sending Key (ACTION_</span>DOWN): 5    // KEYCODE<span class="emphasis">_CALL</span></span><br><span class="line"><span class="emphasis">:Sending Key (ACTION_</span>DOWN): 25    // KEYCODE<span class="emphasis">_VOLUME_</span>DOWN</span><br><span class="line"><span class="meta">:Sending Key (ACTION_DOWN):</span> 24    // KEYCODE<span class="emphasis">_VOLUME_</span>UP</span><br><span class="line"><span class="meta">:Sending Key (ACTION_UP):</span> 3    // KEYCODE<span class="emphasis">_HOME</span></span><br><span class="line"><span class="emphasis">事件8 --pct-appswitch</span></span><br><span class="line"><span class="emphasis">:Switch: #Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;launchFlags=0x10200000;component=com.android.calendar/.AllInOneActivity;end</span></span><br><span class="line"><span class="emphasis">    // Allowing start of Intent &#123; act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=com.android.calendar/.AllInOneActivity &#125; in package com.android.calendar</span></span><br><span class="line"><span class="emphasis">事件9 --pct-flip</span></span><br><span class="line"><span class="emphasis">:Sending Flip keyboardOpen=true</span></span><br><span class="line"><span class="emphasis">:Sending Flip keyboardOpen=false</span></span><br><span class="line"><span class="emphasis">事件10  --pct-anyevent</span></span><br><span class="line"><span class="emphasis">:Sending Key (ACTION_</span>DOWN): 128    // KEYCODE<span class="emphasis">_MEDIA_</span>CLOSE</span><br><span class="line"><span class="meta">:Sending Key (ACTION_UP):</span> 128    // KEYCODE<span class="emphasis">_MEDIA_</span>CLOSE</span><br><span class="line"><span class="meta">:Sending Key (ACTION_DOWN):</span> 57    // KEYCODE<span class="emphasis">_ALT_</span>LEFT</span><br><span class="line"><span class="meta">:Sending Key (ACTION_UP):</span> 57    // KEYCODE<span class="emphasis">_ALT_</span>LEFT</span><br><span class="line"><span class="meta">:Sending Key (ACTION_DOWN):</span> 9    // KEYCODE<span class="emphasis">_2</span></span><br><span class="line"><span class="emphasis">:Sending Key (ACTION_</span>UP): 9    // KEYCODE<span class="emphasis">_2</span></span><br><span class="line"><span class="emphasis">:Sending Key (ACTION_</span>DOWN): 61    // KEYCODE<span class="emphasis">_TAB</span></span><br><span class="line"><span class="emphasis">:Sending Key (ACTION_</span>UP): 61    // KEYCODE<span class="emphasis">_TAB</span></span><br><span class="line"><span class="emphasis">事件11：--pct-rotation 屏幕旋转百分比 隐藏事件</span></span><br><span class="line"><span class="emphasis">:Sending rotation degree=0, persist=true</span></span><br><span class="line"><span class="emphasis">:Sending rotation degree=1, persist=false</span></span><br><span class="line"><span class="emphasis">:Sending rotation degree=2, persist=true</span></span><br><span class="line"><span class="emphasis">:Sending rotation degree=3, persist=false</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">延时事件：</span></span><br><span class="line"><span class="emphasis">Sleeping for 0 milliseconds</span></span><br></pre></td></tr></table></figure>
+<h5 id="事件结果报告"><a href="#事件结果报告" class="headerlink" title="事件结果报告"></a>事件结果报告</h5><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">//</span> <span class="attr">Seeded:</span> <span class="number">1435740661667</span>         <span class="string">随机种子</span></span><br><span class="line"><span class="string">//</span> <span class="attr">Event percentages:</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">0:</span> <span class="number">16.0</span><span class="string">%</span>                    <span class="string">事件0：--pct-touch</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">1:</span> <span class="number">9.0</span><span class="string">%</span>                    <span class="string">事件1：--pct-motion</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">2:</span> <span class="number">2.0</span><span class="string">%</span>                     <span class="string">事件2：--pct-pinchzoom</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">3:</span> <span class="number">15.0</span><span class="string">%</span>                    <span class="string">事件3：--pct-trackball</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">4:</span> <span class="number">-0.0</span><span class="string">%</span>                    <span class="string">事件4：--pct-rotation</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">5:</span> <span class="number">25.0</span><span class="string">%</span>                    <span class="string">事件5：</span> <span class="string">--pct-nav</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">6:</span> <span class="number">15.0</span><span class="string">%</span>                    <span class="string">事件6：--pct-majornav</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">7:</span> <span class="number">2.0</span><span class="string">%</span>                     <span class="string">事件7：--pct-syskeys</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">8:</span> <span class="number">2.0</span><span class="string">%</span>                     <span class="string">事件8：</span> <span class="string">--pct-appswitch</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">9:</span> <span class="number">1.0</span><span class="string">%</span>                     <span class="string">事件9：--pct-flip</span></span><br><span class="line"><span class="string">//</span>   <span class="attr">10:</span> <span class="number">13.0</span><span class="string">%</span>                   <span class="string">事件10：--pct-anyevent</span></span><br><span class="line"></span><br><span class="line"><span class="string">所有事件跑完结束：</span></span><br><span class="line"><span class="attr">Events injected:</span> <span class="number">100</span></span><br><span class="line"><span class="string">:Sending</span> <span class="string">rotation</span> <span class="string">degree=0,</span> <span class="string">persist=false</span></span><br><span class="line"><span class="string">:Dropped:</span> <span class="string">keys=0</span> <span class="string">pointers=0</span> <span class="string">trackballs=0</span> <span class="string">flips=0</span> <span class="string">rotations=0</span></span><br><span class="line"><span class="comment">## Network stats: elapsed time=270ms (0ms mobile, 0ms wifi, 270ms not connected)</span></span><br><span class="line"><span class="string">//</span> <span class="string">Monkey</span> <span class="string">finished</span></span><br><span class="line"></span><br><span class="line"><span class="string">遇到异常结束：</span></span><br><span class="line"><span class="string">**</span> <span class="string">Monkey</span> <span class="string">aborted</span> <span class="string">due</span> <span class="string">to</span> <span class="string">error.</span></span><br><span class="line"><span class="attr">Events injected:</span> <span class="number">1744</span></span><br><span class="line"><span class="string">:Sending</span> <span class="string">rotation</span> <span class="string">degree=0,</span> <span class="string">persist=false</span></span><br><span class="line"><span class="string">:Dropped:</span> <span class="string">keys=3</span> <span class="string">pointers=8</span> <span class="string">trackballs=0</span> <span class="string">flips=0</span> <span class="string">rotations=0</span></span><br><span class="line"><span class="comment">## Network stats: elapsed time=55269ms (0ms mobile, 0ms wifi, 55269ms not connected)</span></span><br><span class="line"><span class="string">**</span> <span class="string">System</span> <span class="string">appears</span> <span class="string">to</span> <span class="string">have</span> <span class="string">crashed</span> <span class="string">at</span> <span class="string">event</span> <span class="number">1744</span> <span class="string">of</span> <span class="number">10000</span> <span class="string">using</span> <span class="string">seed</span> <span class="number">1435753466327</span></span><br></pre></td></tr></table></figure>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android进阶/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-自动化测试/">Android 自动化测试</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/01/查看已经打包Apk的VersionCode-VersionName/" title="查看已经打包Apk的VersionCode &amp;&amp; VersionName">
+  <span>
+  查看已经打包Apk的VersionCode &amp;&amp; VersionName</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/06/29/Android-进阶之自动化测试-Junit/"  title="Android 进阶之自动化测试 Junit">
+ <span>Android 进阶之自动化测试 Junit
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/06/30/Android-进阶之自动化测试-Monkey测试/" data-title="Android 进阶之自动化测试 Monkey测试" data-url="http://yoursite.com/2016/06/30/Android-进阶之自动化测试-Monkey测试/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#保存Monkey结果"><span class="toc-number">1.</span> <span class="toc-text">保存Monkey结果</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Monkey测试参数"><span class="toc-number">2.</span> <span class="toc-text">Monkey测试参数</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#如何组合测试参数"><span class="toc-number">3.</span> <span class="toc-text">如何组合测试参数</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#常见事件"><span class="toc-number">4.</span> <span class="toc-text">常见事件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#事件结果报告"><span class="toc-number">5.</span> <span class="toc-text">事件结果报告</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-源码/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-签名/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-事件处理进阶/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-动画进阶/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-多线程开发/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-小经验/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-常用第三方库/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-开发流程/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-开源源码/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-绘图进阶/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-自动化测试/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-自定义View进阶/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-设计模式/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android其他/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android基础/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android开发流程/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android性能优化/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android混淆技术/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android质量管理工具/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android逆向工程/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-使用/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-使用/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-相关/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-工具使用/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-开源库分析/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-理论基础/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-进阶/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/代码规范/" style="font-size: 10px;">代码规范</a> <a href="/tags/博客分类目录/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/叨叨系列/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/工具的使用/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/开源代码分析/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/开源库分析/" style="font-size: 10px;">开源库分析</a> <a href="/tags/杂类/" style="font-size: 10px;">杂类</a> <a href="/tags/树莓派/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/直播/" style="font-size: 12.86px;">直播</a> <a href="/tags/编程技巧/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/网站收藏/" style="font-size: 10px;">网站收藏</a> <a href="/tags/重要控件/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2021 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
