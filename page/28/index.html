@@ -95,21 +95,27 @@
     <div class="article-content">
         
         <p>ROS 节点和ROS Master是ROS 中两个重要的组件：</p>
-<p>####ROS Master：<br>   当任意的节点在ROS系统中启动的时候会寻找ROS Master并将其名字注册到ROS Master上。因此ROS Master包含了整个系统上所有Node的信息，<br>当任何一个节点信息改变后将会产生一个回调，并且用最新的信息对齐进行更新，这些信息往往是用于节点间连接所需要的必要信息。当一个节点开始发布一个topic，节点将会将topic的名字和数据类型信息传递给ROS Master，ROS Master将会检查是否有其他的节点订阅了这个topic，如果有任何的节点订阅了这个topic，ROS Master将会共享发布者的消息给订阅者节点。<br>   在获取到节点的详细信息后，两个节点将会使用TCPROS协议进行交互，当两个节点链接到一起后，ROS Master将不再其作用，我们可以按照我们的意愿停止发布者或者订阅者节点。<br>   ROS_MASTER_URI 环境变量包含ROS Master的IP地址以及端口信息，使用这些信息ROS节点可以定位到ROS Master位置，当这两个参数不对的话两个节点将不会成功连接。如果ROS运行在单个系统中，我们可以使用localhost的IP，但是在分布式系统我们必须准确定义这个环境变量，只有这样远程的节点之间才能够相互通信，在ROS系统中一般我们只需要一个ROS Master，在分布式系统ROS Master必须位于所有节点都能ping到的机器上。</p>
+<p>####ROS Master：
+当任意的节点在ROS系统中启动的时候会寻找ROS Master并将其名字注册到ROS Master上。因此ROS Master包含了整个系统上所有Node的信息，
+当任何一个节点信息改变后将会产生一个回调，并且用最新的信息对齐进行更新，这些信息往往是用于节点间连接所需要的必要信息。当一个节点开始发布一个topic，节点将会将topic的名字和数据类型信息传递给ROS Master，ROS Master将会检查是否有其他的节点订阅了这个topic，如果有任何的节点订阅了这个topic，ROS Master将会共享发布者的消息给订阅者节点。
+在获取到节点的详细信息后，两个节点将会使用TCPROS协议进行交互，当两个节点链接到一起后，ROS Master将不再其作用，我们可以按照我们的意愿停止发布者或者订阅者节点。
+ROS_MASTER_URI 环境变量包含ROS Master的IP地址以及端口信息，使用这些信息ROS节点可以定位到ROS Master位置，当这两个参数不对的话两个节点将不会成功连接。如果ROS运行在单个系统中，我们可以使用localhost的IP，但是在分布式系统我们必须准确定义这个环境变量，只有这样远程的节点之间才能够相互通信，在ROS系统中一般我们只需要一个ROS Master，在分布式系统ROS Master必须位于所有节点都能ping到的机器上。</p>
 <p>####ROS Node：</p>
-<p>一个ROS机器人应用通常是由很多的ROS节点构成，每个节点之间使用ROS Topics，Services和Paremeter Service进行交互。<br>使用节点有如下优点：</p>
+<p>一个ROS机器人应用通常是由很多的ROS节点构成，每个节点之间使用ROS Topics，Services和Paremeter Service进行交互。
+使用节点有如下优点：</p>
 <ol>
 <li>使用节点可以提高整个系统的错误容忍度，即使一个节点挂掉了，整个机器人系统仍然可以工作</li>
 <li>节点可以降低系统的复杂度，增加系统的可调试性</li>
 </ol>
 <p>每个运行的节点都拥有一个名字用于同系统的其他部分区分开来。</p>
 <p>ROS 还提供了一个rosnode用于操作ros节点：</p>
-<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">rosnode info [节点名] 这个用于打印节点的信息</span><br><span class="line"></span><br><span class="line">Node [/hello_world_node]</span><br><span class="line"><span class="string">Publications:</span> </span><br><span class="line"> * <span class="regexp">/rosout [rosgraph_msgs/</span>Log]</span><br><span class="line"></span><br><span class="line"><span class="string">Subscriptions:</span> None</span><br><span class="line"></span><br><span class="line"><span class="string">Services:</span> </span><br><span class="line"> * <span class="regexp">/hello_world_node/</span>get_loggers</span><br><span class="line"> * <span class="regexp">/hello_world_node/</span>set_logger_level</span><br><span class="line"></span><br><span class="line">contacting node <span class="string">http:</span><span class="comment">//raspberrypi:60715/ ...</span></span><br><span class="line"><span class="string">Pid:</span> <span class="number">1863</span></span><br><span class="line"><span class="string">Connections:</span></span><br><span class="line"> * <span class="string">topic:</span> /rosout</span><br><span class="line">    * <span class="string">to:</span> /rosout</span><br><span class="line">    * <span class="string">direction:</span> outbound</span><br><span class="line">    * <span class="string">transport:</span> TCPROS</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">rosnode info [节点名] 这个用于打印节点的信息</span><br><span class="line"></span><br><span class="line">Node [/hello_world_node]</span><br><span class="line"><span class="string">Publications:</span> </span><br><span class="line"> * <span class="regexp">/rosout [rosgraph_msgs/</span>Log]</span><br><span class="line"></span><br><span class="line"><span class="string">Subscriptions:</span> None</span><br><span class="line"></span><br><span class="line"><span class="string">Services:</span> </span><br><span class="line"> * <span class="regexp">/hello_world_node/</span>get_loggers</span><br><span class="line"> * <span class="regexp">/hello_world_node/</span>set_logger_level</span><br><span class="line"></span><br><span class="line">contacting node <span class="string">http:</span><span class="comment">//raspberrypi:60715/ ...</span></span><br><span class="line"><span class="string">Pid:</span> <span class="number">1863</span></span><br><span class="line"><span class="string">Connections:</span></span><br><span class="line"> * <span class="string">topic:</span> /rosout</span><br><span class="line">    * <span class="string">to:</span> /rosout</span><br><span class="line">    * <span class="string">direction:</span> outbound</span><br><span class="line">    * <span class="string">transport:</span> TCPROS</span><br></pre></td></tr></table></figure></p>
 <p>rosnode kill [节点名] 这个用于杀死正在运行的节点</p>
-<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line">rosnode list 用于列出所有正在运行的节点</span><br><span class="line"></span><br><span class="line"><span class="string">/hello_world_node</span></span><br><span class="line"><span class="string">/rosout</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line">rosnode machine [机器名] 用于列出在一个机器上运行的所有节点</span><br><span class="line">rosnode machine raspberrypi</span><br><span class="line"></span><br><span class="line"><span class="string">/hello_world_node</span></span><br><span class="line"><span class="string">/rosout</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight livecodeserver"><table><tr><td class="code"><pre><span class="line">rosnode ping 这个用于检查一个节点的连通性</span><br><span class="line"></span><br><span class="line">rosnode ping hello_world_node</span><br><span class="line">rosnode: node is [/hello_world_node]</span><br><span class="line">pinging /hello_world_node <span class="keyword">with</span> <span class="keyword">a</span> timeout <span class="keyword">of</span> <span class="number">3.0</span>s</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">1.881838</span>ms</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">2.676964</span>ms</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">2.720833</span>ms</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">2.691984</span>ms</span><br><span class="line">ping <span class="built_in">average</span>: <span class="number">2.492905</span>ms</span><br></pre></td></tr></table></figure>
-<figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">rosnode <span class="keyword">cleanup</span> 这个用于清除用不到的节点</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line">rosnode list 用于列出所有正在运行的节点</span><br><span class="line"></span><br><span class="line"><span class="string">/hello_world_node</span></span><br><span class="line"><span class="string">/rosout</span></span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line">rosnode machine [机器名] 用于列出在一个机器上运行的所有节点</span><br><span class="line">rosnode machine raspberrypi</span><br><span class="line"></span><br><span class="line"><span class="string">/hello_world_node</span></span><br><span class="line"><span class="string">/rosout</span></span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight livecodeserver"><table><tr><td class="code"><pre><span class="line">rosnode ping 这个用于检查一个节点的连通性</span><br><span class="line"></span><br><span class="line">rosnode ping hello_world_node</span><br><span class="line">rosnode: node is [/hello_world_node]</span><br><span class="line">pinging /hello_world_node <span class="keyword">with</span> <span class="keyword">a</span> timeout <span class="keyword">of</span> <span class="number">3.0</span>s</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">1.881838</span>ms</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">2.676964</span>ms</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">2.720833</span>ms</span><br><span class="line">xmlrpc reply <span class="built_in">from</span> <span class="keyword">http</span>://raspberrypi:<span class="number">60715</span>/	<span class="built_in">time</span>=<span class="number">2.691984</span>ms</span><br><span class="line">ping <span class="built_in">average</span>: <span class="number">2.492905</span>ms</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">rosnode <span class="keyword">cleanup</span> 这个用于清除用不到的节点</span><br></pre></td></tr></table></figure></p>
+
         
         
         <p class="article-more-link">
@@ -160,36 +166,43 @@
 </header>
     <div class="article-content">
         
-        <p>前面介绍过ROS package是ROS系统的最基本的单位，我们可以创建ROS package编译它并发布出去。<br>ROS 使用catkin编译系统进行编译的，使用catkin的好处是它可以很容易移植到支持CMake和Python的操作系统上。</p>
+        <p>前面介绍过ROS package是ROS系统的最基本的单位，我们可以创建ROS package编译它并发布出去。
+ROS 使用catkin编译系统进行编译的，使用catkin的好处是它可以很容易移植到支持CMake和Python的操作系统上。</p>
 <p>下面就介绍如何创建一个catkin工作空间：</p>
 <ul>
 <li>创建一个catkin工作目录和src目录</li>
 </ul>
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> ~/catkin_ws/src</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> ~/catkin_ws/src</span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>进入src目录，package就是创建在这个目录下：</li>
 </ul>
-<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span>	~<span class="string">/catkin_ws/src</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span>	~<span class="string">/catkin_ws/src</span></span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>初始化catkin工作空间</li>
 </ul>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">catkin_init_workspace</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">catkin_init_workspace</span></span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>这时候虽然我们并没有作什么操作，但是我们仍然可以对其进行编译，首先退到catkin_ws目录，也就是src的上一级目录，运行catkin_make</li>
 </ul>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">catkin_make</span></span><br></pre></td></tr></table></figure>
-<p>这时候在~/catkin_ws/ 目录就会生成buid  devel 这两个文件夹，将source  ~/catkin_ws/devel/setup.sh 添加到~/.bashrc<br><figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="keyword">echo</span> <span class="string">"source  ~/catkin_ws/devel/setup.sh"</span> &gt;&gt; ~<span class="string">/.bashrc</span></span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">catkin_make</span></span><br></pre></td></tr></table></figure></p>
+<p>这时候在~/catkin_ws/ 目录就会生成buid  devel 这两个文件夹，将source  ~/catkin_ws/devel/setup.sh 添加到~/.bashrc
+<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="keyword">echo</span> <span class="string">"source  ~/catkin_ws/devel/setup.sh"</span> &gt;&gt; ~<span class="string">/.bashrc</span></span><br></pre></td></tr></table></figure></p>
 <p>添加完后最好查看下是否生效</p>
 <ul>
-<li>创建package<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">catkin_create_pkg ros_demo_pkg	roscpp	std_msgs actionlib actionlib_msgs</span></span><br></pre></td></tr></table></figure>
-</li>
+<li>创建package
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">catkin_create_pkg ros_demo_pkg	roscpp	std_msgs actionlib actionlib_msgs</span></span><br></pre></td></tr></table></figure></li>
 </ul>
 <blockquote>
-<p>它的语法是catkin_create_pkg  [package名]  依赖包<br>roscpp  在使用ROS C++ 编写代码的时候都需要添加这个依赖<br>std_msgs 这个包包含了ROS 基本的原始数据等<br>actionlib  这个用于创建可抢占的任务<br>actionlib_msg 这个包含了用于在action服务器和客户端之间进行交互的标准消息定义</p>
+<p>它的语法是catkin_create_pkg  [package名]  依赖包
+roscpp  在使用ROS C++ 编写代码的时候都需要添加这个依赖
+std_msgs 这个包包含了ROS 基本的原始数据等
+actionlib  这个用于创建可抢占的任务
+actionlib_msg 这个包含了用于在action服务器和客户端之间进行交互的标准消息定义</p>
 </blockquote>
 <ul>
-<li>编译workspace<br>退到workspace 在工作空间目录运行编译项目的命令：<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">~/catkin_ws<span class="symbol">$</span> catkin_make</span><br></pre></td></tr></table></figure>
-</li>
+<li>编译workspace
+退到workspace 在工作空间目录运行编译项目的命令：
+<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">~/catkin_ws<span class="symbol">$</span> catkin_make</span><br></pre></td></tr></table></figure></li>
 </ul>
 <p>build文件夹包含了编译的脚本，src目录包含了项目的源码，devel包含类了bash脚本，头文件等。</p>
 
@@ -254,7 +267,8 @@
     <div class="article-content">
         
         <hr>
-<p>ROS项目文件的结构如下图所示：<br><img src="/2016/03/16/睡前ROS学习之ROS组件/ros_struct.png" alt></p>
+<p>ROS项目文件的结构如下图所示：
+<img src="/2016/03/16/睡前ROS学习之ROS组件/ros_struct.png" alt></p>
 <ul>
 <li>Packages: 这是ROS软件最常用的单元，它包含ROS 的运行时进程 nodes，库，配置文件等</li>
 <li>package manifest： package 清单文件位于一个package里面，包含了关于包的作者，依赖关系等信息，和nodejs的package.json类似</li>
@@ -265,114 +279,67 @@
 <li>Repositories：和我们通常所说的git Repositories一个概念</li>
 </ul>
 <hr>
-<h5 id="Packages-结构："><a href="#Packages-结构：" class="headerlink" title="Packages 结构："></a>Packages 结构：</h5><p>一个典型的ROS 包结构包含下面几个目录：<br>config: 这个包所需要的所有的配置文件都放在这个位置<br>include/package_name:    这个目录下包含这个包所需要的全部头文件以及库文件<br>scripts:     这个目录用于存放可执行的Python脚本<br>src:         这个目录用于存放可执行的C++代码<br>launch:     这个目录用于存放用于加载ROS 节点的加载文件<br>msg:         这个目录用于存放自定义的消息<br>srv:          这个目录用于存放自定义的服务<br>action:     这个目录用于存放自定义的Action<br>package.xml:    这个是这个package的清单文件<br>CMakeLists.txt:    这个是编译这个package的CMake 编译文件</p>
+<h5>Packages 结构：</h5>
+<p>一个典型的ROS 包结构包含下面几个目录：
+config: 这个包所需要的所有的配置文件都放在这个位置
+include/package_name:	这个目录下包含这个包所需要的全部头文件以及库文件
+scripts: 	这个目录用于存放可执行的Python脚本
+src: 		这个目录用于存放可执行的C++代码
+launch: 	这个目录用于存放用于加载ROS 节点的加载文件
+msg: 		这个目录用于存放自定义的消息
+srv:  		这个目录用于存放自定义的服务
+action: 	这个目录用于存放自定义的Action
+package.xml:	这个是这个package的清单文件
+CMakeLists.txt:	这个是编译这个package的CMake 编译文件</p>
 <hr>
-<h5 id="Package有关的命令："><a href="#Package有关的命令：" class="headerlink" title="Package有关的命令："></a>Package有关的命令：</h5><p>catkin_create_pkg :用于创建一个新的package<br>catkin_make :用于编译Ros package包<br>rospack : 获取package信息<br>rosdep : 用于安装package的依赖关系</p>
+<h5>Package有关的命令：</h5>
+<p>catkin_create_pkg :用于创建一个新的package
+catkin_make :用于编译Ros package包
+rospack : 获取package信息
+rosdep : 用于安装package的依赖关系</p>
 <hr>
-<h4 id="package-xml"><a href="#package-xml" class="headerlink" title="package.xml"></a>package.xml</h4><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">package</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>learn_Ros_1<span class="tag">&lt;/<span class="name">name</span>&gt;</span> 包名</span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span> 版本</span><br><span class="line">  <span class="tag">&lt;<span class="name">description</span>&gt;</span>The learn_Ros_1 package<span class="tag">&lt;/<span class="name">description</span>&gt;</span> 描述</span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- 需要有一个 maintainer信息，但是不限于一个，可以有多个，每个maintainer信息占用一行--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Example:  --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- &lt;maintainer email="jane.doe@example.com"&gt;Jane Doe&lt;/maintainer&gt; --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">maintainer</span> <span class="attr">email</span>=<span class="string">"tbfungeek@163.com"</span>&gt;</span>tbfungeek<span class="tag">&lt;/<span class="name">maintainer</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!--需要有一个授权信息，可以有多个，每个占用一行 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 如下是目前最为常用的几个 ： BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">license</span>&gt;</span>BSD<span class="tag">&lt;/<span class="name">license</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- Url 标签是可选的，但是可以有多个，每个占用一行 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 可选的属性类型可以是 : website, bugtracker, or repository --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 比如: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- &lt;url type="website"&gt;http://wiki.ros.org/learn_Ros_1&lt;/url&gt; --&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- Authors 标签是可选的，但是可以有多个，每个占用一行 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Authors 不一定是维护者 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Example: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- &lt;author email="tbfungeek@163.com"&gt;tbfungeek&lt;/author&gt; --&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">&lt;!-- *_depend 标签用于特殊的依赖 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 可以依赖 catkin packages 或者系统 system dependencies --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Examples: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- build_depend 用于定义在编译时所需要的包 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;build_depend&gt;message_generation&lt;/build_depend&gt; --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- buildtool_depend 用于定义所需要的编译工具 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;buildtool_depend&gt;catkin&lt;/buildtool_depend&gt; --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- run_depend 用于定义运行时所需要的包: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;run_depend&gt;message_runtime&lt;/run_depend&gt; --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- test_depend 用于定义只有在测试的时候才需要的包 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;test_depend&gt;gtest&lt;/test_depend&gt; --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">buildtool_depend</span>&gt;</span>catkin<span class="tag">&lt;/<span class="name">buildtool_depend</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- The export tag contains other, unspecified, tags --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">export</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Other tools can request additional information be placed here --&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">export</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">package</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<h5 id="ROS-meta-packages"><a href="#ROS-meta-packages" class="headerlink" title="ROS    meta packages"></a>ROS    meta packages</h5><p>Meta packages 和其他的package 不一样它只有一个package.xml文件.它不包含其他目录和文件，它只是将多个包组织成一个逻辑意义上的包。<br>在package.xml 文件中没有&lt;buildtool_depend&gt;依赖节点只有&lt;run_depend&gt; 来包含组织在meta 包中的包。</p>
+<h4>package.xml</h4>
+<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">package</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>learn_Ros_1<span class="tag">&lt;/<span class="name">name</span>&gt;</span> 包名</span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span> 版本</span><br><span class="line">  <span class="tag">&lt;<span class="name">description</span>&gt;</span>The learn_Ros_1 package<span class="tag">&lt;/<span class="name">description</span>&gt;</span> 描述</span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- 需要有一个 maintainer信息，但是不限于一个，可以有多个，每个maintainer信息占用一行--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Example:  --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- &lt;maintainer email="jane.doe@example.com"&gt;Jane Doe&lt;/maintainer&gt; --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">maintainer</span> <span class="attr">email</span>=<span class="string">"tbfungeek@163.com"</span>&gt;</span>tbfungeek<span class="tag">&lt;/<span class="name">maintainer</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!--需要有一个授权信息，可以有多个，每个占用一行 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 如下是目前最为常用的几个 ： BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">license</span>&gt;</span>BSD<span class="tag">&lt;/<span class="name">license</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- Url 标签是可选的，但是可以有多个，每个占用一行 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 可选的属性类型可以是 : website, bugtracker, or repository --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 比如: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- &lt;url type="website"&gt;http://wiki.ros.org/learn_Ros_1&lt;/url&gt; --&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- Authors 标签是可选的，但是可以有多个，每个占用一行 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Authors 不一定是维护者 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Example: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- &lt;author email="tbfungeek@163.com"&gt;tbfungeek&lt;/author&gt; --&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">&lt;!-- *_depend 标签用于特殊的依赖 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 可以依赖 catkin packages 或者系统 system dependencies --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Examples: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- build_depend 用于定义在编译时所需要的包 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;build_depend&gt;message_generation&lt;/build_depend&gt; --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- buildtool_depend 用于定义所需要的编译工具 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;buildtool_depend&gt;catkin&lt;/buildtool_depend&gt; --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- run_depend 用于定义运行时所需要的包: --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;run_depend&gt;message_runtime&lt;/run_depend&gt; --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- test_depend 用于定义只有在测试的时候才需要的包 --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   &lt;test_depend&gt;gtest&lt;/test_depend&gt; --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">buildtool_depend</span>&gt;</span>catkin<span class="tag">&lt;/<span class="name">buildtool_depend</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- The export tag contains other, unspecified, tags --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">export</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Other tools can request additional information be placed here --&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">export</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">package</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h5>ROS	meta packages</h5>
+<p>Meta packages 和其他的package 不一样它只有一个package.xml文件.它不包含其他目录和文件，它只是将多个包组织成一个逻辑意义上的包。
+在package.xml 文件中没有&lt;buildtool_depend&gt;依赖节点只有&lt;run_depend&gt; 来包含组织在meta 包中的包。</p>
 <hr>
-<h5 id="ROS-messages"><a href="#ROS-messages" class="headerlink" title="ROS messages"></a>ROS messages</h5><p>ROS 节点可以发布特定类型的数据，消息的数据类型定义在ROS    package的msg包里面，以.msg为扩展名的文件里面<br>消息类型的定义和我们定义一个变量形式上很类型，下面是一些例子：<br>int32    number<br>string    name<br>float32    speed<br>在上面的例子中第一部分称为“field    type” 第二部分称为“field    name” 用于从消息中获取数据，通过上面的定义我们可以使用msg.number来获取number消息的值</p>
+<h5>ROS messages</h5>
+<p>ROS 节点可以发布特定类型的数据，消息的数据类型定义在ROS	package的msg包里面，以.msg为扩展名的文件里面
+消息类型的定义和我们定义一个变量形式上很类型，下面是一些例子：
+int32	number
+string	name
+float32	speed
+在上面的例子中第一部分称为“field	type” 第二部分称为“field	name” 用于从消息中获取数据，通过上面的定义我们可以使用msg.number来获取number消息的值</p>
 <p>下表是ROS内建的数据类型:</p>
-<table>
-<thead>
-<tr>
-<th>Primitive type</th>
-<th>Serialization</th>
-<th>C++</th>
-<th>Python</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>bool(1)</td>
-<td>unsigned 8-bit int</td>
-<td>uint8_t(2)</td>
-<td>bool</td>
-</tr>
-<tr>
-<td>int8</td>
-<td>signed 8-bit    int</td>
-<td>int8_t</td>
-<td>int</td>
-</tr>
-<tr>
-<td>uint8</td>
-<td>unsigned    8-bit int</td>
-<td>uint8_t</td>
-<td>int (3)</td>
-</tr>
-<tr>
-<td>int16</td>
-<td>signed 16-bit int</td>
-<td>int16_t</td>
-<td>int</td>
-</tr>
-<tr>
-<td>uint16</td>
-<td>unsigned 16-bit int</td>
-<td>uint16_t</td>
-<td>int</td>
-</tr>
-<tr>
-<td>int32</td>
-<td>signed 32-bit int</td>
-<td>int32_t</td>
-<td>int</td>
-</tr>
-<tr>
-<td>uint32</td>
-<td>unsigned 32-bit int</td>
-<td>uint32_t</td>
-<td>int</td>
-</tr>
-<tr>
-<td>int64</td>
-<td>signed 64-bit int</td>
-<td>int64_t</td>
-<td>long</td>
-</tr>
-<tr>
-<td>uint64</td>
-<td>unsigned 64-bit    int</td>
-<td>uint64_t</td>
-<td>long</td>
-</tr>
-<tr>
-<td>float32</td>
-<td>32-bit    IEEE float</td>
-<td>float</td>
-<td>float</td>
-</tr>
-<tr>
-<td>float64</td>
-<td>64-bit    IEEE float</td>
-<td>double</td>
-<td>float</td>
-</tr>
-<tr>
-<td>string</td>
-<td>ascii string(4)</td>
-<td>std::string</td>
-<td>string</td>
-</tr>
-<tr>
-<td>time</td>
-<td>secs/nsecs unsigned    32-bit ints</td>
-<td>ros::Time</td>
-<td>rospy.Time</td>
-</tr>
-<tr>
-<td>duration</td>
-<td>secs/nsecssigned    32-bit ints</td>
-<td>ros::Duration</td>
-<td>rospy.Duration</td>
-</tr>
-</tbody>
-</table>
-<p>除了上述的消息类型，ROS还支持特殊的消息类型 — 消息头，消息头中可以包含时间信息，消息序列id等，它主要用于指定是谁正在发送这个消息<br>下面是一个简单的消息头例子：<br>uint32    seq<br>time    stamp<br>string    frame_id<br>下面的命令可以用于查看某个特定消息头的消息<br><figure class="highlight gams"><table><tr><td class="code"><pre><span class="line"><span class="meta"><span class="meta-keyword">$rosmsg</span> show std_msgs/Header</span></span><br></pre></td></tr></table></figure></p>
+<p>| Primitive type  | Serialization | C++ | Python |
+|--------|--------|
+|bool(1) |unsigned 8-bit int|uint8_t(2)| bool|
+|int8 |signed 8-bit	int| int8_t| int|
+|uint8|unsigned	8-bit int| uint8_t|int (3)|
+|int16|signed 16-bit int| int16_t |int|
+|uint16|unsigned 16-bit int| uint16_t |int
+|int32|signed 32-bit int| int32_t| int|
+|uint32|unsigned 32-bit int| uint32_t |int|
+|int64|signed 64-bit int| int64_t |long|
+|uint64|unsigned 64-bit	int| uint64_t |long|
+|float32|32-bit	IEEE float| float |float|
+|float64|64-bit	IEEE float| double |float|
+|string|ascii string(4)| std::string |string|
+|time |secs/nsecs unsigned	32-bit ints |ros::Time|rospy.Time|
+|duration|secs/nsecssigned	32-bit ints |ros::Duration|rospy.Duration|</p>
+<p>除了上述的消息类型，ROS还支持特殊的消息类型 --- 消息头，消息头中可以包含时间信息，消息序列id等，它主要用于指定是谁正在发送这个消息
+下面是一个简单的消息头例子：
+uint32	seq
+time	stamp
+string	frame_id
+下面的命令可以用于查看某个特定消息头的消息
+<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line"><span class="meta"><span class="meta-keyword">$rosmsg</span> show std_msgs/Header</span></span><br></pre></td></tr></table></figure></p>
 <hr>
-<h5 id="ROS-services"><a href="#ROS-services" class="headerlink" title="ROS services"></a>ROS services</h5><p>ROS 是节点之间基于请求答复的模式的交互方式，一个节点发送一个请求，直到从另个请求获得答复为止，请求的描述符和消息的描述符相似，都是定义在一个以.msg结尾的文件中，而服务的定义是存放在包的srv目录下，以.srv为结尾的文件中。<br>下面是一个描述服务的例子：<br><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment">#Request	message	type</span></span><br><span class="line"><span class="string">string</span>	<span class="string">str</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="comment">#Response	message	type</span></span><br><span class="line"><span class="string">string</span>	<span class="string">str</span></span><br></pre></td></tr></table></figure></p>
+<h5>ROS services</h5>
+<p>ROS 是节点之间基于请求答复的模式的交互方式，一个节点发送一个请求，直到从另个请求获得答复为止，请求的描述符和消息的描述符相似，都是定义在一个以.msg结尾的文件中，而服务的定义是存放在包的srv目录下，以.srv为结尾的文件中。
+下面是一个描述服务的例子：
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment">#Request	message	type</span></span><br><span class="line"><span class="string">string</span>	<span class="string">str</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="comment">#Response	message	type</span></span><br><span class="line"><span class="string">string</span>	<span class="string">str</span></span><br></pre></td></tr></table></figure></p>
 
         
         
@@ -439,7 +406,7 @@
 <p>ROS Master: ROS Master 提供了名字注册和查询其他的服务的功能，没有Master，节点之间将不能找到彼此，不能交换信息或者数据，或者触发服务。在分布式系统中一般将节点运行在单独的电脑上，远程的节点可以通过这个Master找到彼此。</p>
 <p>Parameter Server: 参数服务器是ROS Master 的一部分，它允许将系统的数据存储在一个中心位置，所有的节点可以访问和修改这些值。</p>
 <p>Messages: 消息是节点之间进行交互的一种方式，它使用一个简单的数据结构进行消息传递。这是一种比较轻量级的交互方式，我们可以使用系统提供的类型外还可以使用自定义的消息类型。</p>
-<p>Topics:    每个ROS消息是通过称为topics的总线来传输的，当一个消息通过topic发送出去的时候可以称为这个节点正在发布消息。反之，如果一个节点正在通过一个topic接收消息的时候称为，这个节点正在订阅消息。发布消息的节点和接收消息的节点可以不必知道对方，简而言之，发布节点和接收节点是彼此解偶的，每个topic有一个单独的名字，任何的节点都可以通过它来发送和接收消息，但是前提条件是这个类型要对。</p>
+<p>Topics:	每个ROS消息是通过称为topics的总线来传输的，当一个消息通过topic发送出去的时候可以称为这个节点正在发布消息。反之，如果一个节点正在通过一个topic接收消息的时候称为，这个节点正在订阅消息。发布消息的节点和接收消息的节点可以不必知道对方，简而言之，发布节点和接收节点是彼此解偶的，每个topic有一个单独的名字，任何的节点都可以通过它来发送和接收消息，但是前提条件是这个类型要对。</p>
 <p>Services: 在有些机器人应用中上述的发布订阅交互方式并不适用，发布订阅是一种单向的传输系统，而服务是一种双向的请求/答复的交互方式，我们可以定义一个包含两个部分的服务，一个用于请求另一个用于回复，当一个客户端节点发送一个请求消息到服务的时候，服务将会发送响应结果给客户端，客户端需要等待直到服务给出答复。</p>
 <p>Bags:包是用于保存和回放ROS数据的格式，它适用于存储那些难以收集并且对开发和测试算法十分重要的数据。</p>
 
@@ -505,13 +472,21 @@
         
         <p>对于编程一款强大的IDE将会极大地提高编程效率。对于ROS编程也一样。对于在PC机上编程我这边推荐的是使用QT,因为它基本不需要什么设置十分易用。对于树莓派上面编程，偏向于使用Vim，今天先介绍使用qt在PC机上编写ROS程序：</p>
 <ul>
-<li>首先配置Qt快捷方式启动文件：<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">gedit ~<span class="regexp">/.local/</span>share<span class="regexp">/applications/</span>DigiaQtOpenSource-qtcreator.desktop</span><br></pre></td></tr></table></figure>
-</li>
+<li>首先配置Qt快捷方式启动文件：
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">gedit ~<span class="regexp">/.local/</span>share<span class="regexp">/applications/</span>DigiaQtOpenSource-qtcreator.desktop</span><br></pre></td></tr></table></figure></li>
 </ul>
 <p>这时候有可能会打开空白的文件，这是由于你输入的文件名不对，这时候可以ls ~/.local/share/applications/ 在这个目录找和上面类似是文件</p>
-<p> 如果成功打开DigiaQtOpenSource-qtcreator.desktop快捷方式文件，可以看到文件内容如下：</p>
+<p>如果成功打开DigiaQtOpenSource-qtcreator.desktop快捷方式文件，可以看到文件内容如下：</p>
 <blockquote>
-<p>[Desktop Entry]<br>Type=Application<br>Exec=/home/jimmy/Qt5.2.0/Tools/QtCreator/bin/qtcreator<br>Name=Qt Creator (Opensource)<br>GenericName=The IDE of choice for Qt development.<br>Icon=QtProject-qtcreator<br>Terminal=false<br>Categories=Development;IDE;Qt;<br>MimeType=text/x-c++src;text/x-c++hdr;text/x-xsrc;application/x-designer;application/vnd.qt.qmakeprofile;application/vnd.qt.xml.resource;text/x-qml;text/x-qt.qml;text/x-qt.qbs;</p>
+<p>[Desktop Entry]
+Type=Application
+Exec=/home/jimmy/Qt5.2.0/Tools/QtCreator/bin/qtcreator
+Name=Qt Creator (Opensource)
+GenericName=The IDE of choice for Qt development.
+Icon=QtProject-qtcreator
+Terminal=false
+Categories=Development;IDE;Qt;
+MimeType=text/x-c++src;text/x-c++hdr;text/x-xsrc;application/x-designer;application/vnd.qt.qmakeprofile;application/vnd.qt.xml.resource;text/x-qml;text/x-qt.qml;text/x-qt.qbs;</p>
 </blockquote>
 <p>修改 Exec 变量一行改为 Exec=bash -i -c /home/jimmy/Qt5.2.0/Tools/QtCreator/bin/qtcreator，保存并退出。添加 bash -i -c 是为了在通过快捷方式启动Qt Creator的同时加载ROS环境变量</p>
 <ul>
@@ -523,7 +498,8 @@
 </ul>
 <hr>
 <p>参考材料：</p>
-<p>answers.ros.org/question/9068/which-ides-do-ros-developers-use/<br><a href="http://wiki.ros.org/IDEs" target="_blank" rel="noopener">http://wiki.ros.org/IDEs</a></p>
+<p>answers.ros.org/question/9068/which-ides-do-ros-developers-use/
+http://wiki.ros.org/IDEs</p>
 
         
         
@@ -585,37 +561,56 @@
 </header>
     <div class="article-content">
         
-        <p>编程是一门实践性很强的技术，个人比较不喜欢光学理论的方式来学习，下面就先用ROS来写个Hello World来让大家对ROS编程有个感性的认识：<br>切换到用于存放ROS 项目的目录，创建Hello World项目文件夹    </p>
-<figure class="highlight dos"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> hello_world_tutorial</span><br><span class="line"><span class="built_in">cd</span> hello_world_tutorial</span><br></pre></td></tr></table></figure>
-<p>下面我们要实现一个什么例子呢？就简单得创建一个node然后打印出Hello World Log吧：<br>创建 hello_world_node.cpp</p>
+        <p>编程是一门实践性很强的技术，个人比较不喜欢光学理论的方式来学习，下面就先用ROS来写个Hello World来让大家对ROS编程有个感性的认识：
+切换到用于存放ROS 项目的目录，创建Hello World项目文件夹</p>
+<p><figure class="highlight dos"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> hello_world_tutorial</span><br><span class="line"><span class="built_in">cd</span> hello_world_tutorial</span><br></pre></td></tr></table></figure></p>
+<p>下面我们要实现一个什么例子呢？就简单得创建一个node然后打印出Hello World Log吧：
+创建 hello_world_node.cpp</p>
 <p>hello_world_node.cpp</p>
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Include ROS C++ API函数</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ros/ros.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">  <span class="comment">//向ROS master 声明当前程序为 "hello_world_node" node</span></span><br><span class="line">  ros::init(argc, argv, <span class="string">"hello_world_node"</span>);</span><br><span class="line">  <span class="comment">//启动ROS node</span></span><br><span class="line">  ros::start();</span><br><span class="line">  <span class="comment">//打印一个Log信息</span></span><br><span class="line">  ROS_INFO_STREAM(<span class="string">"Hello, world!"</span>);</span><br><span class="line">  <span class="comment">//处理ROS 回调函数，直到收到Ctrl + C 事件</span></span><br><span class="line">  ros::spin();</span><br><span class="line">  <span class="comment">//退出</span></span><br><span class="line">  ros::<span class="built_in">shutdown</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Include ROS C++ API函数</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ros/ros.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">  <span class="comment">//向ROS master 声明当前程序为 "hello_world_node" node</span></span><br><span class="line">  ros::init(argc, argv, <span class="string">"hello_world_node"</span>);</span><br><span class="line">  <span class="comment">//启动ROS node</span></span><br><span class="line">  ros::start();</span><br><span class="line">  <span class="comment">//打印一个Log信息</span></span><br><span class="line">  ROS_INFO_STREAM(<span class="string">"Hello, world!"</span>);</span><br><span class="line">  <span class="comment">//处理ROS 回调函数，直到收到Ctrl + C 事件</span></span><br><span class="line">  ros::spin();</span><br><span class="line">  <span class="comment">//退出</span></span><br><span class="line">  ros::<span class="built_in">shutdown</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>使用g++命令编译，下面的某些地方可能需要根据你安装的ROS版本的不同而修改，比如/opt/ros/indigo/include ，这些地方可以进入opt/ros/查看你电脑上安装的ROS 版本。并替换下面命令中对应的版本，我的树莓派上面安装的是indigo</p>
-<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">g++ hello_world_node.cpp -o hello_world_node -I/opt/ros/indigo/<span class="keyword">include</span> -L/opt/ros/indigo/<span class="class"><span class="keyword">lib</span> -<span class="title">Wl</span>,-<span class="title">rpath</span>,/<span class="title">opt</span>/<span class="title">ros</span>/<span class="title">indigo</span>/<span class="title">lib</span> -<span class="title">lroscpp</span> -<span class="title">lrosconsole</span> -<span class="title">lrostime</span></span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">g++ hello_world_node.cpp -o hello_world_node -I/opt/ros/indigo/<span class="keyword">include</span> -L/opt/ros/indigo/<span class="class"><span class="keyword">lib</span> -<span class="title">Wl</span>,-<span class="title">rpath</span>,/<span class="title">opt</span>/<span class="title">ros</span>/<span class="title">indigo</span>/<span class="title">lib</span> -<span class="title">lroscpp</span> -<span class="title">lrosconsole</span> -<span class="title">lrostime</span></span></span><br></pre></td></tr></table></figure></p>
 <p>下面是对上面命令的说明：</p>
 <blockquote>
-<p>hello_world_node.cpp 要编译的源码<br>-o hello_world_node 输出可执行文件的名字<br>-I/opt/ros/indigo/include 包含的头文件的地址<br>-L/opt/ros/indigo/lib 静态库的地址<br>-Wl,-rpath,/opt/ros/indigo/lib 共享库的地址<br>-lroscpp 链接libroscpp.so 库<br>-lrosconsole 链接librosconsole.so库<br>-lrostime 链接librostime.so库</p>
+<p>hello_world_node.cpp 要编译的源码
+-o hello_world_node 输出可执行文件的名字
+-I/opt/ros/indigo/include 包含的头文件的地址
+-L/opt/ros/indigo/lib 静态库的地址
+-Wl,-rpath,/opt/ros/indigo/lib 共享库的地址
+-lroscpp 链接libroscpp.so 库
+-lrosconsole 链接librosconsole.so库
+-lrostime 链接librostime.so库</p>
 </blockquote>
 <p>运行完上面的命令你会看到在当前目录下会生成hello_world_node可执行文件，试着运行下：</p>
-<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="string">./hello_world_node</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="string">./hello_world_node</span></span><br></pre></td></tr></table></figure></p>
 <p>这时候会报如下错误：</p>
 <blockquote>
-<p>ERROR: ROS_MASTER_URI is not defined (Bad Environment)<br>[FATAL] [1392021564.231775029]: ROS_MASTER_URI is not defined in the<br>environment. Either type the following or (preferrably) add this to your<br>~/.bashrc file in order set up your local machine as a ROS master:<br>export ROS_MASTER_URI=<a href="http://localhost:11311" target="_blank" rel="noopener">http://localhost:11311</a><br>then, type ‘roscore’ in another shell to actually launch the master program.</p>
+<p>ERROR: ROS_MASTER_URI is not defined (Bad Environment)
+[FATAL] [1392021564.231775029]: ROS_MASTER_URI is not defined in the
+environment. Either type the following or (preferrably) add this to your
+~/.bashrc file in order set up your local machine as a ROS master:
+export ROS_MASTER_URI=http://localhost:11311
+then, type 'roscore' in another shell to actually launch the master program.</p>
 </blockquote>
-<p>其实这个错误信息已经十分明显：<br>这里提示没有ROS_MASTER_URI这个环境变量。其实这个环境变量是在/opt/ros/indigo/setup.sh 中定义的，所以你现在要做的就是运行下面命令，来让它生效。</p>
-<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">source</span> <span class="regexp">/opt/</span>ros<span class="regexp">/indigo/</span>setup.sh</span><br></pre></td></tr></table></figure>
+<p>其实这个错误信息已经十分明显：
+这里提示没有ROS_MASTER_URI这个环境变量。其实这个环境变量是在/opt/ros/indigo/setup.sh 中定义的，所以你现在要做的就是运行下面命令，来让它生效。</p>
+<p><figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">source</span> <span class="regexp">/opt/</span>ros<span class="regexp">/indigo/</span>setup.sh</span><br></pre></td></tr></table></figure></p>
 <p>但是这种方式只对当前的终端有效，如果你退出该终端又会出现上述的问题，所以推荐将其放在.bashrc文件上，这样就不需要每次启动一个终端都source一下。</p>
-<p>再次运行hello_world_node将会出现如下提示：<br><figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line">[<span class="symbol">ERROR</span>] [<span class="number">1392014787.460431497</span>]: [registerPublisher] <span class="symbol">Failed</span> to contact master at [localhost:<span class="number">11311</span>].  <span class="symbol">Retrying</span>...</span><br></pre></td></tr></table></figure></p>
+<p>再次运行hello_world_node将会出现如下提示：
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line">[<span class="symbol">ERROR</span>] [<span class="number">1392014787.460431497</span>]: [registerPublisher] <span class="symbol">Failed</span> to contact master at [localhost:<span class="number">11311</span>].  <span class="symbol">Retrying</span>...</span><br></pre></td></tr></table></figure></p>
 <p>ROS Master 允许ROS 之间能够彼此找到自己，两个ROS 节点如果需要运行必须具备两个条件</p>
 <ol>
 <li>ROS Master已经运行</li>
 <li>要进行通信的ROS节点需要在ROS Master上声明</li>
 </ol>
-<p>这是由于没有运行roscore，roscore 提供一些功能，这些功能中包含提供ROS Master，有了ROS Master 节点之间才可以相互找到对方并且进行通信。<br>这时候只需要重新创建一个终端，在终端上运行：<br><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">roscore</span></span><br></pre></td></tr></table></figure></p>
+<p>这是由于没有运行roscore，roscore 提供一些功能，这些功能中包含提供ROS Master，有了ROS Master 节点之间才可以相互找到对方并且进行通信。
+这时候只需要重新创建一个终端，在终端上运行：
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">roscore</span></span><br></pre></td></tr></table></figure></p>
 <p>这时候在原来的那个终端再次运行hello_world_node，如果没有其他以外的话就可以输出如下的消息了：</p>
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[ INFO]</span> <span class="selector-attr">[1392020655.967763511]</span>: <span class="selector-tag">Hello</span>, <span class="selector-tag">World</span>!</span><br></pre></td></tr></table></figure>
-<p>PS：我在做上面实验的时候还遇到了下面的问题：<br><figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">c_locale<span class="built_in"> name</span><span class="built_in"> not</span> valid</span><br></pre></td></tr></table></figure></p>
-<p>遇到这个问题很简单只需要在终端中运行: export LC_ALL=”C” 即可</p>
+<p><figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[ INFO]</span> <span class="selector-attr">[1392020655.967763511]</span>: <span class="selector-tag">Hello</span>, <span class="selector-tag">World</span>!</span><br></pre></td></tr></table></figure></p>
+<p>PS：我在做上面实验的时候还遇到了下面的问题：
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">c_locale<span class="built_in"> name</span><span class="built_in"> not</span> valid</span><br></pre></td></tr></table></figure></p>
+<p>遇到这个问题很简单只需要在终端中运行: export LC_ALL=&quot;C&quot; 即可</p>
 <hr>
 
         
@@ -679,7 +674,8 @@
     <div class="article-content">
         
         <p>之前介绍了使用scp命令来在电脑和树莓派之间互传文件以及文件夹，这里还可以使用Filezilla 在二者之间传输文件，下载Filezilla</p>
-<p>然后输入树莓派的ip地址以及登入用户名和密码如下所示：<br><img src="/2016/03/12/与树莓派互传文件/filezilla.png" alt></p>
+<p>然后输入树莓派的ip地址以及登入用户名和密码如下所示：
+<img src="/2016/03/12/与树莓派互传文件/filezilla.png" alt></p>
 <p>这里需要注意的是ip地址之前一定要添加sftp://.</p>
 
         
@@ -743,29 +739,39 @@
     <div class="article-content">
         
         <ol>
-<li><p>安装ssh工具：    </p>
- <figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">sudo apt-<span class="builtin-name">get</span> install ssh</span><br></pre></td></tr></table></figure>
+<li>
+<p>安装ssh工具：</p>
+<p><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">sudo apt-<span class="builtin-name">get</span> install ssh</span><br></pre></td></tr></table></figure></p>
 </li>
-<li><p>重启ssh工具</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">/etc/i</span>nit.d<span class="regexp">/ssh restart</span></span><br></pre></td></tr></table></figure>
+<li>
+<p>重启ssh工具
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">/etc/i</span>nit.d<span class="regexp">/ssh restart</span></span><br></pre></td></tr></table></figure></p>
 </li>
-<li><p>获取远程linux系统的ip地址</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ifconfig</span></span><br></pre></td></tr></table></figure>
+<li>
+<p>获取远程linux系统的ip地址
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ifconfig</span></span><br></pre></td></tr></table></figure></p>
 </li>
-<li><p>复制文件或目录命令：</p>
+<li>
+<p>复制文件或目录命令：</p>
 </li>
 </ol>
 <ul>
-<li><p>将本地文件拷贝到远程：<br>scp 文件名用户名@计算机IP或者计算机名称:远程路径</p>
+<li>
+<p>将本地文件拷贝到远程：
+scp 文件名用户名@计算机IP或者计算机名称:远程路径</p>
 <blockquote>
-<p>本地192.168.1.8客户端<br>scp /root/install.* <a href="mailto:root@192.168.1.12" target="_blank" rel="noopener">root@192.168.1.12</a>:/usr/local/src</p>
+<p>本地192.168.1.8客户端
+scp /root/install.* root@192.168.1.12:/usr/local/src</p>
 </blockquote>
 </li>
 </ul>
 <ul>
-<li><p>从远程将文件拷回本地：<br>scp 用户名@计算机IP或者计算机名称:文件名本地路径</p>
+<li>
+<p>从远程将文件拷回本地：
+scp 用户名@计算机IP或者计算机名称:文件名本地路径</p>
 <blockquote>
-<p>本地192.168.1.8客户端取远程服务器12上的文件<br>scp <a href="mailto:root@192.168.1.12" target="_blank" rel="noopener">root@192.168.1.12</a>:/usr/local/src/*.log /root/    </p>
+<p>本地192.168.1.8客户端取远程服务器12上的文件
+scp root@192.168.1.12:/usr/local/src/*.log /root/</p>
 </blockquote>
 </li>
 </ul>
@@ -893,40 +899,86 @@
 </header>
     <div class="article-content">
         
-        <p>准备工具：<br>硬件：<br>树莓派3（包括电源适配器），SD卡(大于8G的高速卡)，读卡器，一根网线。<br>也许你会问树莓派3已经搭载了板载wifi还要网线干吗？其实网线是用于第一次查看它的网址用的，后面会一一介绍。</p>
+        <p>准备工具：
+硬件：
+树莓派3（包括电源适配器），SD卡(大于8G的高速卡)，读卡器，一根网线。
+也许你会问树莓派3已经搭载了板载wifi还要网线干吗？其实网线是用于第一次查看它的网址用的，后面会一一介绍。</p>
 <ol>
-<li>在官网 <a href="https://www.raspberrypi.org/downloads/" target="_blank" rel="noopener">https://www.raspberrypi.org/downloads/</a> 下下载需要安装的操作系统的镜像。</li>
+<li>在官网 https://www.raspberrypi.org/downloads/ 下下载需要安装的操作系统的镜像。</li>
 </ol>
-<p><img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/OS.png" alt><br>这里有很多可以安装的操作系统，NOOBS 是最方便安装的，特别适合初学者，但是这个需要在有显示器的情况下才能使用，因为安装过程需要交互，<br>我这里就不详细介绍这个的安装方式了，大家可以自己在网上搜索下，其实NOOBS并不是一个操作系统，它只是一个安装系统的引导方式。<br>我们这里介绍的是安装RASPBIAN系统，它是基于debain系统简化的，目前最新的系统代号为Jessie。点击进去下载该镜像，这里有两种模式一种是全功能版本的<br>这个比较大，解压后镜像大概有4G多，还有一个Lite版本解压后大概1.3G。我这边没有对比过具体少了哪些软件，处于个人的SD卡空间为16G所以先安装全功能版本的。</p>
+<p><img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/OS.png" alt>
+这里有很多可以安装的操作系统，NOOBS 是最方便安装的，特别适合初学者，但是这个需要在有显示器的情况下才能使用，因为安装过程需要交互，
+我这里就不详细介绍这个的安装方式了，大家可以自己在网上搜索下，其实NOOBS并不是一个操作系统，它只是一个安装系统的引导方式。
+我们这里介绍的是安装RASPBIAN系统，它是基于debain系统简化的，目前最新的系统代号为Jessie。点击进去下载该镜像，这里有两种模式一种是全功能版本的
+这个比较大，解压后镜像大概有4G多，还有一个Lite版本解压后大概1.3G。我这边没有对比过具体少了哪些软件，处于个人的SD卡空间为16G所以先安装全功能版本的。</p>
 <p>我这边下载的是2016-03-18-raspbian-jessie.zip，解压后你会看到2016-03-18-raspbian-jessie.img这个镜像文件。</p>
 <ol start="2">
-<li><p>将镜像文件烧写到SD卡上，将SD卡插入读卡器，下载烧写软件如果你的系统和我一样是LinuxMint那么系统已经自带了烧写软件。ImageWriter。<br>如果你的系统是Ubuntu 那么你在软件库中也搜索这个烧写工具，如果是Window 就需要下载win32diskimager-v0.9-binary.zip。这个烧写过程很简单，这里就不详细介绍了。</p>
-<p> <img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/imagewriter.png" alt>    </p>
+<li>
+<p>将镜像文件烧写到SD卡上，将SD卡插入读卡器，下载烧写软件如果你的系统和我一样是LinuxMint那么系统已经自带了烧写软件。ImageWriter。
+如果你的系统是Ubuntu 那么你在软件库中也搜索这个烧写工具，如果是Window 就需要下载win32diskimager-v0.9-binary.zip。这个烧写过程很简单，这里就不详细介绍了。</p>
+<p><img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/imagewriter.png" alt></p>
 </li>
-<li><p>将SD卡 装入树莓派，接上电源，看下红色电源灯的旁边那个黄色灯是否在闪烁，如过有就说明镜像烧写成功了，如果有显示屏接上去就可以看到了，但是我们不是没有显示屏吗？所以还得想个办法。<br>首先查询树莓派的ip地址，用网线将树莓派与路由器相连，在电脑上登入路由器，一般都是192.168.1.1这个地址，以管理员的身份进入,在右边选择DHCP服务器–&gt; 客户端列表。如下所示：</p>
-<p> <img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/root.png" alt><br> 可以看到名字为raspberrypi的设备，以及它的ip地址    </p>
-<p> <img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/ip.png" alt>    </p>
+<li>
+<p>将SD卡 装入树莓派，接上电源，看下红色电源灯的旁边那个黄色灯是否在闪烁，如过有就说明镜像烧写成功了，如果有显示屏接上去就可以看到了，但是我们不是没有显示屏吗？所以还得想个办法。
+首先查询树莓派的ip地址，用网线将树莓派与路由器相连，在电脑上登入路由器，一般都是192.168.1.1这个地址，以管理员的身份进入,在右边选择DHCP服务器--&gt; 客户端列表。如下所示：</p>
+<p><img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/root.png" alt>
+可以看到名字为raspberrypi的设备，以及它的ip地址</p>
+<p><img src="/2016/03/08/树莓派3安装Raspbian-Jessie系统/ip.png" alt></p>
 </li>
-<li><p>打开终端输入ssh pi@[步骤3 查到的IP地址]</p>
+<li>
+<p>打开终端输入ssh pi@[步骤3 查到的IP地址]</p>
 </li>
 </ol>
 <p>如果你不是第一次安装可能之前安装过，又重新刷了镜像，这时候会出现如下提示：</p>
 <blockquote>
-<p>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@<br>@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @<br>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@<br>IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!<br>Someone could be eavesdropping on you right now (man-in-the-middle attack)!<br>It is also possible that a host key has just been changed.<br>The fingerprint for the ECDSA key sent by the remote host is<br>…………………………………………….<br>Please contact your system administrator.<br>…………………………………………….<br>  remove with: ssh-keygen -f “/home/jimmy/.ssh/known_hosts” -R 192.168.1.102<br>ECDSA host key for ………… has changed and you have requested strict checking.<br>Host key verification failed.    </p>
+<p>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ECDSA key sent by the remote host is
+....................................................
+Please contact your system administrator.
+....................................................
+remove with: ssh-keygen -f &quot;/home/jimmy/.ssh/known_hosts&quot; -R 192.168.1.102
+ECDSA host key for ............ has changed and you have requested strict checking.
+Host key verification failed.</p>
 </blockquote>
-<p>初看一下是不是被吓到了，其实很简单运行如下命令重新登入就可以了：<br><figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">rm -rf ~/.ssh/known_hosts </span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">再次输入ssh <span class="built-in">pi</span>@[步骤<span class="number">3</span> 查到的IP地址]	</span><br><span class="line">你就可以看到：</span><br><span class="line">&gt; Are you sure you want to continue connecting (<span class="keyword">yes</span>/<span class="keyword">no</span>)? 	</span><br><span class="line"></span><br><span class="line">输入<span class="keyword">yes</span>再输入密码就可以了，初始密码为raspberry,看到下面的命令行就说明进入ok了。</span><br><span class="line"></span><br><span class="line">![](树莓派<span class="number">3</span>安装Raspbian-Jessie系统/loginok.png)</span><br><span class="line"></span><br><span class="line"><span class="number">5</span> . 安装VNC 通过它你可以以图形界面的方式访问树莓派的桌面，在通过步骤<span class="number">4</span> ssh方式进入树莓派的情况下输入如下命令：</span><br></pre></td></tr></table></figure></p>
-<p>sudo apt-get update<br>sudo apt-get install tightvncserver<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">上面的意思是往树莓派上安装VNC服务，安装完成后就可以在树莓派运行VNC服务了。</span><br></pre></td></tr></table></figure></p>
-<p>vncserver :1<br><figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">然后会要求你输入密码，这个是用于连接的时候使用的和登入的那个密码不同，需要<span class="number">8</span>位字符。</span><br><span class="line"></span><br><span class="line">&gt;Would you like <span class="keyword">to</span> enter <span class="keyword">a</span> <span class="keyword">view</span>-<span class="keyword">only</span> password (<span class="keyword">y</span>/n)?  </span><br><span class="line"></span><br><span class="line">这个直接输入n就可以了。</span><br><span class="line"></span><br><span class="line">接着需要在电脑上安装VNC客户端，我这边使用的是VNC Viewer 可以在 http://www.realvnc.<span class="keyword">com</span> 网站上下载。下载完成后安装就可以了。</span><br><span class="line">安装完成后运行，会出现如下界面	</span><br><span class="line"></span><br><span class="line">![](树莓派<span class="number">3</span>安装Raspbian-Jessie系统/viewimage.png)	</span><br><span class="line">最后的那个是端口号可以随意指定。</span><br><span class="line">点击连接输入密码就可以连接到树莓派了，这时候你就可以看到如下界面兴奋吧。</span><br><span class="line"></span><br><span class="line">![](树莓派<span class="number">3</span>安装Raspbian-Jessie系统/oknow.png)	</span><br><span class="line"></span><br><span class="line"><span class="number">6</span> . 设置树莓派的Wifi地址，这个就不用介绍了吧和电脑设置wifi一样，设置完后就可以摆脱网线了。</span><br><span class="line"></span><br><span class="line"><span class="number">7</span> . 乱码问题解决 </span><br><span class="line">细心的你一定观察到刚刚登入的时候会出现如下问题，并且在使用VNC进入的时候会出现乱码，下面介绍下解决方式：</span><br><span class="line"></span><br><span class="line">&gt;per<span class="variable">l:</span> warnin<span class="variable">g:</span> Setting locale failed.</span><br><span class="line">per<span class="variable">l:</span> warnin<span class="variable">g:</span> Please check that your locale setting<span class="variable">s:</span></span><br><span class="line">	LANGUAGE = (unset),</span><br><span class="line">	LC_ALL = (unset),</span><br><span class="line">	LC_PAPER = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_ADDRESS = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_MONETARY = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_NUMERIC = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_TELEPHONE = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_IDENTIFICATION = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_MEASUREMENT = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_NAME = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LANG = <span class="string">"en_GB.UTF-8"</span></span><br><span class="line">    are supported <span class="built_in">and</span> installed <span class="keyword">on</span> your <span class="built_in">system</span>.</span><br><span class="line">per<span class="variable">l:</span> warnin<span class="variable">g:</span> Falling back <span class="keyword">to</span> <span class="keyword">a</span> fallback locale (<span class="string">"en_GB.UTF-8"</span>).</span><br></pre></td></tr></table></figure></p>
-<p>1.更新终端  sudo apt-get update<br>2.安装中文字库  sudo apt-get install ttf-wqy-microhei<br>3.进入更改系统中的菜单界面  sudo dpkg-reconfigure locale<br>4.用空格键勾选前面带有 “zhCN” 的选项，选中zhCN.UTF-8<br>重启就可以了<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="number">8</span> . 设置VNC自动启用：</span><br><span class="line"></span><br><span class="line">在上面介绍VNC的时候你可能会发现一个问题，但是一旦重启，你用客户端就等不上去了，这是因为VNC服务不是自动启用的，你需要进入SSH重启VNC <span class="built_in">Server</span>或者把VNC <span class="built_in">Server</span>设置为重启时自启动。</span><br><span class="line">步骤如下：</span><br><span class="line">ssh登入树莓派<span class="built_in">home</span>目录：</span><br><span class="line">cd 到.<span class="built_in">config</span>目录下：</span><br></pre></td></tr></table></figure></p>
-<p>cd .config<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">在.<span class="built_in">config</span>文件夹下建立一个’autostart’目录。</span><br></pre></td></tr></table></figure></p>
-<p>mkdir autostart<br><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">然后<span class="built_in">cd</span>进去：</span><br></pre></td></tr></table></figure></p>
-<p>cd autostart<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">编辑一个配置文件：</span><br></pre></td></tr></table></figure></p>
-<p>vim tightvnc.desktop<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">这里需要注意的是树莓派是默认是没有安装vim的所以在执行这个之前需要事先安装Vim</span><br><span class="line"></span><br><span class="line">然后输入下面的内容：</span><br><span class="line">[Desktop Entry]</span><br><span class="line"><span class="attribute">Type</span>=Application</span><br><span class="line"><span class="attribute">Name</span>=TightVNC</span><br><span class="line"><span class="attribute">Exec</span>=vncserver :1</span><br><span class="line"><span class="attribute">StartupNotify</span>=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line">保存退出，重启树莓派，就可以了</span><br><span class="line"></span><br><span class="line">9 . 在我第一次使用的时候我遇到了一个问题，我的SD卡是16G的，并已经知道镜像大小为3G左右空间，但是我装了一个较大的软件的时候提示没有剩余空间了，这个有点搞笑，那个软件并没有那么大，那么空间去哪里了？其实SD卡刷完系统后，只有前4G空间是可用的。如果要使用整个SD卡，那么需要对其进行扩容，也就是说让树莓派系统识别4G以后的空间，下面就介绍下如何扩容。</span><br><span class="line"></span><br><span class="line">使用VNC 进入树莓派，选择Rapsberry Pi configuation	</span><br><span class="line"></span><br><span class="line">![](树莓派3安装Raspbian-Jessie系统/expend.png)	</span><br><span class="line">切换到System页面，点击Expend FileSystem</span><br><span class="line">![](树莓派3安装Raspbian-Jessie系统/e.png)	</span><br><span class="line"></span><br><span class="line">使用df -h 就可以看到容量扩展到16G了</span><br><span class="line"></span><br><span class="line">10 . Camera 启用：</span><br><span class="line">树莓派上有一个Camera并行接口，接上Camera后还需要在树莓派上使能后才能使用，使能方法如下：</span><br><span class="line">还是9步骤的那个切换到interace子页，在Camera那一项上选择Enable就ok了。</span><br><span class="line">![](树莓派3安装Raspbian-Jessie系统/camera.png)	</span><br><span class="line"></span><br><span class="line">好了让我们拍个照片试试：</span><br><span class="line">输入下面命令获取一张图像保存到image.jpg</span><br></pre></td></tr></table></figure></p>
-<p>raspistill -o image.jpg -rot 180<br><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">这时候就可以在主目录地址下多出了<span class="built_in">image</span>.jpg照片。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="number">11</span> . 设置时区 </span><br><span class="line"></span><br><span class="line">* 安装ntp</span><br></pre></td></tr></table></figure></p>
-<p>sudo apt-get install ntpdate<br><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="bullet">* </span>修改时区</span><br></pre></td></tr></table></figure></p>
-<p>tzselect<br><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>配置网络对时选择国内的ntp服务器</span><br></pre></td></tr></table></figure></p>
-<p>sudo ntpdate cn.pool.ntp.org<br><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>输入选择使用的时区信息为亚洲上海</span><br></pre></td></tr></table></figure></p>
-<p>sudo dpkg-reconfigure tzdata<br><code>`</code></p>
+<p>初看一下是不是被吓到了，其实很简单运行如下命令重新登入就可以了：
+<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">rm -rf ~/.ssh/known_hosts </span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">再次输入ssh <span class="built-in">pi</span>@[步骤<span class="number">3</span> 查到的IP地址]	</span><br><span class="line">你就可以看到：</span><br><span class="line">&gt; Are you sure you want to continue connecting (<span class="keyword">yes</span>/<span class="keyword">no</span>)? 	</span><br><span class="line"></span><br><span class="line">输入<span class="keyword">yes</span>再输入密码就可以了，初始密码为raspberry,看到下面的命令行就说明进入ok了。</span><br><span class="line"></span><br><span class="line">![](树莓派<span class="number">3</span>安装Raspbian-Jessie系统/loginok.png)</span><br><span class="line"></span><br><span class="line"><span class="number">5</span> . 安装VNC 通过它你可以以图形界面的方式访问树莓派的桌面，在通过步骤<span class="number">4</span> ssh方式进入树莓派的情况下输入如下命令：</span><br></pre></td></tr></table></figure></p>
+<p>sudo apt-get update
+sudo apt-get install tightvncserver
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">上面的意思是往树莓派上安装VNC服务，安装完成后就可以在树莓派运行VNC服务了。</span><br></pre></td></tr></table></figure></p>
+<p>vncserver :1
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">然后会要求你输入密码，这个是用于连接的时候使用的和登入的那个密码不同，需要<span class="number">8</span>位字符。</span><br><span class="line"></span><br><span class="line">&gt;Would you like <span class="keyword">to</span> enter <span class="keyword">a</span> <span class="keyword">view</span>-<span class="keyword">only</span> password (<span class="keyword">y</span>/n)?  </span><br><span class="line"></span><br><span class="line">这个直接输入n就可以了。</span><br><span class="line"></span><br><span class="line">接着需要在电脑上安装VNC客户端，我这边使用的是VNC Viewer 可以在 http://www.realvnc.<span class="keyword">com</span> 网站上下载。下载完成后安装就可以了。</span><br><span class="line">安装完成后运行，会出现如下界面	</span><br><span class="line"></span><br><span class="line">![](树莓派<span class="number">3</span>安装Raspbian-Jessie系统/viewimage.png)	</span><br><span class="line">最后的那个是端口号可以随意指定。</span><br><span class="line">点击连接输入密码就可以连接到树莓派了，这时候你就可以看到如下界面兴奋吧。</span><br><span class="line"></span><br><span class="line">![](树莓派<span class="number">3</span>安装Raspbian-Jessie系统/oknow.png)	</span><br><span class="line"></span><br><span class="line"><span class="number">6</span> . 设置树莓派的Wifi地址，这个就不用介绍了吧和电脑设置wifi一样，设置完后就可以摆脱网线了。</span><br><span class="line"></span><br><span class="line"><span class="number">7</span> . 乱码问题解决 </span><br><span class="line">细心的你一定观察到刚刚登入的时候会出现如下问题，并且在使用VNC进入的时候会出现乱码，下面介绍下解决方式：</span><br><span class="line"></span><br><span class="line">&gt;per<span class="variable">l:</span> warnin<span class="variable">g:</span> Setting locale failed.</span><br><span class="line">per<span class="variable">l:</span> warnin<span class="variable">g:</span> Please check that your locale setting<span class="variable">s:</span></span><br><span class="line">	LANGUAGE = (unset),</span><br><span class="line">	LC_ALL = (unset),</span><br><span class="line">	LC_PAPER = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_ADDRESS = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_MONETARY = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_NUMERIC = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_TELEPHONE = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_IDENTIFICATION = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_MEASUREMENT = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LC_NAME = <span class="string">"zh_CN.UTF-8"</span>,</span><br><span class="line">	LANG = <span class="string">"en_GB.UTF-8"</span></span><br><span class="line">    are supported <span class="built_in">and</span> installed <span class="keyword">on</span> your <span class="built_in">system</span>.</span><br><span class="line">per<span class="variable">l:</span> warnin<span class="variable">g:</span> Falling back <span class="keyword">to</span> <span class="keyword">a</span> fallback locale (<span class="string">"en_GB.UTF-8"</span>).</span><br></pre></td></tr></table></figure></p>
+<p>1.更新终端  sudo apt-get update
+2.安装中文字库  sudo apt-get install ttf-wqy-microhei
+3.进入更改系统中的菜单界面  sudo dpkg-reconfigure locale
+4.用空格键勾选前面带有 “zhCN” 的选项，选中zhCN.UTF-8
+重启就可以了
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="number">8</span> . 设置VNC自动启用：</span><br><span class="line"></span><br><span class="line">在上面介绍VNC的时候你可能会发现一个问题，但是一旦重启，你用客户端就等不上去了，这是因为VNC服务不是自动启用的，你需要进入SSH重启VNC <span class="built_in">Server</span>或者把VNC <span class="built_in">Server</span>设置为重启时自启动。</span><br><span class="line">步骤如下：</span><br><span class="line">ssh登入树莓派<span class="built_in">home</span>目录：</span><br><span class="line">cd 到.<span class="built_in">config</span>目录下：</span><br></pre></td></tr></table></figure></p>
+<p>cd .config
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">在.<span class="built_in">config</span>文件夹下建立一个’autostart’目录。</span><br></pre></td></tr></table></figure></p>
+<p>mkdir autostart
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">然后<span class="built_in">cd</span>进去：</span><br></pre></td></tr></table></figure></p>
+<p>cd autostart
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">编辑一个配置文件：</span><br></pre></td></tr></table></figure></p>
+<p>vim tightvnc.desktop
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">这里需要注意的是树莓派是默认是没有安装vim的所以在执行这个之前需要事先安装Vim</span><br><span class="line"></span><br><span class="line">然后输入下面的内容：</span><br><span class="line">[Desktop Entry]</span><br><span class="line"><span class="attribute">Type</span>=Application</span><br><span class="line"><span class="attribute">Name</span>=TightVNC</span><br><span class="line"><span class="attribute">Exec</span>=vncserver :1</span><br><span class="line"><span class="attribute">StartupNotify</span>=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line">保存退出，重启树莓派，就可以了</span><br><span class="line"></span><br><span class="line">9 . 在我第一次使用的时候我遇到了一个问题，我的SD卡是16G的，并已经知道镜像大小为3G左右空间，但是我装了一个较大的软件的时候提示没有剩余空间了，这个有点搞笑，那个软件并没有那么大，那么空间去哪里了？其实SD卡刷完系统后，只有前4G空间是可用的。如果要使用整个SD卡，那么需要对其进行扩容，也就是说让树莓派系统识别4G以后的空间，下面就介绍下如何扩容。</span><br><span class="line"></span><br><span class="line">使用VNC 进入树莓派，选择Rapsberry Pi configuation	</span><br><span class="line"></span><br><span class="line">![](树莓派3安装Raspbian-Jessie系统/expend.png)	</span><br><span class="line">切换到System页面，点击Expend FileSystem</span><br><span class="line">![](树莓派3安装Raspbian-Jessie系统/e.png)	</span><br><span class="line"></span><br><span class="line">使用df -h 就可以看到容量扩展到16G了</span><br><span class="line"></span><br><span class="line">10 . Camera 启用：</span><br><span class="line">树莓派上有一个Camera并行接口，接上Camera后还需要在树莓派上使能后才能使用，使能方法如下：</span><br><span class="line">还是9步骤的那个切换到interace子页，在Camera那一项上选择Enable就ok了。</span><br><span class="line">![](树莓派3安装Raspbian-Jessie系统/camera.png)	</span><br><span class="line"></span><br><span class="line">好了让我们拍个照片试试：</span><br><span class="line">输入下面命令获取一张图像保存到image.jpg</span><br></pre></td></tr></table></figure></p>
+<p>raspistill -o image.jpg -rot 180
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">这时候就可以在主目录地址下多出了<span class="built_in">image</span>.jpg照片。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="number">11</span> . 设置时区 </span><br><span class="line"></span><br><span class="line">* 安装ntp</span><br></pre></td></tr></table></figure></p>
+<p>sudo apt-get install ntpdate
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="bullet">* </span>修改时区</span><br></pre></td></tr></table></figure></p>
+<p>tzselect
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>配置网络对时选择国内的ntp服务器</span><br></pre></td></tr></table></figure></p>
+<p>sudo ntpdate cn.pool.ntp.org
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>输入选择使用的时区信息为亚洲上海</span><br></pre></td></tr></table></figure></p>
+<p>sudo dpkg-reconfigure tzdata</p>
+<pre><code>
+
+
+</code></pre>
 
         
         

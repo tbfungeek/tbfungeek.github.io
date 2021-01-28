@@ -11,13 +11,13 @@
     
 
     
-    <meta name="description" content="源码地址Examples学习资源 Texture 的组成 概述：提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说要在16m">
+    <meta name="description" content="源码地址 Examples 学习资源 Texture 的组成  概述： 提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说">
 <meta name="keywords" content="iOS 开源库分析">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Texture 一 简要介绍">
 <meta property="og:url" content="http://yoursite.com/2019/11/08/Texture-一-简要介绍/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="源码地址Examples学习资源 Texture 的组成 概述：提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说要在16m">
+<meta property="og:description" content="源码地址 Examples 学习资源 Texture 的组成  概述： 提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/11/08/Texture-一-简要介绍/texture_logo.png">
 <meta property="og:image" content="http://yoursite.com/2019/11/08/Texture-一-简要介绍/0003.png">
@@ -26,7 +26,7 @@
 <meta property="og:updated_time" content="2019-12-19T13:24:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Texture 一 简要介绍">
-<meta name="twitter:description" content="源码地址Examples学习资源 Texture 的组成 概述：提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说要在16m">
+<meta name="twitter:description" content="源码地址 Examples 学习资源 Texture 的组成  概述： 提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说">
 <meta name="twitter:image" content="http://yoursite.com/2019/11/08/Texture-一-简要介绍/texture_logo.png">
 
     
@@ -99,12 +99,19 @@
 </header>
 	<div class="article-content">
 		
-		<p><img src="/2019/11/08/Texture-一-简要介绍/texture_logo.png" alt><br><a href="https://github.com/texturegroup/texture/" target="_blank" rel="noopener">源码地址</a><br><a href="https://github.com/texturegroup/texture/tree/master/examples" target="_blank" rel="noopener">Examples</a><br><a href="http://texturegroup.org/docs/resources.html" target="_blank" rel="noopener">学习资源</a></p>
-<h5 id="Texture-的组成"><a href="#Texture-的组成" class="headerlink" title="Texture 的组成"></a>Texture 的组成</h5><p><img src="/2019/11/08/Texture-一-简要介绍/0003.png" alt></p>
-<h5 id="概述："><a href="#概述：" class="headerlink" title="概述："></a>概述：</h5><p>提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说要在16ms时间内完成所有的布局和绘制代码。但是主线程一般还有如事件相应之类的任务需要处理，所以往往留给布局绘制的时间通常小于10毫秒甚至更少。所以Texture的思路就是将Node设计成线程安全的，并将那些例如node创建，图片解码，文本尺寸计算，渲染等操作可以移到后台子线程的尽量移到后台线程，只有在必须在主线程处理的时候才切换到主线程。</p>
-<h5 id="Node-Vs-UIView-Vs-CALayer："><a href="#Node-Vs-UIView-Vs-CALayer：" class="headerlink" title="Node Vs UIView Vs CALayer："></a>Node Vs UIView Vs CALayer：</h5><p>Node,UIView,CALayer 三者的关系如下图所示，详细的介绍会在后面详细张开来介绍。</p>
+		<p><img src="/2019/11/08/Texture-一-简要介绍/texture_logo.png" alt>
+<a href="https://github.com/texturegroup/texture/" target="_blank" rel="noopener">源码地址</a>
+<a href="https://github.com/texturegroup/texture/tree/master/examples" target="_blank" rel="noopener">Examples</a>
+<a href="http://texturegroup.org/docs/resources.html" target="_blank" rel="noopener">学习资源</a></p>
+<h5>Texture 的组成</h5>
+<p><img src="/2019/11/08/Texture-一-简要介绍/0003.png" alt></p>
+<h5>概述：</h5>
+<p>提到Texture大家可能会比较陌生，但是如果说AsyncDisplayKit估计搞iOS的很多人都会或多或少听到过，我们知道UIKit大多数的布局绘制工作都必须在主线程完成。Texture 中的Node是线程安全的我们可以在后台子线程中完成实例创建整个布局的计算。我们知道如果要保证界面流畅必须保证每秒60帧的帧率，也就是说要在16ms时间内完成所有的布局和绘制代码。但是主线程一般还有如事件相应之类的任务需要处理，所以往往留给布局绘制的时间通常小于10毫秒甚至更少。所以Texture的思路就是将Node设计成线程安全的，并将那些例如node创建，图片解码，文本尺寸计算，渲染等操作可以移到后台子线程的尽量移到后台线程，只有在必须在主线程处理的时候才切换到主线程。</p>
+<h5>Node Vs UIView Vs CALayer：</h5>
+<p>Node,UIView,CALayer 三者的关系如下图所示，详细的介绍会在后面详细张开来介绍。</p>
 <p><img src="/2019/11/08/Texture-一-简要介绍/0001.png" alt></p>
-<h5 id="节点-与-节点容器"><a href="#节点-与-节点容器" class="headerlink" title="节点 与 节点容器"></a>节点 与 节点容器</h5><p>Texture中提供的节点有如下几种：</p>
+<h5>节点 与 节点容器</h5>
+<p>Texture中提供的节点有如下几种：</p>
 <table>
 <thead>
 <tr>
@@ -195,7 +202,8 @@
 </tr>
 </tbody>
 </table>
-<p>那么节点容器和UIKit中的普通的视图容器优点在哪里呢？这就要提到Texture的智能预加载功能，在每个节点添加到一个滚动的或者翻页界面的时候，在界面滚动的时候，节点的interfaceState会不断改变，这个interfaceState属性是由ASRangeController来完成更新工作的，如果在节点容器外使用节点的话ASRangeController将不会更新节点的状态。这将导致界面上的节点不会感知到界面状态的改变，从而导致界面上闪烁的现象。<br><img src="/2019/11/08/Texture-一-简要介绍/0002.png" alt></p>
+<p>那么节点容器和UIKit中的普通的视图容器优点在哪里呢？这就要提到Texture的智能预加载功能，在每个节点添加到一个滚动的或者翻页界面的时候，在界面滚动的时候，节点的interfaceState会不断改变，这个interfaceState属性是由ASRangeController来完成更新工作的，如果在节点容器外使用节点的话ASRangeController将不会更新节点的状态。这将导致界面上的节点不会感知到界面状态的改变，从而导致界面上闪烁的现象。
+<img src="/2019/11/08/Texture-一-简要介绍/0002.png" alt></p>
 <table>
 <thead>
 <tr>
@@ -220,27 +228,41 @@
 </table>
 <p>这些阶段都有对应的回调节点：</p>
 <p>预加载阶段</p>
-<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="deletion">-didEnterPreloadState</span></span><br><span class="line"><span class="deletion">-didExitPreloadState</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="deletion">-didEnterPreloadState</span></span><br><span class="line"><span class="deletion">-didExitPreloadState</span></span><br></pre></td></tr></table></figure></p>
 <p>显示阶段</p>
-<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="deletion">-didEnterDisplayState</span></span><br><span class="line"><span class="deletion">-didExitDisplayState</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="deletion">-didEnterDisplayState</span></span><br><span class="line"><span class="deletion">-didExitDisplayState</span></span><br></pre></td></tr></table></figure></p>
 <p>可见阶段</p>
-<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="deletion">-didEnterVisibleState</span></span><br><span class="line"><span class="deletion">-didExitVisibleState</span></span><br></pre></td></tr></table></figure>
-<h5 id="布局引擎"><a href="#布局引擎" class="headerlink" title="布局引擎"></a>布局引擎</h5><p>Texture中不能使用AutoLayout布局方式，它内部实现了一套基于FlexBox的模式的布局引擎，Flex布局模式目前已经成为了前端UI框架的标配，目前比较流行的Flutter,SwiftUI都有它的影子。</p>
+<p><figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="deletion">-didEnterVisibleState</span></span><br><span class="line"><span class="deletion">-didExitVisibleState</span></span><br></pre></td></tr></table></figure></p>
+<h5>布局引擎</h5>
+<p>Texture中不能使用AutoLayout布局方式，它内部实现了一套基于FlexBox的模式的布局引擎，Flex布局模式目前已经成为了前端UI框架的标配，目前比较流行的Flutter,SwiftUI都有它的影子。</p>
 <p>Texture的布局性能介于手动布局和Auto Layout方式布局，并且明显快于Auto Layout,这主要是因为布局可以在后台线程中进行计算，所以不会干扰到用户交互，并且由于布局结果是不可变的数据结构，因此可以在后台预计算和缓存它们。</p>
 <p>Texture的布局涉及到两个概念：</p>
 <ul>
 <li>Layout Specs （布局规范）</li>
 </ul>
-<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">Layout</span> Specs 充当布局容器的角色，主要用于放置Layout Elements ，它主要关注的是Layout Elements 之间的位置关系。</span><br><span class="line"><span class="symbol">Texture</span> 提供了如下的布局容器：</span><br><span class="line"><span class="symbol">ASWrapperLayoutSpec</span></span><br><span class="line"><span class="symbol">ASStackLayoutSpec</span></span><br><span class="line"><span class="symbol">ASInsetLayoutSpec</span></span><br><span class="line"><span class="symbol">ASOverlayLayoutSpec</span></span><br><span class="line"><span class="symbol">ASBackgroundLayoutSpec</span></span><br><span class="line"><span class="symbol">ASCenterLayoutSpec</span></span><br><span class="line"><span class="keyword">ASRatioLayoutSpec</span></span><br><span class="line"><span class="keyword">ASRelativeLayoutSpec</span></span><br><span class="line"><span class="keyword">ASAbsoluteLayoutSpec</span></span><br><span class="line"><span class="keyword">ASCornerLayoutSpec</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">Layout</span> Specs 充当布局容器的角色，主要用于放置Layout Elements ，它主要关注的是Layout Elements 之间的位置关系。</span><br><span class="line"><span class="symbol">Texture</span> 提供了如下的布局容器：</span><br><span class="line"><span class="symbol">ASWrapperLayoutSpec</span></span><br><span class="line"><span class="symbol">ASStackLayoutSpec</span></span><br><span class="line"><span class="symbol">ASInsetLayoutSpec</span></span><br><span class="line"><span class="symbol">ASOverlayLayoutSpec</span></span><br><span class="line"><span class="symbol">ASBackgroundLayoutSpec</span></span><br><span class="line"><span class="symbol">ASCenterLayoutSpec</span></span><br><span class="line"><span class="keyword">ASRatioLayoutSpec</span></span><br><span class="line"><span class="keyword">ASRelativeLayoutSpec</span></span><br><span class="line"><span class="keyword">ASAbsoluteLayoutSpec</span></span><br><span class="line"><span class="keyword">ASCornerLayoutSpec</span></span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>Layout Elements （布局元素）</li>
 </ul>
-<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ASDisplayNodes</span> 和 ASLayoutSpecs 都遵循ASLayoutElement协议，所以ASDisplayNodes 和 ASLayoutSpecs 都可以作为布局元素节点。</span><br></pre></td></tr></table></figure>
-<p>这里还需要了解的一个概念是布局元素的固有尺寸<br>有些元素在没有加载元素之前本身是有一个固有尺寸的，这体现在如果我们没有为它添加宽高，它本身就有一个固有宽高值这些Node元素包括：</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ASImageNode</span></span><br><span class="line"><span class="attribute">ASTextNode</span></span><br><span class="line"><span class="attribute">ASButtonNode</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ASDisplayNodes</span> 和 ASLayoutSpecs 都遵循ASLayoutElement协议，所以ASDisplayNodes 和 ASLayoutSpecs 都可以作为布局元素节点。</span><br></pre></td></tr></table></figure></p>
+<p>这里还需要了解的一个概念是布局元素的固有尺寸
+有些元素在没有加载元素之前本身是有一个固有尺寸的，这体现在如果我们没有为它添加宽高，它本身就有一个固有宽高值这些Node元素包括：</p>
+<p><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ASImageNode</span></span><br><span class="line"><span class="attribute">ASTextNode</span></span><br><span class="line"><span class="attribute">ASButtonNode</span></span><br></pre></td></tr></table></figure></p>
 <p>反之某些元素在没有加载元素之前是没有尺寸数据的，因此在数据未加载之前可能需要我们给他指定一个宽高，这类元素有：</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ASVideoNode</span></span><br><span class="line"><span class="attribute">ASVideoPlayerNode</span></span><br><span class="line"><span class="attribute">ASNetworkImageNode</span></span><br><span class="line"><span class="attribute">ASEditableTextNode</span></span><br></pre></td></tr></table></figure>
-<h4 id="资料汇总："><a href="#资料汇总：" class="headerlink" title="资料汇总："></a>资料汇总：</h4><p><a href="https://github.com/texturegroup/texture/" target="_blank" rel="noopener">源码地址</a><br><a href="http://texturegroup.org/" target="_blank" rel="noopener">官方文档地址</a><br><a href="https://github.com/texturegroup/texture/tree/master/examples" target="_blank" rel="noopener">Examples</a><br><a href="http://texturegroup.org/docs/resources.html" target="_blank" rel="noopener">官方资源</a><br><a href="https://blog.ibireme.com/2015/11/12/smooth_user_interfaces_for_ios/" target="_blank" rel="noopener">iOS 保持界面流畅的技巧</a><br><a href="http://draveness.me/asdk-rendering/" target="_blank" rel="noopener">使用 ASDK 性能调优 - 提升 iOS 界面的渲染性能</a><br><a href="https://zhuanlan.zhihu.com/p/25371361" target="_blank" rel="noopener">AsyncDisplayKit 即刻技术团队系列文章</a><br><a href="https://juejin.im/post/5987cc536fb9a03c4b374bec" target="_blank" rel="noopener">AsyncDisplayKit近一年的使用体会及疑难点</a><br><a href="https://www.raywenderlich.com/818-asyncdisplaykit-2-0-tutorial-getting-started" target="_blank" rel="noopener">AsyncDisplayKit 2.0 Tutorial: Getting Started</a><br><a href="https://blog.gocy.tech/2016/09/10/asdk-sourcecode-reading/" target="_blank" rel="noopener">AsyncDisplayKit源码阅读笔记</a><br><a href="https://farlanki.coding.me/2017/01/10/2017-01-10/" target="_blank" rel="noopener">AsyncDisplayKit（一）初识</a><br><a href="http://beelearning.cn/2017/11/ASDK/" target="_blank" rel="noopener">ASDK源码剖析</a></p>
+<p><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ASVideoNode</span></span><br><span class="line"><span class="attribute">ASVideoPlayerNode</span></span><br><span class="line"><span class="attribute">ASNetworkImageNode</span></span><br><span class="line"><span class="attribute">ASEditableTextNode</span></span><br></pre></td></tr></table></figure></p>
+<h4>资料汇总：</h4>
+<p><a href="https://github.com/texturegroup/texture/" target="_blank" rel="noopener">源码地址</a>
+<a href="http://texturegroup.org/" target="_blank" rel="noopener">官方文档地址</a>
+<a href="https://github.com/texturegroup/texture/tree/master/examples" target="_blank" rel="noopener">Examples</a>
+<a href="http://texturegroup.org/docs/resources.html" target="_blank" rel="noopener">官方资源</a>
+<a href="https://blog.ibireme.com/2015/11/12/smooth_user_interfaces_for_ios/" target="_blank" rel="noopener">iOS 保持界面流畅的技巧</a>
+<a href="http://draveness.me/asdk-rendering/" target="_blank" rel="noopener">使用 ASDK 性能调优 - 提升 iOS 界面的渲染性能</a>
+<a href="https://zhuanlan.zhihu.com/p/25371361" target="_blank" rel="noopener">AsyncDisplayKit 即刻技术团队系列文章</a>
+<a href="https://juejin.im/post/5987cc536fb9a03c4b374bec" target="_blank" rel="noopener">AsyncDisplayKit近一年的使用体会及疑难点</a>
+<a href="https://www.raywenderlich.com/818-asyncdisplaykit-2-0-tutorial-getting-started" target="_blank" rel="noopener">AsyncDisplayKit 2.0 Tutorial: Getting Started</a>
+<a href="https://blog.gocy.tech/2016/09/10/asdk-sourcecode-reading/" target="_blank" rel="noopener">AsyncDisplayKit源码阅读笔记</a>
+<a href="https://farlanki.coding.me/2017/01/10/2017-01-10/" target="_blank" rel="noopener">AsyncDisplayKit（一）初识</a>
+<a href="http://beelearning.cn/2017/11/ASDK/" target="_blank" rel="noopener">ASDK源码剖析</a></p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -303,7 +325,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#Texture-的组成"><span class="toc-number">1.</span> <span class="toc-text">Texture 的组成</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#概述："><span class="toc-number">2.</span> <span class="toc-text">概述：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Node-Vs-UIView-Vs-CALayer："><span class="toc-number">3.</span> <span class="toc-text">Node Vs UIView Vs CALayer：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#节点-与-节点容器"><span class="toc-number">4.</span> <span class="toc-text">节点 与 节点容器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#布局引擎"><span class="toc-number">5.</span> <span class="toc-text">布局引擎</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#资料汇总："><span class="toc-number"></span> <span class="toc-text">资料汇总：</span></a>
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">Texture 的组成</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">概述：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">Node Vs UIView Vs CALayer：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">节点 与 节点容器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.</span> <span class="toc-text">布局引擎</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number"></span> <span class="toc-text">资料汇总：</span></a>
  
   </div>
 

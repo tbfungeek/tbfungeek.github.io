@@ -11,20 +11,20 @@
     
 
     
-    <meta name="description" content="前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子：(图来自http://te">
+    <meta name="description" content="前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。 这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。 而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子： (图来自http:/">
 <meta name="keywords" content="Android 设计模式">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之设计模式 三 MVVM模式">
 <meta property="og:url" content="http://yoursite.com/2016/04/30/Android-进阶之设计模式-三-MVVM模式/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子：(图来自http://te">
+<meta property="og:description" content="前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。 这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。 而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子： (图来自http:/">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/04/30/Android-进阶之设计模式-三-MVVM模式/2.png">
 <meta property="og:image" content="http://yoursite.com/2016/04/30/Android-进阶之设计模式-三-MVVM模式/3.png">
 <meta property="og:updated_time" content="2016-07-18T21:54:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之设计模式 三 MVVM模式">
-<meta name="twitter:description" content="前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子：(图来自http://te">
+<meta name="twitter:description" content="前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。 这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。 而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子： (图来自http:/">
 <meta name="twitter:image" content="http://yoursite.com/2016/04/30/Android-进阶之设计模式-三-MVVM模式/2.png">
 
     
@@ -97,11 +97,35 @@
 </header>
 	<div class="article-content">
 		
-		<p>前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。<br>这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。<br>而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子：<br>(图来自<a href="http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/" target="_blank" rel="noopener">http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/</a>)<br>视图层与用户交互的时候用户请求loadUser命令，这时候视图层并不直接处理这个任务，而是将其传递给Presenter层，紧接着，presenter层，将showLoading请求发送到View层，并请求<br>数据层从数据库中获取用户信息，通常情况下数据层也会通过设置回调的方式持有Presenter引用，在Presenter接收到数据加载结束的时候，请求View层调用showUsers方法，显示用户信息。<br>整个结构十分清晰，但是它有个很大问题就是会照成Presenter层会变得十分庞大，并且Presenter层类会变得繁多。<br><img src="/2016/04/30/Android-进阶之设计模式-三-MVVM模式/2.png" alt></p>
-<p>下图是上面例子用MVVM替代后的架构图，在用户发送请求的时候，View会将事件发送给ViewModule，ViewModel从Module层获取数据，在数据获取完后只要改变Bean对象ViewModule就可以直接将数据呈现在View上。<br>整个结构的核心层是ViewModule层，在Android开发中我们使用的是DataBinding机制来实现这层：这样的好处显而易见，整个框架少了更新View的逻辑，也就是少了MVP模式中的showXXXX方法。只要数据一变视图层就立刻改变类了。<br><img src="/2016/04/30/Android-进阶之设计模式-三-MVVM模式/3.png" alt></p>
+		<p>前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。
+这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。
+而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子：
+(图来自http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/)
+视图层与用户交互的时候用户请求loadUser命令，这时候视图层并不直接处理这个任务，而是将其传递给Presenter层，紧接着，presenter层，将showLoading请求发送到View层，并请求
+数据层从数据库中获取用户信息，通常情况下数据层也会通过设置回调的方式持有Presenter引用，在Presenter接收到数据加载结束的时候，请求View层调用showUsers方法，显示用户信息。
+整个结构十分清晰，但是它有个很大问题就是会照成Presenter层会变得十分庞大，并且Presenter层类会变得繁多。
+<img src="/2016/04/30/Android-进阶之设计模式-三-MVVM模式/2.png" alt></p>
+<p>下图是上面例子用MVVM替代后的架构图，在用户发送请求的时候，View会将事件发送给ViewModule，ViewModel从Module层获取数据，在数据获取完后只要改变Bean对象ViewModule就可以直接将数据呈现在View上。
+整个结构的核心层是ViewModule层，在Android开发中我们使用的是DataBinding机制来实现这层：这样的好处显而易见，整个框架少了更新View的逻辑，也就是少了MVP模式中的showXXXX方法。只要数据一变视图层就立刻改变类了。
+<img src="/2016/04/30/Android-进阶之设计模式-三-MVVM模式/3.png" alt></p>
 <p>[Reference]</p>
 <blockquote>
-<p>blog.csdn.net/jdsjlzx/article/details/51174396<br><a href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0603/2992.html" target="_blank" rel="noopener">http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0603/2992.html</a><br><a href="https://www.aswifter.com/2015/07/11/android-data-binding-example/" target="_blank" rel="noopener">https://www.aswifter.com/2015/07/11/android-data-binding-example/</a><br><a href="http://www.tuicool.com/articles/7Zz6J3r" target="_blank" rel="noopener">http://www.tuicool.com/articles/7Zz6J3r</a><br><a href="http://www.zhihu.com/question/30976423" target="_blank" rel="noopener">http://www.zhihu.com/question/30976423</a><br><a href="http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/" target="_blank" rel="noopener">http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/</a><br><a href="http://blog.csdn.net/fancylovejava/article/details/50821616" target="_blank" rel="noopener">http://blog.csdn.net/fancylovejava/article/details/50821616</a><br><a href="http://www.zhihu.com/question/33538477?sort=created" target="_blank" rel="noopener">http://www.zhihu.com/question/33538477?sort=created</a><br><a href="http://hannesdorfmann.com/categories/" target="_blank" rel="noopener">http://hannesdorfmann.com/categories/</a><br><a href="http://hannesdorfmann.com/android/mosby" target="_blank" rel="noopener">http://hannesdorfmann.com/android/mosby</a><br><a href="http://hannesdorfmann.com/mosby/first-app/" target="_blank" rel="noopener">http://hannesdorfmann.com/mosby/first-app/</a><br><a href="http://hannesdorfmann.com/android/mosby-playbook" target="_blank" rel="noopener">http://hannesdorfmann.com/android/mosby-playbook</a><br><a href="https://github.com/konmik/nucleus" target="_blank" rel="noopener">https://github.com/konmik/nucleus</a><br><a href="https://github.com/square/mortar" target="_blank" rel="noopener">https://github.com/square/mortar</a><br><a href="https://github.com/inloop/AndroidViewModel" target="_blank" rel="noopener">https://github.com/inloop/AndroidViewModel</a><br><a href="https://github.com/Nilzor/mvp-to-mvvm-transition" target="_blank" rel="noopener">https://github.com/Nilzor/mvp-to-mvvm-transition</a></p>
+<p>blog.csdn.net/jdsjlzx/article/details/51174396
+http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0603/2992.html
+https://www.aswifter.com/2015/07/11/android-data-binding-example/
+http://www.tuicool.com/articles/7Zz6J3r
+http://www.zhihu.com/question/30976423
+http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/
+http://blog.csdn.net/fancylovejava/article/details/50821616
+http://www.zhihu.com/question/33538477?sort=created
+http://hannesdorfmann.com/categories/
+http://hannesdorfmann.com/android/mosby
+http://hannesdorfmann.com/mosby/first-app/
+http://hannesdorfmann.com/android/mosby-playbook
+https://github.com/konmik/nucleus
+https://github.com/square/mortar
+https://github.com/inloop/AndroidViewModel
+https://github.com/Nilzor/mvp-to-mvvm-transition</p>
 </blockquote>
   
 	</div>

@@ -11,20 +11,20 @@
     
 
     
-    <meta name="description" content="之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来：这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统，">
+    <meta name="description" content="之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来： 这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统">
 <meta name="keywords" content="Android逆向工程">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之 反编译">
 <meta property="og:url" content="http://yoursite.com/2016/06/27/Android-进阶之-逆向工程/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来：这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统，">
+<meta property="og:description" content="之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来： 这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/06/27/Android-进阶之-逆向工程/1.png">
 <meta property="og:image" content="http://yoursite.com/2016/06/27/Android-进阶之-逆向工程/2.png">
 <meta property="og:updated_time" content="2016-07-18T22:11:20.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之 反编译">
-<meta name="twitter:description" content="之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来：这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统，">
+<meta name="twitter:description" content="之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来： 这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统">
 <meta name="twitter:image" content="http://yoursite.com/2016/06/27/Android-进阶之-逆向工程/1.png">
 
     
@@ -97,18 +97,29 @@
 </header>
 	<div class="article-content">
 		
-		<p>之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来：<br>这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统，只是工具不同而已：</p>
-<h4 id="反编译源码"><a href="#反编译源码" class="headerlink" title="反编译源码"></a>反编译源码</h4><p>反编译源码涉及到如下工具：<br>dex2jar  将apk中的classes.dex转化成jar文件<br>jdgui 将apk中的classes.dex转化成jar文件</p>
+		<p>之前听到反编译一直以为反编译只能获取到资源以及AndroidManifest文件，但是在有次工作中分析问题的时候涉及到第三方的Apk，和我合作的工程师居然通过反编译获取到代码，但是刚刚工作不久感到很吃惊所以回去查找了一些资料后终于掌握了反编译技术，在后面的工作中也陆陆续续用到。今天将通过这篇博客来将自己学到的分享出来：
+这篇文章将只介绍Linux系统下的反编译过程，至于Window系统和Mac系统，只是工具不同而已：</p>
+<h4>反编译源码</h4>
+<p>反编译源码涉及到如下工具：
+dex2jar  将apk中的classes.dex转化成jar文件
+jdgui 将apk中的classes.dex转化成jar文件</p>
 <ul>
 <li>将apk文件后缀改为zip并解压，得到其中的classes.dex，将classes.dex复制到d2j-dex2jar.sh所在目录dex2jar-0.0.9.15文件夹。</li>
-<li>运行<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="string">./d2j-dex2jar.sh</span> classes.dex</span><br></pre></td></tr></table></figure>
-</li>
+<li>运行
+<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="string">./d2j-dex2jar.sh</span> classes.dex</span><br></pre></td></tr></table></figure></li>
 </ul>
-<p>转换结束之后将会出现如下提示：<br><figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">dex2jar</span> <span class="selector-tag">classes</span><span class="selector-class">.dex</span> <span class="selector-tag">-</span>&gt; <span class="selector-tag">classes-dex2jar</span><span class="selector-class">.jar</span></span><br></pre></td></tr></table></figure></p>
+<p>转换结束之后将会出现如下提示：
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">dex2jar</span> <span class="selector-tag">classes</span><span class="selector-class">.dex</span> <span class="selector-tag">-</span>&gt; <span class="selector-tag">classes-dex2jar</span><span class="selector-class">.jar</span></span><br></pre></td></tr></table></figure></p>
 <ul>
-<li><a href="http://jd.benow.ca/" target="_blank" rel="noopener">http://jd.benow.ca/</a> 下载jdgui<br><img src="/2016/06/27/Android-进阶之-逆向工程/1.png" alt><br>使用jdgui打开上述生成的classes-dex2jar.jar就可以看到代码了。<br><img src="/2016/06/27/Android-进阶之-逆向工程/2.png" alt></li>
+<li>http://jd.benow.ca/ 下载jdgui
+<img src="/2016/06/27/Android-进阶之-逆向工程/1.png" alt>
+使用jdgui打开上述生成的classes-dex2jar.jar就可以看到代码了。
+<img src="/2016/06/27/Android-进阶之-逆向工程/2.png" alt></li>
 </ul>
-<h4 id="反编译资源"><a href="#反编译资源" class="headerlink" title="反编译资源"></a>反编译资源</h4><p>一般apktool用于反编译提取apk资源，提取apk资源可以使用如下命令<br>apktool.jar  d  app-signed.apk<br>如果要将反编译完的文件重新打包成apk，只要在命令行中输入apktool.jar b ./apkunpackfolder</p>
+<h4>反编译资源</h4>
+<p>一般apktool用于反编译提取apk资源，提取apk资源可以使用如下命令
+apktool.jar  d  app-signed.apk
+如果要将反编译完的文件重新打包成apk，只要在命令行中输入apktool.jar b ./apkunpackfolder</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -171,7 +182,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#反编译源码"><span class="toc-number">1.</span> <span class="toc-text">反编译源码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#反编译资源"><span class="toc-number">2.</span> <span class="toc-text">反编译资源</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">反编译源码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">反编译资源</span></a></li></ol>
  
   </div>
 

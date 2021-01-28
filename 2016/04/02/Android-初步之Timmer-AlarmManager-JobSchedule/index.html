@@ -11,19 +11,19 @@
     
 
     
-    <meta name="description" content="AlarmAlarm 介绍 Alarm是一种在预先确定时间或时间间隔内激活Intent的方式，和Timmer不同，Alarm是在应用程序之外操作的，所以即使应用程序关闭，也能用来激活应用程序事件或者操作，这个和静态注册广播一样。 Alarm可以结合BroadCast Receiver一起使用，允许设置能够激活广播Intent，启动Service，甚至启动Activity的Alarm，而不需要打开或">
+    <meta name="description" content="Alarm Alarm 介绍  Alarm是一种在预先确定时间或时间间隔内激活Intent的方式，和Timmer不同，Alarm是在应用程序之外操作的，所以即使应用程序关闭，也能用来激活应用程序事件或者操作，这个和静态注册广播一样。 Alarm可以结合BroadCast Receiver一起使用，允许设置能够激活广播Intent，启动Service，甚至启动Activity的Alarm，而不需要打">
 <meta name="keywords" content="Android基础">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 初步之Timmer &amp;&amp; AlarmManager">
 <meta property="og:url" content="http://yoursite.com/2016/04/02/Android-初步之Timmer-AlarmManager-JobSchedule/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="AlarmAlarm 介绍 Alarm是一种在预先确定时间或时间间隔内激活Intent的方式，和Timmer不同，Alarm是在应用程序之外操作的，所以即使应用程序关闭，也能用来激活应用程序事件或者操作，这个和静态注册广播一样。 Alarm可以结合BroadCast Receiver一起使用，允许设置能够激活广播Intent，启动Service，甚至启动Activity的Alarm，而不需要打开或">
+<meta property="og:description" content="Alarm Alarm 介绍  Alarm是一种在预先确定时间或时间间隔内激活Intent的方式，和Timmer不同，Alarm是在应用程序之外操作的，所以即使应用程序关闭，也能用来激活应用程序事件或者操作，这个和静态注册广播一样。 Alarm可以结合BroadCast Receiver一起使用，允许设置能够激活广播Intent，启动Service，甚至启动Activity的Alarm，而不需要打">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/04/02/Android-初步之Timmer-AlarmManager-JobSchedule/1.png">
 <meta property="og:updated_time" content="2016-07-18T21:30:36.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 初步之Timmer &amp;&amp; AlarmManager">
-<meta name="twitter:description" content="AlarmAlarm 介绍 Alarm是一种在预先确定时间或时间间隔内激活Intent的方式，和Timmer不同，Alarm是在应用程序之外操作的，所以即使应用程序关闭，也能用来激活应用程序事件或者操作，这个和静态注册广播一样。 Alarm可以结合BroadCast Receiver一起使用，允许设置能够激活广播Intent，启动Service，甚至启动Activity的Alarm，而不需要打开或">
+<meta name="twitter:description" content="Alarm Alarm 介绍  Alarm是一种在预先确定时间或时间间隔内激活Intent的方式，和Timmer不同，Alarm是在应用程序之外操作的，所以即使应用程序关闭，也能用来激活应用程序事件或者操作，这个和静态注册广播一样。 Alarm可以结合BroadCast Receiver一起使用，允许设置能够激活广播Intent，启动Service，甚至启动Activity的Alarm，而不需要打">
 <meta name="twitter:image" content="http://yoursite.com/2016/04/02/Android-初步之Timmer-AlarmManager-JobSchedule/1.png">
 
     
@@ -96,49 +96,55 @@
 </header>
 	<div class="article-content">
 		
-		<h4 id="Alarm"><a href="#Alarm" class="headerlink" title="Alarm"></a>Alarm</h4><h5 id="Alarm-介绍"><a href="#Alarm-介绍" class="headerlink" title="Alarm 介绍"></a>Alarm 介绍</h5><ol>
+		<h4>Alarm</h4>
+<h5>Alarm 介绍</h5>
+<ol>
 <li>Alarm是一种在预先确定时间或时间间隔内激活Intent的方式，和Timmer不同，Alarm是在应用程序之外操作的，所以即使应用程序关闭，也能用来激活应用程序事件或者操作，这个和静态注册广播一样。</li>
 <li>Alarm可以结合BroadCast Receiver一起使用，允许设置能够激活广播Intent，启动Service，甚至启动Activity的Alarm，而不需要打开或者运行应用程序。</li>
 <li>Android中的Alarm在设备处于休眠状态到时候依旧保持活动状态，可以有选择地设置Alarm来唤醒设备，但是无论何时，重启设备，所有的Alarm都会被取消。</li>
-<li>可以使用Alarm实现基于网络查找的定时更新，或者把费时的或者成本受限的操作安排在非高峰期运行，或者对失败的操作调度重试。<br><img src="/2016/04/02/Android-初步之Timmer-AlarmManager-JobSchedule/1.png" alt></li>
+<li>可以使用Alarm实现基于网络查找的定时更新，或者把费时的或者成本受限的操作安排在非高峰期运行，或者对失败的操作调度重试。
+<img src="/2016/04/02/Android-初步之Timmer-AlarmManager-JobSchedule/1.png" alt></li>
 </ol>
-<h5 id="Alarm-使用"><a href="#Alarm-使用" class="headerlink" title="Alarm 使用"></a>Alarm 使用</h5><ul>
+<h5>Alarm 使用</h5>
+<ul>
 <li>获得Alarm Manager:</li>
 </ul>
-<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">AlarmManager  manager = getSystemService(<span class="name">Context</span>.ALARM_SERVICE)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">AlarmManager  manager = getSystemService(<span class="name">Context</span>.ALARM_SERVICE)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>设置一次性的Alarm:</li>
 </ul>
-<figure class="highlight delphi"><table><tr><td class="code"><pre><span class="line">manager.<span class="keyword">set</span>(<span class="keyword">type</span>, triggerAtMillis, operation);</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight delphi"><table><tr><td class="code"><pre><span class="line">manager.<span class="keyword">set</span>(<span class="keyword">type</span>, triggerAtMillis, operation);</span><br></pre></td></tr></table></figure></p>
 <p>type类型,可以有如下几种方式:</p>
-<figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line">RTC_WAKEUP：在指定时间唤醒设备，并激活Pending <span class="keyword">Intent</span>。</span><br><span class="line">RTC	          ：在指定时间点激活Pending <span class="keyword">Intent</span>但是不会唤醒设备。</span><br><span class="line">ELAPSED_REALTIME:根据设备启动之后经过的时间激活Pending <span class="keyword">Intent</span> ，但是不会唤醒设备。</span><br><span class="line">ELAPSED_REALTIME_WAKEUP根据设备启动之后经过的时间激活Pending <span class="keyword">Intent</span> ，并唤醒设备。</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line">RTC_WAKEUP：在指定时间唤醒设备，并激活Pending <span class="keyword">Intent</span>。</span><br><span class="line">RTC	          ：在指定时间点激活Pending <span class="keyword">Intent</span>但是不会唤醒设备。</span><br><span class="line">ELAPSED_REALTIME:根据设备启动之后经过的时间激活Pending <span class="keyword">Intent</span> ，但是不会唤醒设备。</span><br><span class="line">ELAPSED_REALTIME_WAKEUP根据设备启动之后经过的时间激活Pending <span class="keyword">Intent</span> ，并唤醒设备。</span><br></pre></td></tr></table></figure></p>
 <p>triggerAtMillis触发时间:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">如果把触发时间设置为过去的时间，那么将会被立即触发。</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">如果把触发时间设置为过去的时间，那么将会被立即触发。</span><br></pre></td></tr></table></figure></p>
 <p>要激活的Pending Intent</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">PendingIntent alarmIntnet =PeddingIntent.getBroadCast(<span class="keyword">this</span>,<span class="number">0</span>,intent,<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">PendingIntent alarmIntnet =PeddingIntent.getBroadCast(<span class="keyword">this</span>,<span class="number">0</span>,intent,<span class="number">0</span>);</span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>设置重复的Alarm</li>
 </ul>
 <p>当需要对重复Alarm的精确时间间隔进行细粒度控制的时候，可以使用setRepeating方法，传入这个方法的时间间隔可以用于指定Alarm的确切事件间隔，最多可以精确到毫秒，如下所示:</p>
-<figure class="highlight elm"><table><tr><td class="code"><pre><span class="line"><span class="title">manager</span>.setRepeating(<span class="keyword">type</span>, triggerAtMillis, intervalMillis, operation);</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight elm"><table><tr><td class="code"><pre><span class="line"><span class="title">manager</span>.setRepeating(<span class="keyword">type</span>, triggerAtMillis, intervalMillis, operation);</span><br></pre></td></tr></table></figure></p>
 <p>当需要减少因为定时唤醒设备来执行更新所消耗的电量的时候可以使用setInexactRepeating方法，在运行时，Android会同步多个没有精确指定时间间隔的Alarm到重复Alarm，并同时触发。方法如下：</p>
-<figure class="highlight elm"><table><tr><td class="code"><pre><span class="line"><span class="title">manager</span>.setInexactRepeating(<span class="keyword">type</span>, triggerAtMillis, intervalMillis, operation);</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight elm"><table><tr><td class="code"><pre><span class="line"><span class="title">manager</span>.setInexactRepeating(<span class="keyword">type</span>, triggerAtMillis, intervalMillis, operation);</span><br></pre></td></tr></table></figure></p>
 <p>在使用setInexactRepeating的时候不必为其设置确切的时间，它接收如下的几种Alarm Manager常量。</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">INTERVAL_FIFTEEN_MINUTES</span></span><br><span class="line"><span class="attribute">INTERVAL_HALF_HOUR</span></span><br><span class="line"><span class="attribute">INTERVAL_HOUR</span></span><br><span class="line"><span class="attribute">INTERVAL_HALF_DAY</span></span><br><span class="line"><span class="attribute">INTERVAL_DAY</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">INTERVAL_FIFTEEN_MINUTES</span></span><br><span class="line"><span class="attribute">INTERVAL_HALF_HOUR</span></span><br><span class="line"><span class="attribute">INTERVAL_HOUR</span></span><br><span class="line"><span class="attribute">INTERVAL_HALF_DAY</span></span><br><span class="line"><span class="attribute">INTERVAL_DAY</span></span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>取消Alarm</li>
 </ul>
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">manager</span><span class="selector-class">.cancel</span>(<span class="selector-tag">alarmIntnet</span>)</span><br></pre></td></tr></table></figure>
-<h4 id="Timer与TimerTask"><a href="#Timer与TimerTask" class="headerlink" title="Timer与TimerTask"></a>Timer与TimerTask</h4><p>与Alarm不同的是Timer是在应用程序之内操作的，对于只在应用程序生命周期内发生的定时操作，将Handler类和Timmer以及Thread结合起来使用是一种比Alarm更好的方法，因为这样可以允许Android更好地控制系统资源。</p>
+<p><figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">manager</span><span class="selector-class">.cancel</span>(<span class="selector-tag">alarmIntnet</span>)</span><br></pre></td></tr></table></figure></p>
+<h4>Timer与TimerTask</h4>
+<p>与Alarm不同的是Timer是在应用程序之内操作的，对于只在应用程序生命周期内发生的定时操作，将Handler类和Timmer以及Thread结合起来使用是一种比Alarm更好的方法，因为这样可以允许Android更好地控制系统资源。</p>
 <ul>
 <li>Timer的使用：</li>
 </ul>
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">Timer timer = <span class="keyword">new</span> Timer();</span><br><span class="line">TimerTask task = <span class="keyword">new</span> TimerTask() &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="built_in">run</span>() &#123;</span><br><span class="line">		<span class="comment">//周期要执行的任务</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line">timer.schedule(<span class="keyword">task</span>, <span class="keyword">delay</span>, period);</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">Timer timer = <span class="keyword">new</span> Timer();</span><br><span class="line">TimerTask task = <span class="keyword">new</span> TimerTask() &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="built_in">run</span>() &#123;</span><br><span class="line">		<span class="comment">//周期要执行的任务</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight ada"><table><tr><td class="code"><pre><span class="line">timer.schedule(<span class="keyword">task</span>, <span class="keyword">delay</span>, period);</span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>取消Timer :</li>
 </ul>
-<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">timer.cancel()<span class="comment">;</span></span><br></pre></td></tr></table></figure>  
+<p><figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">timer.cancel()<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+  
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
@@ -200,7 +206,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Alarm"><span class="toc-number">1.</span> <span class="toc-text">Alarm</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Alarm-介绍"><span class="toc-number">1.1.</span> <span class="toc-text">Alarm 介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Alarm-使用"><span class="toc-number">1.2.</span> <span class="toc-text">Alarm 使用</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Timer与TimerTask"><span class="toc-number">2.</span> <span class="toc-text">Timer与TimerTask</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">Alarm</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">1.1.</span> <span class="toc-text">Alarm 介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">1.2.</span> <span class="toc-text">Alarm 使用</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">Timer与TimerTask</span></a></li></ol>
  
   </div>
 

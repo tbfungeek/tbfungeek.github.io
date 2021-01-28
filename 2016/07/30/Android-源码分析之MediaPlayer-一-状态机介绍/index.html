@@ -11,20 +11,20 @@
     
 
     
-    <meta name="description" content="应用层使用MediaPlayer的方式在创建MediaPlayer的时候有如下的方式可以选择：  将资源存放在raw目录下 使用在线资源的Uri 使用本地资源的Uri 使用Content Provider   用法总结如下图所示：  MediaPlayer状态机机制MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违背">
+    <meta name="description" content="应用层使用MediaPlayer的方式 在创建MediaPlayer的时候有如下的方式可以选择：  将资源存放在raw目录下 使用在线资源的Uri 使用本地资源的Uri 使用Content Provider  用法总结如下图所示：  MediaPlayer状态机机制 MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违">
 <meta name="keywords" content="AOSP 源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 源码分析之MediaPlayer 一 状态机介绍">
 <meta property="og:url" content="http://yoursite.com/2016/07/30/Android-源码分析之MediaPlayer-一-状态机介绍/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="应用层使用MediaPlayer的方式在创建MediaPlayer的时候有如下的方式可以选择：  将资源存放在raw目录下 使用在线资源的Uri 使用本地资源的Uri 使用Content Provider   用法总结如下图所示：  MediaPlayer状态机机制MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违背">
+<meta property="og:description" content="应用层使用MediaPlayer的方式 在创建MediaPlayer的时候有如下的方式可以选择：  将资源存放在raw目录下 使用在线资源的Uri 使用本地资源的Uri 使用Content Provider  用法总结如下图所示：  MediaPlayer状态机机制 MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/07/30/Android-源码分析之MediaPlayer-一-状态机介绍/2.png">
 <meta property="og:image" content="http://yoursite.com/2016/07/30/Android-源码分析之MediaPlayer-一-状态机介绍/1.png">
 <meta property="og:updated_time" content="2016-08-05T23:30:22.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 源码分析之MediaPlayer 一 状态机介绍">
-<meta name="twitter:description" content="应用层使用MediaPlayer的方式在创建MediaPlayer的时候有如下的方式可以选择：  将资源存放在raw目录下 使用在线资源的Uri 使用本地资源的Uri 使用Content Provider   用法总结如下图所示：  MediaPlayer状态机机制MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违背">
+<meta name="twitter:description" content="应用层使用MediaPlayer的方式 在创建MediaPlayer的时候有如下的方式可以选择：  将资源存放在raw目录下 使用在线资源的Uri 使用本地资源的Uri 使用Content Provider  用法总结如下图所示：  MediaPlayer状态机机制 MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违">
 <meta name="twitter:image" content="http://yoursite.com/2016/07/30/Android-源码分析之MediaPlayer-一-状态机介绍/2.png">
 
     
@@ -97,38 +97,50 @@
 </header>
 	<div class="article-content">
 		
-		<h4 id="应用层使用MediaPlayer的方式"><a href="#应用层使用MediaPlayer的方式" class="headerlink" title="应用层使用MediaPlayer的方式"></a>应用层使用MediaPlayer的方式</h4><p>在创建MediaPlayer的时候有如下的方式可以选择：</p>
+		<h4>应用层使用MediaPlayer的方式</h4>
+<p>在创建MediaPlayer的时候有如下的方式可以选择：</p>
 <ul>
 <li>将资源存放在raw目录下</li>
 <li>使用在线资源的Uri</li>
 <li>使用本地资源的Uri</li>
-<li>使用Content Provider </li>
+<li>使用Content Provider</li>
 </ul>
 <p>用法总结如下图所示：</p>
 <p><img src="/2016/07/30/Android-源码分析之MediaPlayer-一-状态机介绍/2.png" alt></p>
-<h4 id="MediaPlayer状态机机制"><a href="#MediaPlayer状态机机制" class="headerlink" title="MediaPlayer状态机机制"></a>MediaPlayer状态机机制</h4><p>MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违背了状态机切换规则则会抛出异常这些将会在后续源代码分析的时候进行介绍：</p>
+<h4>MediaPlayer状态机机制</h4>
+<p>MediaPlayer的状态不是可以任意切换的，它的状态切换受到状态机器的约束：下面是MediaPlayer的状态机的切换图，如果违背了状态机切换规则则会抛出异常这些将会在后续源代码分析的时候进行介绍：</p>
 <p><img src="/2016/07/30/Android-源码分析之MediaPlayer-一-状态机介绍/1.png" alt></p>
 <p>上图中每个椭圆代表一个状态点，共有Idle状态，End状态，Error状态，Initialized 状态，Prepared 状态，Started状态，Paused 状态，Stop 状态，PlaybackCompleted 状态九个状态：</p>
 <ul>
-<li><p>Idle状态：MediaPlayer可以通过两种方式进入Idle状态:一种是使用new创建一个，另一种是调用 reset()方法，但是上述两种有细微的差别：在上述两种方式到达Idle状态的时候如果立即调用getCurrentPosition(), getDuration(),setLooping(boolean), setVolume(float, float), pause(), start(), stop(), seekTo(int), prepare() or prepareAsync()这些方法则会产生错误，但是前者不会触发OnErrorListener.onError()，后者则会触发OnErrorListener.onError()。还有个很重要的地方是：当使用new方式创建MediaPlayer实例的时候将处于Idle状态，但是如果使用create方法创建的实例的时候是处于Prepared状态。因此使用使用create方法创建实例后不需要调用prepare()方法。</p>
+<li>
+<p>Idle状态：MediaPlayer可以通过两种方式进入Idle状态:一种是使用new创建一个，另一种是调用 reset()方法，但是上述两种有细微的差别：在上述两种方式到达Idle状态的时候如果立即调用getCurrentPosition(), getDuration(),setLooping(boolean), setVolume(float, float), pause(), start(), stop(), seekTo(int), prepare() or prepareAsync()这些方法则会产生错误，但是前者不会触发OnErrorListener.onError()，后者则会触发OnErrorListener.onError()。还有个很重要的地方是：当使用new方式创建MediaPlayer实例的时候将处于Idle状态，但是如果使用create方法创建的实例的时候是处于Prepared状态。因此使用使用create方法创建实例后不需要调用prepare()方法。</p>
 </li>
-<li><p>End状态：当MediaPlayer实例调用release()方法后就处于End状态。一旦处于End状态MediaPlayer实例将不能再被使用并且不能再回到其他的状态。</p>
+<li>
+<p>End状态：当MediaPlayer实例调用release()方法后就处于End状态。一旦处于End状态MediaPlayer实例将不能再被使用并且不能再回到其他的状态。</p>
 </li>
-<li><p>Error状态:当出现不支持播放的格式，播放流超时，或者在MediaPlayer实例处于错误状态的时候调用prepare(), prepareAsync()或者setDataSource方法时会触发错误，并进入Error状态。这时候如果通过setOnErrorListener(android.media.MediaPlayer.OnErrorListener).设置了错误监听器则在发生上述错误的时候将会调用OnErrorListener.onError()方法。和End状态不同，处于Error状态的实例可以通过调用reset()回到空闲状态。</p>
+<li>
+<p>Error状态:当出现不支持播放的格式，播放流超时，或者在MediaPlayer实例处于错误状态的时候调用prepare(), prepareAsync()或者setDataSource方法时会触发错误，并进入Error状态。这时候如果通过setOnErrorListener(android.media.MediaPlayer.OnErrorListener).设置了错误监听器则在发生上述错误的时候将会调用OnErrorListener.onError()方法。和End状态不同，处于Error状态的实例可以通过调用reset()回到空闲状态。</p>
 </li>
-<li><p>Initialized 状态：在Idle状态调用setDataSource将会到达Initialized状态。</p>
+<li>
+<p>Initialized 状态：在Idle状态调用setDataSource将会到达Initialized状态。</p>
 </li>
-<li><p>Prepared 状态：在调用start()方法开始播放之前，需要进入Prepared 状态，可以通过两种方式到达这种状态，一种是调用prepare()方法，这种是同步的方法，只有在方法返回的时候才进入Prepared 状态，另一种是调用prepareAsync()使用异步的方式，这种方式是先让MediaPlayer实例进入Prepared状态并返回，然后内部的播放机制继续完成准备工作直到完成。不论哪种方式只要调用setOnPreparedListener方法.在完成后都会调用onPrepared()方法。</p>
+<li>
+<p>Prepared 状态：在调用start()方法开始播放之前，需要进入Prepared 状态，可以通过两种方式到达这种状态，一种是调用prepare()方法，这种是同步的方法，只有在方法返回的时候才进入Prepared 状态，另一种是调用prepareAsync()使用异步的方式，这种方式是先让MediaPlayer实例进入Prepared状态并返回，然后内部的播放机制继续完成准备工作直到完成。不论哪种方式只要调用setOnPreparedListener方法.在完成后都会调用onPrepared()方法。</p>
 </li>
-<li><p>Started状态:在成功调用start()方法后MediaPlayer对象将会进入这个状态，这时候再调用start()方法将不会有任何影响。可以通过调用isPlaying()方法来查看是否处于Started状态。可以通过setOnBufferingUpdateListener(OnBufferingUpdateListener)注册对缓存区情况的监听。</p>
+<li>
+<p>Started状态:在成功调用start()方法后MediaPlayer对象将会进入这个状态，这时候再调用start()方法将不会有任何影响。可以通过调用isPlaying()方法来查看是否处于Started状态。可以通过setOnBufferingUpdateListener(OnBufferingUpdateListener)注册对缓存区情况的监听。</p>
 </li>
-<li><p>Paused 状态：在Started状态可以调用pause()方法让其进入Paused 状态，在停止状态也可以调用start()方法回到Started状态，也可以调用stop()方法进入Stop状态。需要注意的是从Started状态状态到Paused 状态使用的是异步的方法，当pause()方法返回的时候需要等待一小段时间才能将状态更新到isPlaying()的返回值</p>
+<li>
+<p>Paused 状态：在Started状态可以调用pause()方法让其进入Paused 状态，在停止状态也可以调用start()方法回到Started状态，也可以调用stop()方法进入Stop状态。需要注意的是从Started状态状态到Paused 状态使用的是异步的方法，当pause()方法返回的时候需要等待一小段时间才能将状态更新到isPlaying()的返回值</p>
 </li>
-<li><p>Stop 状态：当MediaPlayer实例处于Started, Paused, Prepared 或者PlaybackCompleted状态的时候调用stop方法将会进入Stop 状态。在进入stop状态的时候就不能直接start，而必须通过调用prepare() 或者prepareAsync()方法进入Prepared 状态的时候才可以再次进入start状态。</p>
+<li>
+<p>Stop 状态：当MediaPlayer实例处于Started, Paused, Prepared 或者PlaybackCompleted状态的时候调用stop方法将会进入Stop 状态。在进入stop状态的时候就不能直接start，而必须通过调用prepare() 或者prepareAsync()方法进入Prepared 状态的时候才可以再次进入start状态。</p>
 </li>
-<li><p>PlaybackCompleted 状态：当播放完成的时候如果循环模式设为false，那么在播放结束的时候将会进入PlaybackCompleted 状态，如果这之前已经调用setOnCompletionListener(OnCompletionListener)注册监听器的话，将会调用OnCompletion.onCompletion()回调方法。在PlaybackCompleted 状态的时候可以调用start()方法重新开始播放歌曲。如果循环模式设为true则播放完成将不会进入PlaybackCompleted 状态而是继续留在Started状态。</p>
+<li>
+<p>PlaybackCompleted 状态：当播放完成的时候如果循环模式设为false，那么在播放结束的时候将会进入PlaybackCompleted 状态，如果这之前已经调用setOnCompletionListener(OnCompletionListener)注册监听器的话，将会调用OnCompletion.onCompletion()回调方法。在PlaybackCompleted 状态的时候可以调用start()方法重新开始播放歌曲。如果循环模式设为true则播放完成将不会进入PlaybackCompleted 状态而是继续留在Started状态。</p>
 </li>
-<li><p>调整歌曲的播放进度,可以调用seekTo(int)方法来调整歌曲的播放进度，seekTo(int)方法会立刻返回。但是实际的seek操作会等待一会儿才会结束，如果调用了setOnSeekCompleteListener(OnSeekCompleteListener).在seek操作结束后将会调用OnSeekComplete.onSeekComplete()方法。可以在Start，Prepared, Paused 和 PlaybackCompleted 状态调用seekTo(int)方法调整歌曲的播放进度。</p>
+<li>
+<p>调整歌曲的播放进度,可以调用seekTo(int)方法来调整歌曲的播放进度，seekTo(int)方法会立刻返回。但是实际的seek操作会等待一会儿才会结束，如果调用了setOnSeekCompleteListener(OnSeekCompleteListener).在seek操作结束后将会调用OnSeekComplete.onSeekComplete()方法。可以在Start，Prepared, Paused 和 PlaybackCompleted 状态调用seekTo(int)方法调整歌曲的播放进度。</p>
 </li>
 </ul>
   
@@ -193,7 +205,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#应用层使用MediaPlayer的方式"><span class="toc-number">1.</span> <span class="toc-text">应用层使用MediaPlayer的方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MediaPlayer状态机机制"><span class="toc-number">2.</span> <span class="toc-text">MediaPlayer状态机机制</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">应用层使用MediaPlayer的方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">MediaPlayer状态机机制</span></a></li></ol>
  
   </div>
 

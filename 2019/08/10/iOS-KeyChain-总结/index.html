@@ -11,13 +11,13 @@
     
 
     
-    <meta name="description" content="1. KeyChain 简要概述 KeyChain的实质是一个安全的数据库（数据库位于/private/var/Keychains/keychain-2.db),里面大部分数据都是加密的, 我们可以用KeyChain保存一些私密信息，比如密码、证书、设备唯一码（UDID）等等，总的来说KeyChain有如下特点：  安全 Keychain的信息是存在于每个应用沙盒之外由系统负责管理，因此不会因Ap">
+    <meta name="description" content="1. KeyChain 简要概述  KeyChain的实质是一个安全的数据库（数据库位于/private/var/Keychains/keychain-2.db),里面大部分数据都是加密的, 我们可以用KeyChain保存一些私密信息，比如密码、证书、设备唯一码（UDID）等等，总的来说KeyChain有如下特点：  安全 Keychain的信息是存在于每个应用沙盒之外由系统负责管理，因此不会因A">
 <meta name="keywords" content="iOS 理论基础">
 <meta property="og:type" content="article">
 <meta property="og:title" content="iOS KeyChain 总结">
 <meta property="og:url" content="http://yoursite.com/2019/08/10/iOS-KeyChain-总结/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="1. KeyChain 简要概述 KeyChain的实质是一个安全的数据库（数据库位于/private/var/Keychains/keychain-2.db),里面大部分数据都是加密的, 我们可以用KeyChain保存一些私密信息，比如密码、证书、设备唯一码（UDID）等等，总的来说KeyChain有如下特点：  安全 Keychain的信息是存在于每个应用沙盒之外由系统负责管理，因此不会因Ap">
+<meta property="og:description" content="1. KeyChain 简要概述  KeyChain的实质是一个安全的数据库（数据库位于/private/var/Keychains/keychain-2.db),里面大部分数据都是加密的, 我们可以用KeyChain保存一些私密信息，比如密码、证书、设备唯一码（UDID）等等，总的来说KeyChain有如下特点：  安全 Keychain的信息是存在于每个应用沙盒之外由系统负责管理，因此不会因A">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/08/10/iOS-KeyChain-总结/000001.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/10/iOS-KeyChain-总结/000003.png">
@@ -26,7 +26,7 @@
 <meta property="og:updated_time" content="2019-12-19T12:52:04.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="iOS KeyChain 总结">
-<meta name="twitter:description" content="1. KeyChain 简要概述 KeyChain的实质是一个安全的数据库（数据库位于/private/var/Keychains/keychain-2.db),里面大部分数据都是加密的, 我们可以用KeyChain保存一些私密信息，比如密码、证书、设备唯一码（UDID）等等，总的来说KeyChain有如下特点：  安全 Keychain的信息是存在于每个应用沙盒之外由系统负责管理，因此不会因Ap">
+<meta name="twitter:description" content="1. KeyChain 简要概述  KeyChain的实质是一个安全的数据库（数据库位于/private/var/Keychains/keychain-2.db),里面大部分数据都是加密的, 我们可以用KeyChain保存一些私密信息，比如密码、证书、设备唯一码（UDID）等等，总的来说KeyChain有如下特点：  安全 Keychain的信息是存在于每个应用沙盒之外由系统负责管理，因此不会因A">
 <meta name="twitter:image" content="http://yoursite.com/2019/08/10/iOS-KeyChain-总结/000001.png">
 
     
@@ -99,92 +99,115 @@
 </header>
 	<div class="article-content">
 		
-		<h5 id="1-KeyChain-简要概述"><a href="#1-KeyChain-简要概述" class="headerlink" title="1. KeyChain 简要概述"></a>1. KeyChain 简要概述</h5><p><img src="/2019/08/10/iOS-KeyChain-总结/000001.png" alt></p>
+		<h5>1. KeyChain 简要概述</h5>
+<p><img src="/2019/08/10/iOS-KeyChain-总结/000001.png" alt></p>
 <p>KeyChain的实质是一个安全的数据库（数据库位于/private/var/Keychains/keychain-2.db),里面大部分数据都是加密的, 我们可以用KeyChain保存一些私密信息，比如密码、证书、设备唯一码（UDID）等等，总的来说KeyChain有如下特点：</p>
 <ol>
 <li>安全</li>
 <li>Keychain的信息是存在于每个应用沙盒之外由系统负责管理，因此不会因App删除而丢失，在重装App后，Keychain里的数据还能使用,除非将系统恢复出厂设置。</li>
 <li>一般而言不同App之间Keychain不能相互访问，但是从iOS 3 开始可以通过设置共有钥匙串部分信息。可以利用这一特性在自家的应用上共享KeyChain信息。</li>
 </ol>
-<h5 id="2-KeyChain的结构"><a href="#2-KeyChain的结构" class="headerlink" title="2. KeyChain的结构"></a>2. KeyChain的结构</h5><p>每一个KeyChain由多个KeyChain item组成，KeyChain item的结构类似字典，同时每条KeyChain Item还包含一条data和多个attributes组成。<br>其中苹果提供了下面几种类型的keychain item，并且对不同类型的item做了不同的处理，比如password和key类的item就会做加密，而certificates类的就不会。</p>
+<h5>2. KeyChain的结构</h5>
+<p>每一个KeyChain由多个KeyChain item组成，KeyChain item的结构类似字典，同时每条KeyChain Item还包含一条data和多个attributes组成。
+其中苹果提供了下面几种类型的keychain item，并且对不同类型的item做了不同的处理，比如password和key类的item就会做加密，而certificates类的就不会。</p>
 <ul>
-<li>kSecClass </li>
+<li>kSecClass</li>
 </ul>
 <p>KeyChain Item 的类别，可以是下面几项：</p>
-<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassGenericPassword   <span class="comment">//通用密码项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassInternetPassword  <span class="comment">//互联网密码项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassCertificate       <span class="comment">//证书项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassKey               <span class="comment">//key项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassIdentity          <span class="comment">//认证项</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassGenericPassword   <span class="comment">//通用密码项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassInternetPassword  <span class="comment">//互联网密码项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassCertificate       <span class="comment">//证书项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassKey               <span class="comment">//key项</span></span><br><span class="line"><span class="keyword">extern</span> <span class="built_in">CFTypeRef</span> kSecClassIdentity          <span class="comment">//认证项</span></span><br></pre></td></tr></table></figure></p>
 <p>系统指定的这些item都有特定需要配置的属性，这些属性是可选的不一定都需要给定，详细的可以查看SecItem.h文件，下面仅仅列出kSecClassGenericPassword的Attribute.</p>
-<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">kSecClassGenericPassword</span> <span class="selector-tag">item</span> <span class="selector-tag">attributes</span>:</span><br><span class="line"><span class="selector-tag">kSecAttrAccess</span> (OS X only)</span><br><span class="line"><span class="selector-tag">kSecAttrAccessControl</span></span><br><span class="line"><span class="selector-tag">kSecAttrAccessGroup</span> (iOS; also OS X if kSecAttrSynchronizable specified)</span><br><span class="line"><span class="selector-tag">kSecAttrAccessible</span> (iOS; also OS X if kSecAttrSynchronizable specified)</span><br><span class="line"><span class="selector-tag">kSecAttrCreationDate</span></span><br><span class="line"><span class="selector-tag">kSecAttrModificationDate</span></span><br><span class="line"><span class="selector-tag">kSecAttrDescription</span></span><br><span class="line"><span class="selector-tag">kSecAttrComment</span></span><br><span class="line"><span class="selector-tag">kSecAttrCreator</span></span><br><span class="line"><span class="selector-tag">kSecAttrType</span></span><br><span class="line"><span class="selector-tag">kSecAttrLabel</span></span><br><span class="line"><span class="selector-tag">kSecAttrIsInvisible</span></span><br><span class="line"><span class="selector-tag">kSecAttrIsNegative</span></span><br><span class="line"><span class="selector-tag">kSecAttrAccount</span></span><br><span class="line"><span class="selector-tag">kSecAttrService</span></span><br><span class="line"><span class="selector-tag">kSecAttrGeneric</span></span><br><span class="line"><span class="selector-tag">kSecAttrSynchronizable</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">kSecClassGenericPassword</span> <span class="selector-tag">item</span> <span class="selector-tag">attributes</span>:</span><br><span class="line"><span class="selector-tag">kSecAttrAccess</span> (OS X only)</span><br><span class="line"><span class="selector-tag">kSecAttrAccessControl</span></span><br><span class="line"><span class="selector-tag">kSecAttrAccessGroup</span> (iOS; also OS X if kSecAttrSynchronizable specified)</span><br><span class="line"><span class="selector-tag">kSecAttrAccessible</span> (iOS; also OS X if kSecAttrSynchronizable specified)</span><br><span class="line"><span class="selector-tag">kSecAttrCreationDate</span></span><br><span class="line"><span class="selector-tag">kSecAttrModificationDate</span></span><br><span class="line"><span class="selector-tag">kSecAttrDescription</span></span><br><span class="line"><span class="selector-tag">kSecAttrComment</span></span><br><span class="line"><span class="selector-tag">kSecAttrCreator</span></span><br><span class="line"><span class="selector-tag">kSecAttrType</span></span><br><span class="line"><span class="selector-tag">kSecAttrLabel</span></span><br><span class="line"><span class="selector-tag">kSecAttrIsInvisible</span></span><br><span class="line"><span class="selector-tag">kSecAttrIsNegative</span></span><br><span class="line"><span class="selector-tag">kSecAttrAccount</span></span><br><span class="line"><span class="selector-tag">kSecAttrService</span></span><br><span class="line"><span class="selector-tag">kSecAttrGeneric</span></span><br><span class="line"><span class="selector-tag">kSecAttrSynchronizable</span></span><br></pre></td></tr></table></figure></p>
 <p>需要注意的kSecClassIdentity item 由于是私有key和证书的结合，因此它的Attribute是二者的合集。</p>
 <p>其中还有个比较重要的Attribute是kSecAttrAccessible，在我们调用SecItemCopyMatching方法返回item数据的时候，如果权限不够就会抛出errSecInteractionNotAllowed的错误。</p>
-<figure class="highlight mathematica"><table><tr><td class="code"><pre><span class="line">kSecAttrAccessibleWhenUnlocked     当前的<span class="keyword">Item</span>只有设备处于解锁状态才能被访问,这个适用于在前台访问的<span class="keyword">Item</span>.</span><br><span class="line">kSecAttrAccessibleAfterFirstUnlock 当前的<span class="keyword">Item</span>只有设备重启并解锁后才能被访问，这个适用于需要在后台访问的<span class="keyword">Item</span>.</span><br><span class="line">kSecAttrAccessibleAlways           不论是否解锁库，都能访问改item，这种类型极为不安全，不推荐使用。</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight mathematica"><table><tr><td class="code"><pre><span class="line">kSecAttrAccessibleWhenUnlocked     当前的<span class="keyword">Item</span>只有设备处于解锁状态才能被访问,这个适用于在前台访问的<span class="keyword">Item</span>.</span><br><span class="line">kSecAttrAccessibleAfterFirstUnlock 当前的<span class="keyword">Item</span>只有设备重启并解锁后才能被访问，这个适用于需要在后台访问的<span class="keyword">Item</span>.</span><br><span class="line">kSecAttrAccessibleAlways           不论是否解锁库，都能访问改item，这种类型极为不安全，不推荐使用。</span><br></pre></td></tr></table></figure></p>
 <p>上面这些类型在加密备份的时候都会同步到新的机器上。</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">kSecAttrAccessibleWhenUnlockedThisDeviceOnly</span></span><br><span class="line"><span class="attribute">kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly</span></span><br><span class="line"><span class="attribute">kSecAttrAccessibleAlwaysThisDeviceOnly</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">kSecAttrAccessibleWhenUnlockedThisDeviceOnly</span></span><br><span class="line"><span class="attribute">kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly</span></span><br><span class="line"><span class="attribute">kSecAttrAccessibleAlwaysThisDeviceOnly</span></span><br></pre></td></tr></table></figure></p>
 <p>上面这些多出了ThisDeviceOnly，这个表明这些Item在加密备份后，会被以硬件相关的密钥(key)加密。并且不会随着备份移动至其他设备。</p>
 <p>一般而言最好不要将Item设置为kSecAttrAccessibleAlways，并且钥匙串可以通过iTunes或iCloud同步的方式同步到其他设备，如果你保存的数据高度敏感，则需要使用后缀为ThisDeviceOnly的选项。</p>
 <p>Keychain 从 iOS 7.0 开始也支持iCloud备份。把kSecAttrSynchronizable属性设置为@YES，这样后Keychain就能被iCloud备份并且跨设备分享。</p>
 <p><img src="/2019/08/10/iOS-KeyChain-总结/000003.png" alt></p>
-<h5 id="3-在项目中引入KeyChain的方案："><a href="#3-在项目中引入KeyChain的方案：" class="headerlink" title="3. 在项目中引入KeyChain的方案："></a>3. 在项目中引入KeyChain的方案：</h5><p>不论使用下面哪种方式在使用之前都必须往项目中导入Security.framework框架</p>
+<h5>3. 在项目中引入KeyChain的方案：</h5>
+<p>不论使用下面哪种方式在使用之前都必须往项目中导入Security.framework框架</p>
 <p>对于KeyChain 的封装较少目前网上用得较多的有如下三种方式：</p>
 <ol>
 <li>使用官方推出的 <a href="https://github.com/baptistefetet/KeychainItemWrapper" target="_blank" rel="noopener">KeychainItemWrapper</a></li>
 </ol>
 <p>使用KeychainItemWrapper保存数据：</p>
-<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] <span class="string">initWithIdentifier:</span>@<span class="string">"idealists"</span> <span class="string">accessGroup:</span>nil];</span><br><span class="line">NSString *username = @<span class="string">"linxiaohai"</span>;</span><br><span class="line">NSString *password = @<span class="string">"123"</span>;</span><br><span class="line">[wrapper <span class="string">setObject:</span>username <span class="string">forKey:</span>(id)kSecAttrAccount];</span><br><span class="line">[wrapper <span class="string">setObject:</span>password <span class="string">forKey:</span>(id)kSecValueData];</span><br></pre></td></tr></table></figure>
+<p><figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] <span class="string">initWithIdentifier:</span>@<span class="string">"idealists"</span> <span class="string">accessGroup:</span>nil];</span><br><span class="line">NSString *username = @<span class="string">"linxiaohai"</span>;</span><br><span class="line">NSString *password = @<span class="string">"123"</span>;</span><br><span class="line">[wrapper <span class="string">setObject:</span>username <span class="string">forKey:</span>(id)kSecAttrAccount];</span><br><span class="line">[wrapper <span class="string">setObject:</span>password <span class="string">forKey:</span>(id)kSecValueData];</span><br></pre></td></tr></table></figure></p>
 <p>在初始化KeychainItemWrapper会用到两个参数：</p>
 <ul>
 <li>Identifier: 我们从keychain中取数据的时候会用到</li>
 <li>accessGroup: 如果想要在应用之间共享信息，那么需要指定访问组KeyChain Access Group.如果不需要共享则传nil</li>
 </ul>
 <ul>
-<li>(void)setObject:(id)inObject forKey:(id)key;<br>这里的key必须是Security.framework 里头文件“SecItem.h”里定义好的key，用其他字符串做key程序会崩溃</li>
+<li>(void)setObject:(id)inObject forKey:(id)key;
+这里的key必须是Security.framework 里头文件“SecItem.h”里定义好的key，用其他字符串做key程序会崩溃</li>
 </ul>
-<p>使用KeychainItemWrapper获取数据：<br><figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] <span class="string">initWithIdentifier:</span>@<span class="string">"idealists"</span> <span class="string">accessGroup:</span>nil];</span><br><span class="line">username = [wrapper <span class="string">objectForKey:</span>(id)kSecAttrAccount];</span><br><span class="line">password = [wrapper <span class="string">objectForKey:</span>(id)kSecValueData];</span><br></pre></td></tr></table></figure></p>
+<p>使用KeychainItemWrapper获取数据：
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] <span class="string">initWithIdentifier:</span>@<span class="string">"idealists"</span> <span class="string">accessGroup:</span>nil];</span><br><span class="line">username = [wrapper <span class="string">objectForKey:</span>(id)kSecAttrAccount];</span><br><span class="line">password = [wrapper <span class="string">objectForKey:</span>(id)kSecValueData];</span><br></pre></td></tr></table></figure></p>
 <p>这里需要注意的是identifier和accessGroup必须要对应上。</p>
 <ol start="2">
-<li><p>第三方封装<a href="https://github.com/soffes/SAMKeychain" target="_blank" rel="noopener">SAMKeychain</a>,<a href="https://github.com/samsoffes/sskeychain" target="_blank" rel="noopener">SSKeychain</a><br>这两个三方库其实是同一个实现，只不过在iOS 10中有个私有系统类也叫SSKeychain，所以如果在iOS 10中使用会有不兼容的问题，可以查看对应的<a href="https://github.com/soffes/SAMKeychain/issues/179" target="_blank" rel="noopener">issue</a></p>
+<li>
+<p>第三方封装<a href="https://github.com/soffes/SAMKeychain" target="_blank" rel="noopener">SAMKeychain</a>,<a href="https://github.com/samsoffes/sskeychain" target="_blank" rel="noopener">SSKeychain</a>
+这两个三方库其实是同一个实现，只不过在iOS 10中有个私有系统类也叫SSKeychain，所以如果在iOS 10中使用会有不兼容的问题，可以查看对应的<a href="https://github.com/soffes/SAMKeychain/issues/179" target="_blank" rel="noopener">issue</a></p>
 <p>这个是star 比较多的一个开源项目，接口也十分简单。</p>
 </li>
-<li><p>通过Security.framework框架使用<br>不论是KeychainItemWrapper还是SAMKeychain都是对Security的封装，Security.framework提供了如下的API供我们使用：</p>
-<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">SecItemAdd 添加一个keychain <span class="built_in">item</span></span><br><span class="line">SecItemUpdate 修改一个keychain <span class="built_in">item</span></span><br><span class="line">SecItemCopyMatching 搜索一个keychain <span class="built_in">item</span></span><br><span class="line">SecItemDelete 删除一个keychain <span class="built_in">item</span></span><br></pre></td></tr></table></figure>
+<li>
+<p>通过Security.framework框架使用
+不论是KeychainItemWrapper还是SAMKeychain都是对Security的封装，Security.framework提供了如下的API供我们使用：</p>
+<p><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">SecItemAdd 添加一个keychain <span class="built_in">item</span></span><br><span class="line">SecItemUpdate 修改一个keychain <span class="built_in">item</span></span><br><span class="line">SecItemCopyMatching 搜索一个keychain <span class="built_in">item</span></span><br><span class="line">SecItemDelete 删除一个keychain <span class="built_in">item</span></span><br></pre></td></tr></table></figure></p>
 </li>
 </ol>
-<h5 id="4-使用KeyChain-Access-Group-实现不同APP共享Keychain中的数据"><a href="#4-使用KeyChain-Access-Group-实现不同APP共享Keychain中的数据" class="headerlink" title="4. 使用KeyChain Access Group 实现不同APP共享Keychain中的数据"></a>4. 使用KeyChain Access Group 实现不同APP共享Keychain中的数据</h5><p>从iOS 3.0 之后，不同应用之间可以共享KeyChain 数据了。如果我们的产品线有一系列的应用并且这些应用之间需要共享一些公共的账号信息，就可以通过共享KeyChain来实现。但是这是有严格限制的，只有拥有相同 App ID 前缀的应用才有可能共享 keychain。并且各应用存储的 keychain item 都需要标记了相同的 kSecAccessGroup 字段值。</p>
-<p>App ID 是由两个部分组成:<br><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line">&lt;<span class="keyword">Bundle </span>Seed ID&gt; . &lt;<span class="keyword">Bundle </span> Identifier&gt;</span><br></pre></td></tr></table></figure></p>
-<p>Bundle Seed ID(Team ID) 是由苹果公司在第一次创建一个App ID生成的，是一个唯一的10个字符组成的字符串。Bundle  Identifier这个就是我们应用的bundle id。<br>比如：<br><figure class="highlight css"><table><tr><td class="code"><pre><span class="line">659823<span class="selector-tag">F3DC53</span><span class="selector-class">.com</span><span class="selector-class">.example</span><span class="selector-class">.amazingApp</span></span><br></pre></td></tr></table></figure></p>
+<h5>4. 使用KeyChain Access Group 实现不同APP共享Keychain中的数据</h5>
+<p>从iOS 3.0 之后，不同应用之间可以共享KeyChain 数据了。如果我们的产品线有一系列的应用并且这些应用之间需要共享一些公共的账号信息，就可以通过共享KeyChain来实现。但是这是有严格限制的，只有拥有相同 App ID 前缀的应用才有可能共享 keychain。并且各应用存储的 keychain item 都需要标记了相同的 kSecAccessGroup 字段值。</p>
+<p>App ID 是由两个部分组成:
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line">&lt;<span class="keyword">Bundle </span>Seed ID&gt; . &lt;<span class="keyword">Bundle </span> Identifier&gt;</span><br></pre></td></tr></table></figure></p>
+<p>Bundle Seed ID(Team ID) 是由苹果公司在第一次创建一个App ID生成的，是一个唯一的10个字符组成的字符串。Bundle  Identifier这个就是我们应用的bundle id。
+比如：
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">659823<span class="selector-tag">F3DC53</span><span class="selector-class">.com</span><span class="selector-class">.example</span><span class="selector-class">.amazingApp</span></span><br></pre></td></tr></table></figure></p>
 <p>659823F3DC53 是我们的Team ID。一个开发者账号可以有几个不同的Team ID。也就是说要共享数据必须要求使用同一个Team ID。</p>
 <p>比如我们的两个应用App ID如下：</p>
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">ABC1234DEF</span><span class="selector-class">.com</span><span class="selector-class">.useyourloaf</span><span class="selector-class">.amazingApp1</span></span><br><span class="line"><span class="selector-tag">ABC1234DEF</span><span class="selector-class">.com</span><span class="selector-class">.useyourloaf</span><span class="selector-class">.amazingApp2</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">ABC1234DEF</span><span class="selector-class">.com</span><span class="selector-class">.useyourloaf</span><span class="selector-class">.amazingApp1</span></span><br><span class="line"><span class="selector-tag">ABC1234DEF</span><span class="selector-class">.com</span><span class="selector-class">.useyourloaf</span><span class="selector-class">.amazingApp2</span></span><br></pre></td></tr></table></figure></p>
 <p>我们可以定义一个共享的KeyChain Access Group</p>
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">ABC1234DEF</span><span class="selector-class">.amazingAppFamily</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">ABC1234DEF</span><span class="selector-class">.amazingAppFamily</span></span><br></pre></td></tr></table></figure></p>
 <ol>
 <li>Project-&gt; Capebilities-&gt; Keychain Sharing ，将Keychain Sharing打开，在新版的Xcode中，将Keychain Sharing打开后，会在项目对应的目录下自动生成对应的Entitlements文件，在Entitlements文件的KeyChain Access Group节点中添加KeyChain Access Group名字。ABC1234DEF.amazingAppFamily</li>
 </ol>
 <p><img src="/2019/08/10/iOS-KeyChain-总结/0000111.png" alt></p>
 <ol start="2">
-<li><p>在 Project-&gt; Build Setting -&gt; Code Signing Entitlements 中添加上一个步骤生成的Entitlements文件。</p>
+<li>
+<p>在 Project-&gt; Build Setting -&gt; Code Signing Entitlements 中添加上一个步骤生成的Entitlements文件。</p>
 </li>
-<li><p>在存储数据的时候指定kSecAttrAccessGroup 为 ABC1234DEF.amazingAppFamily</p>
+<li>
+<p>在存储数据的时候指定kSecAttrAccessGroup 为 ABC1234DEF.amazingAppFamily</p>
 </li>
 </ol>
-<h5 id="5-使用keychain需要注意的问题"><a href="#5-使用keychain需要注意的问题" class="headerlink" title="5. 使用keychain需要注意的问题"></a>5. 使用keychain需要注意的问题</h5><ul>
+<h5>5. 使用keychain需要注意的问题</h5>
+<ul>
 <li>当我们没有打开Keychain Access Group，并且没有entitlement文件时，KeyChain默认以bundle id为Group。如果我们在版本更新的时候改变了bundle id，那么新版本就访问不了旧版本的KeyChain信息了。解决办法是从一开始我们就打开KeychainSharing，添加Keychain Access Group，并且指定每条keychain Item的group，私有的信息就指定app的bundle id为它的Group。</li>
 <li>代码内Access group名称一定要有AppIdentifierPrefix前缀。</li>
 <li>Keychain是基于数据库存储，不允许添加重复的条目。所以每条item都必须指定对应的唯一标识符也就是那些主要的key，如果Key指定不正确，可能会出现添加后查找不到的问题。</li>
 <li>kSecAttrSynchronizable也会作为主要的key之一。它的value值默认为No，如果之前添加的item此条属性为YES，在搜索，更新，删除的时候必须添加此条属性才能查找到之前添加的item。</li>
 <li>KeyChain item字典内添加自定义key时会出现参数不合法的错误,所以要注意对传入的参数进行校验。</li>
 </ul>
-<h5 id="6-Keychain的安全性"><a href="#6-Keychain的安全性" class="headerlink" title="6. Keychain的安全性"></a>6. Keychain的安全性</h5><p>Keychain内部的数据会自动加密。如果设备没有越狱并且不暴力破解，Keychain确实很安全。但是越狱后的设备，Keychain就很危险了，结合Keychain Dumper等工具,很容易拿到Keychain数据，网上也有较多现成攻略，</p>
-<h5 id="6-KeyChain的进一步封装"><a href="#6-KeyChain的进一步封装" class="headerlink" title="6. KeyChain的进一步封装"></a>6. KeyChain的进一步封装</h5><p>SAMKeychain 是一个很不错的项目，但是它只提供密码形式的存储，这里向借鉴SAMKeychain对KeyChain的核心功能的封装以及Masory配置属性的方式（主要是克服使用字典方式传递参数的时候，如果key不是指定的会崩溃的问题）</p>
+<h5>6. Keychain的安全性</h5>
+<p>Keychain内部的数据会自动加密。如果设备没有越狱并且不暴力破解，Keychain确实很安全。但是越狱后的设备，Keychain就很危险了，结合Keychain Dumper等工具,很容易拿到Keychain数据，网上也有较多现成攻略，</p>
+<h5>6. KeyChain的进一步封装</h5>
+<p>SAMKeychain 是一个很不错的项目，但是它只提供密码形式的存储，这里向借鉴SAMKeychain对KeyChain的核心功能的封装以及Masory配置属性的方式（主要是克服使用字典方式传递参数的时候，如果key不是指定的会崩溃的问题）</p>
 <p><img src="/2019/08/10/iOS-KeyChain-总结/0000222.png" alt></p>
 <p>主要分成四层：</p>
 <ol>
-<li><p>KeyChainAttibuteMaker：将kSecClass传递进去KeyChainAttibuteMaker根据kSecClass，新建出对应的KeyChainItemAttribute的子项，比如传入kSecClassGenericPassword会新建一个GenericPasswordAttribute，并通过Block传出，供外面对属性进行配置。</p>
+<li>
+<p>KeyChainAttibuteMaker：将kSecClass传递进去KeyChainAttibuteMaker根据kSecClass，新建出对应的KeyChainItemAttribute的子项，比如传入kSecClassGenericPassword会新建一个GenericPasswordAttribute，并通过Block传出，供外面对属性进行配置。</p>
 </li>
-<li><p>KeyChainAttibuteMaker会对配置完的KeyChainItemAttribute对象进行校验，对于非nil类型的属性，根据属性名，获取Keychain Attribute 的key字符串，构建出NSDirectionary对象传递出来。</p>
+<li>
+<p>KeyChainAttibuteMaker会对配置完的KeyChainItemAttribute对象进行校验，对于非nil类型的属性，根据属性名，获取Keychain Attribute 的key字符串，构建出NSDirectionary对象传递出来。</p>
 </li>
-<li><p>NMKeyChainTool 提供顶层的封装供外部开发者调用，它主要完成两项任务： KeyChainItemAttribute 的构建，KeyChainItemAttribute转NSDirectionary 调用NMKeyChainItemQuery操作KeyChain</p>
+<li>
+<p>NMKeyChainTool 提供顶层的封装供外部开发者调用，它主要完成两项任务： KeyChainItemAttribute 的构建，KeyChainItemAttribute转NSDirectionary 调用NMKeyChainItemQuery操作KeyChain</p>
 </li>
-<li><p>NMKeyChainItemQuery 是比较纯粹的增删改查的操作。调用的是Security.framework的SecItemAdd，SecItemUpdate，SecItemCopyMatching，SecItemDelete对KeyChain进行操作。</p>
+<li>
+<p>NMKeyChainItemQuery 是比较纯粹的增删改查的操作。调用的是Security.framework的SecItemAdd，SecItemUpdate，SecItemCopyMatching，SecItemDelete对KeyChain进行操作。</p>
 </li>
 </ol>
   
@@ -249,7 +272,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-KeyChain-简要概述"><span class="toc-number">1.</span> <span class="toc-text">1. KeyChain 简要概述</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-KeyChain的结构"><span class="toc-number">2.</span> <span class="toc-text">2. KeyChain的结构</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-在项目中引入KeyChain的方案："><span class="toc-number">3.</span> <span class="toc-text">3. 在项目中引入KeyChain的方案：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-使用KeyChain-Access-Group-实现不同APP共享Keychain中的数据"><span class="toc-number">4.</span> <span class="toc-text">4. 使用KeyChain Access Group 实现不同APP共享Keychain中的数据</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-使用keychain需要注意的问题"><span class="toc-number">5.</span> <span class="toc-text">5. 使用keychain需要注意的问题</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-Keychain的安全性"><span class="toc-number">6.</span> <span class="toc-text">6. Keychain的安全性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-KeyChain的进一步封装"><span class="toc-number">7.</span> <span class="toc-text">6. KeyChain的进一步封装</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">1. KeyChain 简要概述</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">2. KeyChain的结构</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">3. 在项目中引入KeyChain的方案：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">4. 使用KeyChain Access Group 实现不同APP共享Keychain中的数据</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.</span> <span class="toc-text">5. 使用keychain需要注意的问题</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">6.</span> <span class="toc-text">6. Keychain的安全性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">7.</span> <span class="toc-text">6. KeyChain的进一步封装</span></a></li></ol>
  
   </div>
 

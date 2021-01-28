@@ -98,29 +98,36 @@
 </header>
 	<div class="article-content">
 		
-		<p>Android上的MediaPlayer播放底层框架已经经历了多次变动，从最早先的OpenCore到后来的StageFright再到现在的NuPlayerDriver，在工作开始接触Android的时候已经移除了OpenCore所以对OpenCore的了解仅仅停留在听说过，这些框架在演进过程中一般都是先两种框架并存，然后再在某个版本中将其移除，早先Android中使用的是Stagefright + NuPlayer并存的方式，其中前者负责播放本地的媒体文件，后者用于播放网络流媒体文件，但是在后来的Android L开始NuPlayeri渐渐开始替代了Stagefright，目前本地播放已经切换到NuPlayer上了，在Android N AOPS 源代码中甚至移除了Stagefright。在接下来的两篇博客中将会给大家介绍Stragefright播放框架以及Nuplayer播放框架。<br>今天这篇先带大家看下Stagefright播放框架。在介绍Stagefright和Nuplayer之前我们先来看下Android MediaPlayer播放框架的大体结构图：</p>
+		<p>Android上的MediaPlayer播放底层框架已经经历了多次变动，从最早先的OpenCore到后来的StageFright再到现在的NuPlayerDriver，在工作开始接触Android的时候已经移除了OpenCore所以对OpenCore的了解仅仅停留在听说过，这些框架在演进过程中一般都是先两种框架并存，然后再在某个版本中将其移除，早先Android中使用的是Stagefright + NuPlayer并存的方式，其中前者负责播放本地的媒体文件，后者用于播放网络流媒体文件，但是在后来的Android L开始NuPlayeri渐渐开始替代了Stagefright，目前本地播放已经切换到NuPlayer上了，在Android N AOPS 源代码中甚至移除了Stagefright。在接下来的两篇博客中将会给大家介绍Stragefright播放框架以及Nuplayer播放框架。
+今天这篇先带大家看下Stagefright播放框架。在介绍Stagefright和Nuplayer之前我们先来看下Android MediaPlayer播放框架的大体结构图：</p>
 <p>整个结构可以分成如下几个部分：</p>
 <ul>
 <li>MediaPlayer  Java层，这是我们开发上层应用所接触的API层。代码位于 frameworks/base/media/java/android/media/MediaPlayer.java</li>
 <li>MediaPlayer  JNI 层，它用于将Java层和MediaPlayer的 native层连接起来。代码位于frameworks/base/media/jni/android_media_MediaPlayer.cpp</li>
 <li>MediaPLayer  Native层，它是MediaPlayer的本地代码这里包括了Stagefright + AwesomePlayer 以及Nuplayer + Nuplayer 两大播放框架，代码位于frameworks/av/</li>
-<li>MediaPlayer  HardWare层，这个涉及到一些硬编码部分<br><img src="/2016/07/30/Android-源码分析之基于Stagefright的MediaPlayer框架/1.png" alt></li>
+<li>MediaPlayer  HardWare层，这个涉及到一些硬编码部分
+<img src="/2016/07/30/Android-源码分析之基于Stagefright的MediaPlayer框架/1.png" alt></li>
 </ul>
 <p>上面只是一个通用的结构，下面来个基于Stagefight的MediaPLayer框架的结构：</p>
 <p><img src="/2016/07/30/Android-源码分析之基于Stagefright的MediaPlayer框架/2.png" alt></p>
-<p>在最上层是应用层，这里包括Music，Video还可以是一些其他相关的应用，这些应用使用framwork层提供的上层API接口来访问和操作底层的播放框架，上面已经介绍过在Java层和native层之间通过jni层来进行映射，这些native层部件则通过IPC进程间通信方式来从Media Player Service获得请求的响应。Media Player Service 是在mediaserver创建的时候被创建出来的，它负责根据当前文件的mimetype创建合适的media player，并由对应的mediaplayer实例化一个合适的编解码器，获取和操作多媒体文件的内容，以及管理其间的缓存。下面是各个层的更为详细的介绍。<br>为了在后续的介绍中不被整个代码绕晕建议在这里先通过这些图对整个框架有大体的了解。后续的代码介绍的时候我会更偏向于细节介绍。</p>
+<p>在最上层是应用层，这里包括Music，Video还可以是一些其他相关的应用，这些应用使用framwork层提供的上层API接口来访问和操作底层的播放框架，上面已经介绍过在Java层和native层之间通过jni层来进行映射，这些native层部件则通过IPC进程间通信方式来从Media Player Service获得请求的响应。Media Player Service 是在mediaserver创建的时候被创建出来的，它负责根据当前文件的mimetype创建合适的media player，并由对应的mediaplayer实例化一个合适的编解码器，获取和操作多媒体文件的内容，以及管理其间的缓存。下面是各个层的更为详细的介绍。
+为了在后续的介绍中不被整个代码绕晕建议在这里先通过这些图对整个框架有大体的了解。后续的代码介绍的时候我会更偏向于细节介绍。</p>
 <ul>
-<li>应用层和framework层<br>使用到MediaPlayer的应用很多，最常见的就是Music和Video，如果要了解这些应用的实现可以看下AOSP代码中的packages/apps，这些代码中用到了frameworks/base/media/所提供的MediaPlayer接口，这些接口都十分简单，我们只需要知道这些接口的具体功能就可以开发出一款功能较为齐全的Music，但是如果遇到一些难以解决的问题的时候就需要深入到native层的实现，从底层的实现来找到问题的根源，所以通过framework层代码可以更加深入得了解整个播放框架的机制。</li>
+<li>应用层和framework层
+使用到MediaPlayer的应用很多，最常见的就是Music和Video，如果要了解这些应用的实现可以看下AOSP代码中的packages/apps，这些代码中用到了frameworks/base/media/所提供的MediaPlayer接口，这些接口都十分简单，我们只需要知道这些接口的具体功能就可以开发出一款功能较为齐全的Music，但是如果遇到一些难以解决的问题的时候就需要深入到native层的实现，从底层的实现来找到问题的根源，所以通过framework层代码可以更加深入得了解整个播放框架的机制。</li>
 </ul>
 <ul>
-<li>Native Media Player 层：<br>对于刚接触MediaPlayer框架的时候最怕的就是阅读这部分代码了，一旦播放流程走到JNI接口，再从JNI接口进入native层，整个请求的数据流和控制流都会变得复杂起来。并且这部分不像应用层那样调式起来方便，有大量的文档可以参阅，所以基本的学习方式只能通过打Log和阅读代码的注释。这部分将会再后续部分进行比较详细的讲解分析。</li>
+<li>Native Media Player 层：
+对于刚接触MediaPlayer框架的时候最怕的就是阅读这部分代码了，一旦播放流程走到JNI接口，再从JNI接口进入native层，整个请求的数据流和控制流都会变得复杂起来。并且这部分不像应用层那样调式起来方便，有大量的文档可以参阅，所以基本的学习方式只能通过打Log和阅读代码的注释。这部分将会再后续部分进行比较详细的讲解分析。</li>
 </ul>
 <ul>
 <li>Media Player Service 部分：</li>
 </ul>
 <p>从Native层发出的IPC请求将会由Media Player Service 部分进行处理.MediaPlayerService是在frameworks/av/media/mediaserver/main_mediaserver.cpp的main方法中初始化的，在main方法中还启动了多个Android系统服务比如AudioFlinger, CameraService等，实例化Media Player Service 子系统的工作包括MediaPlayerService对象的创建,以及内置底层Media PLayer播放框架工厂的注册，一旦 MediaPlayerService 服务启动，MediaPlayerService将会接受Native MediaPlayer 层的IPC请求，并且为每个操作media内容的请求实例化一个MediaPlayerService::Client对象, Client有一个createPlayer 的方法可以使用特定的工厂类为某个特定的类型创建一个本地media player，后续的发向native层的请求都会交给刚刚提到的native 层的 media palyer来处理，这里的media player指的是StagefrightPlayer或者Nuplayerdriver.但是我们这里先不讨论Nuplayerdriver。</p>
 <p><img src="/2016/07/30/Android-源码分析之基于Stagefright的MediaPlayer框架/3.png" alt></p>
-<p>AwesomePlayer是实现播放的底层操作者，它在StagefrightPlayer初始化的时候被创建，它负责将对应的音频视频和对应的解码器对应起来。这里涉及到了MediaExtractor，它会从媒体文件中抽取到有效的头信息。并返回对应的引用。在准备播放的时候AwesomePlayer通过OMXCodec来根据媒体文件类型创建解码器，解码器是驻留在OMX子系统上（OMX是OpenMAX在Android上面的实现)，这些解码器主要用于处理内存缓冲，转化成原始数据格式，这部分的实现代码主要在frameworks/av/media/libstagefright/omx 以及frameworks/av/media/libstagefright/codecs 目录下, Stagefright Media Player和 OMX部件是通过IPC方式交互的.<br>AwesomePlayer最终会处理应用层发出的播放，暂停，停止等请求，这些请求往往和媒体类型有关联对于音频文件.AwesomePlayer 将会创建一个AudioPlayer来对文件进行处理，比如当前文件只有音频部分需要播放，这时候AwesomePlayer将会调用AudioPlayer::start()进行播放，一旦用户提交了其他新的请求AudioPlayer会使用MediaSource对象来和底层的OMX子系统进行交互。<br>对于视频文件，AwesomePlayer将会触发AwesomeRenderer的视频渲染能力，这也是通过MediaSource/OMXCodec 对象和 OMX子系统进行交互。并且AwesomePlayer负责音频和视频的同步工作，所以AwesomePlayer引入了一个时间队列机制TimedEventQueue.当一个入队的事件到期了，TimedEventQueue将会触发AwesomePlayer对应的回调方法从而保证音频和视频的同步. 这些是在 AwesomePlayer::onVideoEvent()方法中实现的, 在处理完当前帧后将会触发AwesomePlayer::postVideoEvent_l()来安排下一次的处理。整个框架的大体功能就是这样，但是到了细节的时候就复杂了。但是不怕，一点点分析就会看到整个框架的全貌了。一定要有耐心和细心，并且需要看多总结。好了这里就先介绍到这里，我们接下来细节部分放在下一篇博客中介绍。</p>
+<p>AwesomePlayer是实现播放的底层操作者，它在StagefrightPlayer初始化的时候被创建，它负责将对应的音频视频和对应的解码器对应起来。这里涉及到了MediaExtractor，它会从媒体文件中抽取到有效的头信息。并返回对应的引用。在准备播放的时候AwesomePlayer通过OMXCodec来根据媒体文件类型创建解码器，解码器是驻留在OMX子系统上（OMX是OpenMAX在Android上面的实现)，这些解码器主要用于处理内存缓冲，转化成原始数据格式，这部分的实现代码主要在frameworks/av/media/libstagefright/omx 以及frameworks/av/media/libstagefright/codecs 目录下, Stagefright Media Player和 OMX部件是通过IPC方式交互的.
+AwesomePlayer最终会处理应用层发出的播放，暂停，停止等请求，这些请求往往和媒体类型有关联对于音频文件.AwesomePlayer 将会创建一个AudioPlayer来对文件进行处理，比如当前文件只有音频部分需要播放，这时候AwesomePlayer将会调用AudioPlayer::start()进行播放，一旦用户提交了其他新的请求AudioPlayer会使用MediaSource对象来和底层的OMX子系统进行交互。
+对于视频文件，AwesomePlayer将会触发AwesomeRenderer的视频渲染能力，这也是通过MediaSource/OMXCodec 对象和 OMX子系统进行交互。并且AwesomePlayer负责音频和视频的同步工作，所以AwesomePlayer引入了一个时间队列机制TimedEventQueue.当一个入队的事件到期了，TimedEventQueue将会触发AwesomePlayer对应的回调方法从而保证音频和视频的同步. 这些是在 AwesomePlayer::onVideoEvent()方法中实现的, 在处理完当前帧后将会触发AwesomePlayer::postVideoEvent_l()来安排下一次的处理。整个框架的大体功能就是这样，但是到了细节的时候就复杂了。但是不怕，一点点分析就会看到整个框架的全貌了。一定要有耐心和细心，并且需要看多总结。好了这里就先介绍到这里，我们接下来细节部分放在下一篇博客中介绍。</p>
   
 	</div>
 		<footer class="article-footer clearfix">

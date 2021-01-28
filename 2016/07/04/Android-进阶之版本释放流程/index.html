@@ -104,10 +104,15 @@
 <li>将Build Variants 改为release</li>
 <li>在Android Studio中运行assembleRelease 任务</li>
 <li>通过Android studio中的Build -&gt; Create signed Apk 使用已有的签名证书keystore文件对Apk进行签名。</li>
-<li>使用zipalign对Apk进行资源对齐优化<br>使用zipalign进行资源对齐优化的必要性<br>在Android中，当资源文件通过内存映射对齐到4字节边界时，访问资源文件的代码才是有效率的。但是，如果资源本身未使用zipalign工具对资源进行对齐处理就必须显式地读取，这个过程将会比较缓慢且会花费额外的内存。</li>
+<li>使用zipalign对Apk进行资源对齐优化
+使用zipalign进行资源对齐优化的必要性
+在Android中，当资源文件通过内存映射对齐到4字节边界时，访问资源文件的代码才是有效率的。但是，如果资源本身未使用zipalign工具对资源进行对齐处理就必须显式地读取，这个过程将会比较缓慢且会花费额外的内存。</li>
 </ol>
-<p>对于应用程序开发者来说，这种显式读取方式是相当便利的。它允许使用一些不同的开发方法，包括正常流程中不包含对齐的资源，因此，这种读取方式具有很大的便利性。但是对于用户来说，从未对齐的apk中读取资源比较慢且花费较多内存。导致未对齐的程序启动得比对齐后的慢，甚至由于增加内存压力，从而造成系统反复地启动和杀死进程。最终，应用被用户卸载。<br>具体操作：<br><figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="string">../zipalign</span> -f -v 4 xxx_release_signed_platform.apk xxx_release_signed_platform_zipalign.apk</span><br></pre></td></tr></table></figure></p>
-<p>同时可以利用zipalign工具检查当前APK是否已经执行过Align优化:<br><figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">zipalign</span> <span class="selector-tag">-c</span> <span class="selector-tag">-v</span> 4 <span class="selector-tag">xxx_release_signed_platform_zipalign</span><span class="selector-class">.apk</span></span><br></pre></td></tr></table></figure></p>
+<p>对于应用程序开发者来说，这种显式读取方式是相当便利的。它允许使用一些不同的开发方法，包括正常流程中不包含对齐的资源，因此，这种读取方式具有很大的便利性。但是对于用户来说，从未对齐的apk中读取资源比较慢且花费较多内存。导致未对齐的程序启动得比对齐后的慢，甚至由于增加内存压力，从而造成系统反复地启动和杀死进程。最终，应用被用户卸载。
+具体操作：
+<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="string">../zipalign</span> -f -v 4 xxx_release_signed_platform.apk xxx_release_signed_platform_zipalign.apk</span><br></pre></td></tr></table></figure></p>
+<p>同时可以利用zipalign工具检查当前APK是否已经执行过Align优化:
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">zipalign</span> <span class="selector-tag">-c</span> <span class="selector-tag">-v</span> 4 <span class="selector-tag">xxx_release_signed_platform_zipalign</span><span class="selector-class">.apk</span></span><br></pre></td></tr></table></figure></p>
 <ol start="11">
 <li>项目打包，安装测试</li>
 </ol>

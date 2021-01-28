@@ -113,209 +113,280 @@
 </header>
 	<div class="article-content">
 		
-		<p>我们应该明确一点Git是一个分布式的版本控制系统，和SVN这种集中式的版本控制相比，它有很多好处。<br>首先我们介绍下什么是集中式，什么是分布式版本控制系统。<br>在集中式版本控制系统中版本库是集中存放在一台单独的中央服务器的，在我们开始工作的时候需要先从中央服务器取得最新的版本，然后开始干活，最后再把自己的代码推送到中央服务器。</p>
+		<p>我们应该明确一点Git是一个分布式的版本控制系统，和SVN这种集中式的版本控制相比，它有很多好处。
+首先我们介绍下什么是集中式，什么是分布式版本控制系统。
+在集中式版本控制系统中版本库是集中存放在一台单独的中央服务器的，在我们开始工作的时候需要先从中央服务器取得最新的版本，然后开始干活，最后再把自己的代码推送到中央服务器。</p>
 <p>而分布式版本控制系统没有中央服务器的概念，每个人的电脑上有一个完整的版本库，因此在工作的时候，就不需要联网了。多人协作的时候就可以把各自的修改直接推送给对方，但是在实际使用分布式版本控制系统的时候，很少使用刚刚提到的那种直接推送的方式，一般分布式版本控制系统通常也有一台中央服务器，但这个服务器的作用仅仅是用来方便交换各自的修改的，没有中央服务器也一样可以工作，只是使用起来会比较不方便而已。</p>
 <p>下面分别是SVN 和 CVN工作方式的视图(图片来自<a href="www.jianshu.com/p/08ad7e427fec?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io">图解Git相关工作流</a>)</p>
 <p><img src="/2016/03/01/Git-GitHub/svnstream.png" alt="Git-GitHub_CVN"></p>
 <p><img src="/2016/03/01/Git-GitHub/git_streaming.png" alt="Git-GitHub_CVN"></p>
 <p>上图中很明显得看出，SVN模式下要是中央服务器挂掉的话后果是十分严重的，而分布式版本控制系统，中有个Local Repository 如果中央服务器挂掉，可以使用这个代码库对其进行恢复。</p>
-<p>下面就以一个简单的工作流展开介绍：<br><img src="/2016/03/01/Git-GitHub/git_step.png" alt="Git-GitHub_CVN"></p>
-<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a>安装Git</h3><h3 id="配置Git"><a href="#配置Git" class="headerlink" title="配置Git"></a>配置Git</h3><p>Git配置变量可能保存在如下三个地方：<br>/etc/gitconfig 文件：系统中对所有用户都适用的配置(若使用git config –system 时配置的是这个文件)<br>~/.gitconfig文件:只适用于当前用户的配置(若使用git config –global 时配置的就是这个文件)<br>.git/config文件:仅仅针对当前项目有效的配置。 (若使用git config  时配置的就是这个文件)</p>
-<p>配置指令：<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">git<span class="built_in"> config </span>--global user.name “xiaohai.lin”</span><br><span class="line">git<span class="built_in"> config </span>--global user.email  xiaohai.lin.hz@tcl.com</span><br><span class="line">git<span class="built_in"> config </span>–global core.editor emacs</span><br><span class="line">Git<span class="built_in"> config </span>–global merge.tool vimdiff</span><br></pre></td></tr></table></figure></p>
-<p>查询配置:<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">git <span class="built_in"> config </span>--list</span><br><span class="line">这里可能会看到重复的名字，这说明采用了不同的配置，Git实际采用的是最后的一个。</span><br></pre></td></tr></table></figure></p>
-<h3 id="代码仓库的创建"><a href="#代码仓库的创建" class="headerlink" title="代码仓库的创建"></a>代码仓库的创建</h3><p>首先你要有个repo，repo的创建可以有两种方式一种是从无到有，一种是通过Clone 一份现有的代码作为开发的起点。</p>
+<p>下面就以一个简单的工作流展开介绍：	
+<img src="/2016/03/01/Git-GitHub/git_step.png" alt="Git-GitHub_CVN"></p>
+<h3>安装Git</h3>
+<h3>配置Git</h3>
+<p>Git配置变量可能保存在如下三个地方：
+/etc/gitconfig 文件：系统中对所有用户都适用的配置(若使用git config --system 时配置的是这个文件)
+~/.gitconfig文件:只适用于当前用户的配置(若使用git config –global 时配置的就是这个文件)
+.git/config文件:仅仅针对当前项目有效的配置。 (若使用git config  时配置的就是这个文件)</p>
+<p>配置指令：
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">git<span class="built_in"> config </span>--global user.name “xiaohai.lin”</span><br><span class="line">git<span class="built_in"> config </span>--global user.email  xiaohai.lin.hz@tcl.com</span><br><span class="line">git<span class="built_in"> config </span>–global core.editor emacs</span><br><span class="line">Git<span class="built_in"> config </span>–global merge.tool vimdiff</span><br></pre></td></tr></table></figure></p>
+<p>查询配置:
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">git <span class="built_in"> config </span>--list</span><br><span class="line">这里可能会看到重复的名字，这说明采用了不同的配置，Git实际采用的是最后的一个。</span><br></pre></td></tr></table></figure></p>
+<h3>代码仓库的创建</h3>
+<p>首先你要有个repo，repo的创建可以有两种方式一种是从无到有，一种是通过Clone 一份现有的代码作为开发的起点。</p>
 <ul>
-<li><h4 id="从无到有开始创建"><a href="#从无到有开始创建" class="headerlink" title="从无到有开始创建"></a>从无到有开始创建</h4><figure class="highlight dos"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> myrepo 创建一个本地的目录</span><br><span class="line"><span class="built_in">cd</span> myrepo    进入到本地repo</span><br><span class="line">git init     初始化repo</span><br></pre></td></tr></table></figure>
+<li>
+<h4>从无到有开始创建</h4>
 </li>
 </ul>
+<p><figure class="highlight dos"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> myrepo 创建一个本地的目录</span><br><span class="line"><span class="built_in">cd</span> myrepo    进入到本地repo</span><br><span class="line">git init     初始化repo</span><br></pre></td></tr></table></figure></p>
 <p>这时候当前的目录转换成一个Git仓库。它在当前的目录下增加了一个.git文件夹，所有的提交将会都记录到这个文件夹下。</p>
 <ul>
-<li><h4 id="Clone-一份现有的代码作为开发的起点"><a href="#Clone-一份现有的代码作为开发的起点" class="headerlink" title="Clone 一份现有的代码作为开发的起点"></a>Clone 一份现有的代码作为开发的起点</h4><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">clone</span> <span class="title">/path</span>/to/repository (本地仓库的克隆)</span><br><span class="line">git <span class="keyword">clone</span> <span class="title">username</span>@host:/path/to/repository （通过SSH）  </span><br><span class="line">git <span class="keyword">clone</span> <span class="title">https</span>:/path/to/repository.git （通过https）</span><br></pre></td></tr></table></figure>
+<li>
+<h4>Clone 一份现有的代码作为开发的起点</h4>
+<p><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">clone</span> <span class="title">/path</span>/to/repository (本地仓库的克隆)</span><br><span class="line">git <span class="keyword">clone</span> <span class="title">username</span>@host:/path/to/repository （通过SSH）  </span><br><span class="line">git <span class="keyword">clone</span> <span class="title">https</span>:/path/to/repository.git （通过https）</span><br></pre></td></tr></table></figure></p>
 </li>
-<li><h4 id="Fork-Github上的某个项目作为开发起点"><a href="#Fork-Github上的某个项目作为开发起点" class="headerlink" title="Fork Github上的某个项目作为开发起点"></a>Fork Github上的某个项目作为开发起点</h4><p>fork操作就相当于复制一份目标库（包括文件，提交历史，issues，和其余一些东西），通过fork你就可以自由得对项目进行修改而不用担心你的修改会影响到原始的项目。fork后仓库在你自己的GitHub帐号下。</p>
+<li>
+<h4>Fork Github上的某个项目作为开发起点</h4>
+<p>fork操作就相当于复制一份目标库（包括文件，提交历史，issues，和其余一些东西），通过fork你就可以自由得对项目进行修改而不用担心你的修改会影响到原始的项目。fork后仓库在你自己的GitHub帐号下。</p>
 <p>下面就以fork <a href="https://github.com/JakeWharton/butterknife" target="_blank" rel="noopener">butterknife</a>这个项目为例来介绍如何fork：</p>
 <ul>
-<li><p>首先进入这个项目的主页<a href="https://github.com/JakeWharton/butterknife。" target="_blank" rel="noopener">https://github.com/JakeWharton/butterknife。</a>  </p>
+<li>
+<p>首先进入这个项目的主页https://github.com/JakeWharton/butterknife。</p>
 </li>
-<li><p>点击项目主页右上角的fork图标。</p>
+<li>
+<p>点击项目主页右上角的fork图标。</p>
 <p><img src="/2016/03/01/Git-GitHub/fork.png" alt></p>
 <p>这时候这个项目就会copy一份到你的github上。</p>
 </li>
-<li><p>但是有时候你还需要经常保持与原库保持同步，所以你需要使用如下的方式来同步项目。</p>
-<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">clone</span> <span class="title">https</span>://github.com/tbfungeek/butterknife.git</span><br></pre></td></tr></table></figure>
+<li>
+<p>但是有时候你还需要经常保持与原库保持同步，所以你需要使用如下的方式来同步项目。
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">clone</span> <span class="title">https</span>://github.com/tbfungeek/butterknife.git</span><br></pre></td></tr></table></figure></p>
 </li>
 </ul>
-<p>进入clone到本地的代码根目录，</p>
-<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">git remote <span class="built_in">add</span> upstream http<span class="variable">s:</span>//github.<span class="keyword">com</span>/JakeWharton/butterknife.git</span><br></pre></td></tr></table></figure>
-<p>这时候就可以通过如下命令查看结果：</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">git remote -v</span></span><br></pre></td></tr></table></figure>
+<p>进入clone到本地的代码根目录，
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">git remote <span class="built_in">add</span> upstream http<span class="variable">s:</span>//github.<span class="keyword">com</span>/JakeWharton/butterknife.git</span><br></pre></td></tr></table></figure></p>
+<p>这时候就可以通过如下命令查看结果：
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">git remote -v</span></span><br></pre></td></tr></table></figure></p>
 <p><img src="/2016/03/01/Git-GitHub/remotV.png" alt></p>
 <ul>
-<li>同步<br>从upstream 仓库 获取对应的分支和对应的提交，这些下载下来的提交存放在本地upstream/master 分支上。<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">git fetch upstream</span></span><br></pre></td></tr></table></figure>
-</li>
+<li>同步
+从upstream 仓库 获取对应的分支和对应的提交，这些下载下来的提交存放在本地upstream/master 分支上。
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">git fetch upstream</span></span><br></pre></td></tr></table></figure></li>
 </ul>
-<p>将本地代码切换到主分支</p>
-<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git checkout <span class="literal">master</span></span><br></pre></td></tr></table></figure>
-<p>接下来就需要将你下载下来的upstream/master分支merge到本地的master</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">merge</span> upstream/<span class="keyword">master</span></span><br></pre></td></tr></table></figure>
+<p>将本地代码切换到主分支
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git checkout <span class="literal">master</span></span><br></pre></td></tr></table></figure></p>
+<p>接下来就需要将你下载下来的upstream/master分支merge到本地的master
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">merge</span> upstream/<span class="keyword">master</span></span><br></pre></td></tr></table></figure></p>
 <p>但是这仅仅是同步本地的代码库，要同步到你Github上还需要push到Github上。</p>
-<ul>
-<li><p>Clone the Remote</p>
-<p>需要注意的是fork后代码只在你的Github上，如果需要下载到本地进行修改需要使用git clone<br>例子如下:</p>
-<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">clone</span> <span class="title">https</span>://github.com/tbfungeek/butterknife.git</span><br></pre></td></tr></table></figure>
 </li>
-</ul>
+<li>
+<p>Clone the Remote</p>
+<p>需要注意的是fork后代码只在你的Github上，如果需要下载到本地进行修改需要使用git clone
+例子如下:
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">clone</span> <span class="title">https</span>://github.com/tbfungeek/butterknife.git</span><br></pre></td></tr></table></figure></p>
 </li>
 </ul>
 <p>这时候本地仓库由 git 维护的三棵“树”组成。第一个是你的工作目录，它持有实际文件；第二个是 缓存区（Index），它像个缓存区域，临时保存你的改动；最后是 HEAD，指向你最近一次提交后的结果。</p>
 <blockquote>
-<p><img src="/2016/03/01/Git-GitHub/workflow.png" alt>  </p>
+<p><img src="/2016/03/01/Git-GitHub/workflow.png" alt></p>
 </blockquote>
-<h3 id="创建一个本地的分支"><a href="#创建一个本地的分支" class="headerlink" title="创建一个本地的分支"></a>创建一个本地的分支</h3><p>当clone完一份代码后，推荐创建一个本地分支进行开发，这样可以避免对master等其他分支产生干扰。</p>
-<p>分支是用来将特性开发绝缘开来的。在你创建仓库的时候，master 是“默认的”。在其他分支上进行开发，完成后再将它们合并到主分支上。  </p>
+<h3>创建一个本地的分支</h3>
+<p>当clone完一份代码后，推荐创建一个本地分支进行开发，这样可以避免对master等其他分支产生干扰。</p>
+<p>分支是用来将特性开发绝缘开来的。在你创建仓库的时候，master 是“默认的”。在其他分支上进行开发，完成后再将它们合并到主分支上。</p>
 <blockquote>
-<p><img src="/2016/03/01/Git-GitHub/branch.png" alt>  </p>
+<p><img src="/2016/03/01/Git-GitHub/branch.png" alt></p>
 </blockquote>
 <ul>
-<li><p>在git中提交时，会保存一个Commit对象，它包含一个指向暂存内容快照的指针，作者和相关附属信息，指向该提供对象直接祖先的指针。</p>
+<li>
+<p>在git中提交时，会保存一个Commit对象，它包含一个指向暂存内容快照的指针，作者和相关附属信息，指向该提供对象直接祖先的指针。</p>
 </li>
-<li><p>Git中的分支，本质上仅仅是指向commit对象的可变指针，Git会使用master作为分支的默认名字。</p>
+<li>
+<p>Git中的分支，本质上仅仅是指向commit对象的可变指针，Git会使用master作为分支的默认名字。</p>
 </li>
-<li><p>HEAD 指向当前分支</p>
+<li>
+<p>HEAD 指向当前分支</p>
 </li>
 </ul>
-<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span><span class="keyword">branchname </span>创建分支</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>查看分支</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>-v 查看各分支的最后一次提交  </span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>--merged 查看已经合并的分支[除了master分支外，列表中没有*的分支可以使用git <span class="keyword">branch </span>–d删除]</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>--no-merged 可以查看尚未合并的分支</span><br></pre></td></tr></table></figure>
-<h3 id="切换到最新分支"><a href="#切换到最新分支" class="headerlink" title="切换到最新分支"></a>切换到最新分支</h3><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">git</span> checkout <span class="keyword">branchname </span>切换到某个分支，这样HEAD就指向了指定的分支了。</span><br></pre></td></tr></table></figure>
-<h3 id="本地操作"><a href="#本地操作" class="headerlink" title="本地操作"></a>本地操作</h3><p>在介绍Git add/commit 之前需要先介绍下Git到底有哪些目录，各个阶段的文件分别存放在哪个地方：</p>
+<p><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span><span class="keyword">branchname </span>创建分支</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>查看分支</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>-v 查看各分支的最后一次提交  </span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>--merged 查看已经合并的分支[除了master分支外，列表中没有*的分支可以使用git <span class="keyword">branch </span>–d删除]</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>--no-merged 可以查看尚未合并的分支</span><br></pre></td></tr></table></figure></p>
+<h3>切换到最新分支</h3>
+<p><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">git</span> checkout <span class="keyword">branchname </span>切换到某个分支，这样HEAD就指向了指定的分支了。</span><br></pre></td></tr></table></figure></p>
+<h3>本地操作</h3>
+<p>在介绍Git add/commit 之前需要先介绍下Git到底有哪些目录，各个阶段的文件分别存放在哪个地方：</p>
 <p>三个工作区域：</p>
 <ul>
 <li>工作目录</li>
 <li>暂存区域(是一个简单文件，一般都放在git目录中，这个文件又可以称为索引文件)</li>
-<li>git 本地代码库<blockquote>
+<li>git 本地代码库</li>
+</ul>
+<blockquote>
 <p><img src="/2016/03/01/Git-GitHub/repos.png" alt></p>
 </blockquote>
-</li>
-</ul>
 <p>三种状态：</p>
 <ul>
-<li><em>已修改(Modified)</em>:某个文件已经被修改但是还没提交保存<br>(自上次取出后，做了修改但是还没放到暂存区)</li>
-<li><em>已暂存(staged)</em>：把已修改的文件放在下一次提交时要保存的清单中了。<br>(在工作目录做了修改，并存放到暂存区)</li>
-<li><em>已提交(Committed)</em>：该文件已经被安全地保存在本地数据库中了<br>(git 代码库中保存的特定版本)</li>
+<li><em>已修改(Modified)</em>:某个文件已经被修改但是还没提交保存
+(自上次取出后，做了修改但是还没放到暂存区)</li>
+<li><em>已暂存(staged)</em>：把已修改的文件放在下一次提交时要保存的清单中了。
+(在工作目录做了修改，并存放到暂存区)</li>
+<li><em>已提交(Committed)</em>：该文件已经被安全地保存在本地数据库中了
+(git 代码库中保存的特定版本)</li>
 </ul>
 <p>在提交之前需要先查看所要提交的文件处于那种状态，所以一般我们提交的时候会先用<em>git status</em> 查看下状态：</p>
 <blockquote>
-<p><strong>nothing to commit(working directory clean)</strong><br>没有任何跟踪着的文件，没有任何文件在上次提交后更改过，当前没有出现处于未跟踪的新文件。（没有添加，也没有改动）</p>
+<p><strong>nothing to commit(working directory clean)</strong><br>
+没有任何跟踪着的文件，没有任何文件在上次提交后更改过，当前没有出现处于未跟踪的新文件。（没有添加，也没有改动）</p>
 </blockquote>
 <blockquote>
-<p><strong>Untracked files</strong>:<br>(代码库中添加了新的文件，还没执行add)</p>
+<p><strong>Untracked files</strong>:<br>
+(代码库中添加了新的文件，还没执行add)</p>
 </blockquote>
 <blockquote>
-<p><strong>Change to be committed</strong><br>(说明当前已经处于暂存状态，如果此时提交，那么该文件此时此刻的版本将被留存在历史记录中，)</p>
+<p><strong>Change to be committed</strong><br>
+(说明当前已经处于暂存状态，如果此时提交，那么该文件此时此刻的版本将被留存在历史记录中，)</p>
 </blockquote>
 <blockquote>
-<p><strong>Change but not update</strong><br>(已跟踪文件的内容发生变化，但是还没放到暂存区，要暂存这次更新需要运行git add 命令)</p>
+<p><strong>Change but not update</strong><br>
+(已跟踪文件的内容发生变化，但是还没放到暂存区，要暂存这次更新需要运行git add 命令)</p>
 </blockquote>
-<p>git add 把它们添加到暂存区，使用如下命令：<br><figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">add</span><span class="bash"> &lt;filename&gt;</span></span><br><span class="line">git <span class="keyword">add</span><span class="bash"> *</span></span><br></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git commit -m &quot;代码提交信息&quot;</span><br><span class="line">现在，你的改动已经提交到了 HEAD，但是还没到你的远端仓库。</span><br></pre></td></tr></table></figure>
+<p>git add 把它们添加到暂存区，使用如下命令：
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">add</span><span class="bash"> &lt;filename&gt;</span></span><br><span class="line">git <span class="keyword">add</span><span class="bash"> *</span></span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git commit -m &quot;代码提交信息&quot;</span><br><span class="line">现在，你的改动已经提交到了 HEAD，但是还没到你的远端仓库。</span><br></pre></td></tr></table></figure></p>
 <p>Git commit只是将 暂存区域的内容提交到代码库。这里需要确认还有什么修改过的或者新建的文件没有git add过。否则提交的时候不会记录这些还没暂存起来的变化。</p>
 <p>从下面图中可以很明显得看出各个操作的具体内容：</p>
 <blockquote>
 <p><img src="/2016/03/01/Git-GitHub/add.png" alt></p>
 </blockquote>
-<p>在提交的时候一般都会作两个工作就是运行git status 查看各个文件的状态，避免错误提交，<br>还有就是对比某个文件的内容的修改这个是使用git diff命令：</p>
+<p>在提交的时候一般都会作两个工作就是运行git status 查看各个文件的状态，避免错误提交，
+还有就是对比某个文件的内容的修改这个是使用git diff命令：</p>
 <blockquote>
 <p><img src="/2016/03/01/Git-GitHub/gitdiff.png" alt></p>
 </blockquote>
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">git diff: 查看 working directory 与 staging<span class="built_in"> area </span>之间的差异</span><br><span class="line">git diff --cached: 查看 repository 与 staging<span class="built_in"> area </span>之间的差异</span><br><span class="line">git diff HEAD: 查看 working directory 与 repository 之间的差异</span><br></pre></td></tr></table></figure>
-<p> 删除文件：  </p>
+<p><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">git diff: 查看 working directory 与 staging<span class="built_in"> area </span>之间的差异</span><br><span class="line">git diff --cached: 查看 repository 与 staging<span class="built_in"> area </span>之间的差异</span><br><span class="line">git diff HEAD: 查看 working directory 与 repository 之间的差异</span><br></pre></td></tr></table></figure></p>
+<p>删除文件：</p>
 <ul>
 <li>如果是Untracked 类型的文件可以直接使用rm</li>
-<li>如果是已经add了需要 git rm -f 但是运行这个命令后，文件直接被删除，<br>如果你只是想退回到Untracked，则只需要git rm –cached test.md</li>
-<li>Commit 后可以使用git rm 了 但是运行这个命令后，文件直接被删除.<blockquote>
+<li>如果是已经add了需要 git rm -f 但是运行这个命令后，文件直接被删除，
+如果你只是想退回到Untracked，则只需要git rm --cached test.md</li>
+<li>Commit 后可以使用git rm 了 但是运行这个命令后，文件直接被删除.</li>
+</ul>
+<blockquote>
 <p><img src="/2016/03/01/Git-GitHub/remove1.png" alt></p>
 </blockquote>
-</li>
-</ul>
 <p>回退修改：</p>
-<p>  这部分比较复杂可以根据下图的情况选择你所需要的：</p>
+<p>这部分比较复杂可以根据下图的情况选择你所需要的：</p>
 <blockquote>
 <p><img src="/2016/03/01/Git-GitHub/remove.png" alt></p>
 </blockquote>
 <p>这里只是介绍下如下几个简单的场景：</p>
-<p>当你的修改还没add的时候想反悔怎么办：<br><figure class="highlight ada"><table><tr><td class="code"><pre><span class="line">git checkout <span class="comment">-- &lt;filename&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>当你的修改还没add的时候想反悔怎么办：<br>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line">git checkout <span class="comment">-- &lt;filename&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p>此命令会使用 HEAD 中的最新内容替换掉你的工作目录中的文件。已添加到缓存区的改动，以及新文件，都不受影响。</p>
 <blockquote>
-<p><img src="/2016/03/01/Git-GitHub/checkout.png" alt>  </p>
+<p><img src="/2016/03/01/Git-GitHub/checkout.png" alt></p>
 </blockquote>
-  <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">reset</span> <span class="comment">--hard &lt;Commit ID&gt;</span></span><br></pre></td></tr></table></figure>
+<p><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">reset</span> <span class="comment">--hard &lt;Commit ID&gt;</span></span><br></pre></td></tr></table></figure></p>
 <ul>
 <li>替换引用的指向。引用指向新的提交ID。</li>
-<li>替换暂存区。替换后，暂存区的内容和引用指向的目录树一致。  </li>
+<li>替换暂存区。替换后，暂存区的内容和引用指向的目录树一致。</li>
 <li>替换工作区。替换后，工作区的内容变得和暂存区一致，也和HEAD所指向的目录树内容相同。</li>
-<li><p>这个命令就会导致所有信息的回退包括文件内容，执行后文件内容无法恢复回来。</p>
-<blockquote>
-<p><img src="/2016/03/01/Git-GitHub/resethard1.png" alt>   </p>
-</blockquote>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">reset</span>  &lt;<span class="keyword">Commit</span> <span class="keyword">ID</span>&gt;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>即更改引用的指向及重置暂存区，但是不改变工作区。再次提交需要从git add做起</p>
-<blockquote>
-<p><img src="/2016/03/01/Git-GitHub/resetmix.png" alt>   </p>
-</blockquote>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">reset</span> <span class="comment">--soft &lt;Commit ID&gt;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>即只更改引用的指向，不改变暂存区和工作区。再次提交从git commit做起即可</p>
-</li>
+<li>这个命令就会导致所有信息的回退包括文件内容，执行后文件内容无法恢复回来。</li>
 </ul>
-<p>假如你想要丢弃你所有的本地改动与提交，可以到服务器上获取最新的版本并将你本地主分支指向到它：<br><figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">git fetch <span class="built_in">origin</span></span><br><span class="line">git <span class="built_in">reset</span> --hard <span class="built_in">origin</span>/master</span><br></pre></td></tr></table></figure></p>
-<p>修补提交命令：<br><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">commit</span> <span class="comment">--amend，用于对最新的提交进行重新提交以修补错误的提交说明或者错误的提交文件。</span></span><br></pre></td></tr></table></figure></p>
-<p>忽略某些文件：</p>
-<p>有时候我们会有一些文件不需纳入Git管理，也不希望它们总是出现在未跟踪文件列表，我们可以创建一个名字为.gitignore的文件，列出需要忽略的文件模式。<br>.gitignore格式规范<br>所有以注释符号#开头的行都会被git忽略<br>可以使用标准的glob模式匹配<br>*表示匹配0个或者多个任意字符，<br>？匹配一个任意字符，<br>[],[-]<br>匹配模式最后跟/说明要忽略的是目录<br>要忽略指定模式以外的文件或者目录可以在模式前加上！取反</p>
-<p>查看提交历史 ：<br><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span></span><br><span class="line">git <span class="built_in">log</span> –p <span class="number">-2</span>  最近两次的更新</span><br><span class="line">git <span class="built_in">log</span> –stat 仅仅显示简要的增改行数统计</span><br><span class="line">git <span class="built_in">log</span> –pretty=“oneline”“short”“full”“fuller”</span><br><span class="line">git <span class="built_in">log</span> –graph 简单图形，展示每个提交所在分支机器分化衍合情况。</span><br><span class="line">这里还有很多属性可查看相关书籍：</span><br><span class="line">下面列出常用的几个命令</span><br><span class="line">git <span class="built_in">log</span> -n <span class="number">3</span> 最近三次提交</span><br><span class="line">git <span class="built_in">log</span> <span class="comment">--after（since） = “2014-01-05” 这个时间之后 时间可以是如下格式：2014-01-05</span></span><br><span class="line"><span class="number">2.</span>years[<span class="built_in">month</span>][<span class="built_in">day</span>][hours][minute]</span><br><span class="line">git <span class="built_in">log</span>  <span class="comment">--before（untill） = 2014-01-05 这个时间之前</span></span><br><span class="line">git <span class="built_in">log</span> <span class="comment">-- author 仅显示指定作者相关的提交</span></span><br><span class="line">git <span class="built_in">log</span> <span class="comment">--committer 仅显示和指定提交者相关的提交</span></span><br><span class="line">git <span class="built_in">log</span> <span class="comment">-- 路径只关心某个路径下的提交记录</span></span><br><span class="line">git <span class="built_in">log</span>  <span class="comment">--author=xiaohai.lin --since=“2015-01-01” --before=“2016-01-01” —no-merges  -- dir/</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="将代码提交到远程代码库"><a href="#将代码提交到远程代码库" class="headerlink" title="将代码提交到远程代码库"></a>将代码提交到远程代码库</h3><ul>
-<li>添远程仓库(这种只会出现在第一次创建本地代码库并从零开始开发完提交到远程代码库的情况)：<br>如果你还没有克隆现有仓库，并欲将你的仓库连接到某个远程服务器，你可以使用如下命令添加：<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">git remote <span class="built_in">add</span> origin <span class="symbol">&lt;server&gt;</span></span><br><span class="line">git remote <span class="built_in">add</span> repoShortName gi<span class="variable">t:</span>//github.<span class="keyword">com</span>/paulboone/ticgit.git</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>repoShortName：简短仓库名可以用这个名字代替仓库地址了。一般远程服务名为origin<br>如此你就能够将你的改动推送到所添加的服务器上去了。</p>
+<blockquote>
+<p><img src="/2016/03/01/Git-GitHub/resethard1.png" alt></p>
+</blockquote>
+<p><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">reset</span>  &lt;<span class="keyword">Commit</span> <span class="keyword">ID</span>&gt;</span><br></pre></td></tr></table></figure></p>
 <ul>
-<li>推送数据到远程仓库<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">Git push origin <span class="keyword">master</span> <span class="title">（这里不一定是master</span> 可以是你本地的任何分支）</span><br><span class="line">[remote name] [branch name]</span><br></pre></td></tr></table></figure>
+<li>
+<p>即更改引用的指向及重置暂存区，但是不改变工作区。再次提交需要从git add做起</p>
+<blockquote>
+<p><img src="/2016/03/01/Git-GitHub/resetmix.png" alt></p>
+</blockquote>
+<p><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">reset</span> <span class="comment">--soft &lt;Commit ID&gt;</span></span><br></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>即只更改引用的指向，不改变暂存区和工作区。再次提交从git commit做起即可</p>
 </li>
 </ul>
-<h3 id="获取最新代码"><a href="#获取最新代码" class="headerlink" title="获取最新代码"></a>获取最新代码</h3><p>Git中可以通过 git fetch 以及 git pull 获取最新的代码，但是二者之间是有所区别的：<br>git fetch：相当于是从远程获取最新版本到本地，不会自动merge<br><figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">git fetch <span class="keyword">origin </span>master:tmp 将代码同步到本地的tmp分支，这时候使用使用git <span class="keyword">branch </span>可以看到这里有多出一个分支</span><br><span class="line">git <span class="keyword">diff </span>tmp   				比较分支的差别</span><br><span class="line">git merge tmp				手动merge分支</span><br></pre></td></tr></table></figure></p>
+<p>假如你想要丢弃你所有的本地改动与提交，可以到服务器上获取最新的版本并将你本地主分支指向到它：
+<figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">git fetch <span class="built_in">origin</span></span><br><span class="line">git <span class="built_in">reset</span> --hard <span class="built_in">origin</span>/master</span><br></pre></td></tr></table></figure></p>
+<p>修补提交命令：
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">commit</span> <span class="comment">--amend，用于对最新的提交进行重新提交以修补错误的提交说明或者错误的提交文件。</span></span><br></pre></td></tr></table></figure></p>
+<p>忽略某些文件：</p>
+<p>有时候我们会有一些文件不需纳入Git管理，也不希望它们总是出现在未跟踪文件列表，我们可以创建一个名字为.gitignore的文件，列出需要忽略的文件模式。
+.gitignore格式规范
+所有以注释符号#开头的行都会被git忽略
+可以使用标准的glob模式匹配
+*表示匹配0个或者多个任意字符，
+？匹配一个任意字符，
+[],[-]
+匹配模式最后跟/说明要忽略的是目录
+要忽略指定模式以外的文件或者目录可以在模式前加上！取反</p>
+<p>查看提交历史 ：
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span></span><br><span class="line">git <span class="built_in">log</span> –p <span class="number">-2</span>  最近两次的更新</span><br><span class="line">git <span class="built_in">log</span> –stat 仅仅显示简要的增改行数统计</span><br><span class="line">git <span class="built_in">log</span> –pretty=“oneline”“short”“full”“fuller”</span><br><span class="line">git <span class="built_in">log</span> –graph 简单图形，展示每个提交所在分支机器分化衍合情况。</span><br><span class="line">这里还有很多属性可查看相关书籍：</span><br><span class="line">下面列出常用的几个命令</span><br><span class="line">git <span class="built_in">log</span> -n <span class="number">3</span> 最近三次提交</span><br><span class="line">git <span class="built_in">log</span> <span class="comment">--after（since） = “2014-01-05” 这个时间之后 时间可以是如下格式：2014-01-05</span></span><br><span class="line"><span class="number">2.</span>years[<span class="built_in">month</span>][<span class="built_in">day</span>][hours][minute]</span><br><span class="line">git <span class="built_in">log</span>  <span class="comment">--before（untill） = 2014-01-05 这个时间之前</span></span><br><span class="line">git <span class="built_in">log</span> <span class="comment">-- author 仅显示指定作者相关的提交</span></span><br><span class="line">git <span class="built_in">log</span> <span class="comment">--committer 仅显示和指定提交者相关的提交</span></span><br><span class="line">git <span class="built_in">log</span> <span class="comment">-- 路径只关心某个路径下的提交记录</span></span><br><span class="line">git <span class="built_in">log</span>  <span class="comment">--author=xiaohai.lin --since=“2015-01-01” --before=“2016-01-01” —no-merges  -- dir/</span></span><br></pre></td></tr></table></figure></p>
+<h3>将代码提交到远程代码库</h3>
+<ul>
+<li>添远程仓库(这种只会出现在第一次创建本地代码库并从零开始开发完提交到远程代码库的情况)：
+如果你还没有克隆现有仓库，并欲将你的仓库连接到某个远程服务器，你可以使用如下命令添加：
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">git remote <span class="built_in">add</span> origin <span class="symbol">&lt;server&gt;</span></span><br><span class="line">git remote <span class="built_in">add</span> repoShortName gi<span class="variable">t:</span>//github.<span class="keyword">com</span>/paulboone/ticgit.git</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>repoShortName：简短仓库名可以用这个名字代替仓库地址了。一般远程服务名为origin
+如此你就能够将你的改动推送到所添加的服务器上去了。</p>
+<ul>
+<li>推送数据到远程仓库
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">Git push origin <span class="keyword">master</span> <span class="title">（这里不一定是master</span> 可以是你本地的任何分支）</span><br><span class="line">[remote name] [branch name]</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3>获取最新代码</h3>
+<p>Git中可以通过 git fetch 以及 git pull 获取最新的代码，但是二者之间是有所区别的：
+git fetch：相当于是从远程获取最新版本到本地，不会自动merge
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">git fetch <span class="keyword">origin </span>master:tmp 将代码同步到本地的tmp分支，这时候使用使用git <span class="keyword">branch </span>可以看到这里有多出一个分支</span><br><span class="line">git <span class="keyword">diff </span>tmp   				比较分支的差别</span><br><span class="line">git merge tmp				手动merge分支</span><br></pre></td></tr></table></figure></p>
 <p>这是个人比较推崇的一种方式。</p>
-<p>git pull：相当于是从远程获取最新版本并merge到本地，相当于git fetch 和 git merge<br>在实际使用中，git fetch更安全一些，因为在merge前，我们可以查看更新情况，然后再决定是否合并</p>
-<h3 id="merge代码"><a href="#merge代码" class="headerlink" title="merge代码"></a>merge代码</h3><p>当出现冲突的时候可以使用如下方式解决冲突：<br><figure class="highlight cos"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">merge</span></span><br></pre></td></tr></table></figure></p>
+<p>git pull：相当于是从远程获取最新版本并merge到本地，相当于git fetch 和 git merge
+在实际使用中，git fetch更安全一些，因为在merge前，我们可以查看更新情况，然后再决定是否合并</p>
+<h3>merge代码</h3>
+<p>当出现冲突的时候可以使用如下方式解决冲突：
+<figure class="highlight cos"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">merge</span></span><br></pre></td></tr></table></figure></p>
 <p>这时候就会要你选择使用那种merge工具</p>
 <blockquote>
 <p><img src="/2016/03/01/Git-GitHub/mergetool.png" alt></p>
 </blockquote>
 <p>输入meld就可以使用meld来解决冲突了。</p>
-<p>merge 完成后记得要需要执行如下命令以将它们标记为合并成功：<br>git add <filename><br>git commit    </filename></p>
-<h3 id><a href="#" class="headerlink" title=" "></a> </h3><p>一般merge完成后就可以删除这个没用的临时分支了：<br><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>–d newbranch 删除分支</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>–D <span class="keyword">branchname </span>如果删除这些分支会出现错误，如果执意要删除这些分支可以使用</span><br></pre></td></tr></table></figure></p>
-<h3 id="标签"><a href="#标签" class="headerlink" title="标签"></a>标签</h3><p>在软件发布时创建标签，是被推荐的。可以执行如下命令以创建一个叫做 1.0.0 的标签：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">tag</span> <span class="title">1</span>.<span class="number">0.0</span> <span class="number">1</span>b2e1d63ff</span><br></pre></td></tr></table></figure></p>
+<p>merge 完成后记得要需要执行如下命令以将它们标记为合并成功：
+git add &lt;filename&gt;
+git commit</p>
+<h3></h3>
+<p>一般merge完成后就可以删除这个没用的临时分支了：
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>–d newbranch 删除分支</span><br><span class="line"><span class="symbol">git</span> <span class="keyword">branch </span>–D <span class="keyword">branchname </span>如果删除这些分支会出现错误，如果执意要删除这些分支可以使用</span><br></pre></td></tr></table></figure></p>
+<h3>标签</h3>
+<p>在软件发布时创建标签，是被推荐的。可以执行如下命令以创建一个叫做 1.0.0 的标签：
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">git <span class="keyword">tag</span> <span class="title">1</span>.<span class="number">0.0</span> <span class="number">1</span>b2e1d63ff</span><br></pre></td></tr></table></figure></p>
 <p>1b2e1d63ff 是你想要标记的提交 ID 的前 10 位字符。使用如下命令获取提交 ID：</p>
 <hr>
-<p>分支操作命令总结：<br><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line">创建分支 			: git <span class="keyword">branch </span><span class="keyword">branchname</span></span><br><span class="line"><span class="keyword">切换到某个分支	</span>	  : git checkout <span class="keyword">branchname </span>这样HEAD就指向了指定的分支了。</span><br><span class="line">新建并切换到新的分支  ：git checkout –<span class="keyword">b </span>‘newbranchname’</span><br><span class="line">切换到master主分支并合newbranch分支</span><br><span class="line"><span class="symbol">git</span> checkout master </span><br><span class="line"><span class="symbol">git</span> merge newbranch</span><br><span class="line">删除分支</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–d newbranch</span><br><span class="line">查看分支</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch</span></span><br><span class="line"><span class="keyword">查看各分支的最后一次提交</span></span><br><span class="line"><span class="keyword">Git </span><span class="keyword">branch </span>–v</span><br><span class="line">查看已经合并的分支</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–merged 列表中没有*的分支可以使用git <span class="keyword">branch </span>–d删除</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–no-merged 可以查看尚未合并的分支</span><br><span class="line">如果删除这些分支会出现错误，如果执意要删除这些分支可以使用</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–D <span class="keyword">branchname</span></span><br></pre></td></tr></table></figure></p>
-<p>远程代码库操作命令总结：<br><figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">git remote –v查看当前配置有哪些远程仓库。</span><br><span class="line">git remote <span class="built_in">add</span> origin <span class="symbol">&lt;server&gt;</span> 添加远程分支</span><br><span class="line">重命名远程代码库</span><br><span class="line">git remote <span class="built_in">rename</span> pd paul  将pd命名为paul</span><br><span class="line">删除远程代码库</span><br><span class="line">碰到远程仓库服务器迁移，或者原来的克隆镜像不再使用，或者参与者不再贡献代码，那么需要移除对应的远程仓库。</span><br><span class="line">Git remote rm paul</span><br></pre></td></tr></table></figure></p>
-<h3 id="团队工作方式"><a href="#团队工作方式" class="headerlink" title="团队工作方式"></a>团队工作方式</h3><p>   <img src="/2016/03/01/Git-GitHub/team.png" alt></p>
-<h3 id="Git-分支工作流"><a href="#Git-分支工作流" class="headerlink" title="Git 分支工作流"></a>Git 分支工作流</h3><p>   <img src="/2016/03/01/Git-GitHub/branchs.png" alt></p>
+<p>分支操作命令总结：
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line">创建分支 			: git <span class="keyword">branch </span><span class="keyword">branchname</span></span><br><span class="line"><span class="keyword">切换到某个分支	</span>	  : git checkout <span class="keyword">branchname </span>这样HEAD就指向了指定的分支了。</span><br><span class="line">新建并切换到新的分支  ：git checkout –<span class="keyword">b </span>‘newbranchname’</span><br><span class="line">切换到master主分支并合newbranch分支</span><br><span class="line"><span class="symbol">git</span> checkout master </span><br><span class="line"><span class="symbol">git</span> merge newbranch</span><br><span class="line">删除分支</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–d newbranch</span><br><span class="line">查看分支</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch</span></span><br><span class="line"><span class="keyword">查看各分支的最后一次提交</span></span><br><span class="line"><span class="keyword">Git </span><span class="keyword">branch </span>–v</span><br><span class="line">查看已经合并的分支</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–merged 列表中没有*的分支可以使用git <span class="keyword">branch </span>–d删除</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–no-merged 可以查看尚未合并的分支</span><br><span class="line">如果删除这些分支会出现错误，如果执意要删除这些分支可以使用</span><br><span class="line"><span class="symbol">Git</span> <span class="keyword">branch </span>–D <span class="keyword">branchname</span></span><br></pre></td></tr></table></figure></p>
+<p>远程代码库操作命令总结：
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">git remote –v查看当前配置有哪些远程仓库。</span><br><span class="line">git remote <span class="built_in">add</span> origin <span class="symbol">&lt;server&gt;</span> 添加远程分支</span><br><span class="line">重命名远程代码库</span><br><span class="line">git remote <span class="built_in">rename</span> pd paul  将pd命名为paul</span><br><span class="line">删除远程代码库</span><br><span class="line">碰到远程仓库服务器迁移，或者原来的克隆镜像不再使用，或者参与者不再贡献代码，那么需要移除对应的远程仓库。</span><br><span class="line">Git remote rm paul</span><br></pre></td></tr></table></figure></p>
+<h3>团队工作方式</h3>
+<p><img src="/2016/03/01/Git-GitHub/team.png" alt></p>
+<h3>Git 分支工作流</h3>
+<p><img src="/2016/03/01/Git-GitHub/branchs.png" alt></p>
 <hr>
 <p>参考资料：</p>
 <ul>
 <li><a href="https://blog.coding.net/blog/git-workflow?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="noopener">大话 Git 工作流</a></li>
 <li><a href="http://www.cnblogs.com/pyer/p/4752770.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="noopener">这些git技能够你用一年了</a></li>
-<li><a href="http://www.jianshu.com/p/08ad7e427fec?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="noopener">图解Git相关工作流</a>   </li>
+<li><a href="http://www.jianshu.com/p/08ad7e427fec?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="noopener">图解Git相关工作流</a></li>
 <li><a href="http://wustrive2008.github.io/2016/01/06/%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6/Git%E5%85%A8%E8%A7%A3%E6%9E%90%E4%B9%8B%E5%85%88%E7%94%A8%E8%B5%B7%E6%9D%A5/?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="noopener">Git全解析之用起来先</a></li>
 <li><a href="http://www.jianshu.com/p/482b32716bbe?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="noopener">「Githug」Git 游戏通关流程</a></li>
 <li><a href="http://www.worldhello.net/gotgithub/#id6" target="_blank" rel="noopener">GotGitHub</a></li>
-<li><a href="http://pcottle.github.io/learnGitBranching/" target="_blank" rel="noopener">Learn Git Branching</a>  </li>
+<li><a href="http://pcottle.github.io/learnGitBranching/" target="_blank" rel="noopener">Learn Git Branching</a></li>
 <li><a href="http://www.bootcss.com/p/git-guide/" target="_blank" rel="noopener">git-简易指南</a></li>
 <li><a href="http://www.cnblogs.com/flying_bat/p/3408634.html" target="_blank" rel="noopener">Git 少用 Pull 多用 Fetch 和 Merge</a></li>
 <li><a href="http://www.oschina.net/translate/10-tips-git-next-level?cmp" target="_blank" rel="noopener">10 个迅速提升你 Git 水平的提示</a></li>
 <li><a href="http://mux.alimama.com/posts/711" target="_blank" rel="noopener">高富帅们的Git技巧（译）</a></li>
-<li><a href="http://www.tuicool.com/articles/y6VfQj" target="_blank" rel="noopener">Git命令详解（一）-个人使用</a>    </li>
+<li><a href="http://www.tuicool.com/articles/y6VfQj" target="_blank" rel="noopener">Git命令详解（一）-个人使用</a></li>
 <li><a href="http://backlogtool.com/git-guide/cn/intro/intro1_1.html" target="_blank" rel="noopener">猴子都能懂的 git 入门</a></li>
-<li><a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000" target="_blank" rel="noopener">廖雪峰的 git 教程</a>    </li>
+<li><a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000" target="_blank" rel="noopener">廖雪峰的 git 教程</a></li>
 <li><a href="http://gold.xitu.io/entry/56b34c5671cfe4005451434f" target="_blank" rel="noopener">你需要知道的 12 个 Git 高级命令</a></li>
 </ul>
   
@@ -380,7 +451,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装Git"><span class="toc-number">1.</span> <span class="toc-text">安装Git</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置Git"><span class="toc-number">2.</span> <span class="toc-text">配置Git</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#代码仓库的创建"><span class="toc-number">3.</span> <span class="toc-text">代码仓库的创建</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#从无到有开始创建"><span class="toc-number">3.1.</span> <span class="toc-text">从无到有开始创建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Clone-一份现有的代码作为开发的起点"><span class="toc-number">3.2.</span> <span class="toc-text">Clone 一份现有的代码作为开发的起点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Fork-Github上的某个项目作为开发起点"><span class="toc-number">3.3.</span> <span class="toc-text">Fork Github上的某个项目作为开发起点</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建一个本地的分支"><span class="toc-number">4.</span> <span class="toc-text">创建一个本地的分支</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#切换到最新分支"><span class="toc-number">5.</span> <span class="toc-text">切换到最新分支</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#本地操作"><span class="toc-number">6.</span> <span class="toc-text">本地操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#将代码提交到远程代码库"><span class="toc-number">7.</span> <span class="toc-text">将代码提交到远程代码库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#获取最新代码"><span class="toc-number">8.</span> <span class="toc-text">获取最新代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#merge代码"><span class="toc-number">9.</span> <span class="toc-text">merge代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">10.</span> <span class="toc-text"> </span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#标签"><span class="toc-number">11.</span> <span class="toc-text">标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#团队工作方式"><span class="toc-number">12.</span> <span class="toc-text">团队工作方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Git-分支工作流"><span class="toc-number">13.</span> <span class="toc-text">Git 分支工作流</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">安装Git</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">配置Git</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">代码仓库的创建</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">3.1.</span> <span class="toc-text">从无到有开始创建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">3.2.</span> <span class="toc-text">Clone 一份现有的代码作为开发的起点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">3.3.</span> <span class="toc-text">Fork Github上的某个项目作为开发起点</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">创建一个本地的分支</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">5.</span> <span class="toc-text">切换到最新分支</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">6.</span> <span class="toc-text">本地操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">7.</span> <span class="toc-text">将代码提交到远程代码库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">8.</span> <span class="toc-text">获取最新代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">9.</span> <span class="toc-text">merge代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">10.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">11.</span> <span class="toc-text">标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">12.</span> <span class="toc-text">团队工作方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">13.</span> <span class="toc-text">Git 分支工作流</span></a></li></ol>
  
   </div>
 
