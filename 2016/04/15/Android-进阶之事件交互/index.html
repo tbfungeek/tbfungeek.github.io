@@ -11,13 +11,13 @@
     
 
     
-    <meta name="description" content="MotionEvent 我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。 在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e): 这里传入的参数MotionEvent是一个很重要的参数，它包含了当">
+    <meta name="description" content="MotionEvent我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e):这里传入的参数MotionEvent是一个很重要的参数，它包含了当前触摸">
 <meta name="keywords" content="Android 事件处理进阶">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之事件交互 一 触摸事件和键盘事件">
 <meta property="og:url" content="http://yoursite.com/2016/04/15/Android-进阶之事件交互/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="MotionEvent 我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。 在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e): 这里传入的参数MotionEvent是一个很重要的参数，它包含了当">
+<meta property="og:description" content="MotionEvent我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e):这里传入的参数MotionEvent是一个很重要的参数，它包含了当前触摸">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/04/15/Android-进阶之事件交互/keyevent.png">
 <meta property="og:image" content="http://yoursite.com/2016/04/15/Android-进阶之事件交互/event1.png">
@@ -27,7 +27,7 @@
 <meta property="og:updated_time" content="2016-07-18T21:41:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之事件交互 一 触摸事件和键盘事件">
-<meta name="twitter:description" content="MotionEvent 我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。 在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e): 这里传入的参数MotionEvent是一个很重要的参数，它包含了当">
+<meta name="twitter:description" content="MotionEvent我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e):这里传入的参数MotionEvent是一个很重要的参数，它包含了当前触摸">
 <meta name="twitter:image" content="http://yoursite.com/2016/04/15/Android-进阶之事件交互/keyevent.png">
 
     
@@ -100,60 +100,22 @@
 </header>
 	<div class="article-content">
 		
-		<h3>MotionEvent</h3>
-<p>我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。
-在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e):
-这里传入的参数MotionEvent是一个很重要的参数，它包含了当前触摸点的坐标，以及触摸事件的类型：
-当用户触摸屏的时候，就会触发onTouchEvent事件处理函数，每当位置发生改变的时候触发一次，当触摸结束的时候还会触发一次。
-它有一个返回值如果当前的onTouchEvent已经处理了屏幕触摸，就返回true，否则，就返回false。从而通过View或者Activity堆栈来传递事件，直到成功处理触摸为止。这部分涉及到事件的传递和分发机制
-在后面会详细介绍，我们先来认识下MotionEvent：</p>
-<p>通过event.getAction() 可以获取事件的类型：
-MotionEvent.ACTION_UP       触摸结束，ACTION_UP
-MotionEvent.ACTION_DOWN     开始触摸，第一个手指头按下的时候触发
-MotionEvent.ACTION_POINT_DOWN 其他手指再按下的时候触发
-MotionEvent.ACTION_POINT_UP  其他手指抬起来的时候触发
-MotionEvent.ACTION_MOVE     按下手指在屏幕上移动的时候
-MotionEvent.ACTION_CANCEL   触摸事件取消的时候
-MotionEvent.ACTION_OUTSIDE  移动操作发生在被监控的屏幕元素边界之外的时候</p>
+		<h3 id="MotionEvent"><a href="#MotionEvent" class="headerlink" title="MotionEvent"></a>MotionEvent</h3><p>我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。<br>在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e):<br>这里传入的参数MotionEvent是一个很重要的参数，它包含了当前触摸点的坐标，以及触摸事件的类型：<br>当用户触摸屏的时候，就会触发onTouchEvent事件处理函数，每当位置发生改变的时候触发一次，当触摸结束的时候还会触发一次。<br>它有一个返回值如果当前的onTouchEvent已经处理了屏幕触摸，就返回true，否则，就返回false。从而通过View或者Activity堆栈来传递事件，直到成功处理触摸为止。这部分涉及到事件的传递和分发机制<br>在后面会详细介绍，我们先来认识下MotionEvent：</p>
+<p>通过event.getAction() 可以获取事件的类型：<br>MotionEvent.ACTION_UP       触摸结束，ACTION_UP<br>MotionEvent.ACTION_DOWN     开始触摸，第一个手指头按下的时候触发<br>MotionEvent.ACTION_POINT_DOWN 其他手指再按下的时候触发<br>MotionEvent.ACTION_POINT_UP  其他手指抬起来的时候触发<br>MotionEvent.ACTION_MOVE     按下手指在屏幕上移动的时候<br>MotionEvent.ACTION_CANCEL   触摸事件取消的时候<br>MotionEvent.ACTION_OUTSIDE  移动操作发生在被监控的屏幕元素边界之外的时候</p>
 <p>通过event.getX() event.getY() event.getRawX() event.getRawY() 可以分别获得当前触点距离父容器以及屏幕的坐标位置；这个可以在绘图介绍中的坐标体系中看到每个方法的返回值意义</p>
-<p>还可以通过下面的方法获取到事件开始和结束的时间信息：
-getDownTime()  事件开始时间
-getEventTime() 事件结束时间</p>
-<h3>多点触控事件：</h3>
-<p>现在的电容屏一般都支持多点触控技术，判断当前触摸事件为单点触控还是多点触控可以使用getPointerCount()方法，如果大于1表示为多点触控。
-多点触控每个点称为一个pointer，MotionEvent包含该时刻所有point的信息。每个point都有唯一的ID，这个ID是在该point刚触碰屏幕的时候赋值的。有效期至该点离开屏幕或者取消。
-我们要获得每个点的信息，必须通过它的index，而要获得index必须使用ACTION_POINTER_ID_MASK从Action中获得Action Point id</p>
-<p>多点触控的处理：
-<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> xpos = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">int</span> ypos = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">int</span> action = <span class="keyword">event</span>.getAction();</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">event</span>.getPointerCount() &gt;<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> actionPointerid = action &amp; MotionEvent.ACTION_POINTER_ID_MASK;</span><br><span class="line">    <span class="keyword">int</span> actionEvent  = action &amp; MotionEvent.ACTION_MASK;</span><br><span class="line">    <span class="keyword">int</span> pointerIndex = <span class="keyword">event</span>.findPointerIndex(actionPointerid);</span><br><span class="line">    xPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getX(pointerIndex);</span><br><span class="line">    yPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getY(pointerIndex);</span><br><span class="line">&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">    xPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getX();</span><br><span class="line">    yPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getY();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h3>跟踪触摸的移动：</h3>
-<p>每当当前的触摸接触位置，压力或者区域大小发生改变的时候，将会触发ACTION_MOVE。MotionEvent中包含有着这系列变化的历史值。可以使用如下方式获取历史值：
-<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line">单点触控：</span><br><span class="line"><span class="keyword">int</span> historySize = <span class="keyword">event</span>.getHistorySize();<span class="comment">//返回当前事件可用的移动位置的数量</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">	<span class="keyword">float</span> x = <span class="keyword">event</span>.getHistoricalX(i);</span><br><span class="line">	<span class="keyword">float</span> y = <span class="keyword">event</span>.getHistoricalY(i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">多点触控：</span><br><span class="line"><span class="keyword">int</span> historySize = <span class="keyword">event</span>.getHistorySize();<span class="comment">//返回当前事件可用的移动位置的数量</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">	<span class="keyword">int</span> id = <span class="keyword">event</span>.getPointerId(i);</span><br><span class="line">	<span class="keyword">float</span> x = <span class="keyword">event</span>.getHistoricalX(id, i);</span><br><span class="line">	<span class="keyword">float</span> y = <span class="keyword">event</span>.getHistoricalY(id, i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>处理触摸屏移动事件：
-处理移动事件一般首先处理每个历史事件，然后再处理当前的MotionEvent值
-<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">switch</span> (action) &#123;</span><br><span class="line">	<span class="keyword">case</span> MotionEvent.ACTION_MOVE:</span><br><span class="line">		<span class="keyword">int</span> historySize = <span class="keyword">event</span>.getHistorySize();</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">			<span class="keyword">float</span> x = <span class="keyword">event</span>.getHistoricalX(i);</span><br><span class="line">			<span class="keyword">float</span> y = <span class="keyword">event</span>.getHistoricalY(i);</span><br><span class="line">			Log.i(<span class="string">"MainActivity"</span>,<span class="string">"历史坐标值:("</span>+x+<span class="string">"),("</span>+y+<span class="string">")"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">				</span><br><span class="line">		<span class="keyword">float</span> currentx = <span class="keyword">event</span>.getX();</span><br><span class="line">		<span class="keyword">float</span> currenty = <span class="keyword">event</span>.getY();</span><br><span class="line">		Log.i(<span class="string">"MainActivity"</span>,<span class="string">"当前值:("</span>+currentx+<span class="string">"),("</span>+currenty+<span class="string">")"</span>);</span><br><span class="line">		Log.i(<span class="string">"MainActivity"</span>, <span class="string">"ACTION_MOVE"</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">		<span class="keyword">default</span>:<span class="keyword">return</span> super.onTouchEvent(<span class="keyword">event</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h3>为控件添加触摸事件监听器：</h3>
-<p>可以使用setOnTouchLinstener方法为某个View对象监听触摸事件。</p>
-<h3>键盘事件：</h3>
-<p>除了上述的显示屏事件外Android中还提供了键盘事件的处理：
-所有的硬件按键产生的事件都是由处于活动状态的Activity或者当前前台View进行处理。Android中控件在处理物理按键事件时，提供的回调方法有onKeyUp() ,onKeyDown(),onKeyLongPress()
-要想让Activity或者View对按键的按下做出响应，需要重写onKeyDown和onKeyUp事件处理方法：
-方法中的keyCode包含了被按下的键的值，把它和KeyEvent类中的静态的Keycode进行比较，就可以执行特定按键的处理。</p>
-<p>要在Activity的View中对按键按下做出响应，需要实现OnKeyListener并使用setOnKeyListener方法将其分配给一个View。
-OnKeyListener并不是为了单独的按键按下和释放分别实现独立的方法，而是使用单一的onKey事件。ACTION_DOWN表示按下按键，ACTION_UP表示释放按键
-<img src="/2016/04/15/Android-进阶之事件交互/keyevent.png" alt></p>
-<h3>事件分发和事件拦截机制</h3>
-<p>上面所讲述的情况是相对理想的情况，也就是事件已经传送到当前的View的情形，但是一般一个View 往往都是处在某个ViewGroup中，这就引入了一个新的问题，事件是如何传递分发和拦截的。
-我们先看下下面这张图：
-绿色的代表一个View，它被layout在两个ViewGoup内，当一个事件发生的时候，首先从底层的父ViewGroup开始传输的，在介绍整个传输过程之前先介绍下面两个方法：</p>
+<p>还可以通过下面的方法获取到事件开始和结束的时间信息：<br>getDownTime()  事件开始时间<br>getEventTime() 事件结束时间</p>
+<h3 id="多点触控事件："><a href="#多点触控事件：" class="headerlink" title="多点触控事件："></a>多点触控事件：</h3><p>现在的电容屏一般都支持多点触控技术，判断当前触摸事件为单点触控还是多点触控可以使用getPointerCount()方法，如果大于1表示为多点触控。<br>多点触控每个点称为一个pointer，MotionEvent包含该时刻所有point的信息。每个point都有唯一的ID，这个ID是在该point刚触碰屏幕的时候赋值的。有效期至该点离开屏幕或者取消。<br>我们要获得每个点的信息，必须通过它的index，而要获得index必须使用ACTION_POINTER_ID_MASK从Action中获得Action Point id</p>
+<p>多点触控的处理：<br><figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> xpos = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">int</span> ypos = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">int</span> action = <span class="keyword">event</span>.getAction();</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">event</span>.getPointerCount() &gt;<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> actionPointerid = action &amp; MotionEvent.ACTION_POINTER_ID_MASK;</span><br><span class="line">    <span class="keyword">int</span> actionEvent  = action &amp; MotionEvent.ACTION_MASK;</span><br><span class="line">    <span class="keyword">int</span> pointerIndex = <span class="keyword">event</span>.findPointerIndex(actionPointerid);</span><br><span class="line">    xPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getX(pointerIndex);</span><br><span class="line">    yPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getY(pointerIndex);</span><br><span class="line">&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">    xPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getX();</span><br><span class="line">    yPos = (<span class="keyword">int</span>)<span class="keyword">event</span>.getY();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="跟踪触摸的移动："><a href="#跟踪触摸的移动：" class="headerlink" title="跟踪触摸的移动："></a>跟踪触摸的移动：</h3><p>每当当前的触摸接触位置，压力或者区域大小发生改变的时候，将会触发ACTION_MOVE。MotionEvent中包含有着这系列变化的历史值。可以使用如下方式获取历史值：<br><figure class="highlight cs"><table><tr><td class="code"><pre><span class="line">单点触控：</span><br><span class="line"><span class="keyword">int</span> historySize = <span class="keyword">event</span>.getHistorySize();<span class="comment">//返回当前事件可用的移动位置的数量</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">	<span class="keyword">float</span> x = <span class="keyword">event</span>.getHistoricalX(i);</span><br><span class="line">	<span class="keyword">float</span> y = <span class="keyword">event</span>.getHistoricalY(i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">多点触控：</span><br><span class="line"><span class="keyword">int</span> historySize = <span class="keyword">event</span>.getHistorySize();<span class="comment">//返回当前事件可用的移动位置的数量</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">	<span class="keyword">int</span> id = <span class="keyword">event</span>.getPointerId(i);</span><br><span class="line">	<span class="keyword">float</span> x = <span class="keyword">event</span>.getHistoricalX(id, i);</span><br><span class="line">	<span class="keyword">float</span> y = <span class="keyword">event</span>.getHistoricalY(id, i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>处理触摸屏移动事件：<br>处理移动事件一般首先处理每个历史事件，然后再处理当前的MotionEvent值<br><figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">switch</span> (action) &#123;</span><br><span class="line">	<span class="keyword">case</span> MotionEvent.ACTION_MOVE:</span><br><span class="line">		<span class="keyword">int</span> historySize = <span class="keyword">event</span>.getHistorySize();</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">			<span class="keyword">float</span> x = <span class="keyword">event</span>.getHistoricalX(i);</span><br><span class="line">			<span class="keyword">float</span> y = <span class="keyword">event</span>.getHistoricalY(i);</span><br><span class="line">			Log.i(<span class="string">"MainActivity"</span>,<span class="string">"历史坐标值:("</span>+x+<span class="string">"),("</span>+y+<span class="string">")"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">				</span><br><span class="line">		<span class="keyword">float</span> currentx = <span class="keyword">event</span>.getX();</span><br><span class="line">		<span class="keyword">float</span> currenty = <span class="keyword">event</span>.getY();</span><br><span class="line">		Log.i(<span class="string">"MainActivity"</span>,<span class="string">"当前值:("</span>+currentx+<span class="string">"),("</span>+currenty+<span class="string">")"</span>);</span><br><span class="line">		Log.i(<span class="string">"MainActivity"</span>, <span class="string">"ACTION_MOVE"</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">		<span class="keyword">default</span>:<span class="keyword">return</span> super.onTouchEvent(<span class="keyword">event</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="为控件添加触摸事件监听器："><a href="#为控件添加触摸事件监听器：" class="headerlink" title="为控件添加触摸事件监听器："></a>为控件添加触摸事件监听器：</h3><p>可以使用setOnTouchLinstener方法为某个View对象监听触摸事件。</p>
+<h3 id="键盘事件："><a href="#键盘事件：" class="headerlink" title="键盘事件："></a>键盘事件：</h3><p>除了上述的显示屏事件外Android中还提供了键盘事件的处理：<br>所有的硬件按键产生的事件都是由处于活动状态的Activity或者当前前台View进行处理。Android中控件在处理物理按键事件时，提供的回调方法有onKeyUp() ,onKeyDown(),onKeyLongPress()<br>要想让Activity或者View对按键的按下做出响应，需要重写onKeyDown和onKeyUp事件处理方法：<br>方法中的keyCode包含了被按下的键的值，把它和KeyEvent类中的静态的Keycode进行比较，就可以执行特定按键的处理。</p>
+<p>要在Activity的View中对按键按下做出响应，需要实现OnKeyListener并使用setOnKeyListener方法将其分配给一个View。<br>OnKeyListener并不是为了单独的按键按下和释放分别实现独立的方法，而是使用单一的onKey事件。ACTION_DOWN表示按下按键，ACTION_UP表示释放按键<br><img src="/2016/04/15/Android-进阶之事件交互/keyevent.png" alt></p>
+<h3 id="事件分发和事件拦截机制"><a href="#事件分发和事件拦截机制" class="headerlink" title="事件分发和事件拦截机制"></a>事件分发和事件拦截机制</h3><p>上面所讲述的情况是相对理想的情况，也就是事件已经传送到当前的View的情形，但是一般一个View 往往都是处在某个ViewGroup中，这就引入了一个新的问题，事件是如何传递分发和拦截的。<br>我们先看下下面这张图：<br>绿色的代表一个View，它被layout在两个ViewGoup内，当一个事件发生的时候，首先从底层的父ViewGroup开始传输的，在介绍整个传输过程之前先介绍下面两个方法：</p>
 <ul>
-<li>
-<p>onInterceptTouchEvent()是用于事件的预处理并改变事件的传递方向，也就是决定是否允许Touch事件继续子控件传递，如果返回True表示事件在当前的viewGroup中会被处理，
-则向下传递被截断，所有子控件将没有机会参与Touch事件，同时把事件传递给当前的控件的onTouchEvent()处理；返回false，则把事件交给子控件的onInterceptTouchEvent()
-onInterceptTouchEvent()是ViewGroup的一个方法，目的是在系统向该ViewGroup及其各个childView触发onTouchEvent()之前对相关事件进行一次拦截.不能包含子view的控件是没有这个方法的.</p>
+<li><p>onInterceptTouchEvent()是用于事件的预处理并改变事件的传递方向，也就是决定是否允许Touch事件继续子控件传递，如果返回True表示事件在当前的viewGroup中会被处理，<br>则向下传递被截断，所有子控件将没有机会参与Touch事件，同时把事件传递给当前的控件的onTouchEvent()处理；返回false，则把事件交给子控件的onInterceptTouchEvent()<br>onInterceptTouchEvent()是ViewGroup的一个方法，目的是在系统向该ViewGroup及其各个childView触发onTouchEvent()之前对相关事件进行一次拦截.不能包含子view的控件是没有这个方法的.</p>
 </li>
-<li>
-<p>onTouchEvent()这个上面介绍了用于处理事件，返回值决定当前控件是否消费了这个事件，也就是说在当前控件在处理完Touch事件后，是否还允许Touch事件继续向父控件传递，一但返回True，
-则父控件不用操心自己来处理Touch事件。返回false，则向上传递给父控件.</p>
+<li><p>onTouchEvent()这个上面介绍了用于处理事件，返回值决定当前控件是否消费了这个事件，也就是说在当前控件在处理完Touch事件后，是否还允许Touch事件继续向父控件传递，一但返回True，<br>则父控件不用操心自己来处理Touch事件。返回false，则向上传递给父控件.</p>
 </li>
 </ul>
 <p><img src="/2016/04/15/Android-进阶之事件交互/event1.png" alt></p>
@@ -225,7 +187,7 @@ onInterceptTouchEvent()是ViewGroup的一个方法，目的是在系统向该Vie
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">MotionEvent</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">多点触控事件：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">跟踪触摸的移动：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">为控件添加触摸事件监听器：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">5.</span> <span class="toc-text">键盘事件：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">6.</span> <span class="toc-text">事件分发和事件拦截机制</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#MotionEvent"><span class="toc-number">1.</span> <span class="toc-text">MotionEvent</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#多点触控事件："><span class="toc-number">2.</span> <span class="toc-text">多点触控事件：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#跟踪触摸的移动："><span class="toc-number">3.</span> <span class="toc-text">跟踪触摸的移动：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#为控件添加触摸事件监听器："><span class="toc-number">4.</span> <span class="toc-text">为控件添加触摸事件监听器：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#键盘事件："><span class="toc-number">5.</span> <span class="toc-text">键盘事件：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#事件分发和事件拦截机制"><span class="toc-number">6.</span> <span class="toc-text">事件分发和事件拦截机制</span></a></li></ol>
  
   </div>
 
@@ -415,18 +377,6 @@ onInterceptTouchEvent()是ViewGroup的一个方法，目的是在系统向该Vie
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -435,15 +385,19 @@ onInterceptTouchEvent()是ViewGroup的一个方法，目的是在系统向该Vie
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -451,7 +405,15 @@ onInterceptTouchEvent()是ViewGroup的一个方法，目的是在系统向该Vie
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

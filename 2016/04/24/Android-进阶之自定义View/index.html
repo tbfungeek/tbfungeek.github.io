@@ -11,20 +11,20 @@
     
 
     
-    <meta name="description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了， 但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起">
+    <meta name="description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一">
 <meta name="keywords" content="Android 自定义View进阶">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android-进阶之自定义View 一 自定义View 流程">
 <meta property="og:url" content="http://yoursite.com/2016/04/24/Android-进阶之自定义View/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了， 但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起">
+<meta property="og:description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/04/24/Android-进阶之自定义View/1.png">
 <meta property="og:image" content="http://yoursite.com/2016/04/24/Android-进阶之自定义View/2.png">
 <meta property="og:updated_time" content="2016-07-18T21:42:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android-进阶之自定义View 一 自定义View 流程">
-<meta name="twitter:description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了， 但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起">
+<meta name="twitter:description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一">
 <meta name="twitter:image" content="http://yoursite.com/2016/04/24/Android-进阶之自定义View/1.png">
 
     
@@ -97,182 +97,104 @@
 </header>
 	<div class="article-content">
 		
-		<p>Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，
-但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一个专题专门将工作这段时间所实现的一些比较好玩的自定义View。</p>
+		<p>Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，<br>但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一个专题专门将工作这段时间所实现的一些比较好玩的自定义View。</p>
 <p>在开始本篇博文之前，需要介绍下Android 控件的整体架构，这样对整个流程的介绍会更清晰：</p>
-<h4>Android 控件的整体架构</h4>
-<p>Android中的所有可视化组件都是从View派生出来的，这些可视化组件通常被称为控件或者小组件，ViewGroup类是对View类的扩展，它用来包含多个视图，ViewGroup主要用于管理子视图布局和创建可重用的复合组件。它是View的容器，可以存放View 还可以存放ViewGroup，从而形成树状结构。
-每个控件树都有一个ViewParent，它负责所有交互事件的调度和分配，并且顺着控件树，上层的控件负责下层空间的测量与绘制，每个View占据屏幕上的一个矩形区域，每个View对象负责这个矩形区域的测度、布局、绘图、焦点改变、滚动、触摸，手势等交互事件的处理。
-根节点要求它的孩子节点绘制它自己，每个ViewGroup节点要求调用自己的子视图绘制自己。子视图可以往父视图中请求指定的尺寸数据，但是每个子视图的父视图对象对子视图的尺寸有最终决定权，也就是说子视图可以告诉乎视图要求多大的空间，但是父视图会纵观全局来决定实际分配给每个子视图的大小。如果元素有重叠的地方，重叠部分后面绘制的将在之前绘制的上面。经过上述过程至顶向下的绘制最终绘制出整个页面；
-<img src="/2016/04/24/Android-进阶之自定义View/1.png" alt>
-每个Activity都持有一个Window对象，它是一个抽象类，它有一个子类PhoneWindow是Window类的具体实现，可以通过PhoneWindow具体去绘制窗口。
-DecorView 是PhoneWindow类的内部类，它是窗口界面的顶层视图，是所有应用窗口的根View。大部分事件都是由它传递给view，一般情况下它有上下两部分组成，它将要显示的内容呈现在PhoneWindow上。如下图所示，一个是TitleView，一个是ContentView，我们可以通过setContentView来将布局添加到ContentView中。
-<img src="/2016/04/24/Android-进阶之自定义View/2.png" alt></p>
-<h4>View以及ViewGroup的测量</h4>
-<p>为什么需要测量，这是因为在绘制一个View的时候不仅需要知道它的形状等信息，还需要知道它的大小信息。View的绘制工作在onMeasure方法中进行，通过这个方法可以指定该控件在屏幕上的大小，重写该方法时需要计算控件的实际大小，然后调用setMeasuredDimension(int, int)将确定尺寸数值设置为控件的实际大小。
-onMeasure被调用的时候传入两个参数widthMeasureSpec和heightMeasureSpec。每个都是一个32位的int值它分成两个部分高两位为测量模式，低30位为测量的大小。
-我们可以通过：
-int mode = MeasureSpec.getMode(xxxxxxx)获取到模式，
-int size = MeasureSpec.getSize(xxxxxxx)获取到尺寸数值。</p>
-<p>测量模式有三种：
-EXACTLY：精确模式，当我们将layout_height以及layout_width设置为具体数值时，或者设置为match_parent的时候，使用的是这种模式
-AT_MOST:最大值模式，当控件的layout_height以及layout_width被设置为wrap_content属性的时候，使用的是这种模式，这种模式下控件的尺寸只要不超过父控件允许的最大尺寸即可。
-UNSPECIFIED：这种情况我见得不是很多，基本上没有用到。</p>
+<h4 id="Android-控件的整体架构"><a href="#Android-控件的整体架构" class="headerlink" title="Android 控件的整体架构"></a>Android 控件的整体架构</h4><p>Android中的所有可视化组件都是从View派生出来的，这些可视化组件通常被称为控件或者小组件，ViewGroup类是对View类的扩展，它用来包含多个视图，ViewGroup主要用于管理子视图布局和创建可重用的复合组件。它是View的容器，可以存放View 还可以存放ViewGroup，从而形成树状结构。<br>每个控件树都有一个ViewParent，它负责所有交互事件的调度和分配，并且顺着控件树，上层的控件负责下层空间的测量与绘制，每个View占据屏幕上的一个矩形区域，每个View对象负责这个矩形区域的测度、布局、绘图、焦点改变、滚动、触摸，手势等交互事件的处理。<br>根节点要求它的孩子节点绘制它自己，每个ViewGroup节点要求调用自己的子视图绘制自己。子视图可以往父视图中请求指定的尺寸数据，但是每个子视图的父视图对象对子视图的尺寸有最终决定权，也就是说子视图可以告诉乎视图要求多大的空间，但是父视图会纵观全局来决定实际分配给每个子视图的大小。如果元素有重叠的地方，重叠部分后面绘制的将在之前绘制的上面。经过上述过程至顶向下的绘制最终绘制出整个页面；<br><img src="/2016/04/24/Android-进阶之自定义View/1.png" alt><br>每个Activity都持有一个Window对象，它是一个抽象类，它有一个子类PhoneWindow是Window类的具体实现，可以通过PhoneWindow具体去绘制窗口。<br>DecorView 是PhoneWindow类的内部类，它是窗口界面的顶层视图，是所有应用窗口的根View。大部分事件都是由它传递给view，一般情况下它有上下两部分组成，它将要显示的内容呈现在PhoneWindow上。如下图所示，一个是TitleView，一个是ContentView，我们可以通过setContentView来将布局添加到ContentView中。<br><img src="/2016/04/24/Android-进阶之自定义View/2.png" alt></p>
+<h4 id="View以及ViewGroup的测量"><a href="#View以及ViewGroup的测量" class="headerlink" title="View以及ViewGroup的测量"></a>View以及ViewGroup的测量</h4><p>为什么需要测量，这是因为在绘制一个View的时候不仅需要知道它的形状等信息，还需要知道它的大小信息。View的绘制工作在onMeasure方法中进行，通过这个方法可以指定该控件在屏幕上的大小，重写该方法时需要计算控件的实际大小，然后调用setMeasuredDimension(int, int)将确定尺寸数值设置为控件的实际大小。<br>onMeasure被调用的时候传入两个参数widthMeasureSpec和heightMeasureSpec。每个都是一个32位的int值它分成两个部分高两位为测量模式，低30位为测量的大小。<br>我们可以通过：<br>int mode = MeasureSpec.getMode(xxxxxxx)获取到模式，<br>int size = MeasureSpec.getSize(xxxxxxx)获取到尺寸数值。</p>
+<p>测量模式有三种：<br>EXACTLY：精确模式，当我们将layout_height以及layout_width设置为具体数值时，或者设置为match_parent的时候，使用的是这种模式<br>AT_MOST:最大值模式，当控件的layout_height以及layout_width被设置为wrap_content属性的时候，使用的是这种模式，这种模式下控件的尺寸只要不超过父控件允许的最大尺寸即可。<br>UNSPECIFIED：这种情况我见得不是很多，基本上没有用到。</p>
 <p>View 默认情况下支持EXACTLY模式，因此如果不重写onMeasure方法时，只能使用EXACTLY模式，所定义的View只能指定具体尺寸，或者是match_parent，而不能是wrap_content.如果需要支持wrap_content就必须重写onMeasure方法。</p>
-<p><figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">@Override    </span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;    </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> finalWidth = getMeasuredLength(widthMeasureSpec, <span class="literal">true</span>);</span><br><span class="line">    <span class="keyword">int</span> finalHeight = getMeasuredLength(heightMeasureSpec, <span class="literal">false</span>);</span><br><span class="line">    setMeasuredDimension(finalWidth, finalHeight);    </span><br><span class="line">&#125;    </span><br><span class="line">     </span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getMeasuredLength</span><span class="params">(<span class="keyword">int</span> length, <span class="keyword">boolean</span> isWidth)</span> </span>&#123;    </span><br><span class="line">    <span class="keyword">int</span> specMode = MeasureSpec.getMode(length);    </span><br><span class="line">    <span class="keyword">int</span> specSize = MeasureSpec.getSize(length);    </span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">size</span>;    </span><br><span class="line">    <span class="keyword">int</span> padding = isWidth ? getPaddingLeft() + getPaddingRight() : getPaddingTop() + getPaddingBottom();    </span><br><span class="line">    <span class="keyword">if</span> (specMode == MeasureSpec.EXACTLY) &#123;    </span><br><span class="line">        <span class="built_in">size</span> = specSize;    </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;    </span><br><span class="line">        <span class="built_in">size</span> = isWidth ? padding + DEFAULT_WIDTH  : DEFAULT_HEIGHT + padding;<span class="comment">//提供一个默认的值    </span></span><br><span class="line">        <span class="keyword">if</span> (specMode == MeasureSpec.AT_MOST) &#123;    </span><br><span class="line">            <span class="built_in">size</span> = Math.<span class="built_in">min</span>(<span class="built_in">size</span>, specSize);    </span><br><span class="line">        &#125;    </span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">size</span>;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h4>View的绘制：</h4>
-<p>我们知道自定义一个View需要继承自View并重写构造方法以及onDraw方法。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">@Override    </span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;    </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> finalWidth = getMeasuredLength(widthMeasureSpec, <span class="literal">true</span>);</span><br><span class="line">    <span class="keyword">int</span> finalHeight = getMeasuredLength(heightMeasureSpec, <span class="literal">false</span>);</span><br><span class="line">    setMeasuredDimension(finalWidth, finalHeight);    </span><br><span class="line">&#125;    </span><br><span class="line">     </span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getMeasuredLength</span><span class="params">(<span class="keyword">int</span> length, <span class="keyword">boolean</span> isWidth)</span> </span>&#123;    </span><br><span class="line">    <span class="keyword">int</span> specMode = MeasureSpec.getMode(length);    </span><br><span class="line">    <span class="keyword">int</span> specSize = MeasureSpec.getSize(length);    </span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">size</span>;    </span><br><span class="line">    <span class="keyword">int</span> padding = isWidth ? getPaddingLeft() + getPaddingRight() : getPaddingTop() + getPaddingBottom();    </span><br><span class="line">    <span class="keyword">if</span> (specMode == MeasureSpec.EXACTLY) &#123;    </span><br><span class="line">        <span class="built_in">size</span> = specSize;    </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;    </span><br><span class="line">        <span class="built_in">size</span> = isWidth ? padding + DEFAULT_WIDTH  : DEFAULT_HEIGHT + padding;<span class="comment">//提供一个默认的值    </span></span><br><span class="line">        <span class="keyword">if</span> (specMode == MeasureSpec.AT_MOST) &#123;    </span><br><span class="line">            <span class="built_in">size</span> = Math.<span class="built_in">min</span>(<span class="built_in">size</span>, specSize);    </span><br><span class="line">        &#125;    </span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">size</span>;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="View的绘制："><a href="#View的绘制：" class="headerlink" title="View的绘制："></a>View的绘制：</h4><p>我们知道自定义一个View需要继承自View并重写构造方法以及onDraw方法。</p>
 <ul>
-<li>
-<h5>覆写构造方法</h5>
-</li>
+<li><h5 id="覆写构造方法"><a href="#覆写构造方法" class="headerlink" title="覆写构造方法"></a>覆写构造方法</h5>一般我们在Android Studio创建一个View的时候，会要求复写构造方法，默认情况下会有三个构造函数：</li>
 </ul>
-<p>一般我们在Android Studio创建一个View的时候，会要求复写构造方法，默认情况下会有三个构造函数：</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CustomView</span><span class="params">(Context context)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs, <span class="keyword">int</span> defStyle)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure></p>
-<p>第一个构造函数用在代码中动态创建对象时使用的，如果只打算在代码中动态创建一个view而不使用布局文件xml，那么就直接实现这个构造方法就可以了，但是一般都不这么做，因为难保证后面不会用在layout布局中，虽然后面使用的时候添加一个也很容易，但是一般项目代码都很庞大
-。如果没有遵守这个规则的话，后面谁来在你的平台上开发的话，将其用在XML布局文件中，就会引起问题，虽然这种错误很好排查，但是如果遇到这种情况一般都会问候下原先维护这个代码的那个人。所以如果不想在离职后还被别人挂念还是继续实现后面两个构造方法吧。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CustomView</span><span class="params">(Context context)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs, <span class="keyword">int</span> defStyle)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>第一个构造函数用在代码中动态创建对象时使用的，如果只打算在代码中动态创建一个view而不使用布局文件xml，那么就直接实现这个构造方法就可以了，但是一般都不这么做，因为难保证后面不会用在layout布局中，虽然后面使用的时候添加一个也很容易，但是一般项目代码都很庞大<br>。如果没有遵守这个规则的话，后面谁来在你的平台上开发的话，将其用在XML布局文件中，就会引起问题，虽然这种错误很好排查，但是如果遇到这种情况一般都会问候下原先维护这个代码的那个人。所以如果不想在离职后还被别人挂念还是继续实现后面两个构造方法吧。</p>
 <p>第二个构造方法比第一个构造方法多了一个AttributeSet类型的参数，通过布局文件xml创建一个view时，这个参数会将xml里设定的属性传递给构造函数。如果采用xml方法却没有实现这种构造方法，那么虽然编译的时候会顺利通过但是运行时就会报错。</p>
-<p>第三个构造方法比第二个构造方法多了一个defStyle的参数，这个参数用来指定view的默认style，如果为0将不会应用任何默认的style。那么这个值又是从哪里传过来的呢？
-一般这个系统是不调用的，一般用于提供给第二个构造方法使用的，在第二个构造方法中会传给第三个构造方法一个默认的style id。</p>
-<p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">CustomView</span> <span class="keyword">extends</span> <span class="title">View</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs) &#123;</span><br><span class="line">        <span class="keyword">this</span>(context, attrs, <span class="type">R</span>.attr.<span class="type">CustomizeStyleRef</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs, int defStyle) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs, defStyle);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第三个构造方法比第二个构造方法多了一个defStyle的参数，这个参数用来指定view的默认style，如果为0将不会应用任何默认的style。那么这个值又是从哪里传过来的呢？<br>一般这个系统是不调用的，一般用于提供给第二个构造方法使用的，在第二个构造方法中会传给第三个构造方法一个默认的style id。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">CustomView</span> <span class="keyword">extends</span> <span class="title">View</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs) &#123;</span><br><span class="line">        <span class="keyword">this</span>(context, attrs, <span class="type">R</span>.attr.<span class="type">CustomizeStyleRef</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs, int defStyle) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs, defStyle);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
-<li>
-<h5>自定义属性</h5>
-</li>
+<li><h5 id="自定义属性"><a href="#自定义属性" class="headerlink" title="自定义属性"></a>自定义属性</h5></li>
 </ul>
 <ol>
 <li>定义属性</li>
 </ol>
-<p>在res/values/attrs.xml文件中为添加自定义的属性的定义
-<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">resources</span>&gt;</span><br><span class="line">    &lt;declare-styleable <span class="built_in">name</span>=<span class="string">"Customize"</span>&gt;</span><br><span class="line">        &lt;attr <span class="built_in">name</span>=<span class="string">"attr_1"</span> <span class="built_in">format</span>=<span class="string">"string"</span> /&gt;</span><br><span class="line">        &lt;attr <span class="built_in">name</span>=<span class="string">"attr_2"</span> <span class="built_in">format</span>=<span class="string">"string"</span> /&gt;</span><br><span class="line">    &lt;/declare-styleable&gt;</span><br><span class="line">    &lt;attr <span class="built_in">name</span>=<span class="string">"CustomizeStyle"</span> <span class="built_in">format</span>=<span class="string">"reference"</span> /&gt;</span><br><span class="line">&lt;/<span class="built_in">resources</span>&gt;</span><br></pre></td></tr></table></figure></p>
+<p>在res/values/attrs.xml文件中为添加自定义的属性的定义<br><figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">resources</span>&gt;</span><br><span class="line">    &lt;declare-styleable <span class="built_in">name</span>=<span class="string">"Customize"</span>&gt;</span><br><span class="line">        &lt;attr <span class="built_in">name</span>=<span class="string">"attr_1"</span> <span class="built_in">format</span>=<span class="string">"string"</span> /&gt;</span><br><span class="line">        &lt;attr <span class="built_in">name</span>=<span class="string">"attr_2"</span> <span class="built_in">format</span>=<span class="string">"string"</span> /&gt;</span><br><span class="line">    &lt;/declare-styleable&gt;</span><br><span class="line">    &lt;attr <span class="built_in">name</span>=<span class="string">"CustomizeStyle"</span> <span class="built_in">format</span>=<span class="string">"reference"</span> /&gt;</span><br><span class="line">&lt;/<span class="built_in">resources</span>&gt;</span><br></pre></td></tr></table></figure></p>
 <p>这里需要了解下属性的类型有哪些：</p>
 <ul>
-<li>
-<p>reference：引用某一资源ID。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义： </span><br><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"background"</span> <span class="attr">format</span> = <span class="string">"reference"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">background</span> = <span class="string">"@drawable/图片ID"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>reference：引用某一资源ID。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义： </span><br><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"background"</span> <span class="attr">format</span> = <span class="string">"reference"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">background</span> = <span class="string">"@drawable/图片ID"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>color：颜色值。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"textColor"</span> <span class="attr">format</span> = <span class="string">"color"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">textColor</span> = <span class="string">"#00FF00"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>color：颜色值。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"textColor"</span> <span class="attr">format</span> = <span class="string">"color"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">textColor</span> = <span class="string">"#00FF00"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>boolean：布尔值。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">  &lt;attr <span class="attr">name</span> = <span class="string">"focusable"</span> <span class="attr">format</span> = <span class="string">"boolean"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">focusable</span> = <span class="string">"true"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>boolean：布尔值。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">  &lt;attr <span class="attr">name</span> = <span class="string">"focusable"</span> <span class="attr">format</span> = <span class="string">"boolean"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">focusable</span> = <span class="string">"true"</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>dimension：尺寸值。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"layout_width"</span> <span class="attr">format</span> = <span class="string">"dimension"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">layout_width</span> = <span class="string">"42dip"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>dimension：尺寸值。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"layout_width"</span> <span class="attr">format</span> = <span class="string">"dimension"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">layout_width</span> = <span class="string">"42dip"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>float：浮点值。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name</span> = <span class="string">"fromAlpha"</span> <span class="attr">format</span> = <span class="string">"float"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">fromAlpha</span> = <span class="string">"1.0"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>float：浮点值。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name</span> = <span class="string">"fromAlpha"</span> <span class="attr">format</span> = <span class="string">"float"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">fromAlpha</span> = <span class="string">"1.0"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>integer：整型值。</p>
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;<span class="meta">attr</span> name = <span class="string">"framesCount"</span> format=<span class="string">"integer"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line"><span class="keyword">android:frameDuration </span>= <span class="string">"100"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>integer：整型值。
-<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;<span class="meta">attr</span> name = <span class="string">"framesCount"</span> format=<span class="string">"integer"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line"><span class="keyword">android:frameDuration </span>= <span class="string">"100"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>string：字符串。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name</span> = <span class="string">"apiKey"</span> <span class="attr">format</span> = <span class="string">"string"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">apiKey</span> = <span class="string">"0jOkQ80oD1JL9C6HAja99uGXCRiS2CGjKO_bc_g"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>string：字符串。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name</span> = <span class="string">"apiKey"</span> <span class="attr">format</span> = <span class="string">"string"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">apiKey</span> = <span class="string">"0jOkQ80oD1JL9C6HAja99uGXCRiS2CGjKO_bc_g"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>fraction：百分数。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name</span> = <span class="string">"pivotX"</span> <span class="attr">format</span> = <span class="string">"fraction"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">pivotY</span> = <span class="string">"300%"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>fraction：百分数。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name</span> = <span class="string">"pivotX"</span> <span class="attr">format</span> = <span class="string">"fraction"</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">pivotY</span> = <span class="string">"300%"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>enum：枚举值。</p>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr name=<span class="string">"orientation"</span>&gt;</span><br><span class="line">      &lt;<span class="keyword">enum</span> name=<span class="string">"horizontal"</span> <span class="keyword">value</span>=<span class="string">"0"</span> /&gt;</span><br><span class="line">      &lt;<span class="keyword">enum</span> name=<span class="string">"vertical"</span> <span class="keyword">value</span>=<span class="string">"1"</span> /&gt;</span><br><span class="line">  &lt;/attr&gt;       </span><br><span class="line">属性使用：</span><br><span class="line">android:orientation = <span class="string">"vertical"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>enum：枚举值。
-<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr name=<span class="string">"orientation"</span>&gt;</span><br><span class="line">      &lt;<span class="keyword">enum</span> name=<span class="string">"horizontal"</span> <span class="keyword">value</span>=<span class="string">"0"</span> /&gt;</span><br><span class="line">      &lt;<span class="keyword">enum</span> name=<span class="string">"vertical"</span> <span class="keyword">value</span>=<span class="string">"1"</span> /&gt;</span><br><span class="line">  &lt;/attr&gt;       </span><br><span class="line">属性使用：</span><br><span class="line">android:orientation = <span class="string">"vertical"</span></span><br></pre></td></tr></table></figure></p>
-</li>
-<li>
-<p>flag：位或运算。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name="windowSoftInputMode"&gt;</span></span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateUnspecified"</span> <span class="attr">value</span> = <span class="string">"0"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateUnchanged"</span> <span class="attr">value</span> = <span class="string">"1"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateHidden"</span> <span class="attr">value</span> = <span class="string">"2"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateAlwaysHidden"</span> <span class="attr">value</span> = <span class="string">"3"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateVisible"</span> <span class="attr">value</span> = <span class="string">"4"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateAlwaysVisible"</span> <span class="attr">value</span> = <span class="string">"5"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustUnspecified"</span> <span class="attr">value</span> = <span class="string">"0x00"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustResize"</span> <span class="attr">value</span> = <span class="string">"0x10"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustPan"</span> <span class="attr">value</span> = <span class="string">"0x20"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustNothing"</span> <span class="attr">value</span> = <span class="string">"0x30"</span> /&gt;</span><br><span class="line"> &lt;/attr&gt;          </span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">windowSoftInputMode</span> = <span class="string">"stateUnspecified | stateUnchanged　|　stateHidden"</span>&gt;</span><br></pre></td></tr></table></figure></p>
+<li><p>flag：位或运算。</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="attr">name="windowSoftInputMode"&gt;</span></span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateUnspecified"</span> <span class="attr">value</span> = <span class="string">"0"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateUnchanged"</span> <span class="attr">value</span> = <span class="string">"1"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateHidden"</span> <span class="attr">value</span> = <span class="string">"2"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateAlwaysHidden"</span> <span class="attr">value</span> = <span class="string">"3"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateVisible"</span> <span class="attr">value</span> = <span class="string">"4"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"stateAlwaysVisible"</span> <span class="attr">value</span> = <span class="string">"5"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustUnspecified"</span> <span class="attr">value</span> = <span class="string">"0x00"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustResize"</span> <span class="attr">value</span> = <span class="string">"0x10"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustPan"</span> <span class="attr">value</span> = <span class="string">"0x20"</span> /&gt;</span><br><span class="line">  &lt;flag <span class="attr">name</span> = <span class="string">"adjustNothing"</span> <span class="attr">value</span> = <span class="string">"0x30"</span> /&gt;</span><br><span class="line"> &lt;/attr&gt;          </span><br><span class="line">属性使用：</span><br><span class="line">android:<span class="attr">windowSoftInputMode</span> = <span class="string">"stateUnspecified | stateUnchanged　|　stateHidden"</span>&gt;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<p>属性定义时可以指定多种类型值。
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"background"</span> <span class="attr">format</span> = <span class="string">"reference|color"</span> /&gt;</span><br><span class="line">android:<span class="attr">background</span> = <span class="string">"@drawable/图片ID|#00FF00"</span></span><br></pre></td></tr></table></figure></p>
+</li>
+</ul>
+<p>属性定义时可以指定多种类型值。<br><figure class="highlight nix"><table><tr><td class="code"><pre><span class="line">&lt;attr <span class="attr">name</span> = <span class="string">"background"</span> <span class="attr">format</span> = <span class="string">"reference|color"</span> /&gt;</span><br><span class="line">android:<span class="attr">background</span> = <span class="string">"@drawable/图片ID|#00FF00"</span></span><br></pre></td></tr></table></figure></p>
 <p>2.在xml中为相应的属性声明属性值</p>
 <ul>
-<li>
-<p>直接在layout中使用属性：这个就不做介绍了，一般布局很多都是这种方式 custom:attr_1=&quot;attr one&quot;</p>
+<li>直接在layout中使用属性：这个就不做介绍了，一般布局很多都是这种方式 custom:attr_1=”attr one”</li>
+<li><p>设置style并在style中设置属性</p>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line"></span><br><span class="line">    &lt;style <span class="built_in">name</span>=<span class="string">"DirectStyle"</span>&gt;</span><br><span class="line">        &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> DirectStyle&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">        &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"attr_2"</span>&gt;attr two <span class="keyword">from</span> DirectStyle&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">    &lt;/style&gt;</span><br><span class="line"></span><br><span class="line">&lt;/resources&gt;</span><br><span class="line"></span><br><span class="line">使用方式：</span><br><span class="line">style=<span class="string">"@style/DirectStyle"</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>设置style并在style中设置属性
-<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line"></span><br><span class="line">    &lt;style <span class="built_in">name</span>=<span class="string">"DirectStyle"</span>&gt;</span><br><span class="line">        &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> DirectStyle&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">        &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"attr_2"</span>&gt;attr two <span class="keyword">from</span> DirectStyle&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">    &lt;/style&gt;</span><br><span class="line"></span><br><span class="line">&lt;/resources&gt;</span><br><span class="line"></span><br><span class="line">使用方式：</span><br><span class="line">style=<span class="string">"@style/DirectStyle"</span></span><br></pre></td></tr></table></figure></p>
+<li><p>在主题中指定在当前Application或Activity中属性的默认值</p>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;style <span class="built_in">name</span>=<span class="string">"AppTheme"</span> parent=<span class="string">"AppBaseTheme"</span>&gt;</span><br><span class="line">    &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> Theme&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">    &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"CustomizeStyleRef"</span>&gt;@style/CustomizeStyle&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">&lt;/style&gt;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>在主题中指定在当前Application或Activity中属性的默认值
-<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;style <span class="built_in">name</span>=<span class="string">"AppTheme"</span> parent=<span class="string">"AppBaseTheme"</span>&gt;</span><br><span class="line">    &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> Theme&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">    &lt;<span class="built_in">item</span> <span class="built_in">name</span>=<span class="string">"CustomizeStyleRef"</span>&gt;@style/CustomizeStyle&lt;/<span class="built_in">item</span>&gt;</span><br><span class="line">&lt;/style&gt;</span><br></pre></td></tr></table></figure></p>
-</li>
-<li>
-<p>在defStyle提供默认值</p>
+<li><p>在defStyle提供默认值</p>
 </li>
 </ul>
-<p>它们的顺序如下：
-<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line"><span class="built_in">XML</span>中定义&gt;style定义&gt;由defStyle提供默认值&gt;在Theme中指定的值</span><br></pre></td></tr></table></figure></p>
-<p>下面是个人实现自定义View为View添加属性时候的固定步骤：
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line">    &lt;style name=<span class="string">"AppBaseTheme"</span> parent=<span class="string">"android:Theme.Light"</span>&gt;</span><br><span class="line">    &lt;<span class="regexp">/style&gt;</span></span><br><span class="line"><span class="regexp">   </span></span><br><span class="line"><span class="regexp">    &lt;style name="AppTheme" parent="AppBaseTheme"&gt;</span></span><br><span class="line"><span class="regexp">        /</span><span class="regexp">/1 定义一个Style引用</span></span><br><span class="line"><span class="regexp">        &lt;item name="CustomizeStyleRef"&gt;@style/</span>CustomizeStyle&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//定义一个Style  CustomizeStyleRef 指向它，这个是为主题提供默认的属性值</span></span><br><span class="line">    &lt;style name=<span class="string">"CustomizeStyle"</span>&gt;</span><br><span class="line">    <span class="comment">//Style项</span></span><br><span class="line">    &lt;item name=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> CustomizeStyle&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//2 定义一个默认的style用于提供默认值，这个在defStyle提供默认值</span></span><br><span class="line">    &lt;style name=<span class="string">"DefaultCustomizeStyle"</span>&gt;</span><br><span class="line">        &lt;item name=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> defalut style&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//3 这个用于直接在xml通过style方式提供属性值</span></span><br><span class="line">    &lt;style name=<span class="string">"DirectStyle"</span>&gt;</span><br><span class="line">        &lt;item name=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> DirectStyle&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/resources&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>它们的顺序如下：<br><figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line"><span class="built_in">XML</span>中定义&gt;style定义&gt;由defStyle提供默认值&gt;在Theme中指定的值</span><br></pre></td></tr></table></figure></p>
+<p>下面是个人实现自定义View为View添加属性时候的固定步骤：<br><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line">    &lt;style name=<span class="string">"AppBaseTheme"</span> parent=<span class="string">"android:Theme.Light"</span>&gt;</span><br><span class="line">    &lt;<span class="regexp">/style&gt;</span></span><br><span class="line"><span class="regexp">   </span></span><br><span class="line"><span class="regexp">    &lt;style name="AppTheme" parent="AppBaseTheme"&gt;</span></span><br><span class="line"><span class="regexp">        /</span><span class="regexp">/1 定义一个Style引用</span></span><br><span class="line"><span class="regexp">        &lt;item name="CustomizeStyleRef"&gt;@style/</span>CustomizeStyle&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//定义一个Style  CustomizeStyleRef 指向它，这个是为主题提供默认的属性值</span></span><br><span class="line">    &lt;style name=<span class="string">"CustomizeStyle"</span>&gt;</span><br><span class="line">    <span class="comment">//Style项</span></span><br><span class="line">    &lt;item name=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> CustomizeStyle&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//2 定义一个默认的style用于提供默认值，这个在defStyle提供默认值</span></span><br><span class="line">    &lt;style name=<span class="string">"DefaultCustomizeStyle"</span>&gt;</span><br><span class="line">        &lt;item name=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> defalut style&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//3 这个用于直接在xml通过style方式提供属性值</span></span><br><span class="line">    &lt;style name=<span class="string">"DirectStyle"</span>&gt;</span><br><span class="line">        &lt;item name=<span class="string">"attr_1"</span>&gt;attr one <span class="keyword">from</span> DirectStyle&lt;<span class="regexp">/item&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>style&gt;</span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/resources&gt;</span></span><br></pre></td></tr></table></figure></p>
 <ul>
-<li>
-<h5>如何获得属性值</h5>
+<li><h5 id="如何获得属性值"><a href="#如何获得属性值" class="headerlink" title="如何获得属性值"></a>如何获得属性值</h5><figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(context, attrs, R.attr.CustomizeStyleRef);<span class="comment">//注意这里是从attr获取</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CustomTextView</span><span class="params">(Context context, AttributeSet attrs, <span class="keyword">int</span> defStyle)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(context, attrs, defStyle);</span><br><span class="line">    TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Customize, defStyle,R.style.DefaultCustomizeStyle);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        attr_1 = a.getString(R.styleable.Customize_attr_1);<span class="comment">//注意这里！！！！！格式是定义属性名_属性名</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        a.recycle();<span class="comment">//TypedArry是一个共享的资源，使用完毕必须回收它。</span></span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-</ul>
-<p><figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(context, attrs, R.attr.CustomizeStyleRef);<span class="comment">//注意这里是从attr获取</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CustomTextView</span><span class="params">(Context context, AttributeSet attrs, <span class="keyword">int</span> defStyle)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(context, attrs, defStyle);</span><br><span class="line">    TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Customize, defStyle,R.style.DefaultCustomizeStyle);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        attr_1 = a.getString(R.styleable.Customize_attr_1);<span class="comment">//注意这里！！！！！格式是定义属性名_属性名</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        a.recycle();<span class="comment">//TypedArry是一个共享的资源，使用完毕必须回收它。</span></span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>
-<h5>覆写onDraw方法绘制View</h5>
+<li><h5 id="覆写onDraw方法绘制View"><a href="#覆写onDraw方法绘制View" class="headerlink" title="覆写onDraw方法绘制View"></a>覆写onDraw方法绘制View</h5><p>[见绘图部分]</p>
 </li>
-</ul>
-<p>[见绘图部分]</p>
-<ul>
-<li>
-<h5>覆写onTouch等事件相应方法</h5>
-</li>
-</ul>
-<p>[见事件部分]</p>
-<ul>
-<li>
-<h5>设置控件的回调接口</h5>
-</li>
+<li><h5 id="覆写onTouch等事件相应方法"><a href="#覆写onTouch等事件相应方法" class="headerlink" title="覆写onTouch等事件相应方法"></a>覆写onTouch等事件相应方法</h5>[见事件部分]</li>
+<li><h5 id="设置控件的回调接口"><a href="#设置控件的回调接口" class="headerlink" title="设置控件的回调接口"></a>设置控件的回调接口</h5></li>
 </ul>
 <hr>
-<h3>自定义View步骤总结：</h3>
-<ol>
-<li>
-<p>继承View或继承View的子类</p>
+<h3 id="自定义View步骤总结："><a href="#自定义View步骤总结：" class="headerlink" title="自定义View步骤总结："></a>自定义View步骤总结：</h3><ol>
+<li>继承View或继承View的子类</li>
+<li>在res/values/attrs.xm 中新增<declare-styleable>节点定义自定义属性</declare-styleable></li>
+<li><p>将自定义View放到布局文件中，注意命名空间名的格式为<a href="http://schemas.android.com/apk/res/[自定义View所在的包路径]" target="_blank" rel="noopener">http://schemas.android.com/apk/res/[自定义View所在的包路径]</a> 比如</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:custom</span>=<span class="string">"http://schemas.android.com/apk/res/com.example.customviews"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">com.example.customviews.CustomView</span></span></span><br><span class="line"><span class="tag">    <span class="attr">custom:attr_1</span>=<span class="string">"dddddddddddd"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>在res/values/attrs.xm 中新增&lt;declare-styleable&gt;节点定义自定义属性</p>
+<li><p>在XML布局中设定指定属性的值</p>
 </li>
-<li>
-<p>将自定义View放到布局文件中，注意命名空间名的格式为http://schemas.android.com/apk/res/[自定义View所在的包路径] 比如
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:custom</span>=<span class="string">"http://schemas.android.com/apk/res/com.example.customviews"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">com.example.customviews.CustomView</span></span></span><br><span class="line"><span class="tag">    <span class="attr">custom:attr_1</span>=<span class="string">"dddddddddddd"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-</li>
-<li>
-<p>在XML布局中设定指定属性的值</p>
-</li>
-<li>
-<p>在CustomView 中获取对应的属性值并覆写构造方法以及onDraw方法</p>
-</li>
-<li>
-<p>覆写onTouch等事件相应方法</p>
-</li>
+<li>在CustomView 中获取对应的属性值并覆写构造方法以及onDraw方法</li>
+<li>覆写onTouch等事件相应方法</li>
 </ol>
 <p>自定义View过程中除了上述介绍的onMeasue方法还有如下重要的回调方法：</p>
-<p>onFinishInflate()  从XML加载组件后调用
-onMeasure()        调用该方法进行测量
-onLayout()         调用该方法确定显示的位置
-onSizeChange()     组件大小改变的时候这个方法会被掉用
-onTouchEvent       当触摸事件来临时被调用</p>
-<p>自定义View是一个需要很长时间实践才能掌握的技术，上面进阶是一些死东西，活的东西需要在实践中不断积累，多看别人的作品，并多实践是掌握自定义View的不二法则，下面是一些我之前收集的一些较好的博文，推荐给大家。
-[推荐博文]</p>
+<p>onFinishInflate()  从XML加载组件后调用<br>onMeasure()        调用该方法进行测量<br>onLayout()         调用该方法确定显示的位置<br>onSizeChange()     组件大小改变的时候这个方法会被掉用<br>onTouchEvent       当触摸事件来临时被调用</p>
+<p>自定义View是一个需要很长时间实践才能掌握的技术，上面进阶是一些死东西，活的东西需要在实践中不断积累，多看别人的作品，并多实践是掌握自定义View的不二法则，下面是一些我之前收集的一些较好的博文，推荐给大家。<br>[推荐博文]</p>
 <blockquote>
-<p>blog.csdn.net/jdsjlzx/article/details/41113969
-http://blog.csdn.net/lmj623565791/article/details/24252901
-http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0606/3001.html
-http://blog.csdn.net/feelang/article/details/45035759
-http://www.zhihu.com/question/41101031
-http://blog.csdn.net/singwhatiwanna/article/details/38168103
-http://blog.csdn.net/aigestudio/article/details/41447349</p>
+<p>blog.csdn.net/jdsjlzx/article/details/41113969<br><a href="http://blog.csdn.net/lmj623565791/article/details/24252901" target="_blank" rel="noopener">http://blog.csdn.net/lmj623565791/article/details/24252901</a><br><a href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0606/3001.html" target="_blank" rel="noopener">http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0606/3001.html</a><br><a href="http://blog.csdn.net/feelang/article/details/45035759" target="_blank" rel="noopener">http://blog.csdn.net/feelang/article/details/45035759</a><br><a href="http://www.zhihu.com/question/41101031" target="_blank" rel="noopener">http://www.zhihu.com/question/41101031</a><br><a href="http://blog.csdn.net/singwhatiwanna/article/details/38168103" target="_blank" rel="noopener">http://blog.csdn.net/singwhatiwanna/article/details/38168103</a><br><a href="http://blog.csdn.net/aigestudio/article/details/41447349" target="_blank" rel="noopener">http://blog.csdn.net/aigestudio/article/details/41447349</a></p>
 </blockquote>
   
 	</div>
@@ -336,7 +258,7 @@ http://blog.csdn.net/aigestudio/article/details/41447349</p>
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">Android 控件的整体架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">View以及ViewGroup的测量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">View的绘制：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.1.</span> <span class="toc-text">覆写构造方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.2.</span> <span class="toc-text">自定义属性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.3.</span> <span class="toc-text">如何获得属性值</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.4.</span> <span class="toc-text">覆写onDraw方法绘制View</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.5.</span> <span class="toc-text">覆写onTouch等事件相应方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.6.</span> <span class="toc-text">设置控件的回调接口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number"></span> <span class="toc-text">自定义View步骤总结：</span></a>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Android-控件的整体架构"><span class="toc-number">1.</span> <span class="toc-text">Android 控件的整体架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#View以及ViewGroup的测量"><span class="toc-number">2.</span> <span class="toc-text">View以及ViewGroup的测量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#View的绘制："><span class="toc-number">3.</span> <span class="toc-text">View的绘制：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#覆写构造方法"><span class="toc-number">3.1.</span> <span class="toc-text">覆写构造方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#自定义属性"><span class="toc-number">3.2.</span> <span class="toc-text">自定义属性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#如何获得属性值"><span class="toc-number">3.3.</span> <span class="toc-text">如何获得属性值</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#覆写onDraw方法绘制View"><span class="toc-number">3.4.</span> <span class="toc-text">覆写onDraw方法绘制View</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#覆写onTouch等事件相应方法"><span class="toc-number">3.5.</span> <span class="toc-text">覆写onTouch等事件相应方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#设置控件的回调接口"><span class="toc-number">3.6.</span> <span class="toc-text">设置控件的回调接口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#自定义View步骤总结："><span class="toc-number"></span> <span class="toc-text">自定义View步骤总结：</span></a>
  
   </div>
 
@@ -526,18 +448,6 @@ http://blog.csdn.net/aigestudio/article/details/41447349</p>
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -546,15 +456,19 @@ http://blog.csdn.net/aigestudio/article/details/41447349</p>
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -562,7 +476,15 @@ http://blog.csdn.net/aigestudio/article/details/41447349</p>
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

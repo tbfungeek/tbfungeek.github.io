@@ -11,18 +11,18 @@
     
 
     
-    <meta name="description" content="两种启动方式 在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：  冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActi">
+    <meta name="description" content="两种启动方式在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：  冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActiv">
 <meta name="keywords" content="Android性能优化">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之加快启动速度">
 <meta property="og:url" content="http://yoursite.com/2016/07/25/Android-进阶之加快启动速度/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="两种启动方式 在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：  冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActi">
+<meta property="og:description" content="两种启动方式在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：  冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActiv">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2016-07-28T12:10:36.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之加快启动速度">
-<meta name="twitter:description" content="两种启动方式 在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：  冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActi">
+<meta name="twitter:description" content="两种启动方式在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：  冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActiv">
 
     
     <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
@@ -94,29 +94,23 @@
 </header>
 	<div class="article-content">
 		
-		<h4>两种启动方式</h4>
-<p>在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：</p>
+		<h4 id="两种启动方式"><a href="#两种启动方式" class="headerlink" title="两种启动方式"></a>两种启动方式</h4><p>在Android系统中有两种启动方式分别为冷启动和热启动，定义如下：</p>
 <ul>
-<li>冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActivity以及配置Activity层级上的一些属性、再inflate布局、当onCreate/onStart/onResume方法都走完了后最后才进行contentView的measure/layout/draw显示在界面上。
-整个过程如下所示：</li>
+<li>冷启动：冷启动就是通过点击桌面图标启动应用，这种启动方式由于后台没有该应用的进程，系统会从Zygote进程中fork创建出一个新的进程分配给该应用，之后会依次创建和初始化Application类、创建MainActivity类、加载主题样式Theme中的windowBackground等属性设置给MainActivity以及配置Activity层级上的一些属性、再inflate布局、当onCreate/onStart/onResume方法都走完了后最后才进行contentView的measure/layout/draw显示在界面上。<br>整个过程如下所示：</li>
 </ul>
-<p><figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Application</span>构造 ——&gt; <span class="selector-tag">attachBaseContext</span>()——&gt;<span class="selector-tag">onCreate</span>()——&gt;<span class="selector-tag">Activity</span>的构造方法——&gt;<span class="selector-tag">onCreate</span>()——&gt;配置主题中背景等属性——&gt;<span class="selector-tag">onStart</span>()——&gt;<span class="selector-tag">onResume</span>()——&gt;测量布局绘制显示在界面上。</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Application</span>构造 ——&gt; <span class="selector-tag">attachBaseContext</span>()——&gt;<span class="selector-tag">onCreate</span>()——&gt;<span class="selector-tag">Activity</span>的构造方法——&gt;<span class="selector-tag">onCreate</span>()——&gt;配置主题中背景等属性——&gt;<span class="selector-tag">onStart</span>()——&gt;<span class="selector-tag">onResume</span>()——&gt;测量布局绘制显示在界面上。</span><br></pre></td></tr></table></figure>
 <ul>
 <li>热启动：当启动应用时，后台已有该应用的进程，所以在已有进程的情况下，这种启动会从已有的进程中来启动应用，这种方式叫热启动。热启动因为会从已有的进程中来启动，所以热启动就不会走Application这步了，而是直接走MainActivity（包括一系列的测量、布局、绘制），所以热启动的过程只需要创建和初始化一个MainActivity就行了，而不必创建和初始化Application，因为一个应用从新进程的创建到进程的销毁，Application只会初始化一次。</li>
 </ul>
-<h4>启动时间和启动时间的测量</h4>
-<p>启动时间指的是从点击应用的启动图标开始直到我们看到了界面的第一帧，这段时间就是应用的启动时间。应用启动时间可以通过如下方式进行测量：</p>
-<p><figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line">adb <span class="keyword">shell</span><span class="bash"> am start -W [packageName]/[packageName.MainActivity]</span></span><br></pre></td></tr></table></figure></p>
-<h4>减小应用启动时间的方法</h4>
-<ul>
+<h4 id="启动时间和启动时间的测量"><a href="#启动时间和启动时间的测量" class="headerlink" title="启动时间和启动时间的测量"></a>启动时间和启动时间的测量</h4><p>启动时间指的是从点击应用的启动图标开始直到我们看到了界面的第一帧，这段时间就是应用的启动时间。应用启动时间可以通过如下方式进行测量：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line">adb <span class="keyword">shell</span><span class="bash"> am start -W [packageName]/[packageName.MainActivity]</span></span><br></pre></td></tr></table></figure>
+<h4 id="减小应用启动时间的方法"><a href="#减小应用启动时间的方法" class="headerlink" title="减小应用启动时间的方法"></a>减小应用启动时间的方法</h4><ul>
 <li>在Application的onCreate()方法中不要进行耗时操作的初始化，尽量将耗时间操作放在后台线程异步处理。</li>
 <li>对于MainActivity，由于在获取到第一帧前，需要对布局进行测量绘制操作所以尽量减少布局的层次，以及采用ViewStab延迟加载策略，并在onCreate、onStart、onResume方法中避免做耗时操作。</li>
 <li>由于在冷启动时刻，WindowManager会先加载app主题样式中的windowBackground做为app的预览元素，然后再真正去加载activity的layout布局，所以可以通过给windowBackground设置一个图片在视觉上来骗过用户</li>
 </ul>
-<p>推荐使用如下的解决方案，我这边尝试了下还是有效果的，但是如果本身应用在这段时间如果就没处理什么事情，就比较难看出这个效果了：
-https://github.com/DreaminginCodeZH/MaterialColdStart</p>
-<p>英文不好的可以看下下面这篇博客：
-http://blog.csdn.net/ccsutofly/article/details/49990939</p>
+<p>推荐使用如下的解决方案，我这边尝试了下还是有效果的，但是如果本身应用在这段时间如果就没处理什么事情，就比较难看出这个效果了：<br><a href="https://github.com/DreaminginCodeZH/MaterialColdStart" target="_blank" rel="noopener">https://github.com/DreaminginCodeZH/MaterialColdStart</a></p>
+<p>英文不好的可以看下下面这篇博客：<br><a href="http://blog.csdn.net/ccsutofly/article/details/49990939" target="_blank" rel="noopener">http://blog.csdn.net/ccsutofly/article/details/49990939</a></p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -179,7 +173,7 @@ http://blog.csdn.net/ccsutofly/article/details/49990939</p>
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">两种启动方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">启动时间和启动时间的测量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">减小应用启动时间的方法</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#两种启动方式"><span class="toc-number">1.</span> <span class="toc-text">两种启动方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#启动时间和启动时间的测量"><span class="toc-number">2.</span> <span class="toc-text">启动时间和启动时间的测量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#减小应用启动时间的方法"><span class="toc-number">3.</span> <span class="toc-text">减小应用启动时间的方法</span></a></li></ol>
  
   </div>
 
@@ -369,18 +363,6 @@ http://blog.csdn.net/ccsutofly/article/details/49990939</p>
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -389,15 +371,19 @@ http://blog.csdn.net/ccsutofly/article/details/49990939</p>
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -405,7 +391,15 @@ http://blog.csdn.net/ccsutofly/article/details/49990939</p>
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

@@ -11,19 +11,19 @@
     
 
     
-    <meta name="description" content="简介： 之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。 这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了， 那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。 它的具体思">
+    <meta name="description" content="简介：之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了，那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。它的具体思路是通过">
 <meta name="keywords" content="Android 设计模式">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之设计模式 策略模式">
 <meta property="og:url" content="http://yoursite.com/2016/05/20/Android-进阶之设计模式-策略模式/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="简介： 之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。 这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了， 那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。 它的具体思">
+<meta property="og:description" content="简介：之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了，那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。它的具体思路是通过">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/05/20/Android-进阶之设计模式-策略模式/1.png">
 <meta property="og:updated_time" content="2016-07-18T21:54:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之设计模式 策略模式">
-<meta name="twitter:description" content="简介： 之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。 这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了， 那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。 它的具体思">
+<meta name="twitter:description" content="简介：之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了，那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。它的具体思路是通过">
 <meta name="twitter:image" content="http://yoursite.com/2016/05/20/Android-进阶之设计模式-策略模式/1.png">
 
     
@@ -96,27 +96,15 @@
 </header>
 	<div class="article-content">
 		
-		<h4>简介：</h4>
-<p>之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。
-这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了，
-那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。
-它的具体思路是通过一个持有算法的上下文对象，来封装一系列算法，这个对象并不负责决定具体选用哪个算法，而把算法选择的工作交给了客户，客户选择好具体的算法后设置到上下文对象中让上下文对象持有客户选择的算法，当客户通知上下文对象执行功能的时候，上下文对象则转调具体的算法，这样具体的算法和直接使用算法的客户就能够实现分离了。
-在策略模式中上下文对象就是各个策略算法的公共类，可以在这里面存放各个算法所公用的数据以及所需要的公共方法。
-<img src="/2016/05/20/Android-进阶之设计模式-策略模式/1.png" alt></p>
-<p>其实说到公共方法这里有三种组织方式：
-在上下文当中实现公共功能，让所有具体的策略算法回调这些方法。
-将策略的接口改成抽象类，然后在其中实现具体算法的公共功能
-为所有的策略算法定义一个抽象父类，让这个父类去实现策略的接口，然后在这个父类中实现公共的功能。</p>
-<h4>策略模式的使用场合：</h4>
-<p>在出现很多仅仅是行为有差别的相关类的情况下，可以使用策略模式来在这些行为之间动态切换。
-出现同一个算法，有很多不同实现的情况下，可以使用策略模式来吧这些不同的实现，实现成为一个算法的类层次。
-需要封装算法中存在和算法相关数据的情况下，可以使用策略模式来避免暴露这些跟算法相关的数据结构。</p>
-<p><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public<span class="built_in"> interface </span>StragryInterface &#123;</span><br><span class="line">    public void stragryMethod();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">AbstractStragry</span> <span class="title">implements</span> <span class="title">StragryInterface</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">commonMethodOne</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">"This is common Method One"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">commonMethodTwo</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">"This is common Method Two"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">stepOne</span>(<span class="params"></span>)</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">stepTwo</span>(<span class="params"></span>)</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stragryMethod</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        stepOne();</span><br><span class="line">        stepTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreStragryOne</span> <span class="keyword">extends</span> <span class="title">AbstractStragry</span> </span>&#123;</span><br><span class="line">    public void stepOne() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryOne"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodOne();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void stepTwo() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryOne"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreStragryTwo</span> <span class="keyword">extends</span> <span class="title">AbstractStragry</span> </span>&#123;</span><br><span class="line">    public void stepOne() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryTwo"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodOne();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void stepTwo() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryTwo"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Context</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> AbstractStragry mStragry = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Context</span>(<span class="params">AbstractStragry stragrey</span>)</span> &#123;</span><br><span class="line">        mStragry = stragrey;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callStragrey</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        mStragry.stragryMethod();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStragrey</span>(<span class="params">AbstractStragry stragrey</span>)</span> &#123;</span><br><span class="line">        mStragry = stragrey;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> void main(<span class="keyword">String</span>[] args) &#123;</span><br><span class="line">        AbstractStragry stragryOne = <span class="keyword">new</span> <span class="type">ConcreStragryOne</span>();</span><br><span class="line">        AbstractStragry stragryTwo = <span class="keyword">new</span> <span class="type">ConcreStragryTwo</span>();</span><br><span class="line">        Context contextOne = <span class="keyword">new</span> <span class="type">Context</span>(stragryOne);</span><br><span class="line">        contextOne.callStragrey();</span><br><span class="line">        </span><br><span class="line">        contextOne.setStragrey(stragryTwo);</span><br><span class="line">        contextOne.callStragrey();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+		<h4 id="简介："><a href="#简介：" class="headerlink" title="简介："></a>简介：</h4><p>之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。<br>这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了，<br>那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。<br>它的具体思路是通过一个持有算法的上下文对象，来封装一系列算法，这个对象并不负责决定具体选用哪个算法，而把算法选择的工作交给了客户，客户选择好具体的算法后设置到上下文对象中让上下文对象持有客户选择的算法，当客户通知上下文对象执行功能的时候，上下文对象则转调具体的算法，这样具体的算法和直接使用算法的客户就能够实现分离了。<br>在策略模式中上下文对象就是各个策略算法的公共类，可以在这里面存放各个算法所公用的数据以及所需要的公共方法。<br><img src="/2016/05/20/Android-进阶之设计模式-策略模式/1.png" alt></p>
+<p>其实说到公共方法这里有三种组织方式：<br>在上下文当中实现公共功能，让所有具体的策略算法回调这些方法。<br>将策略的接口改成抽象类，然后在其中实现具体算法的公共功能<br>为所有的策略算法定义一个抽象父类，让这个父类去实现策略的接口，然后在这个父类中实现公共的功能。</p>
+<h4 id="策略模式的使用场合："><a href="#策略模式的使用场合：" class="headerlink" title="策略模式的使用场合："></a>策略模式的使用场合：</h4><p>在出现很多仅仅是行为有差别的相关类的情况下，可以使用策略模式来在这些行为之间动态切换。<br>出现同一个算法，有很多不同实现的情况下，可以使用策略模式来吧这些不同的实现，实现成为一个算法的类层次。<br>需要封装算法中存在和算法相关数据的情况下，可以使用策略模式来避免暴露这些跟算法相关的数据结构。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public<span class="built_in"> interface </span>StragryInterface &#123;</span><br><span class="line">    public void stragryMethod();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">AbstractStragry</span> <span class="title">implements</span> <span class="title">StragryInterface</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">commonMethodOne</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">"This is common Method One"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">commonMethodTwo</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">"This is common Method Two"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">stepOne</span>(<span class="params"></span>)</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">stepTwo</span>(<span class="params"></span>)</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stragryMethod</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        stepOne();</span><br><span class="line">        stepTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreStragryOne</span> <span class="keyword">extends</span> <span class="title">AbstractStragry</span> </span>&#123;</span><br><span class="line">    public void stepOne() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryOne"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodOne();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void stepTwo() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryOne"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreStragryTwo</span> <span class="keyword">extends</span> <span class="title">AbstractStragry</span> </span>&#123;</span><br><span class="line">    public void stepOne() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryTwo"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodOne();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void stepTwo() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">"This is from ConcreStragryTwo"</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Context</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> AbstractStragry mStragry = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Context</span>(<span class="params">AbstractStragry stragrey</span>)</span> &#123;</span><br><span class="line">        mStragry = stragrey;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callStragrey</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        mStragry.stragryMethod();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStragrey</span>(<span class="params">AbstractStragry stragrey</span>)</span> &#123;</span><br><span class="line">        mStragry = stragrey;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> void main(<span class="keyword">String</span>[] args) &#123;</span><br><span class="line">        AbstractStragry stragryOne = <span class="keyword">new</span> <span class="type">ConcreStragryOne</span>();</span><br><span class="line">        AbstractStragry stragryTwo = <span class="keyword">new</span> <span class="type">ConcreStragryTwo</span>();</span><br><span class="line">        Context contextOne = <span class="keyword">new</span> <span class="type">Context</span>(stragryOne);</span><br><span class="line">        contextOne.callStragrey();</span><br><span class="line">        </span><br><span class="line">        contextOne.setStragrey(stragryTwo);</span><br><span class="line">        contextOne.callStragrey();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -179,7 +167,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">简介：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">策略模式的使用场合：</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#简介："><span class="toc-number">1.</span> <span class="toc-text">简介：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#策略模式的使用场合："><span class="toc-number">2.</span> <span class="toc-text">策略模式的使用场合：</span></a></li></ol>
  
   </div>
 
@@ -369,18 +357,6 @@
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -389,15 +365,19 @@
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -405,7 +385,15 @@
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

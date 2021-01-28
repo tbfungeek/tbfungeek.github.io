@@ -97,20 +97,18 @@
 		<ol>
 <li>比较粗鲁的方式-杀进程</li>
 </ol>
-<p><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">android.os.Process.killProcess(android.os.Process.myPid());</span><br><span class="line">System.<span class="keyword">exit</span>(<span class="number">0</span>);</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">android.os.Process.killProcess(android.os.Process.myPid());</span><br><span class="line">System.<span class="keyword">exit</span>(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
 <ol start="2">
 <li>使用ActivityManager的restartPackage方法，这种方法需要注意的是需要运行在Android 1.5 API Level为3以上才可以，并且需要权限</li>
 </ol>
-<p><figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">ActivityManager am = (ActivityManager)getSystemService (Context.ACTIVITY_SERVICE)<span class="comment">;</span></span><br><span class="line">am.restartPackage(getPackageName())<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
-<p>所需权限：
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">"android.permission.RESTART_PACKAGES"</span>&gt;</span><span class="tag">&lt;/<span class="name">uses-permission</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">ActivityManager am = (ActivityManager)getSystemService (Context.ACTIVITY_SERVICE)<span class="comment">;</span></span><br><span class="line">am.restartPackage(getPackageName())<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>所需权限：<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">"android.permission.RESTART_PACKAGES"</span>&gt;</span><span class="tag">&lt;/<span class="name">uses-permission</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <ol start="3">
 <li>使用FLAG_ACTIVITY_CLEAR_TOP 方式</li>
 </ol>
-<p>使用FLAG_ACTIVITY_CLEAR_TOP 启动第一个Activity也就是MAIN的那个Activity然后在需要全部退出时调用finish
-<figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Intent</span> <span class="keyword">intent</span> = new <span class="keyword">Intent</span>(); </span><br><span class="line"><span class="keyword">intent</span>.setClass(xxxx,xxxxx); </span><br><span class="line"><span class="keyword">intent</span>.setFlags(<span class="keyword">Intent</span>.FLAG_ACTIVITY_CLEAR_TOP); </span><br><span class="line">startActivity(<span class="keyword">intent</span>);</span><br><span class="line">`</span><br></pre></td></tr></table></figure></p>
+<p>使用FLAG_ACTIVITY_CLEAR_TOP 启动第一个Activity也就是MAIN的那个Activity然后在需要全部退出时调用finish<br><figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Intent</span> <span class="keyword">intent</span> = new <span class="keyword">Intent</span>(); </span><br><span class="line"><span class="keyword">intent</span>.setClass(xxxx,xxxxx); </span><br><span class="line"><span class="keyword">intent</span>.setFlags(<span class="keyword">Intent</span>.FLAG_ACTIVITY_CLEAR_TOP); </span><br><span class="line">startActivity(<span class="keyword">intent</span>);</span><br><span class="line">`</span><br></pre></td></tr></table></figure></p>
 <p>下面是我自己之前写的一个退出整个应用的方式使用的是ActivityLifeCycleCallback + 单例也是个人比较推崇的方式：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MyApplication</span> <span class="keyword">extends</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> List&lt;Activity&gt; mActivityList = <span class="keyword">new</span> LinkedList&lt;Activity&gt;();</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onCreate();</span><br><span class="line">		<span class="keyword">if</span>(mActivityList!= <span class="keyword">null</span>) &#123;</span><br><span class="line">			mActivityList.clear();</span><br><span class="line">		&#125;</span><br><span class="line">		registerActivityLifecycleCallbacks (<span class="keyword">new</span> Application.ActivityLifecycleCallbacks() &#123;</span><br><span class="line"></span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityCreated</span><span class="params">(Activity activity, Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">				<span class="keyword">if</span>(mActivityList != <span class="keyword">null</span>) &#123;</span><br><span class="line">					mActivityList.add(activity);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityDestroyed</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">				<span class="keyword">if</span>(mActivityList != <span class="keyword">null</span> &amp;&amp; mActivityList.contains(activity)) &#123;</span><br><span class="line">					mActivityList.remove(activity);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityPaused</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">			&#125;</span><br><span class="line">	</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityResumed</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivitySaveInstanceState</span><span class="params">(Activity activity, Bundle outState)</span> </span>&#123;&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityStarted</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityStopped</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span>  <span class="title">exitAppication</span><span class="params">(MixEngineService.callbackBefore callbackBefore)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(mActivityList != <span class="keyword">null</span>) &#123;</span><br><span class="line">			<span class="keyword">int</span> activityCount = mActivityList.size();</span><br><span class="line">			<span class="keyword">for</span>(<span class="keyword">int</span> i =<span class="number">0</span>;i&lt;activityCount;i++) &#123;</span><br><span class="line">				Activity activity = mActivityList.get(i);</span><br><span class="line">				<span class="keyword">if</span>(activity != <span class="keyword">null</span>) &#123;</span><br><span class="line">					activity.finish();</span><br><span class="line">					activity.overridePendingTransition(<span class="number">0</span>, R.anim.exitapplication_anim);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			System.exit(<span class="number">0</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MyApplication</span> <span class="keyword">extends</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> List&lt;Activity&gt; mActivityList = <span class="keyword">new</span> LinkedList&lt;Activity&gt;();</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onCreate();</span><br><span class="line">		<span class="keyword">if</span>(mActivityList!= <span class="keyword">null</span>) &#123;</span><br><span class="line">			mActivityList.clear();</span><br><span class="line">		&#125;</span><br><span class="line">		registerActivityLifecycleCallbacks (<span class="keyword">new</span> Application.ActivityLifecycleCallbacks() &#123;</span><br><span class="line"></span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityCreated</span><span class="params">(Activity activity, Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">				<span class="keyword">if</span>(mActivityList != <span class="keyword">null</span>) &#123;</span><br><span class="line">					mActivityList.add(activity);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityDestroyed</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">				<span class="keyword">if</span>(mActivityList != <span class="keyword">null</span> &amp;&amp; mActivityList.contains(activity)) &#123;</span><br><span class="line">					mActivityList.remove(activity);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityPaused</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">			&#125;</span><br><span class="line">	</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityResumed</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivitySaveInstanceState</span><span class="params">(Activity activity, Bundle outState)</span> </span>&#123;&#125;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityStarted</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span>	<span class="title">onActivityStopped</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span>  <span class="title">exitAppication</span><span class="params">(MixEngineService.callbackBefore callbackBefore)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(mActivityList != <span class="keyword">null</span>) &#123;</span><br><span class="line">			<span class="keyword">int</span> activityCount = mActivityList.size();</span><br><span class="line">			<span class="keyword">for</span>(<span class="keyword">int</span> i =<span class="number">0</span>;i&lt;activityCount;i++) &#123;</span><br><span class="line">				Activity activity = mActivityList.get(i);</span><br><span class="line">				<span class="keyword">if</span>(activity != <span class="keyword">null</span>) &#123;</span><br><span class="line">					activity.finish();</span><br><span class="line">					activity.overridePendingTransition(<span class="number">0</span>, R.anim.exitapplication_anim);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			System.exit(<span class="number">0</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -363,18 +361,6 @@
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -383,15 +369,19 @@
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -399,7 +389,15 @@
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

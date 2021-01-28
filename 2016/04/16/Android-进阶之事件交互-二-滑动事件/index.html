@@ -11,19 +11,19 @@
     
 
     
-    <meta name="description" content="滑动原理 实现View的滑动如下图所示： 图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：  第一次相对于View的坐标 再次按下的时候相对于View的坐标 根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。   大体的">
+    <meta name="description" content="滑动原理实现View的滑动如下图所示：图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：  第一次相对于View的坐标 再次按下的时候相对于View的坐标 根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。  大体的结构如">
 <meta name="keywords" content="Android 事件处理进阶">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之事件交互 二 滑动事件">
 <meta property="og:url" content="http://yoursite.com/2016/04/16/Android-进阶之事件交互-二-滑动事件/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="滑动原理 实现View的滑动如下图所示： 图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：  第一次相对于View的坐标 再次按下的时候相对于View的坐标 根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。   大体的">
+<meta property="og:description" content="滑动原理实现View的滑动如下图所示：图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：  第一次相对于View的坐标 再次按下的时候相对于View的坐标 根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。  大体的结构如">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/04/16/Android-进阶之事件交互-二-滑动事件/scroller.png">
 <meta property="og:updated_time" content="2016-07-18T21:41:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之事件交互 二 滑动事件">
-<meta name="twitter:description" content="滑动原理 实现View的滑动如下图所示： 图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：  第一次相对于View的坐标 再次按下的时候相对于View的坐标 根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。   大体的">
+<meta name="twitter:description" content="滑动原理实现View的滑动如下图所示：图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：  第一次相对于View的坐标 再次按下的时候相对于View的坐标 根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。  大体的结构如">
 <meta name="twitter:image" content="http://yoursite.com/2016/04/16/Android-进阶之事件交互-二-滑动事件/scroller.png">
 
     
@@ -96,51 +96,31 @@
 </header>
 	<div class="article-content">
 		
-		<h3>滑动原理</h3>
-<p>实现View的滑动如下图所示：
-图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：</p>
+		<h3 id="滑动原理"><a href="#滑动原理" class="headerlink" title="滑动原理"></a>滑动原理</h3><p>实现View的滑动如下图所示：<br>图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：</p>
 <ul>
 <li>第一次相对于View的坐标</li>
 <li>再次按下的时候相对于View的坐标</li>
-<li>根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。
-<img src="/2016/04/16/Android-进阶之事件交互-二-滑动事件/scroller.png" alt></li>
+<li>根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。<br><img src="/2016/04/16/Android-进阶之事件交互-二-滑动事件/scroller.png" alt></li>
 </ul>
 <p>大体的结构如下，接下来我们的重点将放在如何实现processTouchEvent这个方法来实现滑动。</p>
-<p><figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">float</span> originX = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">float</span> originY = <span class="number">-1</span>;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span>(<span class="params"><span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">@Override</span><br><span class="line"><span class="function"><span class="keyword">public</span> boolean <span class="title">onTouchEvent</span>(<span class="params">MotionEvent <span class="keyword">event</span></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">float</span> destX = <span class="keyword">event</span>.getX();</span><br><span class="line">    <span class="keyword">float</span> destY = <span class="keyword">event</span>.getY();</span><br><span class="line">    <span class="keyword">switch</span> (<span class="keyword">event</span>.getAction()) &#123;</span><br><span class="line">        <span class="keyword">case</span> MotionEvent.ACTION_DOWN:</span><br><span class="line">            originX = destX;</span><br><span class="line">            originY = destY;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> MotionEvent.ACTION_MOVE:</span><br><span class="line">            <span class="keyword">float</span> offsetX = destX - originX;</span><br><span class="line">            <span class="keyword">float</span> offsetY = destY - originY;</span><br><span class="line">            processTouchEvent(offsetX,offsetY);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h3>滑动的实现</h3>
-<h4>使用layout方法</h4>
-<p>在绘制View的时候，会调用layout方法并传入left，top，right，bottom来移动View。
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(Context context,<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    layout(getLeft()+offsetX,getTop()+offsetY,getRight()+offsetX,getBottom()+offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h4>使用LayoutParams</h4>
-<p>这种适用于要移动的View位于一个Layout中的情形，因为移动一个View通常是通过修改它在Parent View 中的margin来实现的。所以可以通过这种方式来实现：
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) getLayoutParams();</span><br><span class="line">    layoutParams.leftMargin = (<span class="keyword">int</span>) (getLeft() + offsetX);</span><br><span class="line">    layoutParams.topMargin = (<span class="keyword">int</span>) (getTop() + offsetY);</span><br><span class="line">    setLayoutParams(layoutParams);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h3>使用ScrollTo和ScrollBy</h3>
-<p>在使用这两个方法移动视图的时候，移动的不是View或者ViewGroup本身，而是View 或者ViewGroup的包含的内容，比如TextView 使用这两种方式移动的时候移动的将是TextView的文本，
-而一个Layout移动的时候移动的将是里面的子View,那么我们怎样移动一个View本身，而不是仅仅其内容呢？很简单换位思考下，站在要移动View的父类的角度，它不就是父类的内容吗？
-有了这个思路就好办了。</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    ((View)getParent()).scrollBy((<span class="keyword">int</span>)offsetX,(<span class="keyword">int</span>)offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight cs"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">float</span> originX = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">float</span> originY = <span class="number">-1</span>;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span>(<span class="params"><span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">@Override</span><br><span class="line"><span class="function"><span class="keyword">public</span> boolean <span class="title">onTouchEvent</span>(<span class="params">MotionEvent <span class="keyword">event</span></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">float</span> destX = <span class="keyword">event</span>.getX();</span><br><span class="line">    <span class="keyword">float</span> destY = <span class="keyword">event</span>.getY();</span><br><span class="line">    <span class="keyword">switch</span> (<span class="keyword">event</span>.getAction()) &#123;</span><br><span class="line">        <span class="keyword">case</span> MotionEvent.ACTION_DOWN:</span><br><span class="line">            originX = destX;</span><br><span class="line">            originY = destY;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> MotionEvent.ACTION_MOVE:</span><br><span class="line">            <span class="keyword">float</span> offsetX = destX - originX;</span><br><span class="line">            <span class="keyword">float</span> offsetY = destY - originY;</span><br><span class="line">            processTouchEvent(offsetX,offsetY);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="滑动的实现"><a href="#滑动的实现" class="headerlink" title="滑动的实现"></a>滑动的实现</h3><h4 id="使用layout方法"><a href="#使用layout方法" class="headerlink" title="使用layout方法"></a>使用layout方法</h4><p>在绘制View的时候，会调用layout方法并传入left，top，right，bottom来移动View。<br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(Context context,<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    layout(getLeft()+offsetX,getTop()+offsetY,getRight()+offsetX,getBottom()+offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="使用LayoutParams"><a href="#使用LayoutParams" class="headerlink" title="使用LayoutParams"></a>使用LayoutParams</h4><p>这种适用于要移动的View位于一个Layout中的情形，因为移动一个View通常是通过修改它在Parent View 中的margin来实现的。所以可以通过这种方式来实现：<br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) getLayoutParams();</span><br><span class="line">    layoutParams.leftMargin = (<span class="keyword">int</span>) (getLeft() + offsetX);</span><br><span class="line">    layoutParams.topMargin = (<span class="keyword">int</span>) (getTop() + offsetY);</span><br><span class="line">    setLayoutParams(layoutParams);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="使用ScrollTo和ScrollBy"><a href="#使用ScrollTo和ScrollBy" class="headerlink" title="使用ScrollTo和ScrollBy"></a>使用ScrollTo和ScrollBy</h3><p>在使用这两个方法移动视图的时候，移动的不是View或者ViewGroup本身，而是View 或者ViewGroup的包含的内容，比如TextView 使用这两种方式移动的时候移动的将是TextView的文本，<br>而一个Layout移动的时候移动的将是里面的子View,那么我们怎样移动一个View本身，而不是仅仅其内容呢？很简单换位思考下，站在要移动View的父类的角度，它不就是父类的内容吗？<br>有了这个思路就好办了。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    ((View)getParent()).scrollBy((<span class="keyword">int</span>)offsetX,(<span class="keyword">int</span>)offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>但是这里我们需要时时刻刻让自己记住，这里移动的是父类的位移，而子View的移动偏移实际上是和父View移动位移的相反数。因此要达到我们的移动目标必须将上面的偏移量取相反数。</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    ((View)getParent()).scrollBy(-(<span class="keyword">int</span>)offsetX,-(<span class="keyword">int</span>)offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h3>使用Scroller</h3>
-<p>Scroller存在的意义就是为了避免ScrollTo和ScrollBy带来的瞬间移动的效果，它的移动效果会更加平滑。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span><span class="params">(<span class="keyword">float</span> offsetX,<span class="keyword">float</span> offsetY)</span> </span>&#123;</span><br><span class="line">    ((View)getParent()).scrollBy(-(<span class="keyword">int</span>)offsetX,-(<span class="keyword">int</span>)offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="使用Scroller"><a href="#使用Scroller" class="headerlink" title="使用Scroller"></a>使用Scroller</h3><p>Scroller存在的意义就是为了避免ScrollTo和ScrollBy带来的瞬间移动的效果，它的移动效果会更加平滑。</p>
 <ul>
-<li>
-<p>创建Scroller
-mScroller = new Scroller(context);</p>
+<li>创建Scroller<br>mScroller = new Scroller(context);</li>
+<li><p>覆写computeScroll方法<br>computeScroll 方法是什么时候执行的呢？我们知道在调用invalidate会调用onDraw来重绘当前的页面，在onDraw方法中会调用computeScroll<br>下面是一个典型的实现，首先调用computeScrollOffset来判断时候完成整个滑动，如果返回true，则表示滑动过程还没结束。我们需要继续滑动</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@Override</span></span><br><span class="line">public void computeScroll() &#123;</span><br><span class="line">    <span class="selector-tag">super</span><span class="selector-class">.computeScroll</span>();</span><br><span class="line">    <span class="comment">//If it returns true, the animation is not yet finished.</span></span><br><span class="line">    <span class="selector-tag">if</span>(mScroller.computeScrollOffset()) &#123;</span><br><span class="line">        ((<span class="selector-tag">View</span>)<span class="selector-tag">getParent</span>())<span class="selector-class">.scrollTo</span>(mScroller.getCurrX(),mScroller.getCurrY());</span><br><span class="line">        <span class="selector-tag">invalidate</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>覆写computeScroll方法
-computeScroll 方法是什么时候执行的呢？我们知道在调用invalidate会调用onDraw来重绘当前的页面，在onDraw方法中会调用computeScroll
-下面是一个典型的实现，首先调用computeScrollOffset来判断时候完成整个滑动，如果返回true，则表示滑动过程还没结束。我们需要继续滑动
-<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@Override</span></span><br><span class="line">public void computeScroll() &#123;</span><br><span class="line">    <span class="selector-tag">super</span><span class="selector-class">.computeScroll</span>();</span><br><span class="line">    <span class="comment">//If it returns true, the animation is not yet finished.</span></span><br><span class="line">    <span class="selector-tag">if</span>(mScroller.computeScrollOffset()) &#123;</span><br><span class="line">        ((<span class="selector-tag">View</span>)<span class="selector-tag">getParent</span>())<span class="selector-class">.scrollTo</span>(mScroller.getCurrX(),mScroller.getCurrY());</span><br><span class="line">        <span class="selector-tag">invalidate</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-</li>
-<li>
-<p>调用startScroll启动滑动过程：
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">case</span> <span class="selector-tag">MotionEvent</span><span class="selector-class">.ACTION_UP</span>:</span><br><span class="line">    <span class="selector-tag">mScroller</span><span class="selector-class">.startScroll</span>(<span class="selector-tag">xpos</span>,<span class="selector-tag">ypos</span>,((<span class="selector-tag">View</span>)<span class="selector-tag">getParent</span>())<span class="selector-class">.getScrollX</span>(),((<span class="selector-tag">View</span>)<span class="selector-tag">getParent</span>())<span class="selector-class">.getScrollY</span>());</span><br><span class="line">    <span class="selector-tag">invalidate</span>();</span><br></pre></td></tr></table></figure></p>
+<li><p>调用startScroll启动滑动过程：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">case</span> <span class="selector-tag">MotionEvent</span><span class="selector-class">.ACTION_UP</span>:</span><br><span class="line">    <span class="selector-tag">mScroller</span><span class="selector-class">.startScroll</span>(<span class="selector-tag">xpos</span>,<span class="selector-tag">ypos</span>,((<span class="selector-tag">View</span>)<span class="selector-tag">getParent</span>())<span class="selector-class">.getScrollX</span>(),((<span class="selector-tag">View</span>)<span class="selector-tag">getParent</span>())<span class="selector-class">.getScrollY</span>());</span><br><span class="line">    <span class="selector-tag">invalidate</span>();</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<p>由于这种方法十分重要所以在这里将对Scroller常用的方法做个总结：
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mScroller.getCurrX() <span class="comment">//获取mScroller当前水平滚动的位置</span></span><br><span class="line">mScroller.getCurrY() <span class="comment">//获取mScroller当前竖直滚动的位置</span></span><br><span class="line">mScroller.getFinalX() <span class="comment">//获取mScroller最终停止的水平位置</span></span><br><span class="line">mScroller.getFinalY() <span class="comment">//获取mScroller最终停止的竖直位置</span></span><br><span class="line">mScroller.setFinalX(<span class="keyword">int</span> newX) <span class="comment">//设置mScroller最终停留的水平位置，没有动画效果，直接跳到目标位置</span></span><br><span class="line">mScroller.setFinalY(<span class="keyword">int</span> newY) <span class="comment">//设置mScroller最终停留的竖直位置，没有动画效果，直接跳到目标位置</span></span><br><span class="line"><span class="comment">//开启滚动，startX, startY为开始滚动的位置，dx,dy为滚动的偏移量, duration为完成滚动的时间</span></span><br><span class="line">mScroller.startScroll(<span class="keyword">int</span> startX, <span class="keyword">int</span> startY, <span class="keyword">int</span> dx, <span class="keyword">int</span> dy) <span class="comment">//使用默认完成时间250ms</span></span><br><span class="line">mScroller.startScroll(<span class="keyword">int</span> startX, <span class="keyword">int</span> startY, <span class="keyword">int</span> dx, <span class="keyword">int</span> dy, <span class="keyword">int</span> duration)</span><br><span class="line">第一个参数是起始移动的x坐标值， 正值表明滚动将向左滚动</span><br><span class="line">第二个是起始移动的y坐标值， 正值表明滚动将向上滚动</span><br><span class="line">dx 水平方向滑动的距离，正值会使滚动向左滚动</span><br><span class="line">dy 垂直方向滑动的距离，正值会使滚动向上滚动</span><br><span class="line">mScroller.computeScrollOffset() <span class="comment">//返回值为boolean，true说明滚动尚未完成，false说明滚动已经完成。这是一个很重要的方法，通常放在View.computeScroll()中，用来判断是否滚动是否结束。</span></span><br></pre></td></tr></table></figure></p>
+<p>由于这种方法十分重要所以在这里将对Scroller常用的方法做个总结：<br><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mScroller.getCurrX() <span class="comment">//获取mScroller当前水平滚动的位置</span></span><br><span class="line">mScroller.getCurrY() <span class="comment">//获取mScroller当前竖直滚动的位置</span></span><br><span class="line">mScroller.getFinalX() <span class="comment">//获取mScroller最终停止的水平位置</span></span><br><span class="line">mScroller.getFinalY() <span class="comment">//获取mScroller最终停止的竖直位置</span></span><br><span class="line">mScroller.setFinalX(<span class="keyword">int</span> newX) <span class="comment">//设置mScroller最终停留的水平位置，没有动画效果，直接跳到目标位置</span></span><br><span class="line">mScroller.setFinalY(<span class="keyword">int</span> newY) <span class="comment">//设置mScroller最终停留的竖直位置，没有动画效果，直接跳到目标位置</span></span><br><span class="line"><span class="comment">//开启滚动，startX, startY为开始滚动的位置，dx,dy为滚动的偏移量, duration为完成滚动的时间</span></span><br><span class="line">mScroller.startScroll(<span class="keyword">int</span> startX, <span class="keyword">int</span> startY, <span class="keyword">int</span> dx, <span class="keyword">int</span> dy) <span class="comment">//使用默认完成时间250ms</span></span><br><span class="line">mScroller.startScroll(<span class="keyword">int</span> startX, <span class="keyword">int</span> startY, <span class="keyword">int</span> dx, <span class="keyword">int</span> dy, <span class="keyword">int</span> duration)</span><br><span class="line">第一个参数是起始移动的x坐标值， 正值表明滚动将向左滚动</span><br><span class="line">第二个是起始移动的y坐标值， 正值表明滚动将向上滚动</span><br><span class="line">dx 水平方向滑动的距离，正值会使滚动向左滚动</span><br><span class="line">dy 垂直方向滑动的距离，正值会使滚动向上滚动</span><br><span class="line">mScroller.computeScrollOffset() <span class="comment">//返回值为boolean，true说明滚动尚未完成，false说明滚动已经完成。这是一个很重要的方法，通常放在View.computeScroll()中，用来判断是否滚动是否结束。</span></span><br></pre></td></tr></table></figure></p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -203,7 +183,7 @@ computeScroll 方法是什么时候执行的呢？我们知道在调用invalidat
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">滑动原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">滑动的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.1.</span> <span class="toc-text">使用layout方法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.2.</span> <span class="toc-text">使用LayoutParams</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">使用ScrollTo和ScrollBy</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">使用Scroller</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#滑动原理"><span class="toc-number">1.</span> <span class="toc-text">滑动原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#滑动的实现"><span class="toc-number">2.</span> <span class="toc-text">滑动的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#使用layout方法"><span class="toc-number">2.1.</span> <span class="toc-text">使用layout方法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#使用LayoutParams"><span class="toc-number">2.2.</span> <span class="toc-text">使用LayoutParams</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#使用ScrollTo和ScrollBy"><span class="toc-number">3.</span> <span class="toc-text">使用ScrollTo和ScrollBy</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#使用Scroller"><span class="toc-number">4.</span> <span class="toc-text">使用Scroller</span></a></li></ol>
  
   </div>
 
@@ -393,18 +373,6 @@ computeScroll 方法是什么时候执行的呢？我们知道在调用invalidat
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -413,15 +381,19 @@ computeScroll 方法是什么时候执行的呢？我们知道在调用invalidat
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -429,7 +401,15 @@ computeScroll 方法是什么时候执行的呢？我们知道在调用invalidat
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

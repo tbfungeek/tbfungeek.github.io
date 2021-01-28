@@ -11,20 +11,20 @@
     
 
     
-    <meta name="description" content="Zygote 故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的">
+    <meta name="description" content="Zygote故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的可">
 <meta name="keywords" content="AOSP 源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 源码分析之Zygote &amp;&amp; SystemServer">
 <meta property="og:url" content="http://yoursite.com/2016/08/03/Android-源码分析Zygote/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="Zygote 故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的">
+<meta property="og:description" content="Zygote故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的可">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/08/03/Android-源码分析Zygote/11.png">
 <meta property="og:image" content="http://yoursite.com/2016/08/03/Android-源码分析Zygote/221.png">
 <meta property="og:updated_time" content="2016-08-05T23:54:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 源码分析之Zygote &amp;&amp; SystemServer">
-<meta name="twitter:description" content="Zygote 故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的">
+<meta name="twitter:description" content="Zygote故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的可">
 <meta name="twitter:image" content="http://yoursite.com/2016/08/03/Android-源码分析Zygote/11.png">
 
     
@@ -97,11 +97,9 @@
 </header>
 	<div class="article-content">
 		
-		<h4>Zygote</h4>
-<p>故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的可执行文件的内容替换当前进程的代码段，数据段，堆栈等数据。但是在Android系统中Zygote在初始化的时候会创建Delvik虚拟机，在这个阶段会将系统的类库，资源文件，共享库加载到内存，在后续Zygote fork出子进程后，这个子进程也就有了上述资源，就不需要重新加载了，只需要装载APK中的字节码就可以直接运行了，所以会在很大程度上缩短启动进程的时间。</p>
+		<h4 id="Zygote"><a href="#Zygote" class="headerlink" title="Zygote"></a>Zygote</h4><p>故名思议就是“受精卵”的意思，受精卵的特点就是它是新生命的开始，并且受精卵一般都可以携带一些父辈的遗传信息。Zygote在Android系统中就相当于一个应用程序的受精卵一样，会生成出新的应用，我们知道Linux系统中要创建一个进程需要先调用fork方法，fork得到的进程大部分数据是和父辈进程是一致的，也就是说子进程和父进程之间共享着内存空间。只有在调用exec方法的时候才会用新的可执行文件的内容替换当前进程的代码段，数据段，堆栈等数据。但是在Android系统中Zygote在初始化的时候会创建Delvik虚拟机，在这个阶段会将系统的类库，资源文件，共享库加载到内存，在后续Zygote fork出子进程后，这个子进程也就有了上述资源，就不需要重新加载了，只需要装载APK中的字节码就可以直接运行了，所以会在很大程度上缩短启动进程的时间。</p>
 <p><img src="/2016/08/03/Android-源码分析Zygote/11.png" alt></p>
-<h4>SystemServer</h4>
-<p>一般我們在开发应用的时候如果要使用一个服务需要运行startService，来启动一个服务，但是我们在使用系统服务的时候却不需要，而是只需要调用getSystemService()来获得系统服务，这是因为我们上面提到的在系统启动的时候，Zygote会最早生成的一个SystemServer这个运行在Dalvik虚拟机上的Java进程。上面运行着多种系统服务，也就说这些服务在已经启动好了的，不需要我们重新启动。</p>
+<h4 id="SystemServer"><a href="#SystemServer" class="headerlink" title="SystemServer"></a>SystemServer</h4><p>一般我們在开发应用的时候如果要使用一个服务需要运行startService，来启动一个服务，但是我们在使用系统服务的时候却不需要，而是只需要调用getSystemService()来获得系统服务，这是因为我们上面提到的在系统启动的时候，Zygote会最早生成的一个SystemServer这个运行在Dalvik虚拟机上的Java进程。上面运行着多种系统服务，也就说这些服务在已经启动好了的，不需要我们重新启动。</p>
 <p>下面是整个SystemServer以及MediaServer启动的整个过程，先上图，后补上详细的代码分析，哎，又欠了一大段文字，哈哈，不过我喜欢。大家看图估计看得更清楚些：</p>
 <p><img src="/2016/08/03/Android-源码分析Zygote/221.png" alt></p>
   
@@ -166,7 +164,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">Zygote</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">SystemServer</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Zygote"><span class="toc-number">1.</span> <span class="toc-text">Zygote</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SystemServer"><span class="toc-number">2.</span> <span class="toc-text">SystemServer</span></a></li></ol>
  
   </div>
 
@@ -356,18 +354,6 @@
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -376,15 +362,19 @@
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -392,7 +382,15 @@
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

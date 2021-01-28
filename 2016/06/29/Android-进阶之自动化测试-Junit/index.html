@@ -102,53 +102,35 @@
 </header>
 	<div class="article-content">
 		
-		<p>自动化测试的重要性做Android开发的开发人员应该都了解吧，在开发过程中我们需要实时对我们已有的代码进行测试，由于是会相互影响的，有时候我们开发新功能的时候会发现原先是OK的部分，却在交付的时候出现了异常，所以一些稍稍正规点的公司都会要求在开发过程中对重要的部分编写测试用例进行自动化测试，这些用例就像哨兵一样看着应用的每个功能和每段逻辑，这个在敏捷开发中显得尤为重要。在提交了代码就让它自动执行自动化测试用例，一旦测试不通过就意味着你的代码影响了某个功能点。还有一种情况是有时候测试工程师报出的问题是偶现的，几百次可能还不会出现一次，在Log中分析到了可能的原因，你修改后不知道是否真正解决了这个问题，那要怎么办？自己手动验证？叫测试帮忙验证？这些都不大现实吧，这时候就要借助自动化测试工具来进行测试了。写个用例让它没日没夜得跑，跑它个几百次看下是否还有异常。
-随着Android Studio的功能不断完善，对自动化测试的支持也不断加强，最早的时候在Android studio上搭建个自动化测试就得耗费一整天，某些自动化测试框架由于使用说明很少会给搭建带来更大的困难。借下来的部分将会以Android Studio  2.2为开发环境介绍自动化测试平台的搭建。这里主要介绍Expresso，UiAutomater，Roblolectric，JUnit这四个主流的自动化测试框架，其中前两者是UI测试框架，一般用于功能测试，后两者是单元测试框架，一般用于逻辑测试。这四者各有各的优点，也各有各的不足。</p>
-<h4>依赖关系</h4>
-<p>在Android Stdio 2.2 Preview 版本中一旦创建了一个项目就会自动导入Junit4以及Expresso的依赖如下所示：
-<figure class="highlight roboconf"><table><tr><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    <span class="attribute">compile fileTree(dir</span>: 'libs', include: ['*<span class="variable">.jar</span>'])</span><br><span class="line">    compile 'com<span class="variable">.android</span><span class="variable">.support</span>:appcompat-v7:23.3.0'</span><br><span class="line">    compile 'com<span class="variable">.android</span><span class="variable">.support</span><span class="variable">.constraint</span>:constraint-layout:1.0.0-alpha1'</span><br><span class="line">    testCompile 'junit:junit:4.12'</span><br><span class="line">    androidTestCompile 'com<span class="variable">.android</span><span class="variable">.support</span><span class="variable">.test</span><span class="variable">.espresso</span>:espresso-core:2.2.2'</span><br><span class="line">    androidTestCompile 'com<span class="variable">.android</span><span class="variable">.support</span><span class="variable">.test</span>:runner:0.5'</span><br><span class="line">    androidTestCompile 'com<span class="variable">.android</span><span class="variable">.support</span>:support-annotations:23.3.0'</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>并且帮你创建好了功能测试和单元测试的目录如下所示：
-<img src="/2016/06/29/Android-进阶之自动化测试-Junit/1.png" alt></p>
+		<p>自动化测试的重要性做Android开发的开发人员应该都了解吧，在开发过程中我们需要实时对我们已有的代码进行测试，由于是会相互影响的，有时候我们开发新功能的时候会发现原先是OK的部分，却在交付的时候出现了异常，所以一些稍稍正规点的公司都会要求在开发过程中对重要的部分编写测试用例进行自动化测试，这些用例就像哨兵一样看着应用的每个功能和每段逻辑，这个在敏捷开发中显得尤为重要。在提交了代码就让它自动执行自动化测试用例，一旦测试不通过就意味着你的代码影响了某个功能点。还有一种情况是有时候测试工程师报出的问题是偶现的，几百次可能还不会出现一次，在Log中分析到了可能的原因，你修改后不知道是否真正解决了这个问题，那要怎么办？自己手动验证？叫测试帮忙验证？这些都不大现实吧，这时候就要借助自动化测试工具来进行测试了。写个用例让它没日没夜得跑，跑它个几百次看下是否还有异常。<br>随着Android Studio的功能不断完善，对自动化测试的支持也不断加强，最早的时候在Android studio上搭建个自动化测试就得耗费一整天，某些自动化测试框架由于使用说明很少会给搭建带来更大的困难。借下来的部分将会以Android Studio  2.2为开发环境介绍自动化测试平台的搭建。这里主要介绍Expresso，UiAutomater，Roblolectric，JUnit这四个主流的自动化测试框架，其中前两者是UI测试框架，一般用于功能测试，后两者是单元测试框架，一般用于逻辑测试。这四者各有各的优点，也各有各的不足。</p>
+<h4 id="依赖关系"><a href="#依赖关系" class="headerlink" title="依赖关系"></a>依赖关系</h4><p>在Android Stdio 2.2 Preview 版本中一旦创建了一个项目就会自动导入Junit4以及Expresso的依赖如下所示：<br><figure class="highlight roboconf"><table><tr><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    <span class="attribute">compile fileTree(dir</span>: 'libs', include: ['*<span class="variable">.jar</span>'])</span><br><span class="line">    compile 'com<span class="variable">.android</span><span class="variable">.support</span>:appcompat-v7:23.3.0'</span><br><span class="line">    compile 'com<span class="variable">.android</span><span class="variable">.support</span><span class="variable">.constraint</span>:constraint-layout:1.0.0-alpha1'</span><br><span class="line">    testCompile 'junit:junit:4.12'</span><br><span class="line">    androidTestCompile 'com<span class="variable">.android</span><span class="variable">.support</span><span class="variable">.test</span><span class="variable">.espresso</span>:espresso-core:2.2.2'</span><br><span class="line">    androidTestCompile 'com<span class="variable">.android</span><span class="variable">.support</span><span class="variable">.test</span>:runner:0.5'</span><br><span class="line">    androidTestCompile 'com<span class="variable">.android</span><span class="variable">.support</span>:support-annotations:23.3.0'</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>并且帮你创建好了功能测试和单元测试的目录如下所示：<br><img src="/2016/06/29/Android-进阶之自动化测试-Junit/1.png" alt></p>
 <p>下面我们就以Calculater这个类作为待测试的类看下逻辑用例如何创建：</p>
 <ol>
-<li>
-<p>创建一个待测试类：
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calculater</span> &#123;</span></span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">sub</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">mul</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>创建一个待测试类：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calculater</span> &#123;</span></span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">sub</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">mul</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>按下Ctrl + Shint + T选择Create New Test...
-在弹出的对话框中编辑测试类的类名，勾选要进行测试的方法，以及是否创建setup/tearDown方法
-<img src="/2016/06/29/Android-进阶之自动化测试-Junit/2.png" alt></p>
+<li><p>按下Ctrl + Shint + T选择Create New Test…<br>在弹出的对话框中编辑测试类的类名，勾选要进行测试的方法，以及是否创建setup/tearDown方法<br><img src="/2016/06/29/Android-进阶之自动化测试-Junit/2.png" alt></p>
 </li>
-<li>
-<p>紧接着选择要放置的路径，这里选择的是test目录：
-<img src="/2016/06/29/Android-进阶之自动化测试-Junit/3.png" alt></p>
+<li><p>紧接着选择要放置的路径，这里选择的是test目录：<br><img src="/2016/06/29/Android-进阶之自动化测试-Junit/3.png" alt></p>
 </li>
-<li>
-<p>这时候就会自动生成如下的代码
-<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">class</span> <span class="selector-tag">CalculaterTest</span> &#123;</span><br><span class="line">    <span class="variable">@Before</span></span><br><span class="line">    public void setUp() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@After</span></span><br><span class="line">    public void tearDown() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Test</span></span><br><span class="line">    public void add() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Test</span></span><br><span class="line">    public void sub() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Test</span></span><br><span class="line">    public void mul() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>这时候就会自动生成如下的代码</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">class</span> <span class="selector-tag">CalculaterTest</span> &#123;</span><br><span class="line">    <span class="variable">@Before</span></span><br><span class="line">    public void setUp() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@After</span></span><br><span class="line">    public void tearDown() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Test</span></span><br><span class="line">    public void add() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Test</span></span><br><span class="line">    public void sub() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Test</span></span><br><span class="line">    public void mul() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>在对应的方法的测试方法中编写对应的测试：
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CalculaterTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Calculater mCalculater;</span><br><span class="line">    <span class="meta">@Before</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setUp</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        mCalculater = <span class="keyword">new</span> Calculater();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@After</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">tearDown</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        mCalculater = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        assertNotNull(mCalculater);</span><br><span class="line">        assertEquals(<span class="number">5</span>,mCalculater.add(<span class="number">2</span>,<span class="number">3</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sub</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        assertNotNull(mCalculater);</span><br><span class="line">        assertEquals(<span class="number">5</span>,mCalculater.sub(<span class="number">12</span>,<span class="number">7</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mul</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        assertNotNull(mCalculater);</span><br><span class="line">        assertEquals(<span class="number">6</span>,mCalculater.mul(<span class="number">2</span>,<span class="number">3</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>在对应的方法的测试方法中编写对应的测试：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CalculaterTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Calculater mCalculater;</span><br><span class="line">    <span class="meta">@Before</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setUp</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        mCalculater = <span class="keyword">new</span> Calculater();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@After</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">tearDown</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        mCalculater = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        assertNotNull(mCalculater);</span><br><span class="line">        assertEquals(<span class="number">5</span>,mCalculater.add(<span class="number">2</span>,<span class="number">3</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sub</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        assertNotNull(mCalculater);</span><br><span class="line">        assertEquals(<span class="number">5</span>,mCalculater.sub(<span class="number">12</span>,<span class="number">7</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mul</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        assertNotNull(mCalculater);</span><br><span class="line">        assertEquals(<span class="number">6</span>,mCalculater.mul(<span class="number">2</span>,<span class="number">3</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>有了上面的测试类就可以编写待测试的类了,比如如下所示
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calculater</span> &#123;</span></span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">sub</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a - b;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">mul</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a * b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>有了上面的测试类就可以编写待测试的类了,比如如下所示</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calculater</span> &#123;</span></span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">sub</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a - b;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">mul</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a * b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>点击如下所示左边的绿色箭头就可以运行整个测试类中的测试用例
-<img src="/2016/06/29/Android-进阶之自动化测试-Junit/4.png" alt></p>
+<li><p>点击如下所示左边的绿色箭头就可以运行整个测试类中的测试用例<br><img src="/2016/06/29/Android-进阶之自动化测试-Junit/4.png" alt></p>
 </li>
 </ol>
-<p>运行结果如下：
-<img src="/2016/06/29/Android-进阶之自动化测试-Junit/5.png" alt></p>
+<p>运行结果如下：<br><img src="/2016/06/29/Android-进阶之自动化测试-Junit/5.png" alt></p>
 <ol start="8">
-<li>点击每个方法左边的绿色标志就可以触发单个方法的测试
-<img src="/2016/06/29/Android-进阶之自动化测试-Junit/6.png" alt></li>
+<li>点击每个方法左边的绿色标志就可以触发单个方法的测试<br><img src="/2016/06/29/Android-进阶之自动化测试-Junit/6.png" alt></li>
 </ol>
-<p>运行结果如下
-<img src="/2016/06/29/Android-进阶之自动化测试-Junit/7.png" alt></p>
+<p>运行结果如下<br><img src="/2016/06/29/Android-进阶之自动化测试-Junit/7.png" alt></p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -211,7 +193,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">依赖关系</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#依赖关系"><span class="toc-number">1.</span> <span class="toc-text">依赖关系</span></a></li></ol>
  
   </div>
 
@@ -401,18 +383,6 @@
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -421,15 +391,19 @@
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -437,7 +411,15 @@
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

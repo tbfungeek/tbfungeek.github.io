@@ -11,18 +11,18 @@
     
 
     
-    <meta name="description" content="JNI异常和Java异常有一点很重要的区别是： 当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。 下面是一个很典型的异常处理代码片段： JNIEXPORT void JNICALLJava_com_ideal">
+    <meta name="description" content="JNI异常和Java异常有一点很重要的区别是： 当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。下面是一个很典型的异常处理代码片段： JNIEXPORT void JNICALLJava_com_ideali">
 <meta name="keywords" content="Android JNI">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之JNI 开发 五 JNI 异常处理">
 <meta property="og:url" content="http://yoursite.com/2016/07/11/Android-进阶之JNI-开发-五-JNI-异常处理/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="JNI异常和Java异常有一点很重要的区别是： 当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。 下面是一个很典型的异常处理代码片段： JNIEXPORT void JNICALLJava_com_ideal">
+<meta property="og:description" content="JNI异常和Java异常有一点很重要的区别是： 当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。下面是一个很典型的异常处理代码片段： JNIEXPORT void JNICALLJava_com_ideali">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2016-07-18T22:11:20.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之JNI 开发 五 JNI 异常处理">
-<meta name="twitter:description" content="JNI异常和Java异常有一点很重要的区别是： 当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。 下面是一个很典型的异常处理代码片段： JNIEXPORT void JNICALLJava_com_ideal">
+<meta name="twitter:description" content="JNI异常和Java异常有一点很重要的区别是： 当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。下面是一个很典型的异常处理代码片段： JNIEXPORT void JNICALLJava_com_ideali">
 
     
     <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
@@ -95,10 +95,8 @@
 	<div class="article-content">
 		
 		<p>JNI异常和Java异常有一点很重要的区别是：</p>
-<p>当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。
-下面是一个很典型的异常处理代码片段：</p>
-<p><figure class="highlight mel"><table><tr><td class="code"><pre><span class="line">JNIEXPORT void JNICALL</span><br><span class="line">Java_com_idealist_myapplication_MainActivity_callMethodWithException(JNIEnv *<span class="keyword">env</span>,</span><br><span class="line">                                                                     jobject <span class="keyword">instance</span>) &#123;</span><br><span class="line">    <span class="comment">//调用会抛出异常的方法</span></span><br><span class="line">    jclass  cls = (*<span class="keyword">env</span>)-&gt;GetObjectClass(<span class="keyword">env</span>,<span class="keyword">instance</span>);</span><br><span class="line">    jmethodID methodid = (*<span class="keyword">env</span>)-&gt;GetMethodID(<span class="keyword">env</span>,cls,<span class="string">"methodWithException"</span>,<span class="string">"()V"</span>);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;CallVoidMethod(<span class="keyword">env</span>, <span class="keyword">instance</span>, methodid);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//检查调用上述方法后异常是否抛出</span></span><br><span class="line">    jthrowable exception = (*<span class="keyword">env</span>)-&gt;ExceptionOccurred(<span class="keyword">env</span>);</span><br><span class="line">    <span class="comment">//如果有异常</span></span><br><span class="line">    <span class="keyword">if</span>(exception) &#123;</span><br><span class="line">        <span class="comment">//释放资源</span></span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>,cls);</span><br><span class="line">        <span class="comment">//打印异常信息</span></span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;ExceptionDescribe(<span class="keyword">env</span>);</span><br><span class="line">        <span class="comment">//清除异常</span></span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;ExceptionClear(<span class="keyword">env</span>);</span><br><span class="line">        <span class="comment">//抛出自定义的异常</span></span><br><span class="line">        jclass exclass = (*<span class="keyword">env</span>)-&gt;FindClass(<span class="keyword">env</span>, <span class="string">"java/lang/Exception"</span>);</span><br><span class="line">        <span class="keyword">if</span> (exclass == NULL) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;ThrowNew(<span class="keyword">env</span>, exclass, <span class="string">"Here is a Exception Occur!"</span>);</span><br><span class="line">        <span class="comment">//将程序流终止，这里由于是最后了所以可以省略，但是如果不是处于最后那么一定不要忘记添加return终止程序运行。</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-  
+<p>当Java中发生异常时如果没有使用try…catch来捕获，会导致程序Crash这种情况下后续的代码不会被执行。而在调用JNI接口的时候如果发生异常那么后续的代码不会停止，还会继续往下执行，所以在这种情况下需要使用return退出后续执行。<br>下面是一个很典型的异常处理代码片段：</p>
+<figure class="highlight mel"><table><tr><td class="code"><pre><span class="line">JNIEXPORT void JNICALL</span><br><span class="line">Java_com_idealist_myapplication_MainActivity_callMethodWithException(JNIEnv *<span class="keyword">env</span>,</span><br><span class="line">                                                                     jobject <span class="keyword">instance</span>) &#123;</span><br><span class="line">    <span class="comment">//调用会抛出异常的方法</span></span><br><span class="line">    jclass  cls = (*<span class="keyword">env</span>)-&gt;GetObjectClass(<span class="keyword">env</span>,<span class="keyword">instance</span>);</span><br><span class="line">    jmethodID methodid = (*<span class="keyword">env</span>)-&gt;GetMethodID(<span class="keyword">env</span>,cls,<span class="string">"methodWithException"</span>,<span class="string">"()V"</span>);</span><br><span class="line">    (*<span class="keyword">env</span>)-&gt;CallVoidMethod(<span class="keyword">env</span>, <span class="keyword">instance</span>, methodid);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//检查调用上述方法后异常是否抛出</span></span><br><span class="line">    jthrowable exception = (*<span class="keyword">env</span>)-&gt;ExceptionOccurred(<span class="keyword">env</span>);</span><br><span class="line">    <span class="comment">//如果有异常</span></span><br><span class="line">    <span class="keyword">if</span>(exception) &#123;</span><br><span class="line">        <span class="comment">//释放资源</span></span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;DeleteLocalRef(<span class="keyword">env</span>,cls);</span><br><span class="line">        <span class="comment">//打印异常信息</span></span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;ExceptionDescribe(<span class="keyword">env</span>);</span><br><span class="line">        <span class="comment">//清除异常</span></span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;ExceptionClear(<span class="keyword">env</span>);</span><br><span class="line">        <span class="comment">//抛出自定义的异常</span></span><br><span class="line">        jclass exclass = (*<span class="keyword">env</span>)-&gt;FindClass(<span class="keyword">env</span>, <span class="string">"java/lang/Exception"</span>);</span><br><span class="line">        <span class="keyword">if</span> (exclass == NULL) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        (*<span class="keyword">env</span>)-&gt;ThrowNew(<span class="keyword">env</span>, exclass, <span class="string">"Here is a Exception Occur!"</span>);</span><br><span class="line">        <span class="comment">//将程序流终止，这里由于是最后了所以可以省略，但是如果不是处于最后那么一定不要忘记添加return终止程序运行。</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>  
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
@@ -350,18 +348,6 @@
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -370,15 +356,19 @@
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -386,7 +376,15 @@
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

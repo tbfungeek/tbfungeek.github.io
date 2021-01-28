@@ -11,18 +11,18 @@
     
 
     
-    <meta name="description" content="绘图与硬件加速： 在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速， 但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花">
+    <meta name="description" content="绘图与硬件加速：在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速，但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花屏、">
 <meta name="keywords" content="Android 绘图进阶">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之Android 绘图 五 硬件加速">
 <meta property="og:url" content="http://yoursite.com/2016/04/14/Android-进阶之Android-绘图-五-硬件加速/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="绘图与硬件加速： 在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速， 但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花">
+<meta property="og:description" content="绘图与硬件加速：在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速，但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花屏、">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2016-07-18T21:39:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之Android 绘图 五 硬件加速">
-<meta name="twitter:description" content="绘图与硬件加速： 在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速， 但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花">
+<meta name="twitter:description" content="绘图与硬件加速：在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速，但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花屏、">
 
     
     <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
@@ -94,36 +94,25 @@
 </header>
 	<div class="article-content">
 		
-		<h3>绘图与硬件加速：</h3>
-<p>在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速，
-但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花屏、闪屏的现象。甚至在低RAM内存配置手机上闪退。
-一般可以通过如下两种方法解决这类问题。
-1.降低页面的内存占用，给硬件加速腾出RAM
-2.在适当的地方关闭硬件加速。
-前者操作起来比较麻烦，因此在可能的情况下最优先选择的是关闭硬件加速。</p>
-<p>不过不支持仅仅是针对自定义View Android可以保证内置的组件和应用支持硬件加速，因此，如果应用中只使用了标准UI组件，可以放心开启硬件加速。
-下面介绍下如何在各个层级中关闭硬件加速：</p>
+		<h3 id="绘图与硬件加速："><a href="#绘图与硬件加速：" class="headerlink" title="绘图与硬件加速："></a>绘图与硬件加速：</h3><p>在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速，<br>但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花屏、闪屏的现象。甚至在低RAM内存配置手机上闪退。<br>一般可以通过如下两种方法解决这类问题。<br>1.降低页面的内存占用，给硬件加速腾出RAM<br>2.在适当的地方关闭硬件加速。<br>前者操作起来比较麻烦，因此在可能的情况下最优先选择的是关闭硬件加速。</p>
+<p>不过不支持仅仅是针对自定义View Android可以保证内置的组件和应用支持硬件加速，因此，如果应用中只使用了标准UI组件，可以放心开启硬件加速。<br>下面介绍下如何在各个层级中关闭硬件加速：</p>
 <ol>
 <li>Application 应用程序等级控制硬件加速，在AndroidManifest.xml中添加：</li>
 </ol>
-<p><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">&lt;application android:<span class="attribute">hardwareAccelerated</span>=<span class="string">"true"</span> <span class="built_in">..</span>.&gt;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">&lt;application android:<span class="attribute">hardwareAccelerated</span>=<span class="string">"true"</span> <span class="built_in">..</span>.&gt;</span><br></pre></td></tr></table></figure>
 <ol start="2">
 <li>Activity  Activity等级的控制还是在AndroidManifest.xml中进行控制：</li>
 </ol>
-<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">application</span> <span class="attr">android:hardwareAccelerated</span>=<span class="string">"true"</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">activity</span> <span class="attr">...</span> /&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:hardwareAccelerated</span>=<span class="string">"false"</span> /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">application</span> <span class="attr">android:hardwareAccelerated</span>=<span class="string">"true"</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">activity</span> <span class="attr">...</span> /&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:hardwareAccelerated</span>=<span class="string">"false"</span> /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <ol start="3">
-<li>
-<p>Window 窗口级控制：
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">getWindow</span>()<span class="selector-class">.setFlags</span>(  </span><br><span class="line">    <span class="selector-tag">WindowManager</span><span class="selector-class">.LayoutParams</span><span class="selector-class">.FLAG_HARDWARE_ACCELERATED</span>,  </span><br><span class="line">    <span class="selector-tag">WindowManager</span><span class="selector-class">.LayoutParams</span><span class="selector-class">.FLAG_HARDWARE_ACCELERATED</span>);</span><br></pre></td></tr></table></figure></p>
+<li><p>Window 窗口级控制：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">getWindow</span>()<span class="selector-class">.setFlags</span>(  </span><br><span class="line">    <span class="selector-tag">WindowManager</span><span class="selector-class">.LayoutParams</span><span class="selector-class">.FLAG_HARDWARE_ACCELERATED</span>,  </span><br><span class="line">    <span class="selector-tag">WindowManager</span><span class="selector-class">.LayoutParams</span><span class="selector-class">.FLAG_HARDWARE_ACCELERATED</span>);</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>View 在运行时控制单个View是否使用硬件加速：</p>
+<li><p>View 在运行时控制单个View是否使用硬件加速：</p>
 </li>
 </ol>
-<p><figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line"><span class="built_in">setLayerType</span>(<span class="built_in">View</span>.LAYER_TYPE_SOFTWARE, <span class="built_in">null</span>);  LAYER_TYPE_HARDWARE即为使用硬件加速（GPU），LAYER_TYPE_SOFTWARE使用CPU进行绘制。</span><br></pre></td></tr></table></figure></p>
-<p>检测当前View或者Canvas是否使用硬件加速
-View.isHardwareAccelerated()<br>
-Canvas.isHardwareAccelerated()</p>
+<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line"><span class="built_in">setLayerType</span>(<span class="built_in">View</span>.LAYER_TYPE_SOFTWARE, <span class="built_in">null</span>);  LAYER_TYPE_HARDWARE即为使用硬件加速（GPU），LAYER_TYPE_SOFTWARE使用CPU进行绘制。</span><br></pre></td></tr></table></figure>
+<p>检测当前View或者Canvas是否使用硬件加速<br>View.isHardwareAccelerated()<br>Canvas.isHardwareAccelerated()  </p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -186,7 +175,7 @@ Canvas.isHardwareAccelerated()</p>
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">绘图与硬件加速：</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#绘图与硬件加速："><span class="toc-number">1.</span> <span class="toc-text">绘图与硬件加速：</span></a></li></ol>
  
   </div>
 
@@ -376,18 +365,6 @@ Canvas.isHardwareAccelerated()</p>
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -396,15 +373,19 @@ Canvas.isHardwareAccelerated()</p>
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -412,7 +393,15 @@ Canvas.isHardwareAccelerated()</p>
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

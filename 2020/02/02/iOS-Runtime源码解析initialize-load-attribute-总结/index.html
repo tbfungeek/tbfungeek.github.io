@@ -11,18 +11,18 @@
     
 
     
-    <meta name="description" content="经过前面几篇论文关于Runtime部分已经介绍差不多了，这篇算是一个总结性的文章吧，其实+initialize 和 +load 已经在之前的几篇博客中都做了十分详细的介绍，这里放在一起无非就是对比一下，增加下记忆，所以这篇博客不会写得很长很复杂，好了言归正传： +initialize   initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对">
+    <meta name="description" content="经过前面几篇论文关于Runtime部分已经介绍差不多了，这篇算是一个总结性的文章吧，其实+initialize 和 +load 已经在之前的几篇博客中都做了十分详细的介绍，这里放在一起无非就是对比一下，增加下记忆，所以这篇博客不会写得很长很复杂，好了言归正传： +initialize initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对某个">
 <meta name="keywords" content="Objective C 相关">
 <meta property="og:type" content="article">
 <meta property="og:title" content="iOS Runtime源码解析initialize load __attribute__总结">
 <meta property="og:url" content="http://yoursite.com/2020/02/02/iOS-Runtime源码解析initialize-load-attribute-总结/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="经过前面几篇论文关于Runtime部分已经介绍差不多了，这篇算是一个总结性的文章吧，其实+initialize 和 +load 已经在之前的几篇博客中都做了十分详细的介绍，这里放在一起无非就是对比一下，增加下记忆，所以这篇博客不会写得很长很复杂，好了言归正传： +initialize   initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对">
+<meta property="og:description" content="经过前面几篇论文关于Runtime部分已经介绍差不多了，这篇算是一个总结性的文章吧，其实+initialize 和 +load 已经在之前的几篇博客中都做了十分详细的介绍，这里放在一起无非就是对比一下，增加下记忆，所以这篇博客不会写得很长很复杂，好了言归正传： +initialize initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对某个">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2020-02-04T17:52:10.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="iOS Runtime源码解析initialize load __attribute__总结">
-<meta name="twitter:description" content="经过前面几篇论文关于Runtime部分已经介绍差不多了，这篇算是一个总结性的文章吧，其实+initialize 和 +load 已经在之前的几篇博客中都做了十分详细的介绍，这里放在一起无非就是对比一下，增加下记忆，所以这篇博客不会写得很长很复杂，好了言归正传： +initialize   initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对">
+<meta name="twitter:description" content="经过前面几篇论文关于Runtime部分已经介绍差不多了，这篇算是一个总结性的文章吧，其实+initialize 和 +load 已经在之前的几篇博客中都做了十分详细的介绍，这里放在一起无非就是对比一下，增加下记忆，所以这篇博客不会写得很长很复杂，好了言归正传： +initialize initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对某个">
 
     
     <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
@@ -95,24 +95,18 @@
 	<div class="article-content">
 		
 		<p>经过前面几篇论文关于Runtime部分已经介绍差不多了，这篇算是一个总结性的文章吧，其实+initialize 和 +load 已经在之前的几篇博客中都做了十分详细的介绍，这里放在一起无非就是对比一下，增加下记忆，所以这篇博客不会写得很长很复杂，好了言归正传：</p>
-<h6><strong><strong>+initialize</strong></strong></h6>
-<ul>
-<li>
-<p>initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对某个对象发送消息，那么这个对象的initialize是不会被调用的。</p>
+<h6 id="initialize"><a href="#initialize" class="headerlink" title="+initialize"></a><strong><strong>+initialize</strong></strong></h6><ul>
+<li><p>initialize的特点是惰性调用方式，它的调用时机是在对某个对象发送第一条消息的时候，也就是说如果我们不对某个对象发送消息，那么这个对象的initialize是不会被调用的。</p>
 </li>
-<li>
-<p>在分类中也可以实现initialize方法，只不过分类中的initialize方法会覆盖主类中的initialize方法，如果在多个分类中同时实现了initialize方法，那么只有最后被编译的那个分类的initialize方法会被调用。它会强制先向父类先发送 +initialize。</p>
+<li><p>在分类中也可以实现initialize方法，只不过分类中的initialize方法会覆盖主类中的initialize方法，如果在多个分类中同时实现了initialize方法，那么只有最后被编译的那个分类的initialize方法会被调用。它会强制先向父类先发送 +initialize。</p>
 </li>
-<li>
-<p>与 load 不同，initialize 方法调用时，所有的类都已经加载到了内存中。</p>
+<li><p>与 load 不同，initialize 方法调用时，所有的类都已经加载到了内存中。</p>
 </li>
-<li>
-<p>其作用也非常局限，一般我们只会在 initialize 方法中进行一些常量的初始化。</p>
+<li><p>其作用也非常局限，一般我们只会在 initialize 方法中进行一些常量的初始化。</p>
 </li>
 </ul>
-<p><figure class="highlight actionscript"><table><tr><td class="code"><pre><span class="line">+ (<span class="keyword">void</span>)initialize &#123;</span><br><span class="line">    <span class="keyword">if</span> (self == [FLAnimatedImage <span class="class"><span class="keyword">class</span>]) </span>&#123;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h6><strong><strong>+load</strong></strong></h6>
-<p>+load 方法相对于 +initialize 来说更为常见它是我们开发过程中可以接触到的调用时机最靠前的方法，和initialize不同的是它的调用<strong><strong>不是惰性的</strong></strong>，在主函数运行之前，load 方法就会被调用，并且它只会在程序调用期间调用一次，最重要的是如果在类与分类中都实现了 load 方法，它们都会被调用，不像+initialize 在分类中实现的方法会被覆盖，但是在使用load方法的时候需要注意，由于load方法的运行时间过早，所以可能不是一个理想的环境，因为它不能保证某些类可能需要在在其它类之前加载，但是在这个时间点，所有的 framework 都已经加载到了运行时中，所以调用 framework 中的方法都是安全的，同时需要注意的是重载Class 的 +load 方法时不能调父类super。</p>
+<figure class="highlight actionscript"><table><tr><td class="code"><pre><span class="line">+ (<span class="keyword">void</span>)initialize &#123;</span><br><span class="line">    <span class="keyword">if</span> (self == [FLAnimatedImage <span class="class"><span class="keyword">class</span>]) </span>&#123;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="load"><a href="#load" class="headerlink" title="+load"></a><strong><strong>+load</strong></strong></h6><p>+load 方法相对于 +initialize 来说更为常见它是我们开发过程中可以接触到的调用时机最靠前的方法，和initialize不同的是它的调用<strong><strong>不是惰性的</strong></strong>，在主函数运行之前，load 方法就会被调用，并且它只会在程序调用期间调用一次，最重要的是如果在类与分类中都实现了 load 方法，它们都会被调用，不像+initialize 在分类中实现的方法会被覆盖，但是在使用load方法的时候需要注意，由于load方法的运行时间过早，所以可能不是一个理想的环境，因为它不能保证某些类可能需要在在其它类之前加载，但是在这个时间点，所有的 framework 都已经加载到了运行时中，所以调用 framework 中的方法都是安全的，同时需要注意的是重载Class 的 +load 方法时不能调父类super。</p>
 <p><strong><strong>load / initialize 对比</strong></strong></p>
 <table>
 <thead>
@@ -145,36 +139,35 @@
 </tr>
 </tbody>
 </table>
-<h6><strong><strong><strong>attribute</strong></strong></strong></h6>
-<p>关于__attribute__有很多很好的文档，大家如果看了还不大明白的话可以在下面文档中找答案，这里只想列出在开发过程中比较常用的几个：</p>
+<h6 id="attribute"><a href="#attribute" class="headerlink" title="attribute"></a><strong><strong><strong>attribute</strong></strong></strong></h6><p>关于<strong>attribute</strong>有很多很好的文档，大家如果看了还不大明白的话可以在下面文档中找答案，这里只想列出在开发过程中比较常用的几个：</p>
 <ul>
 <li><strong><strong><strong>attribute</strong>((objc_requires_super))</strong></strong></li>
 </ul>
-<p>有时候我们自己编写的框架需要给别人用的时候，某个方法在使用的时候必须先调用父类的方法，一种做法是写注释，但是如果使用者不看注释就gg了，所以比较好的方式是使用__attribute__((objc_requires_super)) 如果我们没有调用父类的这个方法编译器就会发出警告。</p>
+<p>有时候我们自己编写的框架需要给别人用的时候，某个方法在使用的时候必须先调用父类的方法，一种做法是写注释，但是如果使用者不看注释就gg了，所以比较好的方式是使用<strong>attribute</strong>((objc_requires_super)) 如果我们没有调用父类的这个方法编译器就会发出警告。</p>
 <ul>
-<li><strong><strong><strong>attribute</strong>((unavailable(&quot;not available&quot;)))</strong></strong></li>
+<li><strong><strong><strong>attribute</strong>((unavailable(“not available”)))</strong></strong></li>
 </ul>
 <p>告诉编译器方法不可用，如果使用了就会编译失败，提示错误。比如自定义了初始化方法，为了防止别人调用init初始化，就可以使用它来提示错误，这个在开发中也很常见，但是一般写成：</p>
-<p><figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">- (instance<span class="keyword">type</span>)init <span class="type">NS_UNAVAILABLE</span>;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">- (instance<span class="keyword">type</span>)init <span class="type">NS_UNAVAILABLE</span>;</span><br></pre></td></tr></table></figure>
 <ul>
-<li><strong><strong><strong>attribute</strong>((deprecated(&quot;该方法已经废弃&quot;)))</strong></strong></li>
+<li><strong><strong><strong>attribute</strong>((deprecated(“该方法已经废弃”)))</strong></strong></li>
 </ul>
 <p>用于在编译时提示方法过时：</p>
-<p><figure class="highlight d"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)deprecatedMethod:(NSString *)<span class="built_in">string</span> __attribute__((<span class="keyword">deprecated</span>(<span class="string">"该方法已经废弃，请使用xxx方法"</span>)));</span><br><span class="line">- (<span class="keyword">void</span>)deprecatedMethod DEPRECATED_ATTRIBUTE;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight d"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)deprecatedMethod:(NSString *)<span class="built_in">string</span> __attribute__((<span class="keyword">deprecated</span>(<span class="string">"该方法已经废弃，请使用xxx方法"</span>)));</span><br><span class="line">- (<span class="keyword">void</span>)deprecatedMethod DEPRECATED_ATTRIBUTE;</span><br></pre></td></tr></table></figure>
 <ul>
 <li><strong><strong><strong>attribute</strong>((cleanup))</strong></strong></li>
 </ul>
-<p>声明到一个变量或者block上，当这个变量作用域结束时，调用指定的一个函数. 这个个人在时机工作中用得不多，大家可以看sunnyxx的<a href="http://blog.sunnyxx.com/2014/09/15/objc-attribute-cleanup/" target="_blank" rel="noopener">黑魔法__attribute__((cleanup))</a>这篇博客。</p>
+<p>声明到一个变量或者block上，当这个变量作用域结束时，调用指定的一个函数. 这个个人在时机工作中用得不多，大家可以看sunnyxx的<a href="http://blog.sunnyxx.com/2014/09/15/objc-attribute-cleanup/" target="_blank" rel="noopener">黑魔法<strong>attribute</strong>((cleanup))</a>这篇博客。</p>
 <ul>
 <li><strong><strong><strong>attribute</strong>((overloadable))</strong></strong></li>
 </ul>
 <p>这个个人在时机工作中也用得不多，它主要用于C语言函数,可以定义若干个函数名相同，但参数不同的方法，调用时编译器会自动根据参数选择函数原型.</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">__attribute__((overloadable)) <span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(NSString *<span class="built_in">string</span>)</span></span>&#123;</span><br><span class="line">    NSLog(@<span class="string">"%@"</span>,<span class="built_in">string</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">__attribute__((overloadable)) <span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">int</span> num)</span></span>&#123;</span><br><span class="line">    NSLog(@<span class="string">"%d"</span>,num);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">__attribute__((overloadable)) <span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(NSString *<span class="built_in">string</span>)</span></span>&#123;</span><br><span class="line">    NSLog(@<span class="string">"%@"</span>,<span class="built_in">string</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">__attribute__((overloadable)) <span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">int</span> num)</span></span>&#123;</span><br><span class="line">    NSLog(@<span class="string">"%d"</span>,num);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
-<li><strong><strong><strong>attribute</strong>((objc_runtime_name(&quot;NSObject&quot;)))</strong></strong></li>
+<li><strong><strong><strong>attribute</strong>((objc_runtime_name(“NSObject”)))</strong></strong></li>
 </ul>
 <p>这个用于将类或协议的名字在编译时指定成另一个，这个没用过。</p>
-<p><figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">__attribute__((objc_runtime_name(<span class="string">"NSObject"</span>)))</span><br><span class="line"><span class="variable">@interface</span> IDLObject <span class="symbol">:NSObject</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">__attribute__((objc_runtime_name(<span class="string">"NSObject"</span>)))</span><br><span class="line"><span class="variable">@interface</span> IDLObject <span class="symbol">:NSObject</span></span><br></pre></td></tr></table></figure>
 <ul>
 <li><strong><strong><strong>attribute</strong>((objc_subclassing_restricted))</strong></strong></li>
 </ul>
@@ -182,9 +175,8 @@
 <ul>
 <li><strong><strong><strong>attribute</strong>((constructor)) / <strong>attribute</strong>((destructor))</strong></strong></li>
 </ul>
-<p>最后介绍的是我们开发过程中经常用到的两个，在用之前需要和load区分开来，我们在将到load方法的时候有提到它的不足之处是它调用的时候某些类可能还没有被加载完成，所以不能在load方法中使用我们自己的类，这样很可能类都没被加载起来。那么__attribute__((constructor))的好处是什么呢？在__attribute__((constructor))标志的方法执行的时候，所有 Class 都已经加载完成，所以可以使用任意的类，并且它可以单独放在一个文件中，不用挂载在一个 Class 中，它和load的方法一样都是在main还未执行的时候调用。如果有多个 constructor 并且想按照指定顺序执行的话，可以写成 <strong>attribute</strong>((constructor(101)))这种形式，1 ~ 100 为系统保留，所以一般以101 为开始，里面的数字越小优先级越高。</p>
-<h6><strong><strong>[推荐文档]</strong></strong></h6>
-<ul>
+<p>最后介绍的是我们开发过程中经常用到的两个，在用之前需要和load区分开来，我们在将到load方法的时候有提到它的不足之处是它调用的时候某些类可能还没有被加载完成，所以不能在load方法中使用我们自己的类，这样很可能类都没被加载起来。那么<strong>attribute</strong>((constructor))的好处是什么呢？在<strong>attribute</strong>((constructor))标志的方法执行的时候，所有 Class 都已经加载完成，所以可以使用任意的类，并且它可以单独放在一个文件中，不用挂载在一个 Class 中，它和load的方法一样都是在main还未执行的时候调用。如果有多个 constructor 并且想按照指定顺序执行的话，可以写成 <strong>attribute</strong>((constructor(101)))这种形式，1 ~ 100 为系统保留，所以一般以101 为开始，里面的数字越小优先级越高。</p>
+<h6 id="推荐文档"><a href="#推荐文档" class="headerlink" title="[推荐文档]"></a><strong><strong>[推荐文档]</strong></strong></h6><ul>
 <li><a href="https://blog.sunnyxx.com/2016/05/14/clang-attributes/" target="_blank" rel="noopener">Clang Attributes 黑魔法小记</a></li>
 <li><a href="https://blog.twitter.com/engineering/en_us/a/2014/attribute-directives-in-objective-c.html" target="_blank" rel="noopener"><strong>attribute</strong> directives in Objective-C</a></li>
 <li><a href="https://nshipster.com/__attribute__/" target="_blank" rel="noopener">nshipster <strong>attribute</strong></a></li>
@@ -253,7 +245,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-6"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">+initialize</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">+load</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">attribute</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">[推荐文档]</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-6"><a class="toc-link" href="#initialize"><span class="toc-number">1.</span> <span class="toc-text">+initialize</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#load"><span class="toc-number">2.</span> <span class="toc-text">+load</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#attribute"><span class="toc-number">3.</span> <span class="toc-text">attribute</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#推荐文档"><span class="toc-number">4.</span> <span class="toc-text">[推荐文档]</span></a></li></ol>
  
   </div>
 
@@ -443,18 +435,6 @@
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -463,15 +443,19 @@
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -479,7 +463,15 @@
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

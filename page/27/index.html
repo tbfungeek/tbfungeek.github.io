@@ -94,8 +94,7 @@
 </header>
     <div class="article-content">
         
-        <h4>Service 特点</h4>
-<ul>
+        <h4 id="Service-特点"><a href="#Service-特点" class="headerlink" title="Service 特点"></a>Service 特点</h4><ul>
 <li>适用于耗时操作，并且不需要与用户交互的功能。</li>
 <li>其他应用程序组件能够启动服务并且即使用户切换到另一个应用，服务还可以在后台运行。</li>
 <li>组件能够绑定到服务并与之交互，甚至执行进程间通信。</li>
@@ -104,129 +103,73 @@
 <li>开发人员可以将服务设为私有从而阻止其他应用程序访问。</li>
 <li>虽然Service在运行的时候没有专门的GUI，但是它们和Acitivity以及BroadCast Receiver一样还是运行在应用程序进程的主线程中，因此必须通过Thread和AsyncTask类把耗时的进程移到后台进程中。通过使用独立的线程，开发人员能减少应用不相应错误的风险，并且应用程序主线程仍然用于用户与Activity交互。</li>
 </ul>
-<h4>Service 的类型</h4>
-<ul>
+<h4 id="Service-的类型"><a href="#Service-的类型" class="headerlink" title="Service 的类型"></a>Service 的类型</h4><ul>
 <li>Started Service：当应用程序组件通过调用startService()方法启动服务时候，服务处于started状态。一旦启动，服务能够在后台无期限运行，即使启动它的组件已经被销毁。通常，Started Service执行单个操作并且不会向调用者返回结果。如果操作完成，服务需要停止自身.</li>
-<li>Bound Service :当应用程序通过bindService()方法绑定到服务的时候，服务处于bound状态，绑定服务提供客户端-服务器接口，以允许组件与服务交互，发送请求，获得结果，甚至使用进程间通信跨进程完成这些操作。仅当其他应用程序组件与之绑定的时候，绑定服务才能运行。多个组件可以绑定到一个服务上。只有在他们都解除绑定的时候服务被销毁。
-服务也可以同时属于上述两种类型既可以启动，无限期运行，可能绑定。这取决于是否实现一些回调方法:onStartCommand()方法允许组件启动，onBind方法允许组件绑定服务。</li>
+<li>Bound Service :当应用程序通过bindService()方法绑定到服务的时候，服务处于bound状态，绑定服务提供客户端-服务器接口，以允许组件与服务交互，发送请求，获得结果，甚至使用进程间通信跨进程完成这些操作。仅当其他应用程序组件与之绑定的时候，绑定服务才能运行。多个组件可以绑定到一个服务上。只有在他们都解除绑定的时候服务被销毁。<br>服务也可以同时属于上述两种类型既可以启动，无限期运行，可能绑定。这取决于是否实现一些回调方法:onStartCommand()方法允许组件启动，onBind方法允许组件绑定服务。</li>
 </ul>
-<h4>Service的生命周期</h4>
-<ol>
-<li>OnStarted方式启动
-<img src="/2016/03/25/Android-初步之Android组件-Service/1.png" alt></li>
-<li>OnBound方式启动
-<img src="/2016/03/25/Android-初步之Android组件-Service/2.png" alt></li>
+<h4 id="Service的生命周期"><a href="#Service的生命周期" class="headerlink" title="Service的生命周期"></a>Service的生命周期</h4><ol>
+<li>OnStarted方式启动<br><img src="/2016/03/25/Android-初步之Android组件-Service/1.png" alt></li>
+<li>OnBound方式启动<br><img src="/2016/03/25/Android-初步之Android组件-Service/2.png" alt></li>
 </ol>
 <ul>
-<li>
-<p>onStartCommand()
-当其他组件，如Activity调用startService()方法请求服务启动的时候，系统调用该方法，一旦该方法执行，服务就启动，并在后台无限期运行。如果开发人员实现该方法，则需要在任务完成时候调用stopSelf()或者stopService()方法停止服务。</p>
+<li><p>onStartCommand()<br>当其他组件，如Activity调用startService()方法请求服务启动的时候，系统调用该方法，一旦该方法执行，服务就启动，并在后台无限期运行。如果开发人员实现该方法，则需要在任务完成时候调用stopSelf()或者stopService()方法停止服务。</p>
 </li>
-<li>
-<p>onBind()
-当其他组件调用bindService方法想与服务绑定的时候，系统调用该方法，在该方法的实现中，开发人员必须通过返回IBinder提供客户端用来与服务通信的接口。该方法必须实现，但是如果不想允许绑定，则应该返回null;</p>
+<li><p>onBind()<br>当其他组件调用bindService方法想与服务绑定的时候，系统调用该方法，在该方法的实现中，开发人员必须通过返回IBinder提供客户端用来与服务通信的接口。该方法必须实现，但是如果不想允许绑定，则应该返回null;</p>
 </li>
-<li>
-<p>onCreate()
-当服务第一创建时，系统调用该方法执行一次性建立(在系统调用onStartCommand()或onBind()方法前)如果服务已经运行，该方法不被调用，从而保证在Android系统中一个Service只有一个实例。</p>
+<li><p>onCreate()<br>当服务第一创建时，系统调用该方法执行一次性建立(在系统调用onStartCommand()或onBind()方法前)如果服务已经运行，该方法不被调用，从而保证在Android系统中一个Service只有一个实例。</p>
 </li>
-<li>
-<p>onDestroy()
-当服务不再使用并即将销毁时，系统调用该方法。服务应该实现该方法来清除诸如线程，注册监听器，接收者等资源。这是服务受到的最后调用。</p>
+<li><p>onDestroy()<br>当服务不再使用并即将销毁时，系统调用该方法。服务应该实现该方法来清除诸如线程，注册监听器，接收者等资源。这是服务受到的最后调用。</p>
 </li>
 </ul>
-<h4>Service的声明</h4>
-<p>开发人员必须在应用程序配置文件中声明全部的Service，方法是在&lt;application&gt;标签中添加&lt;service&gt;子标签。
-<img src="/2016/03/25/Android-初步之Android组件-Service/3.png" alt></p>
-<h4>创建Service</h4>
-<h5>一般方式创建</h5>
-<p>应用程序组件例如Activity能通过StartService()方法或者传递Intent对象来启动服务，在Intent对象中指定了服务并且包含服务所需要的全部数据，服务使用onStartCommand方法接收Intent。
-实验及结果分析:代码见TestService</p>
+<h4 id="Service的声明"><a href="#Service的声明" class="headerlink" title="Service的声明"></a>Service的声明</h4><p>开发人员必须在应用程序配置文件中声明全部的Service，方法是在<application>标签中添加<service>子标签。<br><img src="/2016/03/25/Android-初步之Android组件-Service/3.png" alt></service></application></p>
+<h4 id="创建Service"><a href="#创建Service" class="headerlink" title="创建Service"></a>创建Service</h4><h5 id="一般方式创建"><a href="#一般方式创建" class="headerlink" title="一般方式创建"></a>一般方式创建</h5><p>应用程序组件例如Activity能通过StartService()方法或者传递Intent对象来启动服务，在Intent对象中指定了服务并且包含服务所需要的全部数据，服务使用onStartCommand方法接收Intent。<br>实验及结果分析:代码见TestService</p>
 <ul>
-<li>按下Start Service 启动服务，这是输出结果如下:
-<img src="/2016/03/25/Android-初步之Android组件-Service/4.png" alt></li>
+<li>按下Start Service 启动服务，这是输出结果如下:<br><img src="/2016/03/25/Android-初步之Android组件-Service/4.png" alt></li>
 <li>按下后退键和Home键，不会输出onDestroy，说明即使按下这两个键，服务仍然在后台运行，可以在Setting-&gt;Application 中查看到。</li>
-<li>再次点击App图标进入输出如下结果：说明一个Service在Android 系统中只存在一个实例，在已经存在的情况下不会再次调用onCreate创建新的Service。
-<img src="/2016/03/25/Android-初步之Android组件-Service/5.png" alt></li>
-<li>按下StopService，结果如下:
-<img src="/2016/03/25/Android-初步之Android组件-Service/6.png" alt></li>
+<li>再次点击App图标进入输出如下结果：说明一个Service在Android 系统中只存在一个实例，在已经存在的情况下不会再次调用onCreate创建新的Service。<br><img src="/2016/03/25/Android-初步之Android组件-Service/5.png" alt></li>
+<li>按下StopService，结果如下:<br><img src="/2016/03/25/Android-初步之Android组件-Service/6.png" alt></li>
 </ul>
-<h5>继承IntentService类</h5>
-<p>IntentService:这是Service的子类，它每次使用一个工作线程来处理全部启动请求，在不必同时处理多个请求时候，这是最佳选择。开发人员需要实现onHandleIntent方法，它接收每次启动请求的Intent以便完成后台的任务</p>
+<h5 id="继承IntentService类"><a href="#继承IntentService类" class="headerlink" title="继承IntentService类"></a>继承IntentService类</h5><p>IntentService:这是Service的子类，它每次使用一个工作线程来处理全部启动请求，在不必同时处理多个请求时候，这是最佳选择。开发人员需要实现onHandleIntent方法，它接收每次启动请求的Intent以便完成后台的任务</p>
 <ul>
 <li>创建区别于主线程的默认工作线程来执行发送到onStartCommand方法的全部Intent</li>
 <li>创建工作队列每次传递一个Intent到onHandleIntent方法实现，这样就不必担心多线程。</li>
-<li>所有启动请求处理完毕后停止服务，这样就不要调用stopself方法。
-实现方法：</li>
+<li>所有启动请求处理完毕后停止服务，这样就不要调用stopself方法。<br>实现方法：</li>
 <li>提供OnBind方法实现，其返回值是null;</li>
-<li>提供onStartCommand方法的默认实现，它先发送Intent到默认队列，然后到onHandleIntent方法实现。
-我们要做的工作就是实现onHandleIntent方法，同时由于IntentService并没有提供空参数的构造方法因此必须提供一个构造方法。
-例子：</li>
+<li>提供onStartCommand方法的默认实现，它先发送Intent到默认队列，然后到onHandleIntent方法实现。<br>我们要做的工作就是实现onHandleIntent方法，同时由于IntentService并没有提供空参数的构造方法因此必须提供一个构造方法。<br>例子：</li>
 </ul>
-<p><figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloIntentService</span> <span class="keyword">extends</span> <span class="title">IntentService</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">HelloIntentService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>(<span class="string">"Hello Service"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">protected</span> <span class="function"><span class="keyword">void</span> <span class="title">onHandleIntent</span><span class="params">(Intent intent)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">long</span> endTime = System.currentTimeMillis()+<span class="number">5</span>*<span class="number">1000</span>;</span><br><span class="line">		<span class="keyword">while</span>(System.currentTimeMillis()&lt;endTime)&#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					wait(endTime-System.currentTimeMillis());</span><br><span class="line">				&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;;</span><br><span class="line">			System.out.println(<span class="string">"onHandleIntent"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">int</span> <span class="title">onStartCommand</span><span class="params">(Intent intent, <span class="keyword">int</span> flags, <span class="keyword">int</span> startId)</span> </span>&#123;</span><br><span class="line">		Toast.makeText(<span class="keyword">this</span>, <span class="string">"Server Start:  "</span>+<span class="string">"flags:"</span>+flags+<span class="string">"start ID:"</span>+startId, Toast.LENGTH_LONG).show();</span><br><span class="line">		<span class="function"><span class="keyword">return</span> <span class="keyword">super</span>.<span class="title">onStartCommand</span><span class="params">(intent, flags, startId)</span></span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">public</span> <span class="function">IBinder <span class="title">onBind</span><span class="params">(Intent intent)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> Button btn = <span class="keyword">null</span>;</span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    setContentView(R.layout.activity_main);</span><br><span class="line">    btn = (Button) findViewById(R.id.btn);</span><br><span class="line">    btn.setOnClickListener(<span class="keyword">new</span> OnClickListener() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View arg0)</span> </span>&#123;</span><br><span class="line">            Intent intent= <span class="keyword">new</span> Intent(MainActivity.<span class="keyword">this</span>,HelloIntentService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">            startService(intent);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloIntentService</span> <span class="keyword">extends</span> <span class="title">IntentService</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">HelloIntentService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>(<span class="string">"Hello Service"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">protected</span> <span class="function"><span class="keyword">void</span> <span class="title">onHandleIntent</span><span class="params">(Intent intent)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">long</span> endTime = System.currentTimeMillis()+<span class="number">5</span>*<span class="number">1000</span>;</span><br><span class="line">		<span class="keyword">while</span>(System.currentTimeMillis()&lt;endTime)&#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					wait(endTime-System.currentTimeMillis());</span><br><span class="line">				&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;;</span><br><span class="line">			System.out.println(<span class="string">"onHandleIntent"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">int</span> <span class="title">onStartCommand</span><span class="params">(Intent intent, <span class="keyword">int</span> flags, <span class="keyword">int</span> startId)</span> </span>&#123;</span><br><span class="line">		Toast.makeText(<span class="keyword">this</span>, <span class="string">"Server Start:  "</span>+<span class="string">"flags:"</span>+flags+<span class="string">"start ID:"</span>+startId, Toast.LENGTH_LONG).show();</span><br><span class="line">		<span class="function"><span class="keyword">return</span> <span class="keyword">super</span>.<span class="title">onStartCommand</span><span class="params">(intent, flags, startId)</span></span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">public</span> <span class="function">IBinder <span class="title">onBind</span><span class="params">(Intent intent)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> Button btn = <span class="keyword">null</span>;</span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    setContentView(R.layout.activity_main);</span><br><span class="line">    btn = (Button) findViewById(R.id.btn);</span><br><span class="line">    btn.setOnClickListener(<span class="keyword">new</span> OnClickListener() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View arg0)</span> </span>&#123;</span><br><span class="line">            Intent intent= <span class="keyword">new</span> Intent(MainActivity.<span class="keyword">this</span>,HelloIntentService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">            startService(intent);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>实验结果分析：</p>
-<p>按下Start IntentService 后输出如下结果:
-从结果可以看出，IntentService 会在onHandleIntent方法中处理业务逻辑部分，同时在处理完成后会自动销毁服务，而不需调用stopself/stopService方法。（调用StopService方法不会调用onDestroy方法销毁服务）</p>
+<p>按下Start IntentService 后输出如下结果:<br>从结果可以看出，IntentService 会在onHandleIntent方法中处理业务逻辑部分，同时在处理完成后会自动销毁服务，而不需调用stopself/stopService方法。（调用StopService方法不会调用onDestroy方法销毁服务）</p>
 <p><img src="/2016/03/25/Android-初步之Android组件-Service/7.png" alt></p>
-<h5>继承Service类</h5>
-<p>使用IntentService类可以简化启动服务的实现，然而，如果需要让服务处理多线程，取代使用工作队列启动请求，也就是说为每次请求创建一个新线程并且立即运行它们，避免等待前一个请求的结束，则可以继承Service类来处理各个Intent
-Service:是所有服务的基类，当继承该类的时候，创建新线程来执行服务的全部工作是非常重要的，因为默认服务默认是使用应用程序主线程，这可能会降低应用程序Activity的运行性能。
-这种方法要自己使用stopself或者stopService方法结束服务，并且需要自己创建线程来处理服务的内部逻辑
-使用这种方式的时候onStartCommand必须返回一个整数。用于表示系统停止服务后如何继续服务。</p>
-<p><figure class="highlight pf"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>. START_NOT_STICKY:如果系统在<span class="keyword">on</span>StartCommand方法返回后停止服务，则系统不会重新创建服务，除非有PendingIntent要发送。在避免在不必要时运行服务和应用程序能简单地重启任何未完成工作的时候，这是最佳选择。</span><br><span class="line"><span class="number">2</span>. START_STICKY:如果系统在<span class="keyword">on</span>StartCommand方法返回后停止服务，则系统会重新创建服务并调用<span class="keyword">on</span>StartCommand方法。但是不重新发送最后的Intent，相反系统使用空Intent调用<span class="keyword">on</span>StartCommand方法，除非有PeddingIntent来启动服务。此时，这些Intent会发送。这适合多媒体播放器，它们不执行命令但是无限期运行并等待工作。</span><br><span class="line"><span class="number">3</span>. START_REDELIVER_INTENT:如果系统在<span class="keyword">on</span>StartCommand方法返回后停止服务，重新创建服务并使用发送给服务的最后Intent调用<span class="keyword">on</span>StartCommand方法，全部PenddingIntent必须依次发送，这适合积极执行应该立即恢复工作的服务。如下载文件。</span><br></pre></td></tr></table></figure></p>
-<h4>启动和停止服务</h4>
-<p>启动服务不能直接调用onStartCommand方法，而是使用Acitivity或者其他应用程序组件通过传递Intent对象到startService()方法启动服务。Android系统自动调用服务的onStartCommand方法并将Intent传递给它，如果服务还没有运行系统首先调用onCreate()方法，接着调用onStartCommand方法。
-如果服务没有绑定，StartService方法发送的Intent是应用程序和服务之间唯一的通信方式，然而如果需要获得服务的放回结果，则可以通过启动该服务的客户端能为广播创建PeddingIntent并通过启动服务的Intent发送它，服务接下来能使用广播发送结果。</p>
-<p>Started Service方式的服务，系统不会停止或者销毁它，它的生命周期必须自己管理。除非它必须回收系统内存并且在onStartCommand方法返回后服务继续运行，因此服务必须调用stopSelf方法停止自身或者其他组件调用stopService方法停止服务。
-stopself(startid)方法可以确保停止服务的请求总是基于最近接收到的启动请求。</p>
-<h4>创建Bound Service</h4>
-<p>绑定服务是允许其他应用程序绑定并且与之交互的Service类实现类。为了提供绑定，开发人员必须实现onBind回调方法。该方法返回iBinder对象，它定义了客户端用来与服务交互的程序接口.
-客户端能通过bindService方法绑定到服务，此时客户端必须提供ServiceConnection接口的实现类。它监视客户端与服务之间的联系，bindService立刻放回，但是当Android系统创建客户端与服务之间的连接时，它调用ServiceConnection 接口中的onServiceConnection方法来发送客户端用来发送与服务通信的IBinder对象。
-多个客户端能够同时连接到服务，但是仅当第一个客户端绑定的时候，系统调用服务的onBind方法来获取Ibinder对象，系统接着发送同一个IBinder对象到其他的绑定的客户端但是不再调用onBind方法,当最后的客户端与服务解除绑定的时候，系统销毁服务。
-<img src="/2016/03/25/Android-初步之Android组件-Service/8.png" alt>
-<img src="/2016/03/25/Android-初步之Android组件-Service/9.png" alt></p>
-<h4>绑定和解除绑定</h4>
-<p>应用程序能调用bindService方法绑定到服务，android系统接下来调用服务的onBind方法，它返回IBinder来与服务通信。绑定是异步的bindService方法立刻返回，为了接收IBinder。客户端必须创建ServiceConnection实例然后传递到bindService方法。
-只有Activity，Service，Content Provider能够绑定到服务，BroadcastReceiver不能绑定到服务。
-如果需要从客户端绑定服务需要完成如下工作:</p>
+<h5 id="继承Service类"><a href="#继承Service类" class="headerlink" title="继承Service类"></a>继承Service类</h5><p>使用IntentService类可以简化启动服务的实现，然而，如果需要让服务处理多线程，取代使用工作队列启动请求，也就是说为每次请求创建一个新线程并且立即运行它们，避免等待前一个请求的结束，则可以继承Service类来处理各个Intent<br>Service:是所有服务的基类，当继承该类的时候，创建新线程来执行服务的全部工作是非常重要的，因为默认服务默认是使用应用程序主线程，这可能会降低应用程序Activity的运行性能。<br>这种方法要自己使用stopself或者stopService方法结束服务，并且需要自己创建线程来处理服务的内部逻辑<br>使用这种方式的时候onStartCommand必须返回一个整数。用于表示系统停止服务后如何继续服务。</p>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>. START_NOT_STICKY:如果系统在<span class="keyword">on</span>StartCommand方法返回后停止服务，则系统不会重新创建服务，除非有PendingIntent要发送。在避免在不必要时运行服务和应用程序能简单地重启任何未完成工作的时候，这是最佳选择。</span><br><span class="line"><span class="number">2</span>. START_STICKY:如果系统在<span class="keyword">on</span>StartCommand方法返回后停止服务，则系统会重新创建服务并调用<span class="keyword">on</span>StartCommand方法。但是不重新发送最后的Intent，相反系统使用空Intent调用<span class="keyword">on</span>StartCommand方法，除非有PeddingIntent来启动服务。此时，这些Intent会发送。这适合多媒体播放器，它们不执行命令但是无限期运行并等待工作。</span><br><span class="line"><span class="number">3</span>. START_REDELIVER_INTENT:如果系统在<span class="keyword">on</span>StartCommand方法返回后停止服务，重新创建服务并使用发送给服务的最后Intent调用<span class="keyword">on</span>StartCommand方法，全部PenddingIntent必须依次发送，这适合积极执行应该立即恢复工作的服务。如下载文件。</span><br></pre></td></tr></table></figure>
+<h4 id="启动和停止服务"><a href="#启动和停止服务" class="headerlink" title="启动和停止服务"></a>启动和停止服务</h4><p>启动服务不能直接调用onStartCommand方法，而是使用Acitivity或者其他应用程序组件通过传递Intent对象到startService()方法启动服务。Android系统自动调用服务的onStartCommand方法并将Intent传递给它，如果服务还没有运行系统首先调用onCreate()方法，接着调用onStartCommand方法。<br>如果服务没有绑定，StartService方法发送的Intent是应用程序和服务之间唯一的通信方式，然而如果需要获得服务的放回结果，则可以通过启动该服务的客户端能为广播创建PeddingIntent并通过启动服务的Intent发送它，服务接下来能使用广播发送结果。</p>
+<p>Started Service方式的服务，系统不会停止或者销毁它，它的生命周期必须自己管理。除非它必须回收系统内存并且在onStartCommand方法返回后服务继续运行，因此服务必须调用stopSelf方法停止自身或者其他组件调用stopService方法停止服务。<br>stopself(startid)方法可以确保停止服务的请求总是基于最近接收到的启动请求。</p>
+<h4 id="创建Bound-Service"><a href="#创建Bound-Service" class="headerlink" title="创建Bound Service"></a>创建Bound Service</h4><p>绑定服务是允许其他应用程序绑定并且与之交互的Service类实现类。为了提供绑定，开发人员必须实现onBind回调方法。该方法返回iBinder对象，它定义了客户端用来与服务交互的程序接口.<br>客户端能通过bindService方法绑定到服务，此时客户端必须提供ServiceConnection接口的实现类。它监视客户端与服务之间的联系，bindService立刻放回，但是当Android系统创建客户端与服务之间的连接时，它调用ServiceConnection 接口中的onServiceConnection方法来发送客户端用来发送与服务通信的IBinder对象。<br>多个客户端能够同时连接到服务，但是仅当第一个客户端绑定的时候，系统调用服务的onBind方法来获取Ibinder对象，系统接着发送同一个IBinder对象到其他的绑定的客户端但是不再调用onBind方法,当最后的客户端与服务解除绑定的时候，系统销毁服务。<br><img src="/2016/03/25/Android-初步之Android组件-Service/8.png" alt><br><img src="/2016/03/25/Android-初步之Android组件-Service/9.png" alt></p>
+<h4 id="绑定和解除绑定"><a href="#绑定和解除绑定" class="headerlink" title="绑定和解除绑定"></a>绑定和解除绑定</h4><p>应用程序能调用bindService方法绑定到服务，android系统接下来调用服务的onBind方法，它返回IBinder来与服务通信。绑定是异步的bindService方法立刻返回，为了接收IBinder。客户端必须创建ServiceConnection实例然后传递到bindService方法。<br>只有Activity，Service，Content Provider能够绑定到服务，BroadcastReceiver不能绑定到服务。<br>如果需要从客户端绑定服务需要完成如下工作:</p>
 <ol>
 <li>实现ServiceConnection这需要重写onServiceConnected和onserviceDisconnected方法</li>
 <li>调用bindService传递ServiceConnection实现。</li>
 <li>当系统调用onServiceConnected方法的时候，就可以使用接口定义的方法。</li>
 <li>调用unbindService解除绑定。</li>
 </ol>
-<h4>将Service移到前台</h4>
-<p>在确定哪个应用程序或者应用程序组件可以被终止的时候，Android给正在运行的Service赋予了第二高的优先级，仅仅次于处于激活状态，并且在前台与用户交互的活动Acitivity，在Service需要直接和用户进行交互的情况下，可以将Service的优先级提高到和前台Activity一样高，可以通过调用Service的startForeground方法来将一个服务移到前台，同样可以调用stopForeground来将一个服务移到后台。
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> NOTIFICATION_ID = <span class="number">1</span>;</span><br><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="keyword">this</span>, MainActivity<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">PendingIntent pi = PendingIntent.getActivity(<span class="keyword">this</span>, <span class="number">1</span>, intent, <span class="number">0</span>);</span><br><span class="line">Notification notification = <span class="keyword">new</span> Notification(R.drawable.ic_launcher, <span class="string">"前台服务"</span>, System.currentTimeMillis());</span><br><span class="line">notification.setLatestEventInfo(<span class="keyword">this</span>, <span class="string">"前台服务"</span>, <span class="string">"这个是被移到前台的服务"</span>, pi);</span><br><span class="line">notification.flags =notification.flags|Notification.FLAG_ONGOING_EVENT;</span><br><span class="line">startForeground(NOTIFICATION_ID,notification);</span><br></pre></td></tr></table></figure></p>
+<h4 id="将Service移到前台"><a href="#将Service移到前台" class="headerlink" title="将Service移到前台"></a>将Service移到前台</h4><p>在确定哪个应用程序或者应用程序组件可以被终止的时候，Android给正在运行的Service赋予了第二高的优先级，仅仅次于处于激活状态，并且在前台与用户交互的活动Acitivity，在Service需要直接和用户进行交互的情况下，可以将Service的优先级提高到和前台Activity一样高，可以通过调用Service的startForeground方法来将一个服务移到前台，同样可以调用stopForeground来将一个服务移到后台。<br><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> NOTIFICATION_ID = <span class="number">1</span>;</span><br><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="keyword">this</span>, MainActivity<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">PendingIntent pi = PendingIntent.getActivity(<span class="keyword">this</span>, <span class="number">1</span>, intent, <span class="number">0</span>);</span><br><span class="line">Notification notification = <span class="keyword">new</span> Notification(R.drawable.ic_launcher, <span class="string">"前台服务"</span>, System.currentTimeMillis());</span><br><span class="line">notification.setLatestEventInfo(<span class="keyword">this</span>, <span class="string">"前台服务"</span>, <span class="string">"这个是被移到前台的服务"</span>, pi);</span><br><span class="line">notification.flags =notification.flags|Notification.FLAG_ONGOING_EVENT;</span><br><span class="line">startForeground(NOTIFICATION_ID,notification);</span><br></pre></td></tr></table></figure></p>
 <p><img src="/2016/03/25/Android-初步之Android组件-Service/10.png" alt></p>
-<h4>提升服务存活可能性的方法</h4>
-<p>http://blog.csdn.net/mad1989/article/details/22492519</p>
+<h4 id="提升服务存活可能性的方法"><a href="#提升服务存活可能性的方法" class="headerlink" title="提升服务存活可能性的方法"></a>提升服务存活可能性的方法</h4><p><a href="http://blog.csdn.net/mad1989/article/details/22492519" target="_blank" rel="noopener">http://blog.csdn.net/mad1989/article/details/22492519</a></p>
 <ul>
-<li>
-<p>onStartCommand方法，返回START_STICKY</p>
+<li>onStartCommand方法，返回START_STICKY</li>
+<li><p>提升service优先级</p>
+<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line">&lt;service  </span><br><span class="line">	android:name=<span class="string">"xxxxxxx"</span>  </span><br><span class="line">	android:enabled=<span class="string">"true"</span> &gt;  </span><br><span class="line">	&lt;intent<span class="params">-filter</span> android:priority=<span class="string">"1000"</span> &gt;  </span><br><span class="line">		<span class="params">...</span><span class="params">...</span><span class="params">...</span><span class="params">...</span><span class="params">...</span>  </span><br><span class="line">	&lt;/intent<span class="params">-filter</span>&gt;  </span><br><span class="line">&lt;/service&gt;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>提升service优先级
-<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line">&lt;service  </span><br><span class="line">	android:name=<span class="string">"xxxxxxx"</span>  </span><br><span class="line">	android:enabled=<span class="string">"true"</span> &gt;  </span><br><span class="line">	&lt;intent<span class="params">-filter</span> android:priority=<span class="string">"1000"</span> &gt;  </span><br><span class="line">		<span class="params">...</span><span class="params">...</span><span class="params">...</span><span class="params">...</span><span class="params">...</span>  </span><br><span class="line">	&lt;/intent<span class="params">-filter</span>&gt;  </span><br><span class="line">&lt;/service&gt;</span><br></pre></td></tr></table></figure></p>
+<li><p>使用startForeground()提升service进程优先级</p>
 </li>
-<li>
-<p>使用startForeground()提升service进程优先级</p>
-</li>
-<li>
-<p>onDestroy方法里重启service</p>
-</li>
-<li>
-<p>监听系统广播判断Service状态</p>
-</li>
-<li>
-<p>将应用升级为系统应用</p>
-</li>
-<li>
-<p>Application加上Persistent属性</p>
-</li>
+<li>onDestroy方法里重启service</li>
+<li>监听系统广播判断Service状态</li>
+<li>将应用升级为系统应用</li>
+<li>Application加上Persistent属性</li>
 </ul>
-<p><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">application</span>  </span><br><span class="line">	android:<span class="built_in">name</span>=<span class="string">"xxxxxxxxxxx"</span>  </span><br><span class="line">	android:allowBackup=<span class="string">"true"</span>  </span><br><span class="line">	android:icon=<span class="string">"@drawable/ic_launcher"</span>  </span><br><span class="line">	android:label=<span class="string">"@string/app_name"</span>  </span><br><span class="line">	android:persistent=<span class="string">"true"</span></span><br><span class="line">	android:theme=<span class="string">"@style/AppTheme"</span> &gt;  </span><br><span class="line">&lt;/<span class="built_in">application</span>&gt;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">application</span>  </span><br><span class="line">	android:<span class="built_in">name</span>=<span class="string">"xxxxxxxxxxx"</span>  </span><br><span class="line">	android:allowBackup=<span class="string">"true"</span>  </span><br><span class="line">	android:icon=<span class="string">"@drawable/ic_launcher"</span>  </span><br><span class="line">	android:label=<span class="string">"@string/app_name"</span>  </span><br><span class="line">	android:persistent=<span class="string">"true"</span></span><br><span class="line">	android:theme=<span class="string">"@style/AppTheme"</span> &gt;  </span><br><span class="line">&lt;/<span class="built_in">application</span>&gt;</span><br></pre></td></tr></table></figure>
 
         
         
@@ -288,75 +231,48 @@ stopself(startid)方法可以确保停止服务的请求总是基于最近接收
 </header>
     <div class="article-content">
         
-        <h4>Activity 是啥</h4>
-<ul>
+        <h4 id="Activity-是啥"><a href="#Activity-是啥" class="headerlink" title="Activity 是啥"></a>Activity 是啥</h4><ul>
 <li>Activity是用于负责提供用户交互的可视化界面，一个应用程序可以有一个或者多个Activity，一般情况下，每个窗口都是满屏的，但是它也可以是一个小的，位于其他窗口之上的浮动窗口。</li>
 <li>Android允许同时运行多个应用程序，应用程序可以拥有前台进程和后台进程，然而在同一时刻只能由一个应用程序的Activity处于前台。</li>
 </ul>
-<h4>Activity 生命周期</h4>
-<p><img src="/2016/03/24/Android-初步之Android组件-Activity/1.png" alt></p>
-<h6>完整生命周期：</h6>
-<p>从第一次调用onCreate开始到onDestroy为止，Activity在onCreate中设置所有全局状态以完成初始化，而在onDestroy中释放所有的系统资源：</p>
+<h4 id="Activity-生命周期"><a href="#Activity-生命周期" class="headerlink" title="Activity 生命周期"></a>Activity 生命周期</h4><p><img src="/2016/03/24/Android-初步之Android组件-Activity/1.png" alt></p>
+<h6 id="完整生命周期："><a href="#完整生命周期：" class="headerlink" title="完整生命周期："></a>完整生命周期：</h6><p>从第一次调用onCreate开始到onDestroy为止，Activity在onCreate中设置所有全局状态以完成初始化，而在onDestroy中释放所有的系统资源：</p>
 <ul>
-<li>
-<p>onCreate：当一个Activity首次运行的时候被回调，负责初始化任务，onCreate方法仅具有一个传入参数，即一个Bundle对象，但对于首次启动的Activity而言，这个参数为空，如果这个Activity先前因为内存的原因而被终止，现在又需要重新启动，那么Bundle对象中将包含Activity先前的状态信息，这样它才能被重新初始化。
-主要任务:填充用户UI，将数据绑定到控件，得到Fragment引用，启动Service和定时器</p>
+<li><p>onCreate：当一个Activity首次运行的时候被回调，负责初始化任务，onCreate方法仅具有一个传入参数，即一个Bundle对象，但对于首次启动的Activity而言，这个参数为空，如果这个Activity先前因为内存的原因而被终止，现在又需要重新启动，那么Bundle对象中将包含Activity先前的状态信息，这样它才能被重新初始化。<br>主要任务:填充用户UI，将数据绑定到控件，得到Fragment引用，启动Service和定时器</p>
 </li>
-<li>
-<p>onRestoreInstanceState ：在onCreate方法完成后调用该函数用于恢复UI状态。
-onRestoreInstanceState 只有在当前视图被系统销毁了时候被调用，因此有时候onSaveInstanceState方法和onRestoreInstanceState方法不一定是成对出现的</p>
+<li><p>onRestoreInstanceState ：在onCreate方法完成后调用该函数用于恢复UI状态。<br>onRestoreInstanceState 只有在当前视图被系统销毁了时候被调用，因此有时候onSaveInstanceState方法和onRestoreInstanceState方法不一定是成对出现的</p>
 </li>
-<li>
-<p>onDestroy：销毁Activity的时候被调用。
-主要任务:确保清除了onCreate创建的所有资源，并保证所有的外部连接如网络或数据库已经被关闭。</p>
+<li><p>onDestroy：销毁Activity的时候被调用。<br>主要任务:确保清除了onCreate创建的所有资源，并保证所有的外部连接如网络或数据库已经被关闭。 </p>
 </li>
 </ul>
-<h6>可视生命周期:</h6>
-<p>从onStart到onStop。在此期间，用户是可见的但是可能还未获得焦点，尚且不能与用户交互。 在这两个方法之间，可以保留用来向用户显示这个Activity所需要的资源，例如，当用户看不到显示的内容的时候，可以在onStart中注册一个BroadCastReceiver广播接收器来监控可能影响的UI变化，而在onStop中来注销，onStart和onStop方法可以随着应用是否被用户可用而被多次调用。</p>
+<h6 id="可视生命周期"><a href="#可视生命周期" class="headerlink" title="可视生命周期:"></a>可视生命周期:</h6><p>从onStart到onStop。在此期间，用户是可见的但是可能还未获得焦点，尚且不能与用户交互。 在这两个方法之间，可以保留用来向用户显示这个Activity所需要的资源，例如，当用户看不到显示的内容的时候，可以在onStart中注册一个BroadCastReceiver广播接收器来监控可能影响的UI变化，而在onStop中来注销，onStart和onStop方法可以随着应用是否被用户可用而被多次调用。</p>
 <ul>
 <li>onStart:当一个Activity即将显示时被回调，可见生命周期的开始。在这个阶段可以完成如注册专门用于更新用户界面的BroadCast Receiver等工作。</li>
-<li>onStop:停止Activity的时候被调用。当前Activit处于不可视状态。
-主要任务:暂停或者停止动画，线程，传感器监听器，GPS查找，定时器，启动Service和定时器，或者其他用于更新用户界面的进程，当UI不可见的时候更新它是没有意义的，不但耗费了资源，却没起到实际的作用。当UI再次可用的时候，可使用onStart或者OnRestart方法来恢复或者重启这些线程。</li>
+<li>onStop:停止Activity的时候被调用。当前Activit处于不可视状态。<br>主要任务:暂停或者停止动画，线程，传感器监听器，GPS查找，定时器，启动Service和定时器，或者其他用于更新用户界面的进程，当UI不可见的时候更新它是没有意义的，不但耗费了资源，却没起到实际的作用。当UI再次可用的时候，可使用onStart或者OnRestart方法来恢复或者重启这些线程。</li>
 </ul>
-<h6>前台生命周期:</h6>
-<p>从OnResume调用起，至相应的onPause调用为止，在此期间，Activity位于前台最上面并与用户开始进行交互.</p>
+<h6 id="前台生命周期"><a href="#前台生命周期" class="headerlink" title="前台生命周期:"></a>前台生命周期:</h6><p>从OnResume调用起，至相应的onPause调用为止，在此期间，Activity位于前台最上面并与用户开始进行交互.</p>
 <ul>
 <li>onResume:这时候该Activity可以接受用户的输入事件，与用户进行交互，同时当Activity由于暂停恢复为活动状态的时候这个方法被调用。调用该方法后，该Activity位于Activity栈顶。在这个方法中不需要重新加载UI状态，因为当要求加载UI状态的时候，它会由onCreate和onRestoreInstanceState方法处理。</li>
-<li>onPause:暂停的时候被回调，在该方法中通常用于存储持久的数据，在该方法中应该终止在OnrResume方法中播放的所有音频，视频和动画，同时在该方法中还必须解除某些资源，例如：在手动管理而非自动管理情况下的数据库Cursor对象。onPause方法是Activity在后台最后一次能够有机会进行清理工作，释放无需资源的地方，如果没有及时释放，这些资源将有可能不能被彻底释放掉。同时需要保存所有未提交的数据，以免由于程序终止后不再返回而丢失数据。
-应该尽量保证在onResume ,onPause方法中代码较少，以保证前台和后台之间进行切换的时候应用程序能够保持响应。在onPause方法中释放越多的资源，转入后台的Activity被终止的可能性就越小。</li>
+<li>onPause:暂停的时候被回调，在该方法中通常用于存储持久的数据，在该方法中应该终止在OnrResume方法中播放的所有音频，视频和动画，同时在该方法中还必须解除某些资源，例如：在手动管理而非自动管理情况下的数据库Cursor对象。onPause方法是Activity在后台最后一次能够有机会进行清理工作，释放无需资源的地方，如果没有及时释放，这些资源将有可能不能被彻底释放掉。同时需要保存所有未提交的数据，以免由于程序终止后不再返回而丢失数据。<br>应该尽量保证在onResume ,onPause方法中代码较少，以保证前台和后台之间进行切换的时候应用程序能够保持响应。在onPause方法中释放越多的资源，转入后台的Activity被终止的可能性就越小。</li>
 </ul>
 <ul>
-<li>onSaveInstanceState:这个方法提供了把Activity的UI状态保存在Bundle中的机会，这个Bundle会被传递给onCreate和onRestoreInstanceState方法。一般在这个方法中保存，复选状态，用户焦点，已经输入但未被提交的用户输入，从而保证当Activity下次变成活动的时候，可以呈现出与之前相同的UI。
-这里需要注意的它是只有在非你本来意愿销毁了你的activity的时候被系统调用。但是在activity是被用户主动销毁的情况下（例如我们人为按下back键）不会被调用，下面是一些常见的情况：</li>
+<li>onSaveInstanceState:这个方法提供了把Activity的UI状态保存在Bundle中的机会，这个Bundle会被传递给onCreate和onRestoreInstanceState方法。一般在这个方法中保存，复选状态，用户焦点，已经输入但未被提交的用户输入，从而保证当Activity下次变成活动的时候，可以呈现出与之前相同的UI。<br>这里需要注意的它是只有在非你本来意愿销毁了你的activity的时候被系统调用。但是在activity是被用户主动销毁的情况下（例如我们人为按下back键）不会被调用，下面是一些常见的情况：</li>
 </ul>
 <ol>
 <li>当用户按下HOME键时</li>
 <li>按下电源键灭屏的时候</li>
 <li>从一个Activity A中启动一个新的Activity时。</li>
-<li>在指定configchange属性的情况下切换屏幕方向
-布局中的每一个View默认实现了onSaveInstanceState()方法，这样的话，这个UI的任何改变都会自动的存储并在activity重新创建的时候自动的恢复。但是这种情况只有在你为这个UI提供了唯一的ID之后才起作用，如果没有提供ID，将不会存储它的状态。
-onSaveInstanceState()如果被调用，这个方法会在onStop()前被触发，但系统并不保证是否在onPause()之前或者之后触发</li>
+<li>在指定configchange属性的情况下切换屏幕方向<br>布局中的每一个View默认实现了onSaveInstanceState()方法，这样的话，这个UI的任何改变都会自动的存储并在activity重新创建的时候自动的恢复。但是这种情况只有在你为这个UI提供了唯一的ID之后才起作用，如果没有提供ID，将不会存储它的状态。<br>onSaveInstanceState()如果被调用，这个方法会在onStop()前被触发，但系统并不保证是否在onPause()之前或者之后触发</li>
 </ol>
-<h6>典型的Activity生命周期：</h6>
-<p><figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">启动Activity: <span class="keyword">on</span>Create()—&gt;onStart()—&gt;onResume()，Activity进入运行状态。</span><br><span class="line">Activity退居后台，且系统内存不足， 系统会杀死这个后台状态的Activity，若再次回到这个Activity,则会走<span class="keyword">on</span>Create()–&gt;onStart()—&gt;onResume()</span><br><span class="line">Activity退居后台: 当前Activity转到新的Activity界面或按Home键回到主屏： <span class="keyword">on</span>Pause()—&gt;onStop()，进入停滞状态。</span><br><span class="line">Activity返回前台: <span class="keyword">on</span>Restart()—&gt;onStart()—&gt;onResume()，再次回到运行状态。</span><br><span class="line">锁定屏与解锁屏幕 只会调用<span class="keyword">on</span>Pause()，而不会调用<span class="keyword">on</span>Stop()方法，开屏后则调用<span class="keyword">on</span>Resume()</span><br></pre></td></tr></table></figure></p>
-<h4>Activity任务堆栈</h4>
-<p>直接上图不解释：
-<img src="/2016/03/24/Android-初步之Android组件-Activity/2.png" alt></p>
-<p>我们可以通过android:launchMode = &quot;standard|singleInstance|singleTask|singleTop&quot;来控制Acivity任务栈。</p>
-<p><figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="string">standard :</span> 标准模式,每次启动Activity都会创建一个新的Activity实例,并且将其压入任务栈栈顶,而不管这个Activity是否已经存在。</span><br><span class="line"><span class="string">singleTop :</span> 这种模式下,如果新Activity已经位于任务栈的栈顶,那么此Activity不会被重新创建,同时Activity的onNewIntent()方法会被回调.如果Activity已经存在但是不在栈顶,那么作用于standard模式一样.</span><br><span class="line"><span class="string">singleTask:</span> 创建这样的Activity的时候,系统会先确认它所需任务栈已经创建,否则先创建任务栈.然后放入Activity,如果栈中已经有一个Activity实例,那么这个Activity就会被调到栈顶,并调用onNewIntent(),并且singleTask会清理在当前Activity上面的所有Activity.</span><br><span class="line"><span class="string">singleInstance :</span> 这种模式的Activity只能单独位于一个任务栈内,由于栈内复用的特性,后续请求均不会创建新的Activity,除非这个独特的任务栈被系统销毁了</span><br></pre></td></tr></table></figure></p>
-<p>如果对上面的不大理解可以参考如下的文章，说的很详细，为了避免作者把文章取消所以把重点的引用如下：
-http://www.cnblogs.com/xiaoQLu/archive/2011/09/29/2195742.html</p>
-<p><figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">standard</span>：Activity的默认加载方法，即使某个Activity在Task栈中已经存在，另一个activity通过Intent跳转到该activity，同样会新创建一个实例压入栈中。例如：现在栈的情况为：A <span class="keyword">B </span>C D，在D这个Activity中通过Intent跳转到D，那么现在的栈情况为： A <span class="keyword">B </span>C D D 。此时如果栈顶的D通过Intent跳转到<span class="keyword">B，则栈情况为：A </span><span class="keyword">B </span>C D D <span class="keyword">B。此时如果依次按返回键，D </span> D C <span class="keyword">B </span>A将会依次弹出栈而显示在界面上。</span><br><span class="line"><span class="symbol">singleTop</span>：如果某个Activity的Launch mode设置成singleTop，那么当该Activity位于栈顶的时候，再通过Intent跳转到本身这个Activity，则将不会创建一个新的实例压入栈中。例如：现在栈的情况为：A <span class="keyword">B </span>C D。D的Launch mode设置成了singleTop，那么在D中启动Intent跳转到D，那么将不会新创建一个D的实例压入栈中，此时栈的情况依然为：A <span class="keyword">B </span>C D。但是如果此时<span class="keyword">B的模式也是singleTop，D跳转到B，那么则会新建一个B的实例压入栈中，因为此时B不是位于栈顶，此时栈的情况就变成了：A </span><span class="keyword">B </span>C D <span class="keyword">B。</span></span><br><span class="line"><span class="keyword">singleTask：如果某个Activity是singleTask模式，那么Task栈中将会只有一个该Activity的实例。例如：现在栈的情况为：A </span><span class="keyword">B </span>C D。<span class="keyword">B的Launch </span>mode为singleTask，此时D通过Intent跳转到<span class="keyword">B，则栈的情况变成了：A </span><span class="keyword">B。而C和D被弹出销毁了，也就是说位于B之上的实例都被销毁了。</span></span><br><span class="line"><span class="keyword">singleInstance：将Activity压入一个新建的任务栈中。例如：Task栈1的情况为：A </span><span class="keyword">B </span>C。C通过Intent跳转到D，而D的Launch mode为singleInstance，则将会新建一个Task栈<span class="number">2</span>。此时Task栈<span class="number">1</span>的情况还是为：A <span class="keyword">B </span>C。Task栈<span class="number">2</span>的情况为：D。此时屏幕界面显示D的内容，如果这时D又通过Intent跳转到D，则Task栈<span class="number">2</span>中也不会新建一个D的实例，所以两个栈的情况也不会变化。而如果D跳转到C，则栈<span class="number">1</span>的情况变成了：A <span class="keyword">B </span>C C，因为C的Launch mode为standard，此时如果再按返回键，则栈<span class="number">1</span>变成：A <span class="keyword">B </span>C。也就是说现在界面还显示C的内容，不是D。</span><br></pre></td></tr></table></figure></p>
-<h4>Activity 状态</h4>
-<p>上面介绍了Activity的堆栈接下来就来介绍下，Activity的状态，Activity状态是由其在Activity堆栈的位置决定的：
-<img src="/2016/03/24/Android-初步之Android组件-Activity/3.png" alt></p>
-<h4>Android应用程序生命周期</h4>
-<p>Android应用不能控制它们自己的生命周期，它是由Android运行时控制的，默认情况下每个应用程序都是通过它们自己的进程运行的，每个进程都运行在独立的Dalvik实例中，每个应用程序的内存和进程管理都是由运行时专门进行处理的。
-回收资源的时候，进程被终止的顺序是由它们的应用优先级所决定的，一个应用程序的优先级等同于它的优先级最高的组件的优先级。
-当两个应用程序优先级相同的时候，在较低优先级状态运行时间最长的进程将会首先被终止。
-进程的优先级也受进程间依赖性的影响，如果一个应用程序依赖于第二个应用程序所提供的Service或者Content Provider，那么第二个应用程序至少拥有与它所支持的这个应用程序相同的优先级。</p>
-<h4>进程状态</h4>
-<ol>
+<h6 id="典型的Activity生命周期："><a href="#典型的Activity生命周期：" class="headerlink" title="典型的Activity生命周期："></a>典型的Activity生命周期：</h6><figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">启动Activity: <span class="keyword">on</span>Create()—&gt;onStart()—&gt;onResume()，Activity进入运行状态。</span><br><span class="line">Activity退居后台，且系统内存不足， 系统会杀死这个后台状态的Activity，若再次回到这个Activity,则会走<span class="keyword">on</span>Create()–&gt;onStart()—&gt;onResume()</span><br><span class="line">Activity退居后台: 当前Activity转到新的Activity界面或按Home键回到主屏： <span class="keyword">on</span>Pause()—&gt;onStop()，进入停滞状态。</span><br><span class="line">Activity返回前台: <span class="keyword">on</span>Restart()—&gt;onStart()—&gt;onResume()，再次回到运行状态。</span><br><span class="line">锁定屏与解锁屏幕 只会调用<span class="keyword">on</span>Pause()，而不会调用<span class="keyword">on</span>Stop()方法，开屏后则调用<span class="keyword">on</span>Resume()</span><br></pre></td></tr></table></figure>
+<h4 id="Activity任务堆栈"><a href="#Activity任务堆栈" class="headerlink" title="Activity任务堆栈"></a>Activity任务堆栈</h4><p>直接上图不解释：<br><img src="/2016/03/24/Android-初步之Android组件-Activity/2.png" alt></p>
+<p>我们可以通过android:launchMode = “standard|singleInstance|singleTask|singleTop”来控制Acivity任务栈。</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line"><span class="string">standard :</span> 标准模式,每次启动Activity都会创建一个新的Activity实例,并且将其压入任务栈栈顶,而不管这个Activity是否已经存在。</span><br><span class="line"><span class="string">singleTop :</span> 这种模式下,如果新Activity已经位于任务栈的栈顶,那么此Activity不会被重新创建,同时Activity的onNewIntent()方法会被回调.如果Activity已经存在但是不在栈顶,那么作用于standard模式一样.</span><br><span class="line"><span class="string">singleTask:</span> 创建这样的Activity的时候,系统会先确认它所需任务栈已经创建,否则先创建任务栈.然后放入Activity,如果栈中已经有一个Activity实例,那么这个Activity就会被调到栈顶,并调用onNewIntent(),并且singleTask会清理在当前Activity上面的所有Activity.</span><br><span class="line"><span class="string">singleInstance :</span> 这种模式的Activity只能单独位于一个任务栈内,由于栈内复用的特性,后续请求均不会创建新的Activity,除非这个独特的任务栈被系统销毁了</span><br></pre></td></tr></table></figure>
+<p>如果对上面的不大理解可以参考如下的文章，说的很详细，为了避免作者把文章取消所以把重点的引用如下：<br><a href="http://www.cnblogs.com/xiaoQLu/archive/2011/09/29/2195742.html" target="_blank" rel="noopener">http://www.cnblogs.com/xiaoQLu/archive/2011/09/29/2195742.html</a></p>
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">standard</span>：Activity的默认加载方法，即使某个Activity在Task栈中已经存在，另一个activity通过Intent跳转到该activity，同样会新创建一个实例压入栈中。例如：现在栈的情况为：A <span class="keyword">B </span>C D，在D这个Activity中通过Intent跳转到D，那么现在的栈情况为： A <span class="keyword">B </span>C D D 。此时如果栈顶的D通过Intent跳转到<span class="keyword">B，则栈情况为：A </span><span class="keyword">B </span>C D D <span class="keyword">B。此时如果依次按返回键，D </span> D C <span class="keyword">B </span>A将会依次弹出栈而显示在界面上。</span><br><span class="line"><span class="symbol">singleTop</span>：如果某个Activity的Launch mode设置成singleTop，那么当该Activity位于栈顶的时候，再通过Intent跳转到本身这个Activity，则将不会创建一个新的实例压入栈中。例如：现在栈的情况为：A <span class="keyword">B </span>C D。D的Launch mode设置成了singleTop，那么在D中启动Intent跳转到D，那么将不会新创建一个D的实例压入栈中，此时栈的情况依然为：A <span class="keyword">B </span>C D。但是如果此时<span class="keyword">B的模式也是singleTop，D跳转到B，那么则会新建一个B的实例压入栈中，因为此时B不是位于栈顶，此时栈的情况就变成了：A </span><span class="keyword">B </span>C D <span class="keyword">B。</span></span><br><span class="line"><span class="keyword">singleTask：如果某个Activity是singleTask模式，那么Task栈中将会只有一个该Activity的实例。例如：现在栈的情况为：A </span><span class="keyword">B </span>C D。<span class="keyword">B的Launch </span>mode为singleTask，此时D通过Intent跳转到<span class="keyword">B，则栈的情况变成了：A </span><span class="keyword">B。而C和D被弹出销毁了，也就是说位于B之上的实例都被销毁了。</span></span><br><span class="line"><span class="keyword">singleInstance：将Activity压入一个新建的任务栈中。例如：Task栈1的情况为：A </span><span class="keyword">B </span>C。C通过Intent跳转到D，而D的Launch mode为singleInstance，则将会新建一个Task栈<span class="number">2</span>。此时Task栈<span class="number">1</span>的情况还是为：A <span class="keyword">B </span>C。Task栈<span class="number">2</span>的情况为：D。此时屏幕界面显示D的内容，如果这时D又通过Intent跳转到D，则Task栈<span class="number">2</span>中也不会新建一个D的实例，所以两个栈的情况也不会变化。而如果D跳转到C，则栈<span class="number">1</span>的情况变成了：A <span class="keyword">B </span>C C，因为C的Launch mode为standard，此时如果再按返回键，则栈<span class="number">1</span>变成：A <span class="keyword">B </span>C。也就是说现在界面还显示C的内容，不是D。</span><br></pre></td></tr></table></figure>
+<h4 id="Activity-状态"><a href="#Activity-状态" class="headerlink" title="Activity 状态"></a>Activity 状态</h4><p>上面介绍了Activity的堆栈接下来就来介绍下，Activity的状态，Activity状态是由其在Activity堆栈的位置决定的：<br><img src="/2016/03/24/Android-初步之Android组件-Activity/3.png" alt></p>
+<h4 id="Android应用程序生命周期"><a href="#Android应用程序生命周期" class="headerlink" title="Android应用程序生命周期"></a>Android应用程序生命周期</h4><p>Android应用不能控制它们自己的生命周期，它是由Android运行时控制的，默认情况下每个应用程序都是通过它们自己的进程运行的，每个进程都运行在独立的Dalvik实例中，每个应用程序的内存和进程管理都是由运行时专门进行处理的。<br>回收资源的时候，进程被终止的顺序是由它们的应用优先级所决定的，一个应用程序的优先级等同于它的优先级最高的组件的优先级。<br>当两个应用程序优先级相同的时候，在较低优先级状态运行时间最长的进程将会首先被终止。<br>进程的优先级也受进程间依赖性的影响，如果一个应用程序依赖于第二个应用程序所提供的Service或者Content Provider，那么第二个应用程序至少拥有与它所支持的这个应用程序相同的优先级。</p>
+<h4 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h4><ol>
 <li>活动进程：指的是有组件正在和用户进行交互的应用程序进程，Android尝试回收其他应用状态资源来支持这些进程运行。</li>
 </ol>
 <p>活动的进程包括:</p>
@@ -367,28 +283,19 @@ http://www.cnblogs.com/xiaoQLu/archive/2011/09/29/2195742.html</p>
 <li>正在执行onReceiver 事件处理程序的BroadCast Receiver</li>
 </ul>
 <ol start="2">
-<li>
-<p>可见进程：可见但是非活动的进程是指那些包含“可见”Acitivity的进程。</p>
+<li><p>可见进程：可见但是非活动的进程是指那些包含“可见”Acitivity的进程。</p>
 </li>
-<li>
-<p>启动服务进程:已经启动的Service的进程，因为后台Service没有直接和用户交互，所以它的优先级要比可见进程或者前台Service低。</p>
+<li><p>启动服务进程:已经启动的Service的进程，因为后台Service没有直接和用户交互，所以它的优先级要比可见进程或者前台Service低。</p>
 </li>
-<li>
-<p>后台进程:不可见并且没有任何正在运行的Service的Activity进程，通常会有大量的后台进程。</p>
-</li>
-<li>
-<p>空进程:为了提高系统整体性能，Android经常在应用程序的生存周期结束后仍然把它们保存在内存中，Android通过维护这个缓存来减少应用程序被再次启动时的启动时间。
-<img src="/2016/03/24/Android-初步之Android组件-Activity/4.png" alt></p>
-</li>
+<li>后台进程:不可见并且没有任何正在运行的Service的Activity进程，通常会有大量的后台进程。</li>
+<li>空进程:为了提高系统整体性能，Android经常在应用程序的生存周期结束后仍然把它们保存在内存中，Android通过维护这个缓存来减少应用程序被再次启动时的启动时间。<br><img src="/2016/03/24/Android-初步之Android组件-Activity/4.png" alt></li>
 </ol>
-<h4>Activity的创建</h4>
-<ol>
+<h4 id="Activity的创建"><a href="#Activity的创建" class="headerlink" title="Activity的创建"></a>Activity的创建</h4><ol>
 <li>创建一个类继承自Activity，并重写相应的方法。</li>
 <li>编写布局文件，设置布局。</li>
 <li>在Android  Manifest中配置Activity。</li>
 </ol>
-<h4>Activity属性</h4>
-<p><img src="/2016/03/24/Android-初步之Android组件-Activity/5.png" alt></p>
+<h4 id="Activity属性"><a href="#Activity属性" class="headerlink" title="Activity属性"></a>Activity属性</h4><p><img src="/2016/03/24/Android-初步之Android组件-Activity/5.png" alt></p>
 
         
         
@@ -450,14 +357,9 @@ http://www.cnblogs.com/xiaoQLu/archive/2011/09/29/2195742.html</p>
 </header>
     <div class="article-content">
         
-        <p>Android 开发是基于Java环境开发的，但是你如果写过测试用例的话你就会有个感觉就是，它和Java还是有很大区别的，比如你不能随便new一个类让它运行起来，我们在测试用例中有的使用要费劲心思来创建和待测试一样的运行环境，这里要介绍的Context就是一种上下文环境，下面内容是来自我在入职初期学习时候做的PPT来的，所以比较简洁不过大概涵盖了Context所涉及的知识点。
-如上面提到的Android是基于组件，每个组件的运行都要有一个环境才能够正常工作，所以不是简单地New一个对象调用就能创建实例了，而是要有它们各自的上下文环境Context。在Android开发初期大家可能最难理解的就是这个Context了吧，至少我当时是萌逼状态的。
-<img src="/2016/03/23/Android-初步之四大组件/0.png" alt></p>
-<h4>Context的作用</h4>
-<ul>
-<li>可以通过 Context识别调用者的实例。
-(例如:TextView label = new TextView(this)
-意味着view拥有一个指向Activity的引用，进而引用Activity占有的资源).</li>
+        <p>Android 开发是基于Java环境开发的，但是你如果写过测试用例的话你就会有个感觉就是，它和Java还是有很大区别的，比如你不能随便new一个类让它运行起来，我们在测试用例中有的使用要费劲心思来创建和待测试一样的运行环境，这里要介绍的Context就是一种上下文环境，下面内容是来自我在入职初期学习时候做的PPT来的，所以比较简洁不过大概涵盖了Context所涉及的知识点。<br>如上面提到的Android是基于组件，每个组件的运行都要有一个环境才能够正常工作，所以不是简单地New一个对象调用就能创建实例了，而是要有它们各自的上下文环境Context。在Android开发初期大家可能最难理解的就是这个Context了吧，至少我当时是萌逼状态的。<br><img src="/2016/03/23/Android-初步之四大组件/0.png" alt></p>
+<h4 id="Context的作用"><a href="#Context的作用" class="headerlink" title="Context的作用"></a>Context的作用</h4><ul>
+<li>可以通过 Context识别调用者的实例。<br>(例如:TextView label = new TextView(this)<br>意味着view拥有一个指向Activity的引用，进而引用Activity占有的资源).</li>
 <li>管理应用程序特定的配置细节</li>
 <li>管理应用程序范围的操作和数据</li>
 <li>访问当前包的资源(getResources、getAssets)</li>
@@ -465,65 +367,37 @@ http://www.cnblogs.com/xiaoQLu/archive/2011/09/29/2195742.html</p>
 <li>得到各种系统服务（getSystemService）</li>
 <li>使用Application Context来访问设置和资源可以在多个Activity实例中共享</li>
 </ul>
-<h4>Application  Context</h4>
-<p>Application-Context的生命周期是整个应用，Application Context可以通过Context.getApplicationContext或者Activity.getApplication方法获取。
-在Activity或者Service中可以通过getApplication()函数获得，不管通过何种方法在哪里获得的，在一个进程内，总是获得到同一个实例。</p>
-<h5>Application通常有如下常用用途：</h5>
-<p>1.获得当前应用的主题，资源文件中的内容等
-2.使用Application同步Activity之间的状态，例子见备注部分：</p>
-<h5>实现在任何位置获取Applcation  Context 方法：</h5>
-<p>在Android中只有Activity, Provider等组件中才能使用API获取Application Context，但是在某些工具类中往往需要它来访问资源。这就需要我们自定义一个Application类来解决这个问题：
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public class MyApplication extends Application &#123;  </span><br><span class="line">    private static MyApplication<span class="built_in"> instance; </span> </span><br><span class="line">    public static MyApplication getInstance() &#123;  </span><br><span class="line">        return<span class="built_in"> instance; </span> </span><br><span class="line">    &#125;  </span><br><span class="line">    public void onCreate() &#123;  </span><br><span class="line">	super.onCreate();  </span><br><span class="line">       	<span class="built_in"> instance </span>= this;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>为了能正确地调用MyApplication.getInstance()，需要在manifest中&lt;application&gt;中加入name=&quot;mypackage.MyApplication&quot;。</p>
-<h4>获取Context的方式</h4>
-<ul>
-<li>
-<p>可以使用getApplicationContext()方法从当前进程中获取Context，这个方法在例如Activity或者Service中能够找到。通常我们使用Context对象时，要优先考虑这个全局的进程Context。
-<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Context</span> <span class="built_in">context</span> = getApplicationContext()；</span><br></pre></td></tr></table></figure></p>
+<h4 id="Application-Context"><a href="#Application-Context" class="headerlink" title="Application  Context"></a>Application  Context</h4><p>Application-Context的生命周期是整个应用，Application Context可以通过Context.getApplicationContext或者Activity.getApplication方法获取。<br>在Activity或者Service中可以通过getApplication()函数获得，不管通过何种方法在哪里获得的，在一个进程内，总是获得到同一个实例。</p>
+<h5 id="Application通常有如下常用用途："><a href="#Application通常有如下常用用途：" class="headerlink" title="Application通常有如下常用用途："></a>Application通常有如下常用用途：</h5><p>1.获得当前应用的主题，资源文件中的内容等<br>2.使用Application同步Activity之间的状态，例子见备注部分：</p>
+<h5 id="实现在任何位置获取Applcation-Context-方法："><a href="#实现在任何位置获取Applcation-Context-方法：" class="headerlink" title="实现在任何位置获取Applcation  Context 方法："></a>实现在任何位置获取Applcation  Context 方法：</h5><p>在Android中只有Activity, Provider等组件中才能使用API获取Application Context，但是在某些工具类中往往需要它来访问资源。这就需要我们自定义一个Application类来解决这个问题：<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public class MyApplication extends Application &#123;  </span><br><span class="line">    private static MyApplication<span class="built_in"> instance; </span> </span><br><span class="line">    public static MyApplication getInstance() &#123;  </span><br><span class="line">        return<span class="built_in"> instance; </span> </span><br><span class="line">    &#125;  </span><br><span class="line">    public void onCreate() &#123;  </span><br><span class="line">	super.onCreate();  </span><br><span class="line">       	<span class="built_in"> instance </span>= this;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>为了能正确地调用MyApplication.getInstance()，需要在manifest中<application>中加入name=”mypackage.MyApplication”。 </application></p>
+<h4 id="获取Context的方式"><a href="#获取Context的方式" class="headerlink" title="获取Context的方式"></a>获取Context的方式</h4><ul>
+<li><p>可以使用getApplicationContext()方法从当前进程中获取Context，这个方法在例如Activity或者Service中能够找到。通常我们使用Context对象时，要优先考虑这个全局的进程Context。</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Context</span> <span class="built_in">context</span> = getApplicationContext()；</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>getContext()当前Activity对象的Context对象</p>
+<li><p>getContext()当前Activity对象的Context对象</p>
 </li>
-<li>
-<p>Activity.this 返回当前的Activity实例，这个和上一个有点类似。</p>
+<li><p>Activity.this 返回当前的Activity实例，这个和上一个有点类似。</p>
 </li>
 </ul>
-<h4>使用应用程序Context</h4>
-<p>获得了一个应用程序Context后，就可以用它来访问应用程序范围的功能和服务了，这些功能和服务包括：</p>
+<h4 id="使用应用程序Context"><a href="#使用应用程序Context" class="headerlink" title="使用应用程序Context"></a>使用应用程序Context</h4><p>获得了一个应用程序Context后，就可以用它来访问应用程序范围的功能和服务了，这些功能和服务包括：</p>
 <ul>
-<li>
-<p>获取应用程序资源，例如字符串，图像和XML文件：
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">String</span> greeting = getResource().getString(R.<span class="built_in">string</span>.hello);</span><br></pre></td></tr></table></figure></p>
+<li><p>获取应用程序资源，例如字符串，图像和XML文件：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">String</span> greeting = getResource().getString(R.<span class="built_in">string</span>.hello);</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>访问应用程序首选项使用getSharedPreferences来访问共享的应用程序首选项</p>
+<li><p>访问应用程序首选项使用getSharedPreferences来访问共享的应用程序首选项</p>
 </li>
-<li>
-<p>管理私有的应用程序文件以及目录</p>
-</li>
-<li>
-<p>获取未编译的应用程序组件使用getAssets方法来获取应用程序的资源</p>
-</li>
-<li>
-<p>获取系统服务</p>
-</li>
-<li>
-<p>管理私有的应用程序数据库</p>
-</li>
-<li>
-<p>使用应用程序权限</p>
-</li>
+<li>管理私有的应用程序文件以及目录</li>
+<li>获取未编译的应用程序组件使用getAssets方法来获取应用程序的资源</li>
+<li>获取系统服务</li>
+<li>管理私有的应用程序数据库</li>
+<li>使用应用程序权限</li>
 </ul>
 <p><img src="/2016/03/23/Android-初步之四大组件/333.png" alt></p>
-<h4>应用程序的Context数目</h4>
-<p>在Android中 Context的子类有：Application，Activity，Service，所以：
-<figure class="highlight coq"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Context</span>数量 = Activity数量 + Service数量 + <span class="number">1</span> (Application <span class="keyword">Context</span>)</span><br></pre></td></tr></table></figure></p>
-<h4>错误使用带来的问题：</h4>
-<p>Context 错误使用会带来很严重的内存泄漏的问题，这个在内存优化部分有做过介绍，比如下面的例子,这是一个非常简单的懒汉式单例：
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public class Singleton &#123;</span><br><span class="line">    </span><br><span class="line">    private Context mContext;</span><br><span class="line">    private static Singleton instance;</span><br><span class="line">    private Singleton(Context context) &#123;</span><br><span class="line">        this.mContext = context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Singleton getInstance(Context context) &#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="literal">null</span>) &#123;</span><br><span class="line">           <span class="built_in"> instance </span>= new Singleton(context);</span><br><span class="line">        &#125;</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="应用程序的Context数目"><a href="#应用程序的Context数目" class="headerlink" title="应用程序的Context数目"></a>应用程序的Context数目</h4><p>在Android中 Context的子类有：Application，Activity，Service，所以：<br><figure class="highlight coq"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Context</span>数量 = Activity数量 + Service数量 + <span class="number">1</span> (Application <span class="keyword">Context</span>)</span><br></pre></td></tr></table></figure></p>
+<h4 id="错误使用带来的问题："><a href="#错误使用带来的问题：" class="headerlink" title="错误使用带来的问题："></a>错误使用带来的问题：</h4><p>Context 错误使用会带来很严重的内存泄漏的问题，这个在内存优化部分有做过介绍，比如下面的例子,这是一个非常简单的懒汉式单例：<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public class Singleton &#123;</span><br><span class="line">    </span><br><span class="line">    private Context mContext;</span><br><span class="line">    private static Singleton instance;</span><br><span class="line">    private Singleton(Context context) &#123;</span><br><span class="line">        this.mContext = context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Singleton getInstance(Context context) &#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="literal">null</span>) &#123;</span><br><span class="line">           <span class="built_in"> instance </span>= new Singleton(context);</span><br><span class="line">        &#125;</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>我们知道单例的生命周期要长于一般的组件，一般是常驻内存的，如果在创建这个单例的时候传入的是Activity的上下文那么除了应用退出，否则Activity的上下文会一直被单例持有，所以导致即使Activity被销毁掉，也不能被GC回收，从而导致了内存泄漏。</p>
-<h4>使用Context要注意的几点</h4>
-<p>一般Context造成的内存泄漏，几乎都是当Context销毁的时候，却因为被引用导致销毁失败，而Application的Context对象可以理解为随着进程存在的，所以我们总结出使用Context的正确姿势：</p>
+<h4 id="使用Context要注意的几点"><a href="#使用Context要注意的几点" class="headerlink" title="使用Context要注意的几点"></a>使用Context要注意的几点</h4><p>一般Context造成的内存泄漏，几乎都是当Context销毁的时候，却因为被引用导致销毁失败，而Application的Context对象可以理解为随着进程存在的，所以我们总结出使用Context的正确姿势：</p>
 <ul>
 <li>在开发中尽量使用Application的Context，特别是生命周期长的情况下。不要让生命周期长于组件的对象持有组件的引用。</li>
 <li>非静态内部类会隐式持有外部类实例的引用，如果需要使用内部类那么需要将外部实例引用作为弱引用持有，从而避免内存泄漏。</li>
@@ -732,27 +606,22 @@ http://www.cnblogs.com/xiaoQLu/archive/2011/09/29/2195742.html</p>
 <li>系统库和Android运行时</li>
 </ul>
 <p><img src="/2016/03/23/Android-初步之Android-体系结构/4.png" alt></p>
-<p>系统库包括九个子系统，分别是图层管理、媒体库、SQLite、OpenGL ES、FreeType、WebKit、SGL、SSL和libc。
-Android运行时包括核心库和Dalvik虚拟机，前者既兼容了大多数Java语言所需要调用的功能函数，又包括了Android的核心库，比如android.os、android.net、android.media等等。
-后者是一种基于寄存器的java虚拟机，Dalvik虚拟机主要是完成对生命周期的管理、堆栈的管理、线程的管理、安全和异常的管理以及垃圾回收等重要功能。</p>
+<p>系统库包括九个子系统，分别是图层管理、媒体库、SQLite、OpenGL ES、FreeType、WebKit、SGL、SSL和libc。<br>Android运行时包括核心库和Dalvik虚拟机，前者既兼容了大多数Java语言所需要调用的功能函数，又包括了Android的核心库，比如android.os、android.net、android.media等等。<br>后者是一种基于寄存器的java虚拟机，Dalvik虚拟机主要是完成对生命周期的管理、堆栈的管理、线程的管理、安全和异常的管理以及垃圾回收等重要功能。</p>
 <p>系统库：</p>
-<p><figure class="highlight x86asm"><table><tr><td class="code"><pre><span class="line">libc            C语言标准库</span><br><span class="line">Surface Menager 主要管理多个应用程序同时执行时，各个程序之间的显示与存储</span><br><span class="line">Media Framework 系统多媒体库</span><br><span class="line">SQLite          关系型数据库</span><br><span class="line">OpenGL <span class="built_in">ES</span>       <span class="number">3D</span>效果支持</span><br><span class="line">FreeType        位图及矢量库</span><br><span class="line">WebKit          Web 浏览器引擎</span><br><span class="line">SGL             <span class="number">2D</span>图形引擎</span><br><span class="line">SSL              位于TCP/<span class="built_in">IP</span>与各种应用层协议之间，为数据通信提供支持</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight x86asm"><table><tr><td class="code"><pre><span class="line">libc            C语言标准库</span><br><span class="line">Surface Menager 主要管理多个应用程序同时执行时，各个程序之间的显示与存储</span><br><span class="line">Media Framework 系统多媒体库</span><br><span class="line">SQLite          关系型数据库</span><br><span class="line">OpenGL <span class="built_in">ES</span>       <span class="number">3D</span>效果支持</span><br><span class="line">FreeType        位图及矢量库</span><br><span class="line">WebKit          Web 浏览器引擎</span><br><span class="line">SGL             <span class="number">2D</span>图形引擎</span><br><span class="line">SSL              位于TCP/<span class="built_in">IP</span>与各种应用层协议之间，为数据通信提供支持</span><br></pre></td></tr></table></figure>
 <ul>
 <li>应用程序框架层</li>
 </ul>
 <p><img src="/2016/03/23/Android-初步之Android-体系结构/3.png" alt></p>
 <p>该层是Android应用开发的基础，开发人员大部分情况是在和它打交道。应用程序框架层包括活动管理器、窗口管理器、内容提供者、视图系统、包管理器、电话管理器、资源管理器、位置管理器、通知管理器和XMPP服务十个部分。在Android平台上，开发人员可以完全访问核心应用程序所使用的API框架。并且，任何一个应用程序都可以发布自身的功能模块，而其他应用程序则可以使用这些已发布的功能模块。基于这样的重用机制，用户就可以方便地替换平台本身的各种应用程序组件。</p>
-<p><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">Activity Manager 活动管理器用于管理应用程序生命周期</span><br><span class="line">View<span class="built_in"> System </span>  视图管理器，用来构建应用程序如列表，表格，文本框，按钮等</span><br><span class="line">Window Manager窗口管理者</span><br><span class="line">Content Provider 内容提供者</span><br><span class="line">Notification Manager 通知管理者，用来设置在状态栏中显示的提示信息</span><br><span class="line">Package Manager 包管理者，用来对Android系统内的应用程序进行管理</span><br><span class="line">Telephony Manager 电话管理者，用来对联系人及通话记录等信息进行管理</span><br><span class="line">Resource Manager  资源管理者，用来提供非代码资源的访问</span><br><span class="line">Location Manager  位置管理者，用来提供使用者的当前位置等信息</span><br><span class="line">XMPP<span class="built_in"> Service </span> Service服务</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">Activity Manager 活动管理器用于管理应用程序生命周期</span><br><span class="line">View<span class="built_in"> System </span>  视图管理器，用来构建应用程序如列表，表格，文本框，按钮等</span><br><span class="line">Window Manager窗口管理者</span><br><span class="line">Content Provider 内容提供者</span><br><span class="line">Notification Manager 通知管理者，用来设置在状态栏中显示的提示信息</span><br><span class="line">Package Manager 包管理者，用来对Android系统内的应用程序进行管理</span><br><span class="line">Telephony Manager 电话管理者，用来对联系人及通话记录等信息进行管理</span><br><span class="line">Resource Manager  资源管理者，用来提供非代码资源的访问</span><br><span class="line">Location Manager  位置管理者，用来提供使用者的当前位置等信息</span><br><span class="line">XMPP<span class="built_in"> Service </span> Service服务</span><br></pre></td></tr></table></figure>
 <ul>
 <li>应用程序层</li>
 </ul>
 <p><img src="/2016/03/23/Android-初步之Android-体系结构/6.png" alt></p>
 <p>该层提供一些核心应用程序包，例如电子邮件、短信、日历、地图、浏览器和联系人管理等。同时，开发者可以利用Java语言设计和编写属于自己的应用程序，而这些程序与那些核心应用程序彼此平等、友好共处。</p>
-<p>对于Android系统架构推荐如下两篇博客：
-http://developer.51cto.com/art/201001/180207.htm
-http://mobile.51cto.com/android-235496.htm</p>
-<h4>Delvik虚拟机以及ART</h4>
-<p>这篇博客将会在以后的时间添加这一部分，先占个坑！</p>
+<p>对于Android系统架构推荐如下两篇博客：<br><a href="http://developer.51cto.com/art/201001/180207.htm" target="_blank" rel="noopener">http://developer.51cto.com/art/201001/180207.htm</a><br><a href="http://mobile.51cto.com/android-235496.htm" target="_blank" rel="noopener">http://mobile.51cto.com/android-235496.htm</a></p>
+<h4 id="Delvik虚拟机以及ART"><a href="#Delvik虚拟机以及ART" class="headerlink" title="Delvik虚拟机以及ART"></a>Delvik虚拟机以及ART</h4><p>这篇博客将会在以后的时间添加这一部分，先占个坑！</p>
 
         
         
@@ -814,28 +683,23 @@ http://mobile.51cto.com/android-235496.htm</p>
 </header>
     <div class="article-content">
         
-        <p>硬件设备：
-RapsBerry 3
-操作系统：
-Rapsbian OS jessie</p>
+        <p>硬件设备：<br>RapsBerry 3<br>操作系统：<br>Rapsbian OS jessie</p>
 <ol>
 <li>Setup ROS Repositories</li>
 </ol>
-<p><figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line"><span class="variable">$ </span>sudo sh -c <span class="string">'echo "deb http://packages.ros.org/ros/ubuntu jessie main" &gt; /etc/apt/sources.list.d/ros-latest.list'</span></span><br><span class="line"><span class="variable">$ </span>wget <span class="symbol">https:</span>/<span class="regexp">/raw.githubusercontent.com/ros</span><span class="regexp">/rosdistro/master</span><span class="regexp">/ros.key -O - | sudo apt-key add -</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line"><span class="variable">$ </span>sudo sh -c <span class="string">'echo "deb http://packages.ros.org/ros/ubuntu jessie main" &gt; /etc/apt/sources.list.d/ros-latest.list'</span></span><br><span class="line"><span class="variable">$ </span>wget <span class="symbol">https:</span>/<span class="regexp">/raw.githubusercontent.com/ros</span><span class="regexp">/rosdistro/master</span><span class="regexp">/ros.key -O - | sudo apt-key add -</span></span><br></pre></td></tr></table></figure>
 <p>2.更新软件源</p>
-<p><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">$ sudo apt-<span class="builtin-name">get</span> update</span><br><span class="line">$ sudo apt-<span class="builtin-name">get</span> upgrade</span><br></pre></td></tr></table></figure></p>
-<p>3.Install Bootstrap Dependencies</p>
-<p><figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">$ sudo apt-<span class="built_in">get</span> install <span class="keyword">python</span>-pip <span class="keyword">python</span>-setuptools <span class="keyword">python</span>-yaml <span class="keyword">python</span>-distribute <span class="keyword">python</span>-docutils <span class="keyword">python</span>-dateutil <span class="keyword">python</span>-six</span><br><span class="line">$ sudo pip install rosdep rosinstall_generator wstool rosinstall</span><br></pre></td></tr></table></figure></p>
-<p>4.Initializing rosdep</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">$ sudo apt-<span class="builtin-name">get</span> update</span><br><span class="line">$ sudo apt-<span class="builtin-name">get</span> upgrade</span><br></pre></td></tr></table></figure>
+<p>3.Install Bootstrap Dependencies    </p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">$ sudo apt-<span class="built_in">get</span> install <span class="keyword">python</span>-pip <span class="keyword">python</span>-setuptools <span class="keyword">python</span>-yaml <span class="keyword">python</span>-distribute <span class="keyword">python</span>-docutils <span class="keyword">python</span>-dateutil <span class="keyword">python</span>-six</span><br><span class="line">$ sudo pip install rosdep rosinstall_generator wstool rosinstall</span><br></pre></td></tr></table></figure>
+<p>4.Initializing rosdep    </p>
 <pre><code>$ sudo rosdep init
 $ rosdep update
-</code></pre>
-<p>Installation</p>
+</code></pre><p>Installation</p>
 <p>Now, we will download and build ROS Indigo.</p>
 <p>Create a catkin Workspace</p>
 <p>In order to build the core packages, you will need a catkin workspace. Create one now:</p>
-<p>$ mkdir ~/ros_catkin_ws
-$ cd ~/ros_catkin_ws</p>
+<p>$ mkdir ~/ros_catkin_ws<br>$ cd ~/ros_catkin_ws</p>
 <p>Next we will want to fetch the core packages so we can build them. We will use wstool for this. Select the wstool command for the particular variant you want to install:</p>
 <p>ROS-Comm: (recommended) ROS package, build, and communication libraries. No GUI tools.</p>
 <pre><code>$ rosinstall_generator ros_comm --rosdistro indigo --deps --wet-only --exclude roslisp --tar &gt; indigo-ros_comm-wet.rosinstall
@@ -848,8 +712,7 @@ This will add all of the catkin or wet packages in the given variant and then fe
 
 
 Resolve Dependencies
-</code></pre>
-<p>Before you can build your catkin workspace, you need to make sure that you have all the required dependencies. We use the rosdep tool for this, however, a couple of dependencies are not available in the repositories. They must be manually built first.</p>
+</code></pre><p>Before you can build your catkin workspace, you need to make sure that you have all the required dependencies. We use the rosdep tool for this, however, a couple of dependencies are not available in the repositories. They must be manually built first.</p>
 <p>Unavailable Dependencies</p>
 <p>Following packages are not available for Raspbian:</p>
 <p>Raspbian Wheezy: libconsole-bridge-dev, liburdfdom-headers-dev, liburdfdom-dev, liblz4-dev, collada-dom-dev</p>
@@ -860,10 +723,9 @@ Resolve Dependencies
 <p>The required packages can be built from source in a new directory:</p>
 <pre><code>$ mkdir ~/ros_catkin_ws/external_src
 $ sudo apt-get install checkinstall cmake
-$ sudo sh -c 'echo &quot;deb-src http://mirrordirector.raspbian.org/raspbian/ testing main contrib non-free rpi&quot; &gt;&gt; /etc/apt/sources.list'
+$ sudo sh -c &apos;echo &quot;deb-src http://mirrordirector.raspbian.org/raspbian/ testing main contrib non-free rpi&quot; &gt;&gt; /etc/apt/sources.list&apos;
 $ sudo apt-get update
-</code></pre>
-<p>libconsole-bridge-dev:</p>
+</code></pre><p>libconsole-bridge-dev:</p>
 <pre><code>$ cd ~/ros_catkin_ws/external_src
 $ sudo apt-get build-dep console-bridge
 $ apt-get source -b console-bridge
@@ -880,26 +742,23 @@ $ sudo dpkg -i liblz4-*.deb
 
 
 Resolving Dependencies with rosdep
-</code></pre>
-<p>The remaining dependencies should be resolved by running rosdep:</p>
+</code></pre><p>The remaining dependencies should be resolved by running rosdep:</p>
 <p>Raspbian Wheezy:</p>
-<p>$ cd ~/ros_catkin_ws
-$ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=debian:wheezy</p>
+<p>$ cd ~/ros_catkin_ws<br>$ rosdep install –from-paths src –ignore-src –rosdistro indigo -y -r –os=debian:wheezy</p>
 <p>Raspbian Jessie:</p>
-<p>$ cd ~/ros_catkin_ws
-$ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=debian:jessie</p>
+<p>$ cd ~/ros_catkin_ws<br>$ rosdep install –from-paths src –ignore-src –rosdistro indigo -y -r –os=debian:jessie</p>
 <p>Building the catkin Workspace</p>
 <p>Once you have completed downloading the packages and have resolved the dependencies, you are ready to build the catkin packages.</p>
 <p>Invoke catkin_make_isolated:</p>
-<p>$ sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/indigo</p>
+<p>$ sudo ./src/catkin/bin/catkin_make_isolated –install -DCMAKE_BUILD_TYPE=Release –install-space /opt/ros/indigo</p>
 <p>Note: This will install ROS in the equivalent file location to Ubuntu in /opt/ros/indigo however you can modify this as you wish.</p>
 <p>For rviz, you will also have to apply this patch.</p>
-<p>Should the compilation fail with an &quot;internal compiler error&quot;, it may be because you're out of memory. A quick fix for this is to add swap space to the Pi and recompile. If the error persists try building with the -j2 option instead of the default -j4 option:</p>
-<p>$ sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/indigo -j2</p>
+<p>Should the compilation fail with an “internal compiler error”, it may be because you’re out of memory. A quick fix for this is to add swap space to the Pi and recompile. If the error persists try building with the -j2 option instead of the default -j4 option:</p>
+<p>$ sudo ./src/catkin/bin/catkin_make_isolated –install -DCMAKE_BUILD_TYPE=Release –install-space /opt/ros/indigo -j2</p>
 <p>Now ROS should be installed! Remember to source the new installation:</p>
 <p>$ source /opt/ros/indigo/setup.bash</p>
 <p>Or optionally source the setup.bash in the ~/.bashrc, so that ROS environment variables are automatically added to your bash session every time a new shell is launched:</p>
-<p>$ &quot;source /opt/ros/indigo/setup.bash&quot; &gt;&gt; ~/.bashrc</p>
+<p>$ “source /opt/ros/indigo/setup.bash” &gt;&gt; ~/.bashrc</p>
 
         
         
@@ -961,17 +820,14 @@ $ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=deb
 </header>
     <div class="article-content">
         
-        <p>我们在介绍Hello World的时候介绍了roscore 命令，但是并没有介绍它具体做了什么操作：
-其实在运行这个命令的时我们启动了如下的组件：</p>
+        <p>我们在介绍Hello World的时候介绍了roscore 命令，但是并没有介绍它具体做了什么操作：<br>其实在运行这个命令的时我们启动了如下的组件：</p>
 <ul>
 <li>ROS Master</li>
 <li>ROS 参数服务器</li>
-<li>Rosout log节点
-前两者已经在上述的章节进行了介绍，至于roscore节点它是用于从其他ROS节点中收集Log信息，并将其存储在log文件中。</li>
+<li>Rosout log节点<br>前两者已经在上述的章节进行了介绍，至于roscore节点它是用于从其他ROS节点中收集Log信息，并将其存储在log文件中。</li>
 </ul>
 <p>下面就先运行roscore命令看下效果，运行命令后会弹出如下的Log：</p>
-<p><figure class="highlight gams"><table><tr><td class="code"><pre><span class="line"><span class="comment">//产生的Log文件</span></span><br><span class="line">... logging to /home/<span class="built-in">pi</span>/.ros/<span class="built-in">log</span>/<span class="number">674306</span>a0<span class="number">-06</span>fc<span class="number">-11e6</span><span class="number">-8</span>a8b-b827eb2bb378/roslaunch-raspberrypi<span class="number">-2054.</span><span class="built-in">log</span></span><br><span class="line">Checking <span class="built-in">log</span> directory <span class="keyword">for</span> disk usage. This may take awhile.</span><br><span class="line">Press Ctrl-C to interrupt</span><br><span class="line">Done checking <span class="built-in">log</span> <span class="keyword">file</span> disk usage. Usage is &lt;<span class="number">1</span>GB.</span><br><span class="line"></span><br><span class="line"><span class="comment">//这个命令将会启动roscore.xml ROS启动文件，这个文件会自动启动ros master和ros参数服务器，下面这个地方显示的就是ROS参数服务器的地址和端口</span></span><br><span class="line">started roslaunch server http:<span class="comment">//raspberrypi:41429/</span></span><br><span class="line">ros_comm version <span class="number">1.11</span><span class="number">.18</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//这个部分显示的是ros版本以及ros版本号信息的参数</span></span><br><span class="line">SUMMARY</span><br><span class="line">========</span><br><span class="line"></span><br><span class="line"><span class="keyword">PARAMETERS</span></span><br><span class="line"> * /rosdistro: indigo</span><br><span class="line"> * /rosversion: 1.11.18</span><br><span class="line"></span><br><span class="line">NODES</span><br><span class="line"></span><br><span class="line"><span class="comment">//显示ROS_MASTER_URI信息</span></span><br><span class="line">auto-starting <span class="comment">new master</span></span><br><span class="line">process[master]: started <span class="comment">with pid [2065]</span></span><br><span class="line">ROS_MASTER_URI=http:<span class="comment">//raspberrypi:11311/</span></span><br><span class="line"></span><br><span class="line">setting /run_id to <span class="number">674306</span>a0<span class="number">-06</span>fc<span class="number">-11e6</span><span class="number">-8</span>a8b-b827eb2bb378</span><br><span class="line">process[rosout<span class="number">-1</span>]: started with pid [<span class="number">2078</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">//启动rosout服务</span></span><br><span class="line">started core service [/<span class="comment">rosout]</span></span><br></pre></td></tr></table></figure></p>
-
+<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line"><span class="comment">//产生的Log文件</span></span><br><span class="line">... logging to /home/<span class="built-in">pi</span>/.ros/<span class="built-in">log</span>/<span class="number">674306</span>a0<span class="number">-06</span>fc<span class="number">-11e6</span><span class="number">-8</span>a8b-b827eb2bb378/roslaunch-raspberrypi<span class="number">-2054.</span><span class="built-in">log</span></span><br><span class="line">Checking <span class="built-in">log</span> directory <span class="keyword">for</span> disk usage. This may take awhile.</span><br><span class="line">Press Ctrl-C to interrupt</span><br><span class="line">Done checking <span class="built-in">log</span> <span class="keyword">file</span> disk usage. Usage is &lt;<span class="number">1</span>GB.</span><br><span class="line"></span><br><span class="line"><span class="comment">//这个命令将会启动roscore.xml ROS启动文件，这个文件会自动启动ros master和ros参数服务器，下面这个地方显示的就是ROS参数服务器的地址和端口</span></span><br><span class="line">started roslaunch server http:<span class="comment">//raspberrypi:41429/</span></span><br><span class="line">ros_comm version <span class="number">1.11</span><span class="number">.18</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//这个部分显示的是ros版本以及ros版本号信息的参数</span></span><br><span class="line">SUMMARY</span><br><span class="line">========</span><br><span class="line"></span><br><span class="line"><span class="keyword">PARAMETERS</span></span><br><span class="line"> * /rosdistro: indigo</span><br><span class="line"> * /rosversion: 1.11.18</span><br><span class="line"></span><br><span class="line">NODES</span><br><span class="line"></span><br><span class="line"><span class="comment">//显示ROS_MASTER_URI信息</span></span><br><span class="line">auto-starting <span class="comment">new master</span></span><br><span class="line">process[master]: started <span class="comment">with pid [2065]</span></span><br><span class="line">ROS_MASTER_URI=http:<span class="comment">//raspberrypi:11311/</span></span><br><span class="line"></span><br><span class="line">setting /run_id to <span class="number">674306</span>a0<span class="number">-06</span>fc<span class="number">-11e6</span><span class="number">-8</span>a8b-b827eb2bb378</span><br><span class="line">process[rosout<span class="number">-1</span>]: started with pid [<span class="number">2078</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">//启动rosout服务</span></span><br><span class="line">started core service [/<span class="comment">rosout]</span></span><br></pre></td></tr></table></figure>
         
         
         <p class="article-more-link">
@@ -1042,23 +898,16 @@ $ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=deb
 <li>doubles</li>
 <li>iso8601 dates</li>
 <li>lists</li>
-<li>base64-encoded binary	data</li>
+<li>base64-encoded binary    data</li>
 </ul>
 <p>我们还可以存储字典参数：</p>
-<p>/camera/name:'nikon' #string type
-/camera/fps	: 30 #integer
-/camera/exposure:1.2 #float
-/camera/active : true #boolean</p>
-<p>和参数服务器相关的命令：
-<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line"><span class="symbol">$</span> rosparam <span class="keyword">set</span> <span class="keyword">parameter</span> <span class="comment">value :</span>这个命令用于将某个参数设置为某个值</span><br><span class="line">$ rosparam <span class="comment">get parameter_name :</span> 获得某个参数的值</span><br><span class="line">$ rosparam <span class="comment">load [YAML file] :</span> 从<span class="comment">YAML</span>文件中加载参数到参数服务器</span><br><span class="line">$ rosparam <span class="comment">dump [YAML file] :</span> 这个命令将会将参数服务器中的数据存储到<span class="comment">YAML</span>文件</span><br><span class="line">$ rosparam <span class="comment">delete [parameter_name] :</span> 将会从参数服务器中删除某个参数</span><br><span class="line">$ rosparam <span class="comment">list :</span> 将会列出所有的参数名</span><br></pre></td></tr></table></figure></p>
+<p>/camera/name:’nikon’ #string type<br>/camera/fps    : 30 #integer<br>/camera/exposure:1.2 #float<br>/camera/active : true #boolean</p>
+<p>和参数服务器相关的命令：<br><figure class="highlight gams"><table><tr><td class="code"><pre><span class="line"><span class="symbol">$</span> rosparam <span class="keyword">set</span> <span class="keyword">parameter</span> <span class="comment">value :</span>这个命令用于将某个参数设置为某个值</span><br><span class="line">$ rosparam <span class="comment">get parameter_name :</span> 获得某个参数的值</span><br><span class="line">$ rosparam <span class="comment">load [YAML file] :</span> 从<span class="comment">YAML</span>文件中加载参数到参数服务器</span><br><span class="line">$ rosparam <span class="comment">dump [YAML file] :</span> 这个命令将会将参数服务器中的数据存储到<span class="comment">YAML</span>文件</span><br><span class="line">$ rosparam <span class="comment">delete [parameter_name] :</span> 将会从参数服务器中删除某个参数</span><br><span class="line">$ rosparam <span class="comment">list :</span> 将会列出所有的参数名</span><br></pre></td></tr></table></figure></p>
 <hr>
 <hr>
 <p>ROS Bags：</p>
-<p>ROS bag用于存储来自topic和service的消息数据，它是通过rosbag命令创建的，它会订阅一个或者更多的topic并且以它接收到的方式存储起来。
-下面是rosbag的常用方法：
-<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="variable">$rosbag</span>	record  <span class="selector-attr">[topic_1]</span> -o <span class="selector-attr">[bag_name]</span>： 这个命令将会将指定的topic记录到一个bag文件中，我们还可以使用-<span class="selector-tag">a</span>作为参数记录所有的topic</span><br><span class="line"></span><br><span class="line"><span class="variable">$rosbag</span>	play <span class="selector-attr">[bag_name]</span> :这个会回放存在的bag文件.</span><br></pre></td></tr></table></figure></p>
-<p>下面推荐一个很好用的bag回放GUI工具：
-<a href="http://wiki.ros.org/rqt_bag" target="_blank" rel="noopener">http://wiki.ros.org/rqt</a></p>
+<p>ROS bag用于存储来自topic和service的消息数据，它是通过rosbag命令创建的，它会订阅一个或者更多的topic并且以它接收到的方式存储起来。<br>下面是rosbag的常用方法：<br><figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="variable">$rosbag</span>	record  <span class="selector-attr">[topic_1]</span> -o <span class="selector-attr">[bag_name]</span>： 这个命令将会将指定的topic记录到一个bag文件中，我们还可以使用-<span class="selector-tag">a</span>作为参数记录所有的topic</span><br><span class="line"></span><br><span class="line"><span class="variable">$rosbag</span>	play <span class="selector-attr">[bag_name]</span> :这个会回放存在的bag文件.</span><br></pre></td></tr></table></figure></p>
+<p>下面推荐一个很好用的bag回放GUI工具：<br><a href="http://wiki.ros.org/rqt_bag" target="_blank" rel="noopener">http://wiki.ros.org/rqt</a></p>
 
         
         
@@ -1120,18 +969,13 @@ $ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=deb
 </header>
     <div class="article-content">
         
-        <p>ROS Message：
-之前介绍了 ROS 节点之间的通信方式，其中一种就是Message机制它是一种基于发布/订阅的轻量级通信方式，消息是一种包含位域类型的简单数据结构，ROS提供标准的原始数据类型和原始数据类型的数组。ROS使用MD5校验方式来确认发布者和订阅者是否正在交换同样类型的数据。
-和之前介绍的ROS节点一样，ROS也提供了一个内置的称为rosmsg的命令来获取ROS消息的信息，下面是常见的命令：
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">rosmsg <span class="keyword">show</span> [message]显示消息的描述</span><br><span class="line">rosmsg <span class="keyword">list</span> 显示所有的消息</span><br><span class="line">rosmsg <span class="keyword">md5</span> [message]：显示某个消息的md5sum</span><br><span class="line">rosmsg <span class="keyword">package</span> [package_name]: 显示所有在这个包里面的消息</span><br><span class="line">rosmsg packages :列出包含消息的包</span><br></pre></td></tr></table></figure></p>
+        <p>ROS Message：<br>之前介绍了 ROS 节点之间的通信方式，其中一种就是Message机制它是一种基于发布/订阅的轻量级通信方式，消息是一种包含位域类型的简单数据结构，ROS提供标准的原始数据类型和原始数据类型的数组。ROS使用MD5校验方式来确认发布者和订阅者是否正在交换同样类型的数据。<br>和之前介绍的ROS节点一样，ROS也提供了一个内置的称为rosmsg的命令来获取ROS消息的信息，下面是常见的命令：<br><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">rosmsg <span class="keyword">show</span> [message]显示消息的描述</span><br><span class="line">rosmsg <span class="keyword">list</span> 显示所有的消息</span><br><span class="line">rosmsg <span class="keyword">md5</span> [message]：显示某个消息的md5sum</span><br><span class="line">rosmsg <span class="keyword">package</span> [package_name]: 显示所有在这个包里面的消息</span><br><span class="line">rosmsg packages :列出包含消息的包</span><br></pre></td></tr></table></figure></p>
 <p>ROS Topic：</p>
 <p>ROS Topic 是一个用于ROS 节点交换消息的命名总线，Topic可以匿名地发送和订阅消息，这就意味着消息的产生和消费是解偶的，二者之间没有强行绑定的关系，ROS节点不在乎是谁在发布Topic，哪个节点在订阅Topic，它只关心topic的名字以及当前的消息类型时候和我要求的匹配。Topic和稍候介绍的Service的最大区别是它是单向的。</p>
-<p>和之前介绍的ROS Message一样，ROS也提供了一个内置的称为rostopic的命令来获取ROS topic的信息，下面是常见的命令：
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="variable">$rostopic</span> bw  /topic :用于显示指定topic所占用的带宽</span><br><span class="line"><span class="variable">$rostopic</span> echo /topic :用于显示指定topic的内容</span><br><span class="line"><span class="variable">$rostopic</span> <span class="builtin-name">find</span> /message_type：这个命令用于指定给定消息类型的topic</span><br><span class="line"><span class="variable">$rostopic</span> hz  /topic :这个命令用于显示给定topic的发布速度</span><br><span class="line"><span class="variable">$rostopic</span> <span class="builtin-name">info</span> /topic :这个会打印所有激活的topic消息</span><br><span class="line"><span class="variable">$rostopic</span> list:	这个会显示ROS系统中所有激活的topic</span><br><span class="line"><span class="variable">$rostopic</span> pub /topic message_type args :这个命令可以用于向一个topic上发布一个指定类型的消息</span><br><span class="line"><span class="variable">$rostopic</span><span class="built_in"> type </span>/topic:这个会显示指定topic的消息类型</span><br></pre></td></tr></table></figure></p>
+<p>和之前介绍的ROS Message一样，ROS也提供了一个内置的称为rostopic的命令来获取ROS topic的信息，下面是常见的命令：<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="variable">$rostopic</span> bw  /topic :用于显示指定topic所占用的带宽</span><br><span class="line"><span class="variable">$rostopic</span> echo /topic :用于显示指定topic的内容</span><br><span class="line"><span class="variable">$rostopic</span> <span class="builtin-name">find</span> /message_type：这个命令用于指定给定消息类型的topic</span><br><span class="line"><span class="variable">$rostopic</span> hz  /topic :这个命令用于显示给定topic的发布速度</span><br><span class="line"><span class="variable">$rostopic</span> <span class="builtin-name">info</span> /topic :这个会打印所有激活的topic消息</span><br><span class="line"><span class="variable">$rostopic</span> list:	这个会显示ROS系统中所有激活的topic</span><br><span class="line"><span class="variable">$rostopic</span> pub /topic message_type args :这个命令可以用于向一个topic上发布一个指定类型的消息</span><br><span class="line"><span class="variable">$rostopic</span><span class="built_in"> type </span>/topic:这个会显示指定topic的消息类型</span><br></pre></td></tr></table></figure></p>
 <p>ROS Service：</p>
 <p>ROS Service 是基于请求/答复形式的交互形式，主要用于分布式系统中ROS服务是通过一对消息来定义的，其中一个用于定义请求数据类型，另一个用于定义答复数据类型，服务的定义一般位于一个包的srv目录的src文件内。在ROS 服务中一个节点作为ROS服务，ROS 客户端可以从这个服务中请求服务，等到服务完成后会发送结果到它的客户端上。</p>
-<p>下面是用于ROS服务的命令：
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="variable">$rosservice</span>	call <span class="built_in">/service </span>args： 这个命令将会使用特定的参数调用服务</span><br><span class="line"><span class="variable">$rosservice</span>	<span class="builtin-name">find</span> service_type :	这个命令将会查找指定服务类型的服务</span><br><span class="line"><span class="variable">$rosservice</span>	<span class="builtin-name">info</span> /services : 这个将会打印关于指定服务的消息</span><br><span class="line"><span class="variable">$rosservice</span>	list : 这个将会列出系统上的所有服务</span><br><span class="line"><span class="variable">$rosservice</span><span class="built_in">	type </span><span class="built_in">/service </span>:	这个命令将会打印某个服务的服务类型</span><br><span class="line"><span class="variable">$rosservice</span>	uri	<span class="built_in">/service </span>:	这个命令将会打印服务的ROSRPC URI</span><br></pre></td></tr></table></figure></p>
+<p>下面是用于ROS服务的命令：<br><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="variable">$rosservice</span>	call <span class="built_in">/service </span>args： 这个命令将会使用特定的参数调用服务</span><br><span class="line"><span class="variable">$rosservice</span>	<span class="builtin-name">find</span> service_type :	这个命令将会查找指定服务类型的服务</span><br><span class="line"><span class="variable">$rosservice</span>	<span class="builtin-name">info</span> /services : 这个将会打印关于指定服务的消息</span><br><span class="line"><span class="variable">$rosservice</span>	list : 这个将会列出系统上的所有服务</span><br><span class="line"><span class="variable">$rosservice</span><span class="built_in">	type </span><span class="built_in">/service </span>:	这个命令将会打印某个服务的服务类型</span><br><span class="line"><span class="variable">$rosservice</span>	uri	<span class="built_in">/service </span>:	这个命令将会打印服务的ROSRPC URI</span><br></pre></td></tr></table></figure></p>
 
         
         
@@ -1368,18 +1212,6 @@ $ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=deb
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -1388,15 +1220,19 @@ $ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=deb
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -1404,7 +1240,15 @@ $ rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=deb
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

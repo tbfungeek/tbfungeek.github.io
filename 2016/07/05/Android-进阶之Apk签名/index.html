@@ -11,18 +11,18 @@
     
 
     
-    <meta name="description" content="在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore 下面将对关于签名的一些总结与大家进行分享： 产生密钥： keytool -genkey -ali">
+    <meta name="description" content="在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore下面将对关于签名的一些总结与大家进行分享： 产生密钥：keytool -genkey -alias">
 <meta name="keywords" content="Android APK 签名">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之Apk签名">
 <meta property="og:url" content="http://yoursite.com/2016/07/05/Android-进阶之Apk签名/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore 下面将对关于签名的一些总结与大家进行分享： 产生密钥： keytool -genkey -ali">
+<meta property="og:description" content="在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore下面将对关于签名的一些总结与大家进行分享： 产生密钥：keytool -genkey -alias">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2016-07-18T22:11:20.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之Apk签名">
-<meta name="twitter:description" content="在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore 下面将对关于签名的一些总结与大家进行分享： 产生密钥： keytool -genkey -ali">
+<meta name="twitter:description" content="在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore下面将对关于签名的一些总结与大家进行分享： 产生密钥：keytool -genkey -alias">
 
     
     <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
@@ -94,29 +94,16 @@
 </header>
 	<div class="article-content">
 		
-		<p>在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore
-下面将对关于签名的一些总结与大家进行分享：</p>
-<h4>产生密钥：</h4>
-<p>keytool -genkey -alias mykey -keyalg RSA -validity 40000 -keystore demo.keystore
-<figure class="highlight vala"><table><tr><td class="code"><pre><span class="line"><span class="meta">#说明：</span></span><br><span class="line"><span class="meta">#    -genkey 产生密钥</span></span><br><span class="line"><span class="meta">#    -alias mykey 别名 mykey</span></span><br><span class="line"><span class="meta">#    -keyalg RSA 使用RSA算法对签名加密</span></span><br><span class="line"><span class="meta">#    -validity 40000 有效期限4000天</span></span><br><span class="line"><span class="meta">#    -keystore demo.keystore</span></span><br></pre></td></tr></table></figure></p>
-<h4>查看keystore的信息</h4>
-<p><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">keytool -<span class="built_in">list</span> -keystore demo.keystore -<span class="built_in">alias</span> mykey -v</span><br></pre></td></tr></table></figure></p>
-<h4>查看keystore的公钥证书信息</h4>
-<p><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">keytool -<span class="built_in">list</span> -keystore demo.keystore -<span class="built_in">alias</span> mykey -rfc</span><br></pre></td></tr></table></figure></p>
-<h4>查看apk的签名信息</h4>
-<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">jarsigner -verify -verbose -certs <span class="tag">&lt;<span class="name">your_apk_path.apk</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<h4>较为安全的签名方式：</h4>
-<p>下面是我自己目前使用的签名方式：
-keystore文件和key密码等配置文件都存在于电脑中的非项目文件夹中，提交到github上面的只有keystore配置文件的路径。
-<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">keystorePropertiesFile</span> = <span class="title">file</span><span class="params">(keyStorePath)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">keystoreProperties</span> = <span class="title">new</span> <span class="title">Properties</span><span class="params">()</span></span></span><br><span class="line">keystoreProperties.load(new FileInputStream(keystorePropertiesFile))</span><br><span class="line">signingConfigs &#123;</span><br><span class="line">    staging.initWith(signingConfigs.debug)</span><br><span class="line">    release &#123;</span><br><span class="line">        storeFile file(keystoreProperties[<span class="string">'storeFile'</span>])</span><br><span class="line">        storePassword keystoreProperties[<span class="string">'storePassword'</span>]</span><br><span class="line">        keyAlias keystoreProperties[<span class="string">'keyAlias'</span>]</span><br><span class="line">        keyPassword keystoreProperties[<span class="string">'keyPassword'</span>]</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>在上面keyStorePath所指定的配置文件中存储的如下的变量：
-<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">storePassword</span>=xxxx   </span><br><span class="line"><span class="attr">keyPassword</span>=xxxx     </span><br><span class="line"><span class="attr">keyAlias</span>=xxxx</span><br><span class="line"><span class="attr">storeFile</span>=xxxxxxxxxx</span><br></pre></td></tr></table></figure></p>
-<h4>验证两个Apk是否签名相同</h4>
-<p><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">jar tf <span class="keyword">app</span>-release-unaligned.apk|grep RSA</span><br><span class="line">jar xf <span class="keyword">app</span>-release-unaligned.apk <span class="keyword">META</span>-<span class="keyword">INF</span>/CERT.RSA</span><br><span class="line">keytool -printcert -<span class="keyword">file</span> <span class="keyword">META</span>-<span class="keyword">INF</span>/CERT.RSA</span><br><span class="line">两个apk是否同签名，比较签名的MD5码或SHA1码 ，一样就是相同的，反之，不是</span><br></pre></td></tr></table></figure></p>
-<h4>发布版本前的优化配置</h4>
-<p><figure class="highlight actionscript"><table><tr><td class="code"><pre><span class="line">buildTypes &#123;</span><br><span class="line">    release &#123;</span><br><span class="line">        <span class="comment">//不显示Log</span></span><br><span class="line">        buildConfigField <span class="string">"boolean"</span>, <span class="string">"LOG_DEBUG"</span>, <span class="string">"false"</span></span><br><span class="line">        <span class="comment">//开启混淆</span></span><br><span class="line">        minifyEnabled <span class="literal">true</span></span><br><span class="line">        proguardFiles getDefaultProguardFile(<span class="string">'proguard-android.txt'</span>), <span class="string">'proguard-rules.pro'</span></span><br><span class="line">        <span class="comment">//Zipalign优化</span></span><br><span class="line">        zipAlignEnabled <span class="literal">true</span></span><br><span class="line">        <span class="comment">//移除无用的resource文件</span></span><br><span class="line">        shrinkResources <span class="literal">true</span></span><br><span class="line">        <span class="comment">//签名</span></span><br><span class="line">        signingConfig signingConfigs.release</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h4>例子</h4>
-<p><figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    compileSdkVersion <span class="number">23</span></span><br><span class="line">    buildToolsVersion <span class="string">"23.0.3"</span></span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        applicationId <span class="string">"com.idealist.testleakcandy"</span></span><br><span class="line">        minSdkVersion <span class="number">15</span></span><br><span class="line">        targetSdkVersion <span class="number">23</span></span><br><span class="line">        versionCode <span class="number">1</span></span><br><span class="line">        versionName <span class="string">"1.0"</span></span><br><span class="line">        testInstrumentationRunner <span class="string">"android.support.test.runner.AndroidJUnitRunner"</span></span><br><span class="line">    &#125;</span><br><span class="line">    lintOptions &#123;</span><br><span class="line">        abortOnError <span class="keyword">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">def</span> keystorePropertiesFile = <span class="keyword">file</span>(<span class="string">'/home/jimmy/Dev/keystore.properties'</span>);</span><br><span class="line">    <span class="keyword">def</span> keystoreProperties = <span class="keyword">new</span> Properties()</span><br><span class="line">    keystoreProperties.load(<span class="keyword">new</span> FileInputStream(keystorePropertiesFile))</span><br><span class="line">    signingConfigs &#123;</span><br><span class="line">        staging.initWith(signingConfigs.debug)</span><br><span class="line">        release &#123;</span><br><span class="line">            storeFile <span class="keyword">file</span>(keystoreProperties[<span class="string">'storeFile'</span>])</span><br><span class="line">            storePassword keystoreProperties[<span class="string">'storePassword'</span>]</span><br><span class="line">            keyAlias keystoreProperties[<span class="string">'keyAlias'</span>]</span><br><span class="line">            keyPassword keystoreProperties[<span class="string">'keyPassword'</span>]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        release &#123;</span><br><span class="line">            <span class="comment">// 不显示Log</span></span><br><span class="line">            buildConfigField <span class="string">"boolean"</span>, <span class="string">"LOG_DEBUG"</span>, <span class="string">"false"</span></span><br><span class="line">            <span class="comment">//混淆</span></span><br><span class="line">            minifyEnabled <span class="keyword">true</span></span><br><span class="line">            <span class="comment">//Zipalign优化</span></span><br><span class="line">            zipAlignEnabled <span class="keyword">true</span></span><br><span class="line">            <span class="comment">// 移除无用的resource文件</span></span><br><span class="line">            shrinkResources <span class="keyword">true</span></span><br><span class="line">            proguardFiles getDefaultProguardFile(<span class="string">'proguard-android.txt'</span>), <span class="string">'proguard-rules.pro'</span></span><br><span class="line">            signingConfig signingConfigs.release</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+		<p>在Release 正式版的Apk之前都需要我们对Apk进行签名，APK签名中包含了我们开发者的有效信息。一些应用市场就可以根据这些信息来判断当前的Apkd是否是个安全的Apk。在我们开发中如果没有做任何设置默认是签Debug名字，签名文件位于:$HOME/.android/debug.keystore<br>下面将对关于签名的一些总结与大家进行分享：</p>
+<h4 id="产生密钥："><a href="#产生密钥：" class="headerlink" title="产生密钥："></a>产生密钥：</h4><p>keytool -genkey -alias mykey -keyalg RSA -validity 40000 -keystore demo.keystore<br><figure class="highlight vala"><table><tr><td class="code"><pre><span class="line"><span class="meta">#说明：</span></span><br><span class="line"><span class="meta">#    -genkey 产生密钥</span></span><br><span class="line"><span class="meta">#    -alias mykey 别名 mykey</span></span><br><span class="line"><span class="meta">#    -keyalg RSA 使用RSA算法对签名加密</span></span><br><span class="line"><span class="meta">#    -validity 40000 有效期限4000天</span></span><br><span class="line"><span class="meta">#    -keystore demo.keystore</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="查看keystore的信息"><a href="#查看keystore的信息" class="headerlink" title="查看keystore的信息"></a>查看keystore的信息</h4><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">keytool -<span class="built_in">list</span> -keystore demo.keystore -<span class="built_in">alias</span> mykey -v</span><br></pre></td></tr></table></figure>
+<h4 id="查看keystore的公钥证书信息"><a href="#查看keystore的公钥证书信息" class="headerlink" title="查看keystore的公钥证书信息"></a>查看keystore的公钥证书信息</h4><figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">keytool -<span class="built_in">list</span> -keystore demo.keystore -<span class="built_in">alias</span> mykey -rfc</span><br></pre></td></tr></table></figure>
+<h4 id="查看apk的签名信息"><a href="#查看apk的签名信息" class="headerlink" title="查看apk的签名信息"></a>查看apk的签名信息</h4><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">jarsigner -verify -verbose -certs <span class="tag">&lt;<span class="name">your_apk_path.apk</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="较为安全的签名方式："><a href="#较为安全的签名方式：" class="headerlink" title="较为安全的签名方式："></a>较为安全的签名方式：</h4><p>下面是我自己目前使用的签名方式：<br>keystore文件和key密码等配置文件都存在于电脑中的非项目文件夹中，提交到github上面的只有keystore配置文件的路径。<br><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">keystorePropertiesFile</span> = <span class="title">file</span><span class="params">(keyStorePath)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">keystoreProperties</span> = <span class="title">new</span> <span class="title">Properties</span><span class="params">()</span></span></span><br><span class="line">keystoreProperties.load(new FileInputStream(keystorePropertiesFile))</span><br><span class="line">signingConfigs &#123;</span><br><span class="line">    staging.initWith(signingConfigs.debug)</span><br><span class="line">    release &#123;</span><br><span class="line">        storeFile file(keystoreProperties[<span class="string">'storeFile'</span>])</span><br><span class="line">        storePassword keystoreProperties[<span class="string">'storePassword'</span>]</span><br><span class="line">        keyAlias keystoreProperties[<span class="string">'keyAlias'</span>]</span><br><span class="line">        keyPassword keystoreProperties[<span class="string">'keyPassword'</span>]</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在上面keyStorePath所指定的配置文件中存储的如下的变量：<br><figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">storePassword</span>=xxxx   </span><br><span class="line"><span class="attr">keyPassword</span>=xxxx     </span><br><span class="line"><span class="attr">keyAlias</span>=xxxx</span><br><span class="line"><span class="attr">storeFile</span>=xxxxxxxxxx</span><br></pre></td></tr></table></figure></p>
+<h4 id="验证两个Apk是否签名相同"><a href="#验证两个Apk是否签名相同" class="headerlink" title="验证两个Apk是否签名相同"></a>验证两个Apk是否签名相同</h4><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">jar tf <span class="keyword">app</span>-release-unaligned.apk|grep RSA</span><br><span class="line">jar xf <span class="keyword">app</span>-release-unaligned.apk <span class="keyword">META</span>-<span class="keyword">INF</span>/CERT.RSA</span><br><span class="line">keytool -printcert -<span class="keyword">file</span> <span class="keyword">META</span>-<span class="keyword">INF</span>/CERT.RSA</span><br><span class="line">两个apk是否同签名，比较签名的MD5码或SHA1码 ，一样就是相同的，反之，不是</span><br></pre></td></tr></table></figure>
+<h4 id="发布版本前的优化配置"><a href="#发布版本前的优化配置" class="headerlink" title="发布版本前的优化配置"></a>发布版本前的优化配置</h4><figure class="highlight actionscript"><table><tr><td class="code"><pre><span class="line">buildTypes &#123;</span><br><span class="line">    release &#123;</span><br><span class="line">        <span class="comment">//不显示Log</span></span><br><span class="line">        buildConfigField <span class="string">"boolean"</span>, <span class="string">"LOG_DEBUG"</span>, <span class="string">"false"</span></span><br><span class="line">        <span class="comment">//开启混淆</span></span><br><span class="line">        minifyEnabled <span class="literal">true</span></span><br><span class="line">        proguardFiles getDefaultProguardFile(<span class="string">'proguard-android.txt'</span>), <span class="string">'proguard-rules.pro'</span></span><br><span class="line">        <span class="comment">//Zipalign优化</span></span><br><span class="line">        zipAlignEnabled <span class="literal">true</span></span><br><span class="line">        <span class="comment">//移除无用的resource文件</span></span><br><span class="line">        shrinkResources <span class="literal">true</span></span><br><span class="line">        <span class="comment">//签名</span></span><br><span class="line">        signingConfig signingConfigs.release</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    compileSdkVersion <span class="number">23</span></span><br><span class="line">    buildToolsVersion <span class="string">"23.0.3"</span></span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        applicationId <span class="string">"com.idealist.testleakcandy"</span></span><br><span class="line">        minSdkVersion <span class="number">15</span></span><br><span class="line">        targetSdkVersion <span class="number">23</span></span><br><span class="line">        versionCode <span class="number">1</span></span><br><span class="line">        versionName <span class="string">"1.0"</span></span><br><span class="line">        testInstrumentationRunner <span class="string">"android.support.test.runner.AndroidJUnitRunner"</span></span><br><span class="line">    &#125;</span><br><span class="line">    lintOptions &#123;</span><br><span class="line">        abortOnError <span class="keyword">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">def</span> keystorePropertiesFile = <span class="keyword">file</span>(<span class="string">'/home/jimmy/Dev/keystore.properties'</span>);</span><br><span class="line">    <span class="keyword">def</span> keystoreProperties = <span class="keyword">new</span> Properties()</span><br><span class="line">    keystoreProperties.load(<span class="keyword">new</span> FileInputStream(keystorePropertiesFile))</span><br><span class="line">    signingConfigs &#123;</span><br><span class="line">        staging.initWith(signingConfigs.debug)</span><br><span class="line">        release &#123;</span><br><span class="line">            storeFile <span class="keyword">file</span>(keystoreProperties[<span class="string">'storeFile'</span>])</span><br><span class="line">            storePassword keystoreProperties[<span class="string">'storePassword'</span>]</span><br><span class="line">            keyAlias keystoreProperties[<span class="string">'keyAlias'</span>]</span><br><span class="line">            keyPassword keystoreProperties[<span class="string">'keyPassword'</span>]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        release &#123;</span><br><span class="line">            <span class="comment">// 不显示Log</span></span><br><span class="line">            buildConfigField <span class="string">"boolean"</span>, <span class="string">"LOG_DEBUG"</span>, <span class="string">"false"</span></span><br><span class="line">            <span class="comment">//混淆</span></span><br><span class="line">            minifyEnabled <span class="keyword">true</span></span><br><span class="line">            <span class="comment">//Zipalign优化</span></span><br><span class="line">            zipAlignEnabled <span class="keyword">true</span></span><br><span class="line">            <span class="comment">// 移除无用的resource文件</span></span><br><span class="line">            shrinkResources <span class="keyword">true</span></span><br><span class="line">            proguardFiles getDefaultProguardFile(<span class="string">'proguard-android.txt'</span>), <span class="string">'proguard-rules.pro'</span></span><br><span class="line">            signingConfig signingConfigs.release</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -179,7 +166,7 @@ keystore文件和key密码等配置文件都存在于电脑中的非项目文件
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">产生密钥：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">查看keystore的信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">查看keystore的公钥证书信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">查看apk的签名信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">5.</span> <span class="toc-text">较为安全的签名方式：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">6.</span> <span class="toc-text">验证两个Apk是否签名相同</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">7.</span> <span class="toc-text">发布版本前的优化配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">8.</span> <span class="toc-text">例子</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#产生密钥："><span class="toc-number">1.</span> <span class="toc-text">产生密钥：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#查看keystore的信息"><span class="toc-number">2.</span> <span class="toc-text">查看keystore的信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#查看keystore的公钥证书信息"><span class="toc-number">3.</span> <span class="toc-text">查看keystore的公钥证书信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#查看apk的签名信息"><span class="toc-number">4.</span> <span class="toc-text">查看apk的签名信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#较为安全的签名方式："><span class="toc-number">5.</span> <span class="toc-text">较为安全的签名方式：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#验证两个Apk是否签名相同"><span class="toc-number">6.</span> <span class="toc-text">验证两个Apk是否签名相同</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#发布版本前的优化配置"><span class="toc-number">7.</span> <span class="toc-text">发布版本前的优化配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#例子"><span class="toc-number">8.</span> <span class="toc-text">例子</span></a></li></ol>
  
   </div>
 
@@ -369,18 +356,6 @@ keystore文件和key密码等配置文件都存在于电脑中的非项目文件
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -389,15 +364,19 @@ keystore文件和key密码等配置文件都存在于电脑中的非项目文件
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -405,7 +384,15 @@ keystore文件和key密码等配置文件都存在于电脑中的非项目文件
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

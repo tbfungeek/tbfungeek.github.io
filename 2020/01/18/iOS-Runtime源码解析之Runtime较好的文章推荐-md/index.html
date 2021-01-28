@@ -11,18 +11,18 @@
     
 
     
-    <meta name="description" content="1. draveness  从 NSObject 的初始化了解 isa 深入解析 ObjC 中方法的结构 从源代码看 ObjC 中消息的发送 你真的了解 load 方法么？ 自动释放池的前世今生 黑箱中的 retain 和 release 关联对象 AssociatedObject 完全解析 懒惰的 initialize 方法 对象是如何初始化的（iOS）  2. 南峰子  Objective-C">
+    <meta name="description" content="1. draveness 从 NSObject 的初始化了解 isa 深入解析 ObjC 中方法的结构 从源代码看 ObjC 中消息的发送 你真的了解 load 方法么？ 自动释放池的前世今生 黑箱中的 retain 和 release 关联对象 AssociatedObject 完全解析 懒惰的 initialize 方法 对象是如何初始化的（iOS）   2. 南峰子 Objective-C">
 <meta name="keywords" content="Objective C 相关">
 <meta property="og:type" content="article">
 <meta property="og:title" content="iOS-Runtime源码解析之Runtime较好的文章推荐">
 <meta property="og:url" content="http://yoursite.com/2020/01/18/iOS-Runtime源码解析之Runtime较好的文章推荐-md/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="1. draveness  从 NSObject 的初始化了解 isa 深入解析 ObjC 中方法的结构 从源代码看 ObjC 中消息的发送 你真的了解 load 方法么？ 自动释放池的前世今生 黑箱中的 retain 和 release 关联对象 AssociatedObject 完全解析 懒惰的 initialize 方法 对象是如何初始化的（iOS）  2. 南峰子  Objective-C">
+<meta property="og:description" content="1. draveness 从 NSObject 的初始化了解 isa 深入解析 ObjC 中方法的结构 从源代码看 ObjC 中消息的发送 你真的了解 load 方法么？ 自动释放池的前世今生 黑箱中的 retain 和 release 关联对象 AssociatedObject 完全解析 懒惰的 initialize 方法 对象是如何初始化的（iOS）   2. 南峰子 Objective-C">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2020-02-04T17:52:10.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="iOS-Runtime源码解析之Runtime较好的文章推荐">
-<meta name="twitter:description" content="1. draveness  从 NSObject 的初始化了解 isa 深入解析 ObjC 中方法的结构 从源代码看 ObjC 中消息的发送 你真的了解 load 方法么？ 自动释放池的前世今生 黑箱中的 retain 和 release 关联对象 AssociatedObject 完全解析 懒惰的 initialize 方法 对象是如何初始化的（iOS）  2. 南峰子  Objective-C">
+<meta name="twitter:description" content="1. draveness 从 NSObject 的初始化了解 isa 深入解析 ObjC 中方法的结构 从源代码看 ObjC 中消息的发送 你真的了解 load 方法么？ 自动释放池的前世今生 黑箱中的 retain 和 release 关联对象 AssociatedObject 完全解析 懒惰的 initialize 方法 对象是如何初始化的（iOS）   2. 南峰子 Objective-C">
 
     
     <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
@@ -94,8 +94,7 @@
 </header>
 	<div class="article-content">
 		
-		<h5>1. <a href="https://github.com/draveness/analyze" target="_blank" rel="noopener">draveness</a></h5>
-<ul>
+		<h5 id="1-draveness"><a href="#1-draveness" class="headerlink" title="1. draveness"></a>1. <a href="https://github.com/draveness/analyze" target="_blank" rel="noopener">draveness</a></h5><ul>
 <li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E4%BB%8E%20NSObject%20%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%BA%86%E8%A7%A3%20isa.md" target="_blank" rel="noopener">从 NSObject 的初始化了解 isa</a></li>
 <li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E6%B7%B1%E5%85%A5%E8%A7%A3%E6%9E%90%20ObjC%20%E4%B8%AD%E6%96%B9%E6%B3%95%E7%9A%84%E7%BB%93%E6%9E%84.md" target="_blank" rel="noopener">深入解析 ObjC 中方法的结构</a></li>
 <li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E4%BB%8E%E6%BA%90%E4%BB%A3%E7%A0%81%E7%9C%8B%20ObjC%20%E4%B8%AD%E6%B6%88%E6%81%AF%E7%9A%84%E5%8F%91%E9%80%81.md" target="_blank" rel="noopener">从源代码看 ObjC 中消息的发送</a></li>
@@ -104,10 +103,9 @@
 <li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E9%BB%91%E7%AE%B1%E4%B8%AD%E7%9A%84%20retain%20%E5%92%8C%20release.md" target="_blank" rel="noopener">黑箱中的 retain 和 release</a></li>
 <li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E5%85%B3%E8%81%94%E5%AF%B9%E8%B1%A1%20AssociatedObject%20%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90.md" target="_blank" rel="noopener">关联对象 AssociatedObject 完全解析</a></li>
 <li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E6%87%92%E6%83%B0%E7%9A%84%20initialize%20%E6%96%B9%E6%B3%95.md" target="_blank" rel="noopener">懒惰的 initialize 方法</a></li>
-<li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%A6%82%E4%BD%95%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%EF%BC%88iOS%EF%BC%89.md" target="_blank" rel="noopener">对象是如何初始化的（iOS）</a></li>
+<li><a href="https://github.com/draveness/analyze/blob/master/contents/objc/%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%A6%82%E4%BD%95%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%EF%BC%88iOS%EF%BC%89.md" target="_blank" rel="noopener">对象是如何初始化的（iOS）</a> </li>
 </ul>
-<h5>2. <a href="https://southpeak.github.io/" target="_blank" rel="noopener">南峰子</a></h5>
-<ul>
+<h5 id="2-南峰子"><a href="#2-南峰子" class="headerlink" title="2. 南峰子"></a>2. <a href="https://southpeak.github.io/" target="_blank" rel="noopener">南峰子</a></h5><ul>
 <li><a href="http://southpeak.github.io/2014/10/25/objective-c-runtime-1/" target="_blank" rel="noopener">Objective-C Runtime 运行时之一：类与对象</a></li>
 <li><a href="http://southpeak.github.io/2014/10/30/objective-c-runtime-2/" target="_blank" rel="noopener">Objective-C Runtime 运行时之二：成员变量与属性</a></li>
 <li><a href="http://southpeak.github.io/2014/11/03/objective-c-runtime-3/" target="_blank" rel="noopener">Objective-C Runtime 运行时之三：方法与消息</a></li>
@@ -115,15 +113,13 @@
 <li><a href="http://southpeak.github.io/2014/11/08/objective-c-runtime-5/" target="_blank" rel="noopener">Objective-C Runtime 运行时之五：协议与分类</a></li>
 <li><a href="http://southpeak.github.io/2014/11/09/objective-c-runtime-6/" target="_blank" rel="noopener">Objective-C Runtime 运行时之六：拾遗</a></li>
 </ul>
-<h5>3. <a href="https://halfrost.com/" target="_blank" rel="noopener">halfrost</a></h5>
-<ul>
+<h5 id="3-halfrost"><a href="#3-halfrost" class="headerlink" title="3. halfrost"></a>3. <a href="https://halfrost.com/" target="_blank" rel="noopener">halfrost</a></h5><ul>
 <li><a href="http://halfrost.com/objc_life/" target="_blank" rel="noopener">Objc 对象的今生今世</a></li>
 <li><a href="http://halfrost.com/objc_runtime_isa_class/" target="_blank" rel="noopener">神经病院 Objective-C Runtime 入院第一天 —— isa 和 Class</a></li>
 <li><a href="http://halfrost.com/objc_runtime_objc_msgsend/" target="_blank" rel="noopener">神经病院 Objective-C Runtime 住院第二天 —— 消息发送与转发</a></li>
 <li><a href="http://halfrost.com/how_to_use_runtime/" target="_blank" rel="noopener">神经病院 Objective-C Runtime 出院第三天 —— 如何正确使用 Runtime</a></li>
 </ul>
-<h5>4. <a href="http://blog.leichunfeng.com/" target="_blank" rel="noopener">雷纯锋</a></h5>
-<ul>
+<h5 id="4-雷纯锋"><a href="#4-雷纯锋" class="headerlink" title="4. 雷纯锋"></a>4. <a href="http://blog.leichunfeng.com/" target="_blank" rel="noopener">雷纯锋</a></h5><ul>
 <li><a href="http://blog.leichunfeng.com/blog/2015/04/25/objective-c-object-model/" target="_blank" rel="noopener">Objective-C 对象模型</a></li>
 <li><a href="http://blog.leichunfeng.com/blog/2015/05/02/objective-c-plus-load-vs-plus-initialize/" target="_blank" rel="noopener">Objective-C +load vs +initialize</a></li>
 <li><a href="http://blog.leichunfeng.com/blog/2015/05/18/objective-c-category-implementation-principle/" target="_blank" rel="noopener">Objective-C Category 的实现原理</a></li>
@@ -131,24 +127,20 @@
 <li><a href="http://blog.leichunfeng.com/blog/2015/06/14/objective-c-method-swizzling-best-practice/" target="_blank" rel="noopener">Objective-C Method Swizzling 的最佳实践</a></li>
 <li><a href="http://blog.leichunfeng.com/blog/2015/06/26/objective-c-associated-objects-implementation-principle/" target="_blank" rel="noopener">Objective-C Associated Objects 的实现原理</a></li>
 </ul>
-<h5>5. <a href="http://blog.sunnyxx.com/" target="_blank" rel="noopener">sunnyxx</a></h5>
-<ul>
+<h5 id="5-sunnyxx"><a href="#5-sunnyxx" class="headerlink" title="5. sunnyxx"></a>5. <a href="http://blog.sunnyxx.com/" target="_blank" rel="noopener">sunnyxx</a></h5><ul>
 <li><a href="http://blog.sunnyxx.com/2014/08/24/objc-duck/" target="_blank" rel="noopener">objc 与鸭子对象（上）</a></li>
 <li><a href="http://blog.sunnyxx.com/2014/08/26/objc-duck-advanced/" target="_blank" rel="noopener">objc 与鸭子对象（下）</a></li>
 <li><a href="http://blog.sunnyxx.com/2014/11/06/runtime-nuts/" target="_blank" rel="noopener">神经病院 objc runtime 入院考试</a></li>
 <li><a href="http://blog.sunnyxx.com/2016/08/13/reunderstanding-runtime-0/" target="_blank" rel="noopener">重识 Objective-C Runtime - Smalltalk 与 C 的融合</a></li>
 <li><a href="http://blog.sunnyxx.com/2016/08/13/reunderstanding-runtime-1/" target="_blank" rel="noopener">重识 Objective-C Runtime - 看透 Type 与 Value</a></li>
 </ul>
-<h5>6. <a href="http://blog.sunnyxx.com/" target="_blank" rel="noopener">ibireme</a></h5>
-<ul>
+<h5 id="6-ibireme"><a href="#6-ibireme" class="headerlink" title="6. ibireme"></a>6. <a href="http://blog.sunnyxx.com/" target="_blank" rel="noopener">ibireme</a></h5><ul>
 <li><a href="https://blog.ibireme.com/2013/11/25/objc-object/" target="_blank" rel="noopener">Objective-C 中的类和对象</a></li>
 </ul>
-<h5>7. <a href="https://blog.devtang.com/" target="_blank" rel="noopener">唐巧</a></h5>
-<ul>
+<h5 id="7-唐巧"><a href="#7-唐巧" class="headerlink" title="7. 唐巧"></a>7. <a href="https://blog.devtang.com/" target="_blank" rel="noopener">唐巧</a></h5><ul>
 <li><a href="https://blog.devtang.com/2013/10/15/objective-c-object-model/" target="_blank" rel="noopener">Objective-C对象模型及应用</a></li>
 </ul>
-<h5>8. <a href="https://www.jianshu.com/u/a9008a597529" target="_blank" rel="noopener">CornBallast</a></h5>
-<ul>
+<h5 id="8-CornBallast"><a href="#8-CornBallast" class="headerlink" title="8. CornBallast"></a>8. <a href="https://www.jianshu.com/u/a9008a597529" target="_blank" rel="noopener">CornBallast</a></h5><ul>
 <li><a href="https://www.jianshu.com/p/88d11bb12ba1" target="_blank" rel="noopener">Runtime 深度解析以及实用技巧</a></li>
 <li><a href="https://www.jianshu.com/p/37e1b71ad03a" target="_blank" rel="noopener">Runtime 奇技淫巧__带你深入理解 Runtime 特有概念</a></li>
 <li><a href="https://www.jianshu.com/p/38bbde2c5632" target="_blank" rel="noopener">Runtime 奇技淫巧__不受限制的消息发送</a></li>
@@ -157,8 +149,7 @@
 <li><a href="https://www.jianshu.com/p/48220940118f" target="_blank" rel="noopener">Runtime 奇技淫巧__动态链接对象以及给分类添加属性</a></li>
 <li><a href="https://www.jianshu.com/p/c5bdd6f7a68c" target="_blank" rel="noopener">Runtime 奇技淫巧__动态添加方法，消息转发改善异常</a></li>
 </ul>
-<h5>9. <a href="http://yulingtianxia.com/" target="_blank" rel="noopener">杨萧玉</a></h5>
-<ul>
+<h5 id="9-杨萧玉"><a href="#9-杨萧玉" class="headerlink" title="9. 杨萧玉"></a>9. <a href="http://yulingtianxia.com/" target="_blank" rel="noopener">杨萧玉</a></h5><ul>
 <li><a href="http://yulingtianxia.com/blog/2014/11/05/objective-c-runtime/" target="_blank" rel="noopener">Objective-C Runtime</a></li>
 <li><a href="http://yulingtianxia.com/blog/2016/06/15/Objective-C-Message-Sending-and-Forwarding/" target="_blank" rel="noopener">Objective-C 消息发送与转发机制原理</a></li>
 </ul>
@@ -224,7 +215,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">1. draveness</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">2. 南峰子</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">3. halfrost</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">4. 雷纯锋</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.</span> <span class="toc-text">5. sunnyxx</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">6.</span> <span class="toc-text">6. ibireme</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">7.</span> <span class="toc-text">7. 唐巧</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">8.</span> <span class="toc-text">8. CornBallast</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">9.</span> <span class="toc-text">9. 杨萧玉</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-draveness"><span class="toc-number">1.</span> <span class="toc-text">1. draveness</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-南峰子"><span class="toc-number">2.</span> <span class="toc-text">2. 南峰子</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-halfrost"><span class="toc-number">3.</span> <span class="toc-text">3. halfrost</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-雷纯锋"><span class="toc-number">4.</span> <span class="toc-text">4. 雷纯锋</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-sunnyxx"><span class="toc-number">5.</span> <span class="toc-text">5. sunnyxx</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-ibireme"><span class="toc-number">6.</span> <span class="toc-text">6. ibireme</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-唐巧"><span class="toc-number">7.</span> <span class="toc-text">7. 唐巧</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-CornBallast"><span class="toc-number">8.</span> <span class="toc-text">8. CornBallast</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-杨萧玉"><span class="toc-number">9.</span> <span class="toc-text">9. 杨萧玉</span></a></li></ol>
  
   </div>
 
@@ -414,18 +405,6 @@
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -434,15 +413,19 @@
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -450,7 +433,15 @@
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

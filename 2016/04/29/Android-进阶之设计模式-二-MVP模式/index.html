@@ -11,19 +11,19 @@
     
 
     
-    <meta name="description" content="MVP 引入的必要性 在上一篇博文结束的时候提到了MVC模式的缺点--View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致 Activity不但需要负责与用户之间的交互，又引入了">
+    <meta name="description" content="MVP 引入的必要性在上一篇博文结束的时候提到了MVC模式的缺点–View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致Activity不但需要负责与用户之间的交互，又引入了大量的">
 <meta name="keywords" content="Android 设计模式">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 进阶之设计模式 二 MVP模式">
 <meta property="og:url" content="http://yoursite.com/2016/04/29/Android-进阶之设计模式-二-MVP模式/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="MVP 引入的必要性 在上一篇博文结束的时候提到了MVC模式的缺点--View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致 Activity不但需要负责与用户之间的交互，又引入了">
+<meta property="og:description" content="MVP 引入的必要性在上一篇博文结束的时候提到了MVC模式的缺点–View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致Activity不但需要负责与用户之间的交互，又引入了大量的">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/04/29/Android-进阶之设计模式-二-MVP模式/1.png">
 <meta property="og:updated_time" content="2016-07-18T21:54:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 进阶之设计模式 二 MVP模式">
-<meta name="twitter:description" content="MVP 引入的必要性 在上一篇博文结束的时候提到了MVC模式的缺点--View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致 Activity不但需要负责与用户之间的交互，又引入了">
+<meta name="twitter:description" content="MVP 引入的必要性在上一篇博文结束的时候提到了MVC模式的缺点–View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致Activity不但需要负责与用户之间的交互，又引入了大量的">
 <meta name="twitter:image" content="http://yoursite.com/2016/04/29/Android-进阶之设计模式-二-MVP模式/1.png">
 
     
@@ -96,52 +96,31 @@
 </header>
 	<div class="article-content">
 		
-		<h4>MVP 引入的必要性</h4>
-<p>在上一篇博文结束的时候提到了MVC模式的缺点--View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致
-Activity不但需要负责与用户之间的交互，又引入了大量的逻辑代码。为了解决这个问题，我们引入了MVP模式。</p>
-<h3>MVP的简介</h3>
-<p>MVP 实际上是从MVC模式演变过来的，它使用Presenter层将Module层和View层隔离开。它也是由三层结构组成：
-下面是MVP模式下各层的划分规则：
-View层：
-View层通常是一些Activity、Fragment，以及各种View，它负责显示和处理和相应用户的交互事件，并且每个View中往往会包含一个或多个Presenter的引用。每个Presenter一般与一个Module相关，View层和Presenter层的交互是双向的，即View层可以调用Presenter的逻辑方法，Presenter也可以控制View层的信息展示。
-Presenter层：
-Presenter是Model层和View层的桥梁，在MVC模式中M，V是直接耦合的，而在MVP模式中通过Presenter将二者隔离开来，它负责从Model拿到数据进行处理并返回给View。Presenter和View层以及Modle层之间是通过接口进行交互的
-Model层：
-和MVC一样，只包含数据的模型以及数据模型的操作处理,它也可以包含两个部分dao和bean
-总而言之：View层负责显示，Presenter负责逻辑处理，Model提供数据以及数据处理操作。下面是MVC和MVP之间结构的示例图：
-<img src="/2016/04/29/Android-进阶之设计模式-二-MVP模式/1.png" alt>
-二者的最大区别集中在控制层上，MVC的控制层相对分散，并且仅仅相当于一个转发其的作用，而在MVP模式下控制层的占的比重更大，也更加集中。使用MVP可以将Activty中包含的大量逻辑操作放到控制层中，从而避免Activity的臃肿。</p>
-<p>下面是一个简单的例子：
-读出和存入用户信息
-首先实现Module层：</p>
+		<h4 id="MVP-引入的必要性"><a href="#MVP-引入的必要性" class="headerlink" title="MVP 引入的必要性"></a>MVP 引入的必要性</h4><p>在上一篇博文结束的时候提到了MVC模式的缺点–View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致<br>Activity不但需要负责与用户之间的交互，又引入了大量的逻辑代码。为了解决这个问题，我们引入了MVP模式。</p>
+<h3 id="MVP的简介"><a href="#MVP的简介" class="headerlink" title="MVP的简介"></a>MVP的简介</h3><p>MVP 实际上是从MVC模式演变过来的，它使用Presenter层将Module层和View层隔离开。它也是由三层结构组成：<br>下面是MVP模式下各层的划分规则：<br>View层：<br>View层通常是一些Activity、Fragment，以及各种View，它负责显示和处理和相应用户的交互事件，并且每个View中往往会包含一个或多个Presenter的引用。每个Presenter一般与一个Module相关，View层和Presenter层的交互是双向的，即View层可以调用Presenter的逻辑方法，Presenter也可以控制View层的信息展示。<br>Presenter层：<br>Presenter是Model层和View层的桥梁，在MVC模式中M，V是直接耦合的，而在MVP模式中通过Presenter将二者隔离开来，它负责从Model拿到数据进行处理并返回给View。Presenter和View层以及Modle层之间是通过接口进行交互的<br>Model层：<br>和MVC一样，只包含数据的模型以及数据模型的操作处理,它也可以包含两个部分dao和bean<br>总而言之：View层负责显示，Presenter负责逻辑处理，Model提供数据以及数据处理操作。下面是MVC和MVP之间结构的示例图：<br><img src="/2016/04/29/Android-进阶之设计模式-二-MVP模式/1.png" alt><br>二者的最大区别集中在控制层上，MVC的控制层相对分散，并且仅仅相当于一个转发其的作用，而在MVP模式下控制层的占的比重更大，也更加集中。使用MVP可以将Activty中包含的大量逻辑操作放到控制层中，从而避免Activity的臃肿。</p>
+<p>下面是一个简单的例子：<br>读出和存入用户信息<br>首先实现Module层：</p>
 <ul>
-<li>
-<p>创建用于封装用户信息的bean对象：
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserBean</span> &#123;</span>  </span><br><span class="line">    </span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">String</span> mFirstName;  </span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">String</span> mLastName;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="title">UserBean</span><span class="params">(<span class="keyword">String</span> firstName, <span class="keyword">String</span> lastName)</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">this</span>. mFirstName = firstName;  </span><br><span class="line">            <span class="keyword">this</span>. mLastName = lastName;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">String</span> <span class="title">getFirstName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> mFirstName;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">String</span> <span class="title">getLastName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> mLastName;  </span><br><span class="line">     &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>创建用于封装用户信息的bean对象：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserBean</span> &#123;</span>  </span><br><span class="line">    </span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">String</span> mFirstName;  </span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">String</span> mLastName;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="title">UserBean</span><span class="params">(<span class="keyword">String</span> firstName, <span class="keyword">String</span> lastName)</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">this</span>. mFirstName = firstName;  </span><br><span class="line">            <span class="keyword">this</span>. mLastName = lastName;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">String</span> <span class="title">getFirstName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> mFirstName;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">String</span> <span class="title">getLastName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> mLastName;  </span><br><span class="line">     &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>创建操作bean对象的dao 对象，这里用于将用户信息存储到数据库中，这里仅仅给出接口信息，具体实现不是该博文的重点。
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public<span class="built_in"> interface </span>IUserDao &#123;  </span><br><span class="line">     public UserBean load(int id);</span><br><span class="line">     public void saveUser(int id, String firstName, String lastName)； </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>创建操作bean对象的dao 对象，这里用于将用户信息存储到数据库中，这里仅仅给出接口信息，具体实现不是该博文的重点。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">public<span class="built_in"> interface </span>IUserDao &#123;  </span><br><span class="line">     public UserBean load(int id);</span><br><span class="line">     public void saveUser(int id, String firstName, String lastName)； </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <p>我们先看下上面的Module层，它的特点很明显，十分灵活，目前是将数据存储到数据库中，如果要将数据存储到远程服务器或者以其他形式存储，只要实现IUserDao，并根据需求覆写load 和 saveUser方法即可。</p>
 <ul>
-<li>
-<p>创建view层 这里仅仅列出接口，它的特点也是上述提到的十分灵活，要实现那种方式展示直接实现IUserView接口，并覆写这些方法即可。
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> interface IUserView &#123;  </span><br><span class="line">     <span class="function"><span class="keyword">int</span> <span class="title">getID</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">String</span> <span class="title">getFristName</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">String</span> <span class="title">getLastName</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">void</span> <span class="title">setFirstName</span><span class="params">(<span class="keyword">String</span> firstName)</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">void</span> <span class="title">setLastName</span><span class="params">(<span class="keyword">String</span> lastName)</span></span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>创建view层 这里仅仅列出接口，它的特点也是上述提到的十分灵活，要实现那种方式展示直接实现IUserView接口，并覆写这些方法即可。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> interface IUserView &#123;  </span><br><span class="line">     <span class="function"><span class="keyword">int</span> <span class="title">getID</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">String</span> <span class="title">getFristName</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">String</span> <span class="title">getLastName</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">void</span> <span class="title">setFirstName</span><span class="params">(<span class="keyword">String</span> firstName)</span></span>;  </span><br><span class="line">     <span class="function"><span class="keyword">void</span> <span class="title">setLastName</span><span class="params">(<span class="keyword">String</span> lastName)</span></span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>创建presenter 通过IUserView和IUserDao接口操作model层和view层，Activity可以把所有逻辑转交给presenter处理，从而将逻辑从activity中分离出来，从而避免Activity的臃肿。
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserPresenter</span> &#123;</span>  </span><br><span class="line">    </span><br><span class="line">     <span class="keyword">private</span> IUserView mUserView;  </span><br><span class="line">     <span class="keyword">private</span> IUserDao mUserModel;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="title">UserPresenter</span><span class="params">(IUserView view)</span> </span>&#123;  </span><br><span class="line">            mUserView = view;  </span><br><span class="line">            mUserModel = <span class="keyword">new</span> UserDao();  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveUser</span><span class="params">( <span class="keyword">int</span> id, <span class="keyword">String</span> firstName, <span class="keyword">String</span> lastName)</span> </span>&#123;  </span><br><span class="line">            mUserModel.saveUser(id, firstName, lastName)； </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loadUser</span><span class="params">( <span class="keyword">int</span> id)</span> </span>&#123;  </span><br><span class="line">            UserBean user = mUserModel.load(id);  </span><br><span class="line">            mUserView.setFirstName(user.getFirstName()); </span><br><span class="line">            mUserView.setLastName(user.getLastName());  </span><br><span class="line">     &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>创建presenter 通过IUserView和IUserDao接口操作model层和view层，Activity可以把所有逻辑转交给presenter处理，从而将逻辑从activity中分离出来，从而避免Activity的臃肿。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserPresenter</span> &#123;</span>  </span><br><span class="line">    </span><br><span class="line">     <span class="keyword">private</span> IUserView mUserView;  </span><br><span class="line">     <span class="keyword">private</span> IUserDao mUserModel;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="title">UserPresenter</span><span class="params">(IUserView view)</span> </span>&#123;  </span><br><span class="line">            mUserView = view;  </span><br><span class="line">            mUserModel = <span class="keyword">new</span> UserDao();  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveUser</span><span class="params">( <span class="keyword">int</span> id, <span class="keyword">String</span> firstName, <span class="keyword">String</span> lastName)</span> </span>&#123;  </span><br><span class="line">            mUserModel.saveUser(id, firstName, lastName)； </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loadUser</span><span class="params">( <span class="keyword">int</span> id)</span> </span>&#123;  </span><br><span class="line">            UserBean user = mUserModel.load(id);  </span><br><span class="line">            mUserView.setFirstName(user.getFirstName()); </span><br><span class="line">            mUserView.setLastName(user.getLastName());  </span><br><span class="line">     &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>Activity中实现IUserView接口，在其中操作view，实例化一个presenter变量,将Activity的逻辑转移给它。
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="keyword">implements</span> <span class="title">OnClickListener</span>,<span class="title">IUserView</span> </span>&#123;  </span><br><span class="line">  </span><br><span class="line">     UserPresenter presenter;  </span><br><span class="line">     EditText id,first,last;  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">super</span>.onCreate(savedInstanceState);  </span><br><span class="line">           setContentView(R.layout. activity_main);  </span><br><span class="line">             </span><br><span class="line">           findViewById(R.id. save).setOnClickListener( <span class="keyword">this</span>);  </span><br><span class="line">           findViewById(R.id. load).setOnClickListener( <span class="keyword">this</span>);  </span><br><span class="line">            id = (EditText) findViewById(R.id. id);  </span><br><span class="line">            first = (EditText) findViewById(R.id. first);  </span><br><span class="line">            last = (EditText) findViewById(R.id. last);  </span><br><span class="line">             </span><br><span class="line">            presenter = <span class="keyword">new</span> UserPresenter( <span class="keyword">this</span>);  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">switch</span> (v.getId()) &#123;  </span><br><span class="line">            <span class="keyword">case</span> R.id. save:  </span><br><span class="line">                 presenter.saveUser(getID(), getFristName(), getLastName());  </span><br><span class="line">                 <span class="keyword">break</span>;  </span><br><span class="line">            <span class="keyword">case</span> R.id. load:  </span><br><span class="line">                 presenter.loadUser(getID());  </span><br><span class="line">                 <span class="keyword">break</span>;  </span><br><span class="line">            <span class="keyword">default</span>:  </span><br><span class="line">                 <span class="keyword">break</span>;  </span><br><span class="line">           &#125;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getID</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Integer( id.getText().toString());  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> String <span class="title">getFristName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> first.getText().toString();  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> String <span class="title">getLastName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> last.getText().toString();  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFirstName</span><span class="params">(String firstName)</span> </span>&#123;  </span><br><span class="line">            first.setText(firstName);  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLastName</span><span class="params">(String lastName)</span> </span>&#123;  </span><br><span class="line">            last.setText(lastName);  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<li><p>Activity中实现IUserView接口，在其中操作view，实例化一个presenter变量,将Activity的逻辑转移给它。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="keyword">implements</span> <span class="title">OnClickListener</span>,<span class="title">IUserView</span> </span>&#123;  </span><br><span class="line">  </span><br><span class="line">     UserPresenter presenter;  </span><br><span class="line">     EditText id,first,last;  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">super</span>.onCreate(savedInstanceState);  </span><br><span class="line">           setContentView(R.layout. activity_main);  </span><br><span class="line">             </span><br><span class="line">           findViewById(R.id. save).setOnClickListener( <span class="keyword">this</span>);  </span><br><span class="line">           findViewById(R.id. load).setOnClickListener( <span class="keyword">this</span>);  </span><br><span class="line">            id = (EditText) findViewById(R.id. id);  </span><br><span class="line">            first = (EditText) findViewById(R.id. first);  </span><br><span class="line">            last = (EditText) findViewById(R.id. last);  </span><br><span class="line">             </span><br><span class="line">            presenter = <span class="keyword">new</span> UserPresenter( <span class="keyword">this</span>);  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">switch</span> (v.getId()) &#123;  </span><br><span class="line">            <span class="keyword">case</span> R.id. save:  </span><br><span class="line">                 presenter.saveUser(getID(), getFristName(), getLastName());  </span><br><span class="line">                 <span class="keyword">break</span>;  </span><br><span class="line">            <span class="keyword">case</span> R.id. load:  </span><br><span class="line">                 presenter.loadUser(getID());  </span><br><span class="line">                 <span class="keyword">break</span>;  </span><br><span class="line">            <span class="keyword">default</span>:  </span><br><span class="line">                 <span class="keyword">break</span>;  </span><br><span class="line">           &#125;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getID</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Integer( id.getText().toString());  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> String <span class="title">getFristName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> first.getText().toString();  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> String <span class="title">getLastName</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">            <span class="keyword">return</span> last.getText().toString();  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFirstName</span><span class="params">(String firstName)</span> </span>&#123;  </span><br><span class="line">            first.setText(firstName);  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="meta">@Override</span>  </span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLastName</span><span class="params">(String lastName)</span> </span>&#123;  </span><br><span class="line">            last.setText(lastName);  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <p>有的时候比如Moduel存储结束后需要通知给Presenter，这个可以将presenter也抽出一个接口，并在调用Model层的Dao的时候将这个接口传入，在Module层操作完后，回调这个接口中的对应方法即可。</p>
-<p>最后给大家泼点冷水，虽然MVP是很好的框架模式，但是在实际项目由于是多人开发维护的所以有时候并不是每个人都会遵守这个模式，特别是项目紧张的时候，所以很多时候会看到四不像的MVP。如果逻辑耦合性不是很强的话尚可重构，
-如果耦合性大的话，就十分无奈了，并且一般经过测试的代码，大家都很“敬畏”，生怕动了一点引起了其他不容易发现的问题，所以很经常看到这种情况，也只能呵呵了。</p>
+<p>最后给大家泼点冷水，虽然MVP是很好的框架模式，但是在实际项目由于是多人开发维护的所以有时候并不是每个人都会遵守这个模式，特别是项目紧张的时候，所以很多时候会看到四不像的MVP。如果逻辑耦合性不是很强的话尚可重构，<br>如果耦合性大的话，就十分无奈了，并且一般经过测试的代码，大家都很“敬畏”，生怕动了一点引起了其他不容易发现的问题，所以很经常看到这种情况，也只能呵呵了。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -204,7 +183,7 @@ Model层：
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">MVP 引入的必要性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number"></span> <span class="toc-text">MVP的简介</span></a>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#MVP-引入的必要性"><span class="toc-number">1.</span> <span class="toc-text">MVP 引入的必要性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MVP的简介"><span class="toc-number"></span> <span class="toc-text">MVP的简介</span></a>
  
   </div>
 
@@ -394,18 +373,6 @@ Model层：
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -414,15 +381,19 @@ Model层：
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -430,7 +401,15 @@ Model层：
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>

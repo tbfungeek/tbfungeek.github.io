@@ -11,13 +11,13 @@
     
 
     
-    <meta name="description" content="啥是Content provider Content Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。 Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。 客户端通常不会直接">
+    <meta name="description" content="啥是Content providerContent Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。客户端通常不会直接调用这">
 <meta name="keywords" content="Android基础">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android 初步之Android组件  Content Provider">
 <meta property="og:url" content="http://yoursite.com/2016/03/27/Android-初步之Android组件-Content-Provider/index.html">
 <meta property="og:site_name" content="Edgar&#39;s Blog">
-<meta property="og:description" content="啥是Content provider Content Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。 Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。 客户端通常不会直接">
+<meta property="og:description" content="啥是Content providerContent Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。客户端通常不会直接调用这">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2016/03/27/Android-初步之Android组件-Content-Provider/1.png">
 <meta property="og:image" content="http://yoursite.com/2016/03/27/Android-初步之Android组件-Content-Provider/2.png">
@@ -26,7 +26,7 @@
 <meta property="og:updated_time" content="2016-07-18T21:20:56.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 初步之Android组件  Content Provider">
-<meta name="twitter:description" content="啥是Content provider Content Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。 Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。 客户端通常不会直接">
+<meta name="twitter:description" content="啥是Content providerContent Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。客户端通常不会直接调用这">
 <meta name="twitter:image" content="http://yoursite.com/2016/03/27/Android-初步之Android组件-Content-Provider/1.png">
 
     
@@ -99,26 +99,10 @@
 </header>
 	<div class="article-content">
 		
-		<h4>啥是Content provider</h4>
-<p>Content Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。
-Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。
-客户端通常不会直接调用这些方法，大多数是通过Content Resolver 对象实现对Content Provider 的操作，开发人员可以通过调用Activity或者其他应用程序组件的实现类中的getContentResolver来获取ContentResolver对象。
-<img src="/2016/03/27/Android-初步之Android组件-Content-Provider/1.png" alt></p>
-<h4>数据模型</h4>
-<p>Content Provider 使用基于数据库模型的简单表格来提供其中的数据，这里每一行代表一条记录，每列代表特定类型和含义的数据。每条记录包含一个数值型的_ID字段，它用于在表格中唯一标识该记录。
-<img src="/2016/03/27/Android-初步之Android组件-Content-Provider/2.png" alt></p>
-<h4>URI</h4>
-<p>每个Content Provider 提供公共的URI来唯一标识其数据集，管理多个数据集(多个表格)的Content Provider 为每个数据集提供了单独的URI，所有为provider提供的URI都以content://作为前缀,用于识别应该使用哪个provider及其中的哪个表格。
-如果自定义一个Content Provider 则应该为其URI也定义一个常量。Android为当前平台提供的Content Provider 定义了一个CONTENT_URI常量，匹配电话号码到联系人表格的URI和匹配保存联系人照片的表格的URI分别如下：
-android.provider.Contacts.Phones.CONTENT_URI
-android.provider.Contacts.Photos.CONTENT_URI
-<img src="/2016/03/27/Android-初步之Android组件-Content-Provider/3.png" alt>
-A:标准的前缀，用于表示该数据由Content Provider管理。
-B：URI的授权部分，它标识该Content Provider。对于第三方应用，该部分应该是完整的类名(使用小写形式)来唯一确定。
-C:Content Provider 的路径部分，用于决定哪类数据被请求，如果Content Provider 仅提供一种数据类型，这部分可以省略，如果provider提供几种类型，包括子类，这部分可以由几个部分组成。
-D:被请求的特定记录的ID值，这是被请求数据记录的_ID,如果请求不限于单条记录该部分及前面的斜线应该删除.</p>
-<h4>系统定义的Content Provider</h4>
-<ul>
+		<h4 id="啥是Content-provider"><a href="#啥是Content-provider" class="headerlink" title="啥是Content provider"></a>啥是Content provider</h4><p>Content Provider 用于保存和获取数据并使其对所有应用程序可见。这是不同应用程序间共享数据的唯一方式。在Android中没有提供所有应用共同访问的公共存储区域。<br>Content Provider  内部如何保存数据由其设计者决定，但是所有的Content Provider 都实现一组通用的方法用来提供数据的增，删，查，改功能。<br>客户端通常不会直接调用这些方法，大多数是通过Content Resolver 对象实现对Content Provider 的操作，开发人员可以通过调用Activity或者其他应用程序组件的实现类中的getContentResolver来获取ContentResolver对象。<br><img src="/2016/03/27/Android-初步之Android组件-Content-Provider/1.png" alt></p>
+<h4 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h4><p>Content Provider 使用基于数据库模型的简单表格来提供其中的数据，这里每一行代表一条记录，每列代表特定类型和含义的数据。每条记录包含一个数值型的_ID字段，它用于在表格中唯一标识该记录。<br><img src="/2016/03/27/Android-初步之Android组件-Content-Provider/2.png" alt></p>
+<h4 id="URI"><a href="#URI" class="headerlink" title="URI"></a>URI</h4><p>每个Content Provider 提供公共的URI来唯一标识其数据集，管理多个数据集(多个表格)的Content Provider 为每个数据集提供了单独的URI，所有为provider提供的URI都以content://作为前缀,用于识别应该使用哪个provider及其中的哪个表格。<br>如果自定义一个Content Provider 则应该为其URI也定义一个常量。Android为当前平台提供的Content Provider 定义了一个CONTENT_URI常量，匹配电话号码到联系人表格的URI和匹配保存联系人照片的表格的URI分别如下：<br>android.provider.Contacts.Phones.CONTENT_URI<br>android.provider.Contacts.Photos.CONTENT_URI<br><img src="/2016/03/27/Android-初步之Android组件-Content-Provider/3.png" alt><br>A:标准的前缀，用于表示该数据由Content Provider管理。<br>B：URI的授权部分，它标识该Content Provider。对于第三方应用，该部分应该是完整的类名(使用小写形式)来唯一确定。<br>C:Content Provider 的路径部分，用于决定哪类数据被请求，如果Content Provider 仅提供一种数据类型，这部分可以省略，如果provider提供几种类型，包括子类，这部分可以由几个部分组成。<br>D:被请求的特定记录的ID值，这是被请求数据记录的_ID,如果请求不限于单条记录该部分及前面的斜线应该删除.</p>
+<h4 id="系统定义的Content-Provider"><a href="#系统定义的Content-Provider" class="headerlink" title="系统定义的Content Provider"></a>系统定义的Content Provider</h4><ul>
 <li>Browser：读取或者修改书签，浏览历史或者网络搜索</li>
 <li>CallLog:查看或更新通话历史</li>
 <li>Contacts:读取，修改或保存联系人信息</li>
@@ -129,29 +113,17 @@ D:被请求的特定记录的ID值，这是被请求数据记录的_ID,如果请
 <li>SyncStateContract：用于使用数据数组账号关联数据的Content Provider约束。</li>
 <li>UserDictonary:在可预测文本输入时，提供用户定义单词给输入法使用，应用程序和输入法能够增加数据到该字典，单词能关联频率信息和本地化信息。</li>
 </ul>
-<h4>自定义Content Provider</h4>
-<ol>
+<h4 id="自定义Content-Provider"><a href="#自定义Content-Provider" class="headerlink" title="自定义Content Provider"></a>自定义Content Provider</h4><ol>
 <li>建立数据存储系统。大多数Content Provider 使用Android文件存储方法或者SQLite数据库保存数据，但是开发人员可以使用任何方式存储</li>
 <li>继承ContentProvider类来提供数据访问</li>
 <li>在应用程序的AndroidManifest文件中声明Content Provider</li>
 </ol>
-<h5>继承ContentProvider类</h5>
-<p>开发人员定义ContentProvider类的子类，以便使用ContentResolver和Cursor类带来的便捷来共享数据。要达到这个目的原则上要实现如下的几个方法
-<img src="/2016/03/27/Android-初步之Android组件-Content-Provider/5.png" alt>
-由于这些ContentProvider方法能够被位于不同进程和线程的不同Content Resolver对象调用，它们必须以线程安全的方式实现。
-此外开发人员可能也想调用Content Resolver.notifyChange()方法以便在数据修改时候通知监听器</p>
-<h5>定义CONTENT_URI:</h5>
-<p>开发人员必须为该值定义一个唯一的字符串
-<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">static</span> <span class="keyword">final</span> <span class="built_in">Uri</span>  CONTENT_URI= <span class="built_in">Uri</span>.parse(<span class="string">"content://com.example.employee"</span>);</span><br><span class="line">`</span><br></pre></td></tr></table></figure></p>
-<p>如果有子表可以使用如下定义:
-<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">static</span> <span class="keyword">final</span> <span class="built_in">Uri</span>  CONTENT_URI= <span class="built_in">Uri</span>.parse(<span class="string">"content://com.example.employee/dba"</span>);</span><br></pre></td></tr></table></figure></p>
-<h5>定义内容提供者将返回给客户端的列名：</h5>
-<p>如果开发人员使用的是底层数据库，这些列明通常与SQL列明相同，确保包含名为_ID的整数列作为记录的ID值。
-如果使用SQLite数据库，_ID字段应该是INTEGER PRIMARY KEY AUTOINCREMENT.</p>
-<h5>注释每列的数据类型</h5>
-<p>如果开发人员正在处理新数据类型，则必须定义新的MIME类型，以便在ContentProvider.getType方法中返回.</p>
-<h5>声明内容提供者</h5>
-<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">provider</span> <span class="attr">android:name</span>=<span class="string">"com.emproy.Empory"</span></span></span><br><span class="line"><span class="tag">   	   <span class="attr">android:authorities</span>=<span class="string">"com.emproy.empory"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">provider</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h5 id="继承ContentProvider类"><a href="#继承ContentProvider类" class="headerlink" title="继承ContentProvider类"></a>继承ContentProvider类</h5><p>开发人员定义ContentProvider类的子类，以便使用ContentResolver和Cursor类带来的便捷来共享数据。要达到这个目的原则上要实现如下的几个方法<br><img src="/2016/03/27/Android-初步之Android组件-Content-Provider/5.png" alt><br>由于这些ContentProvider方法能够被位于不同进程和线程的不同Content Resolver对象调用，它们必须以线程安全的方式实现。<br>此外开发人员可能也想调用Content Resolver.notifyChange()方法以便在数据修改时候通知监听器</p>
+<h5 id="定义CONTENT-URI"><a href="#定义CONTENT-URI" class="headerlink" title="定义CONTENT_URI:"></a>定义CONTENT_URI:</h5><p>开发人员必须为该值定义一个唯一的字符串<br><figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">static</span> <span class="keyword">final</span> <span class="built_in">Uri</span>  CONTENT_URI= <span class="built_in">Uri</span>.parse(<span class="string">"content://com.example.employee"</span>);</span><br><span class="line">`</span><br></pre></td></tr></table></figure></p>
+<p>如果有子表可以使用如下定义:<br><figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">static</span> <span class="keyword">final</span> <span class="built_in">Uri</span>  CONTENT_URI= <span class="built_in">Uri</span>.parse(<span class="string">"content://com.example.employee/dba"</span>);</span><br></pre></td></tr></table></figure></p>
+<h5 id="定义内容提供者将返回给客户端的列名："><a href="#定义内容提供者将返回给客户端的列名：" class="headerlink" title="定义内容提供者将返回给客户端的列名："></a>定义内容提供者将返回给客户端的列名：</h5><p>如果开发人员使用的是底层数据库，这些列明通常与SQL列明相同，确保包含名为_ID的整数列作为记录的ID值。<br>如果使用SQLite数据库，_ID字段应该是INTEGER PRIMARY KEY AUTOINCREMENT.</p>
+<h5 id="注释每列的数据类型"><a href="#注释每列的数据类型" class="headerlink" title="注释每列的数据类型"></a>注释每列的数据类型</h5><p>如果开发人员正在处理新数据类型，则必须定义新的MIME类型，以便在ContentProvider.getType方法中返回.</p>
+<h5 id="声明内容提供者"><a href="#声明内容提供者" class="headerlink" title="声明内容提供者"></a>声明内容提供者</h5><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">provider</span> <span class="attr">android:name</span>=<span class="string">"com.emproy.Empory"</span></span></span><br><span class="line"><span class="tag">   	   <span class="attr">android:authorities</span>=<span class="string">"com.emproy.empory"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">provider</span>&gt;</span></span><br></pre></td></tr></table></figure>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -214,7 +186,7 @@ D:被请求的特定记录的ID值，这是被请求数据记录的_ID,如果请
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">1.</span> <span class="toc-text">啥是Content provider</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">2.</span> <span class="toc-text">数据模型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">3.</span> <span class="toc-text">URI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">系统定义的Content Provider</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-number">5.</span> <span class="toc-text">自定义Content Provider</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.1.</span> <span class="toc-text">继承ContentProvider类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.2.</span> <span class="toc-text">定义CONTENT_URI:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.3.</span> <span class="toc-text">定义内容提供者将返回给客户端的列名：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.4.</span> <span class="toc-text">注释每列的数据类型</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#null"><span class="toc-number">5.5.</span> <span class="toc-text">声明内容提供者</span></a></li></ol></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#啥是Content-provider"><span class="toc-number">1.</span> <span class="toc-text">啥是Content provider</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#数据模型"><span class="toc-number">2.</span> <span class="toc-text">数据模型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#URI"><span class="toc-number">3.</span> <span class="toc-text">URI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#系统定义的Content-Provider"><span class="toc-number">4.</span> <span class="toc-text">系统定义的Content Provider</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#自定义Content-Provider"><span class="toc-number">5.</span> <span class="toc-text">自定义Content Provider</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#继承ContentProvider类"><span class="toc-number">5.1.</span> <span class="toc-text">继承ContentProvider类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#定义CONTENT-URI"><span class="toc-number">5.2.</span> <span class="toc-text">定义CONTENT_URI:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#定义内容提供者将返回给客户端的列名："><span class="toc-number">5.3.</span> <span class="toc-text">定义内容提供者将返回给客户端的列名：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#注释每列的数据类型"><span class="toc-number">5.4.</span> <span class="toc-text">注释每列的数据类型</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#声明内容提供者"><span class="toc-number">5.5.</span> <span class="toc-text">声明内容提供者</span></a></li></ol></li></ol>
  
   </div>
 
@@ -404,18 +376,6 @@ D:被请求的特定记录的ID值，这是被请求数据记录的_ID,如果请
 			
 		
 			
-				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
 			
 		
@@ -424,15 +384,19 @@ D:被请求的特定记录的ID值，这是被请求数据记录的_ID,如果请
 			
 		
 			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 			
@@ -440,7 +404,15 @@ D:被请求的特定记录的ID值，这是被请求数据记录的_ID,如果请
 			
 		
 			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
 			
 		
 		</ul>
