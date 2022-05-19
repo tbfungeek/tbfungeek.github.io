@@ -1,0 +1,817 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之性能优化 内存优化 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Generational Heap Memory模型：Android系统里的Generational Heap Memory的模型是一个三级Generation的内存模型，它包括Young Generation，Old Generation，Permanent Generation三个部分。最新分配的对象会存放在Young Generation区域，当这个对象在这个区域停留的时间超过某个值的时候，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之性能优化 内存优化">
+<meta property="og:url" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Generational Heap Memory模型：Android系统里的Generational Heap Memory的模型是一个三级Generation的内存模型，它包括Young Generation，Old Generation，Permanent Generation三个部分。最新分配的对象会存放在Young Generation区域，当这个对象在这个区域停留的时间超过某个值的时候，">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/5.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/7.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/8.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/9.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/10.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/12.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/13.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/14.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/15.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/17.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/19.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/18.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/20.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/21.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/22.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/23.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/24.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/25.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/26.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/31.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/32.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/33.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/34.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/35.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/36.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/37.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/39.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/40.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/41.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/43.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/44.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/45.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/46.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/47.png">
+<meta property="article:published_time" content="2016-06-02T12:36:24.000Z">
+<meta property="article:modified_time" content="2016-07-26T13:55:02.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/06/02/Android-进阶之性能优化-内存优化/" title="Android 进阶之性能优化 内存优化" itemprop="url">Android 进阶之性能优化 内存优化</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-06-02T12:36:24.000Z" itemprop="datePublished"> Published 2016-06-02</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="Generational-Heap-Memory模型："><a href="#Generational-Heap-Memory模型：" class="headerlink" title="Generational Heap Memory模型："></a>Generational Heap Memory模型：</h4><p>Android系统里的Generational Heap Memory的模型是一个三级Generation的内存模型，它包括Young Generation，Old Generation，Permanent Generation三个部分。最新分配的对象会存放在Young Generation区域，当这个对象在这个区域停留的时间超过某个值的时候，会被移动到Old Generation，最后到Permanent Generation区域。三个区域对象创建速度和GC执行的速度是不一样的Young Generation最快，Old Generation次之，Permanent Generation最慢。整个结构如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/1.png"><br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/2.png"><br>三个区域的存储空间都有一个固定的大小，当这些对象总的大小快达到阀值时，会触发GC的操作，以腾出空间来存放其他新的对象。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/3.png"></p>
+<h4 id="Android-开发过程中的常见内存异常："><a href="#Android-开发过程中的常见内存异常：" class="headerlink" title="Android 开发过程中的常见内存异常："></a>Android 开发过程中的常见内存异常：</h4><p>在Android 开发过程中主要的内存异常有内存抖动，内存泄露，内存溢出（OOM）等几种。</p>
+<h5 id="内存抖动："><a href="#内存抖动：" class="headerlink" title="内存抖动："></a>内存抖动：</h5><p>内存抖动就是因为在短时间内存在大量对象被创建和销毁，导致内存大小极度不稳定的情况，内存抖动可以给性能带来什么直观的感觉呢？我们知道界面卡顿一般都与CPU和GPU有关，但是内存抖动也会导致卡顿的问题，要知道这个原因首先需要明白在执行GC操作的时候，当前所有线程的任何操作都要暂停，等待GC操作完成之后，其他操作才能够继续运行。一般来说每个GC并不会占用太多时间，但是大量频繁的GC则有可能会占用帧间隔时间。导致卡顿现象。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/4.png"><br>那么为什么会出现频繁的GC现象呢？上面提到过导致GC频繁发生的原因是由于短时间内大量对象被创建，瞬间产生的大量对象会占用大量的Young Generation的内存区域很有可能导致该区域的内存达到阈值，从而触发GC。我们上面讲到GC过程中暂停当前线程的所有操作，影响到帧率，给用户照成卡顿的不好体验。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/5.png"></p>
+<h6 id="发生内存抖动常见的原因："><a href="#发生内存抖动常见的原因：" class="headerlink" title="发生内存抖动常见的原因："></a>发生内存抖动常见的原因：</h6><ul>
+<li>在循环内部创建新的对象</li>
+<li>在自定义View的onDraw方法中创建新的对象<br>我们知道onDraw方法是执行在UI线程的，在UI线程中创建对象本身是允许的，并且创建对象本身不会花费太多的系统资源，但是要考虑到一点就是设备存在刷新频率，每次刷新就有可能调用onDraw方法，如果太多频繁得调用onDraw方法极有可能照成内存抖动问题。</li>
+</ul>
+<h6 id="处理内存抖动问题的相关工具"><a href="#处理内存抖动问题的相关工具" class="headerlink" title="处理内存抖动问题的相关工具"></a>处理内存抖动问题的相关工具</h6><p>那么怎么判断是否发生内存抖动呢？从代码角度比较难以看出存在问题的代码。为了解决这个问题AS为我们提供了Memory Monitor工具通过这个工具可以很直观得看出内存抖动的现象。比如下图中在红色框图中短时间内存在着大量起伏不定的内存曲线，这表明这个时间段发生了内存抖动，需要结合代码来查看到底是那部分代码导致了这个问题。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/7.png"></p>
+<p>上面的方法只是从直观的角度来判断是否发生了内存抖动，但是具体是哪里发生了内存抖动还需要其他工具进行介入收集数据。我们可以通过Allocation Tracker来完成任务，如果短时间内，同一个栈中不断进出的相同对象。这很显然发生了内存抖动，需要引起足够的重视。</p>
+<h5 id="内存泄露："><a href="#内存泄露：" class="headerlink" title="内存泄露："></a>内存泄露：</h5><p><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/8.png"><br>内存泄漏表示的是不再用到的对象原本需要被回收的但是由于被错误引用(还有对象依旧持有这个对象)而无法被正常回收。举个常见的例子通常来说，View会保持Activity的引用，Activity同时还和其他内部对象也有可能保持引用关系。当屏幕发生旋转的时候Activity就很容易发生泄漏，这样的话里面的view也会发生泄漏。这样就导致这个对象一直留在内存当中，占用了宝贵的内存空间。显然，这会使得每级Generation的内存区域可用空间逐渐变小，GC就会更容易被触发，从而引起性能问题。要解决内存泄露的问题需要我们对代码十分熟悉，当然现在有很多第三方库可以帮我们检测内存泄露的问题，比如LeakCanary。 </p>
+<h5 id="避免内存泄露的措施："><a href="#避免内存泄露的措施：" class="headerlink" title="避免内存泄露的措施："></a>避免内存泄露的措施：</h5><ol>
+<li><p>避免使用异步回调：<br>异步回调被执行的时间是不确定的，有可能在回调的时候所在的Activity已经被销毁了，这不仅很容易会引起crash还很容易发生内存泄露。比如下面的例子：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/9.png"></p>
+</li>
+<li><p>避免使用static对象：<br>因为static的生命周期过长，使用不当很可能导致内存泄露。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/10.png"></p>
+</li>
+<li><p>避免把View添加到没有清除机制的容器里<br>假如把view添加到WeakHashMap，如果没有执行清除操作，很可能会导致泄漏。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/12.png"></p>
+</li>
+<li><p>Activity的泄漏<br>通常来说，Activity的泄漏是内存泄漏里面最严重的问题，它占用的内存多，影响面广：</p>
+</li>
+</ol>
+<ul>
+<li>匿名内部类&#x2F;非静态内部类和Handler使用不当导致内存泄露</li>
+</ul>
+<p>我们先来看下一个非静态内部类的一个例子：</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"> public <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> static <span class="type">TestNoneStaticClass</span> mTestClass = <span class="literal">null</span>;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> void onCreate(<span class="type">Bundle</span> savedInstanceState) &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(<span class="type">R</span>.layout.activity_main);</span><br><span class="line">        <span class="keyword">if</span>(mTestClass == <span class="literal">null</span>)&#123;</span><br><span class="line">            mTestClass = <span class="keyword">new</span> <span class="type">TestNoneStaticClass</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TestNoneStaticClass</span> </span>&#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>上面这个看出问题的所在了吗？<br>首先我们知道 mTestClass 是一个静态变量它的生命周期是整个应用周期，但是它是一个非静态内部类，所以会持有外部类的引用，换句话说MainActivity被一个生命周期为整个应用周期的对象所持有，所以它退出后就不能被GC回收。从而导致了内存泄露。</p>
+<p>接下来我们再来看下Handler导致的内存泄露的例子：</p>
+<p>Handler 的不正确使用造成的内存泄漏问题是比较常见的，我们知道当Android应用程序启动时，framework会为该应用程序的主线程创建一个Looper对象。这个Looper对象包含一个简单的消息队列Message Queue，它能够循环的处理队列中的消息。这些消息都会被添加到消息队列中并被逐个处理。<br>这个主线程的Looper对象会伴随该应用程序的整个生命周期。当我们向这个Looper发送一个消息后所有发送到消息队列的消息Message都会拥有一个对Handler的引用，当Looper来处理消息时，会回调Handler#handleMessage(Message)方法来处理消息。那么这又有什么问题呢？<br>问题有两点：</p>
+<ol>
+<li><p>我们有可能会将Handler声明为非静态的内部类，这样的话它就持有外部Activity的引用，如果使用这种Handler向Looper发送消息后如果在Activity退出后仍然没有被处理，那么Message将会保留在Looper内，由于上面所说Message持有Handler的引用，Handler由于是非静态内部类所以也会持有Activity的引用，那么这样就导致了Activity退出后，内存不能被回收，也就是内存泄露了。<br>下面就是一个错误引用导致的问题：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SampleActivity</span> <span class="keyword">extends</span> <span class="title class_">Activity</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Handler</span> <span class="variable">mLeakyHandler</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Handler</span>() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message msg)</span> &#123;</span><br><span class="line">            <span class="comment">// ...</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span>   </span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        <span class="comment">// Post a message and delay its execution for 10 minutes.</span></span><br><span class="line">        mLeakyHandler.postDelayed(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">        </span><br><span class="line">        &#125;, <span class="number">1000</span> * <span class="number">60</span> * <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Go back to the previous Activity.</span></span><br><span class="line">        finish();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>还有个问题就是如果Handler当中还需要Activity的引用呢？<br>为了解决这个问题我们最常用的就是使用静态内部类+弱引用来断开与外部Activity的引用关系，代码如下：</p>
+</li>
+</ol>
+<p>然后，当主线程里，实例化一个Handler对象后，它就会自动与主线程Looper的消息队列关联起来。所有发送到消息队列的消息Message都会拥有一个对Handler的引用，所以当Looper来处理消息时，会据此回调[Handler#handleMessage(Message)]方法来处理消息。<br>另外，我们知道 Handler、Message 和 MessageQueue 都是相互关联在一起的，万一 Handler 发送的 Message 尚未被处理，则该 Message 及发送它的 Handler 对象将被线程 MessageQueue 一直持有。</p>
+<p>由于 Handler 属于 TLS(Thread Local Storage) 变量, 生命周期和 Activity 是不一致的。因此这种实现方式一般很难保证跟 View 或者 Activity 的生命周期保持一致，故很容易导致无法正确释放。</p>
+<p>举个例子：</p>
+<p>在该 SampleActivity 中声明了一个延迟10分钟执行的消息 Message，mLeakyHandler 将其 push 进了消息队列 MessageQueue 里。当该 Activity 被 finish() 掉时，延迟执行任务的 Message 还会继续存在于主线程中，它持有该 Activity 的 Handler 引用，所以此时 finish() 掉的 Activity 就不会被回收了从而造成内存泄漏（因 Handler 为非静态内部类，它会持有外部类的引用，在这里就是指 SampleActivity）。</p>
+<p>修复方法：在 Activity 中避免使用非静态内部类，比如上面我们将 Handler 声明为静态的，则其存活期跟 Activity 的生命周期就无关了。同时通过弱引用的方式引入 Activity，避免直接将 Activity 作为 context 传进去，见下面代码：</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">SampleActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Instances of static inner classes do not hold an implicit</span></span><br><span class="line"><span class="comment">   * reference to their outer class.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> static <span class="class"><span class="keyword">class</span> <span class="title">MyHandler</span> <span class="keyword">extends</span> <span class="title">Handler</span> </span>&#123;</span><br><span class="line">      </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">WeakReference</span>&lt;<span class="type">SampleActivity</span>&gt; mActivity;</span><br><span class="line"></span><br><span class="line">    public <span class="type">MyHandler</span>(<span class="type">SampleActivity</span> activity) &#123;</span><br><span class="line">      mActivity = <span class="keyword">new</span> <span class="type">WeakReference</span>&lt;<span class="type">SampleActivity</span>&gt;(activity);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void handleMessage(<span class="type">Message</span> msg) &#123;</span><br><span class="line">      <span class="type">SampleActivity</span> activity = mActivity.get();</span><br><span class="line">      <span class="keyword">if</span> (activity != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">MyHandler</span> mHandler = <span class="keyword">new</span> <span class="type">MyHandler</span>(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Instances of anonymous classes do not hold an implicit</span></span><br><span class="line"><span class="comment">   * reference to their outer class when they are &quot;static&quot;.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> static <span class="keyword">final</span> <span class="type">Runnable</span> sRunnable = <span class="keyword">new</span> <span class="type">Runnable</span>() &#123;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      public void run() &#123; </span><br><span class="line">          </span><br><span class="line">       &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">protected</span> void onCreate(<span class="type">Bundle</span> savedInstanceState) &#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Post a message and delay its execution for 10 minutes.</span></span><br><span class="line">    mHandler.postDelayed(sRunnable, <span class="number">1000</span> * <span class="number">60</span> * <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Go back to the previous Activity.</span></span><br><span class="line">    finish();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>除了上面的例子外在Aactivity退出之前，需要注意执行remove Handler消息队列中的Message与Runnable对象从而达到彻底的退出。</p>
+<ul>
+<li>Activity Context被传递到其他实例中，这可能导致自身被引用而发生泄漏。<br>内部类引起的泄漏不仅仅会发生在Activity上，其他任何内部类出现的地方，都需要特别留意。我们可以考虑尽量使用static类型的内部类，同时使用WeakReference的机制来避免因为互相引用而出现的泄露。</li>
+<li>考虑使用Application Context而不是Activity Context<br>在开发的时候除了必须使用Activity Context的情况，尽量使用Application Context而不是Activity Context，由于Application Context的生命周期较长所以使用它可以有效避免Activity 被持有而导致内存泄露的可能。</li>
+<li>对于临时Bitmap对象要及时回收<br>临时创建的某个相对比较大的 bitmap对象，在经过变换得到新的bitmap对象之后，应该尽快回收原始的bitmap</li>
+<li>在退出Activity的时候不要忘记注销监听器<br>在Android程序里面存在很多需要register与unregister的监听器，我们需要确保在合适的时候及时unregister那些监听器。并且要注意添加和注销必须对应起来。比如在onCreate上监听的，需要在onDestroy中注销监听。</li>
+<li>缓存对象没有及时清理导致的泄露问题<br>为了提高对象的复用性我们会将某些对象放置到缓存容器而不是直接销毁，这样可以在下次使用的时候直接使用。但是这有可能导致一个问题就是如果存储在缓存里面的对象没有及时从容器中清除，并且缓存容器中存储的对象持有View或者Activity的引用极有可能导致Activity发生泄漏。</li>
+<li>Cursor对象没有及时关闭导致的泄漏<br>在程序中有的时候会发现我们查询完数据库后，返回结果的Cursor使用结束后没有及时关闭的情况，这时候就会导致Cursor的泄漏。这个是比较初级的泄漏，但也是最常见的泄漏。</li>
+</ul>
+<h4 id="内存溢出"><a href="#内存溢出" class="headerlink" title="内存溢出"></a>内存溢出</h4><p>在Android系统中每个app所能够使用的堆大小是有限的，不同RAM大小的设备堆大小是不同的，一旦我们的app在超过了这个限制的情况下继续分配内存的话会引起OOM.如果你想要查询当前设备的堆大小显示可以调用getMemoryClass()来查询。它会返回一个用于表示当前应用堆大小限制的数据。如果你确定你的应用需要耗费较大的堆空间，可以通过在manifest的application标签下添加largeHeap&#x3D;true的属性。但是这样做有个不好的地方是，它会使得每次GC的运行时间更长，在任务切换时，系统的性能会变得大打折扣，所以在遇到内存溢出的时候不应该只借助申请大堆栈的方式来解决，而应该从根本上节省内存的消耗。<br>因此防止内存溢出的问题也可以转换为如何减少内存的消耗。</p>
+<ul>
+<li>使用更加轻量的数据结构<br>利用Android 系统中专门优化过的容器类，例如SparseArray, SparseBooleanArray, 与 LongSparseArray。 通常的HashMap的实现方式更加消耗内存，因为它需要一个额外的实例对象来记录Mapping操作。另外，SparseArray更加高效在于他们避免了对key与value的autobox自动装箱，并且避免了装箱后的解箱。</li>
+<li>避免在Android里面使用Enum<br>Enums的内存消耗通常是static constants的2倍。应该尽量避免在Android上使用enums。</li>
+<li>适当的代码抽象，但是不要过分的抽象。</li>
+<li>避免使用依赖注入框架：<br>使用依赖注入框架能够简化我们的代码，但是那些框架会通过扫描你的代码执行许多初始化的操作，这会导致你的代码需要大量的RAM来mapping代码，而且mapped pages会长时间的被保留在RAM中，从而增加了内存消耗。</li>
+<li>谨慎使用第三方库：<br>不要为了少量的功能而导入整library。如果没有一个合适的库满足你的需求的情况下，	我们应该考虑自己去实现或者对一个相近库进行移植，而不是直接导入一整个库方案。</li>
+<li>使用ProGuard来剔除不需要的代码<br>Android为我们提供了Proguard的工具来帮助应用程序对代码进行瘦身，优化，混淆的处理。它能够通过移除不需要的代码，重命名类，域与方法等方对代码进行压缩，优化与混淆。使用ProGuard可以使得你的代码更加紧凑，这样能够使用更少mapped代码所需要的RAM。使用Proguard只需要在build.gradle文件中配置minifEnable为true即可。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/13.png"><br>但是我们有的时候并不需要所有的类都混淆而Proguard还不够智能到判断哪些类，哪些方法是不能够被混淆的，所以，我们需要手动的把这些需要保留的类名与方法名添加到Proguard的配置文件中，如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/14.png"></li>
+<li>删除无效资源：<br>上面介绍的是如何去除无效的代码，接下来要介绍的将是如何自动删除无效的资源，对于那些没有被引用到的资源，会在编译阶段被排除在APK安装包之外，要实现这个目的，只需要在build.gradle文件中配置shrinkResource为true即可，如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/15.png"><br>和混淆一样有时候有特殊的需求，这时候我们可以通过tools:keep或者tools:discard标签来实现对特定资源的保留与废弃，如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/17.png"><br>Gradle目前无法对values，drawable等根据运行时来决定使用的资源进行优化，对于这些资源，需要我们自己来确保资源不会有冗余。</li>
+<li>序列化角度节省内存资源：<br>序列化一般发生在网络之间，不同进程间以及不同类之间的数据传递。通常的做法是通过实现Serializable接口，但是这种传统的做法会消耗更多的内存。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/19.png"><br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/18.png"></li>
+</ul>
+<p>但是我们如果使用GSON库来处理这个序列化的问题，不仅仅执行速度更快，内存的使用效率也更高。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/20.png"><br>除了使用GSon来进行序列化这个措施来减小内存损耗外，可以通过优化数据呈现的顺序以及结构来优化内存的损耗。通常来说，一般的数据序列化的过程如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/21.png"><br>上面的过程，存在两个不足，第一个是重复的属性名称：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/22.png"><br>另外一个是GZIP没有办法对上面的数据进行更加有效的压缩，假如相似数据间隔了32k的数据量，这样GZIP就无法进行更加有效的压缩：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/23.png"><br>但是我们稍微改变下数据的记录方式，就可以得到占用空间更小的数据，如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/24.png"><br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/25.png"><br>通过上述优化，有了如下的优化：<br>(1) 减少了重复的属性名：<br>(2) 使得GZIP的压缩效率更高：</p>
+<ul>
+<li>使用zipalign对最终的Apk进行对其操作<br>在完成编码阶段并编译出Apk后等待释放的版本之前需要使用zipalign对Apk进行资源对其操作来节省RAM空间。</li>
+<li>图像资源占用空间的优化<br>Android 的Heap空间中的图片被收回之后，这块区域并不会和其他已经回收过的区域做重新排序合并处理，那么当一个更大的图片需要放到heap之前，很可能找不到那么大的连续空闲区域，那么就会触发GC，使得heap腾出一块足以放下这张图片的空闲区域，如果无法腾出，就会发生OOM。因此在使用图片资源的时候要十分注意节省图片资源对内存空间的损耗。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/26.png"></li>
+</ul>
+<p>节省图片资源对内存空间的占用有如下几种途径：<br>(1) 从图片资源本身角度可以通过减小图片尺寸，降低图片的分辨率清晰度等<br>在设计给到资源图片的时候，我们需要特别留意这张图片是否存在可以压缩的空间，是否可以使用一张更小的图片。尽量使用更小的图片不仅仅可以减少内存的使用，还可以避免出现大量的InflationException。假设有一张很大的图片被XML文件直接引用，很有可能在初始化视图的时候就会因为内存不足而发生InflationException。<br>除了在尺寸上优化图片资源外，还可以考虑选择不同的图片格式，目前主流的图片格式有PNG,JPEG,WEBP三种，三种主流格式在占用空间与图片质量之间的对比如下所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/31.png"><br>对于JPEG与WEBP格式的图片，不同的清晰度对占用空间的大小也会产生很大的影响，适当的减少JPG Quality，可以大大的缩小图片占用的空间大小。<br>另外，我们需要为不同的使用场景提供当前场景下最合适的图片大小，例如针对全屏显示的情况我们会需要一张清晰度比较高的图片，而如果只是显示为缩略 图的形式，就只需要服务器提供一个相对清晰度低很多的图片即可。服务器应该支持到为不同的使用场景分别准备多套清晰度不一样的图片，以便在对应的场景下能够获取到最适合自己的图片。<br>(2) 合理分配图片资源<br>我们知道hdpi&#x2F;xhdpi&#x2F;xxhdpi等等不同dpi的文件夹下的图片在不同的设备上会经过scale的处理。例如我们只在hdpi的目录下放置了一张100 x 100的图片，那么根据换算关系，xxhdpi的手机去引用那张图片就会被拉伸到200x200。需要注意到在这种情况下，内存占用是会显著提高的。对于不希望被拉伸的图片，需要放到assets或者nodpi的目录下。<br>(3) 同一张图片还可以通过选用不同的解码方式和格式来减少对空间的占用<br>在Android开发过程中最常用的图片格式有png,jpeg,webp等，在这些图片被设置到UI界面之前都需要解码过程，在进行解码的时候使用不同的解码方式对内存的损耗是有极大差别的，因此在图像质量能够满足要求的情况下，尽量选用对内存要求较小的解码方式，但是要注意的是不同的解码格式，清晰度也会存在较大差别，因此需要在二者之间做出权衡。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/32.png"><br>在Android里面可以通过下面的代码来设置解码率：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/33.png"><br>在Android开发过程中我们会发现大多数的图片资源都是PNG格式的，这很大程度上是由于PNG相比于JPEG格式能够提供更加清晰无损的图片效果，但是正如上面提到的图片对内存的消耗以及图片的清晰度是一个对立面，在选用资源的过程中需要在二者之间做一个权衡。对于对于那些使用JPEG就可以达到视觉效果的，可以考虑采用JPEG。除了上述的解决方案外，还可以考虑使用Webp格式，它是由Google推出的一种既保留png格式的优点，又能够减少图片大小的一种新型图片格式。<br>(4) 除了上述两种还可以通过特殊处理来达到这个目的。<br>比如在缩放图片的时候Android提供了现成的bitmap缩放的API  createScaledBitmap()，使用这个方法返回的是一张经过缩放的图片。createScaledBitmap方法能够快速的得到一张经过缩放的图片，可是这个方法能够执行的前提是原图片需要事先加载到内存中，如果原图片过大，很可能导致OOM。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/34.png"><br>为了避免这个问题的发生我们可以考虑使用inSampleSize这个属性：<br>inSampleSize能够等比的缩放显示图片，同时还避免了需要先把原图加载进内存的缺点。我们会使用类似像下面一样的方法来缩放bitmap：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/35.png"><br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/36.png"><br>另外，我们还可以使用inScaled，inDensity，inTargetDensity的属性来对解码图片做处理，源码如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/37.png"><br>如果只要获取图片的大小尺寸数据可以使用inJustDecodeBounds属性，使用这个属性去尝试解码图片，可以事先获取到图片的大小而不至于占用什么内存。如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/39.png"></p>
+<ul>
+<li>Bitmap对象的复用<br>利用inBitmap的高级特性提高Android系统在Bitmap分配与释放执行效率上的提升。使用inBitmap属性可以告知Bitmap解码器去尝试使用已经存在的内存区域，新解码的bitmap会尝试去使用之前那张bitmap在 heap中所占据的pixel data内存区域，而不是向内存重新申请一块区域来存放bitmap。利用这种特性，即使是上千张的图片，也只会仅仅只需要占用屏幕所能够显示的图片数 量的内存大小。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/40.png"><br>但是使用inBitmap时有几个限制条件：<br>(1) 在SDK 11 -&gt; 18之间，重用的bitmap大小必须是一致的，例如给inBitmap赋值的图片大小为100-100，那么新申请的bitmap必须也为 100-100才能够被重用。从SDK 19开始，新申请的bitmap大小必须小于或者等于已经赋值过的bitmap大小。<br>(2) 新申请的bitmap与旧的bitmap必须有相同的解码格式。</li>
+</ul>
+<p>将Bitmap重用和对象池技术结合起来可以创建一个包含多种典型可重用bitmap的对象池，这样后续的bitmap创建都能够找到合适的“模板”去进行重用。如下图所示：<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/41.png"></p>
+<p>在Android系统中唯一完整释放内存的方法是释放那些你可能持有的对象的引用，当这个对象没有被任何其他对象引用的时候，它才能被GC回收。但是如果系统在其他某个地方重用某个对象的话，就会导致它不能被完全回收。</p>
+<ul>
+<li><p>使用对象池来减少需要创建的对象。<br>我们在开发过程中时常会遇到短时间内需要大量对象的情况，比如一个多用户的Apk，可能在某个时间点会有多个用户注册，这就有可能需要在短时间内创建大量对象，但是短时间创建大量对象会导致内存紧张，GC过程十分耗时，还有可能照成内存抖动问题。为了避免这个问题最常用的解决方式就是使用对象池。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/43.png"><br>在使用对象池的时候当使用某个对象的时候先去对象池查询是否存在，如果不存在则创建一个对象然后加入对象池，但是我们也可以在程序刚启动的时候就事先为对象池填充一些即将要使用到的数据，这样可以在需要使用到这些对象的时候提供更快的首次加载速度，这种行为就叫做预分配。使用对象池也有不好的一面，程序员需要手动管理这些对象的分配与释放，这个极有可能造成内存泄露。为了确保所有的对象能够正确被释放，我们需要保证加入对象池的对象和其他外部对象没有互相引用的关系。</p>
+</li>
+<li><p>复用系统自带的资源<br>Android系统本身内置了很多的资源，例如字符串&#x2F;颜色&#x2F;图片&#x2F;动画&#x2F;样式以及简单布局等等，这些资源都可以在应用程序中直接引用。这样做不仅 仅可以减少应用程序的自身负重，减小APK的大小，另外还可以一定程度上减少内存的开销，复用性更好。<br>注意在ListView&#x2F;GridView等出现大量重复子组件的视图里面对ConvertView的复用<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/44.png"></p>
+</li>
+<li><p>Try catch某些大内存分配的操作<br>在某些情况下，我们需要事先评估那些可能发生OOM的代码，对于这些可能发生OOM的代码，加入catch机制，可以考虑在catch里面尝试一次降级的内存分配操作。例如decode bitmap的时候，catch到OOM，可以尝试把采样比例再增加一倍之后，再次尝试decode。<br>留意单例对象中不合理的持有<br>由于单例对象的生命周期和应用的生命周期相一致所以要特别注意单例中所持有的对象，如果持有的对象不合理极有可能照成内存的泄露</p>
+</li>
+</ul>
+<p>一般我们会在Application 类中定义一个getContext方法，这样在任何需要Application Context的时候就可以通过getContext来获得</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line">context = getApplicationContext();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Context <span class="title">getContext</span>()</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> context;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight smali"><table><tr><td class="code"><pre><span class="line">public class SingletonClass &#123;</span><br><span class="line">   <span class="keyword"> private</span><span class="keyword"> static</span> SingletonClass instance;</span><br><span class="line">   <span class="keyword"> private</span> Context context;</span><br><span class="line">   <span class="keyword"> private</span> SingletonClass() &#123;</span><br><span class="line">        this.context = MyApplication.getContext();</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="keyword"> public</span><span class="keyword"> static</span> SingletonClass getInstance() &#123;</span><br><span class="line">       <span class="built_in"> if </span>(instance == null) &#123;</span><br><span class="line">           <span class="built_in"> instance </span>=<span class="built_in"> new </span>SingletonClass();</span><br><span class="line">        &#125;</span><br><span class="line">       <span class="built_in"> return </span>instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是有时候我们并不需要继承Application这样我们就可以通过下面的方式，直接通过getApplicationContext方法来获取。</p>
+<figure class="highlight smali"><table><tr><td class="code"><pre><span class="line">public class SingletonClass &#123;</span><br><span class="line">   <span class="keyword"> private</span><span class="keyword"> static</span> SingletonClass instance;</span><br><span class="line">   <span class="keyword"> private</span> Context context;</span><br><span class="line">   <span class="keyword"> private</span> SingletonClass(Context context) &#123;</span><br><span class="line">        this.context = context.getApplicationContext();</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="keyword"> public</span><span class="keyword"> static</span> SingletonClass getInstance(Context context) &#123;</span><br><span class="line">       <span class="built_in"> if </span>(instance == null) &#123;</span><br><span class="line">           <span class="built_in"> instance </span>=<span class="built_in"> new </span>SingletonClass(context);</span><br><span class="line">        &#125;</span><br><span class="line">       <span class="built_in"> return </span>instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>优化布局层次，减少内存消耗<br>越扁平化的视图布局，占用的内存就越少，效率越高。我们需要尽量保证布局足够扁平化，当使用系统提供的View无法实现足够扁平的时候考虑使用自定义View来达到目的。</p>
+<ul>
+<li>在使用服务时候需要注意的问题：</li>
+</ul>
+<p>如果你的应用需要使用到后台服务，要记住系统会倾向保留后台服务而一直保留服务所在的进程，并且系统没有办法把服务所占用的RAM空间让出来给其他部件，所以导致了你当前进程的运行代价很高。因此在使用服务的时候要注意两点：除非它被触发并执行一个任务，否则尽量保证其他时候service都处于停止状态;尽可能使用IntentService它会在处理完交代给它的intent任务之后尽快结束自己,不要在服务不需要的时候还让服务驻留在后台，这样极有可能照成资源浪费。<br>其中最主要的就是如何正确得启动和停止服务。</p>
+<p>普通的Started Service，需要通过stopSelf()来停止Service<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/45.png"><br>另外一种Bound Service，会在其他组件都unBind之后自动关闭自己<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/46.png"></p>
+<h4 id="内存不足时的系统通知方式"><a href="#内存不足时的系统通知方式" class="headerlink" title="内存不足时的系统通知方式"></a>内存不足时的系统通知方式</h4><p>和其他系统一样Android系统也是一个多任务系统，用户可以在不同的App之间快速切换，在Android系统中为了保证后台应用能够迅速切换到前台，在应用切换到后台的时候会将其缓存到后台占用一定的内存，这样做的好处就是将当前应用从后台移动到前台的时候不用重新创建，只要从缓存中直接获取并恢复。但是在系统资源不足的时候系统会尝试从LRU 缓存清除部分进程：<br>当系统开始清除LRU缓存中的进程时，尽管它首先按照LRU的顺序来操作，但是它同样会考虑进程的内存使用量。因此消耗越少的进程则越容易被留下来。<br><img src="/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/47.png"></p>
+<ul>
+<li>通过onTrimMemory来控制释放内存的时间点:<br>我们知道Android系统会在内存空间不足的情况下按照一定的规则杀死某些进程，但是Android系统也不是蛮讲理的不会在进程毫无防备的情况下杀死进程，还是会给进程一定的警告的，进程在收到这些警告的时候就应该采取一些必要的措施，比如尽可能得释放不需要的资源来腾出空间来缓解内存不足的情况。</li>
+</ul>
+<p>onTrimMemory这个方法会在系统认为进程内存最佳释放的时间点的时候被回调，它接收一个内存级别的参数用于表示，当前处于那个内存阶段，我们可以通过传入的这个数值决定释放哪些资源onTrimMemory()的回调可以发生在Application，Activity，Fragment，Service，Content Provider。</p>
+<ul>
+<li>TRIM_MEMORY_UI_HIDDEN:<br>当用户打开了另外一个程序，我们的程序界面已经不可见的时候，我们应当将所有和界面相关的资源进行释放。重写Activity的onTrimMemory()方法，然后在这个方法中监听TRIM_MEMORY_UI_HIDDEN这个级别，一旦触发说明用户离开了程序，此时就可以进行资源释放操作了。<br>当程序正在前台运行的时候可能会受到如下的内存等级参数：</li>
+<li>TRIM_MEMORY_RUNNING_MODERATE：尽管目前设备处于低内存状态，系统已经开始触发杀死LRU 缓存中的进程的机制，但是你的app尚且处在安全阶段，尚未被列为可杀死的进程。</li>
+<li>TRIM_MEMORY_RUNNING_LOW：目前设备正处于低内存状态，虽然你的app没有被列到系统杀死进程的列表中，但是我们在这个阶段应该开始释放我们不用的资源为提升系统资源做贡献。</li>
+<li>TRIM_MEMORY_RUNNING_CRITICAL：目前设备内存已经十分紧缺，并且系统已经把缓存中的大部分进程都已经杀死，这时候我们的应用就要重视起来了，应该立刻释放所有非必须的资源，如果再不清除的话等到系统清除完所有LRU缓存中的进程后就会开始杀死哪些之前被认为不应该被杀死的进程，直到轮到杀死自己。</li>
+</ul>
+<p>如果我们的进程处于LRU 缓存状态则会收到如下的的回调：</p>
+<ul>
+<li><p>TRIM_MEMORY_BACKGROUND: 系统正运行于低内存状态并且你的进程正处于LRU缓存名单中最不容易杀掉的位置。尽管你的app进程并不是处于被杀掉的高危险状态，系统可能已经开始杀掉LRU缓存中的其他进程了。你应该释放那些容易恢复的资源，以便于你的进程可以保留下来，这样当用户回退到你的app的时候才能够迅速恢复。</p>
+</li>
+<li><p>TRIM_MEMORY_MODERATE: 系统正运行于低内存状态并且你的进程已经已经接近LRU名单的中部位置。如果系统开始变得更加内存紧张，你的进程是有可能被杀死的。</p>
+</li>
+<li><p>TRIM_MEMORY_COMPLETE: 系统正运行与低内存的状态并且你的进程正处于LRU名单中最容易被杀掉的位置。你应该释放任何不影响你的app恢复状态的资源。</p>
+</li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android性能优化/">Android性能优化</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/06/03/Android-进阶之性能优化-电量优化/" title="Android 进阶之性能优化 电量优化">
+  <span>
+  Android 进阶之性能优化 电量优化</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/06/01/Android-进阶之性能优化-视图优化/"  title="Android 进阶之性能优化 UI视图优化">
+ <span>Android 进阶之性能优化 UI视图优化
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/06/02/Android-进阶之性能优化-内存优化/" data-title="Android 进阶之性能优化 内存优化" data-url="http://yoursite.com/2016/06/02/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Generational-Heap-Memory%E6%A8%A1%E5%9E%8B%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">Generational Heap Memory模型：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Android-%E5%BC%80%E5%8F%91%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84%E5%B8%B8%E8%A7%81%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">Android 开发过程中的常见内存异常：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%8A%96%E5%8A%A8%EF%BC%9A"><span class="toc-number">2.1.</span> <span class="toc-text">内存抖动：</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%8F%91%E7%94%9F%E5%86%85%E5%AD%98%E6%8A%96%E5%8A%A8%E5%B8%B8%E8%A7%81%E7%9A%84%E5%8E%9F%E5%9B%A0%EF%BC%9A"><span class="toc-number">2.1.1.</span> <span class="toc-text">发生内存抖动常见的原因：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E5%86%85%E5%AD%98%E6%8A%96%E5%8A%A8%E9%97%AE%E9%A2%98%E7%9A%84%E7%9B%B8%E5%85%B3%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.2.</span> <span class="toc-text">处理内存抖动问题的相关工具</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%EF%BC%9A"><span class="toc-number">2.2.</span> <span class="toc-text">内存泄露：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E7%9A%84%E6%8E%AA%E6%96%BD%EF%BC%9A"><span class="toc-number">2.3.</span> <span class="toc-text">避免内存泄露的措施：</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA"><span class="toc-number">3.</span> <span class="toc-text">内存溢出</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E4%B8%8D%E8%B6%B3%E6%97%B6%E7%9A%84%E7%B3%BB%E7%BB%9F%E9%80%9A%E7%9F%A5%E6%96%B9%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">内存不足时的系统通知方式</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

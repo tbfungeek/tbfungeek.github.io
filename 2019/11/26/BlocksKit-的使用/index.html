@@ -1,0 +1,814 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>BlocksKit 的使用 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="不可变集合类型下面的方法适用于如下类型： NSArrayNSDictionaryNSIndexSetNSSetNSOrderedSet  - (void)bk_each:(void (^)(id obj))block; 对数组内的每个元素进行block指定的处理 - (void)bk_apply:(void (^)(id obj))block; 这个功能上和bk_each其实是一致的，但是它是异步">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BlocksKit 的使用">
+<meta property="og:url" content="http://yoursite.com/2019/11/26/BlocksKit-%E7%9A%84%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="不可变集合类型下面的方法适用于如下类型： NSArrayNSDictionaryNSIndexSetNSSetNSOrderedSet  - (void)bk_each:(void (^)(id obj))block; 对数组内的每个元素进行block指定的处理 - (void)bk_apply:(void (^)(id obj))block; 这个功能上和bk_each其实是一致的，但是它是异步">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/11/26/BlocksKit-%E7%9A%84%E4%BD%BF%E7%94%A8/00001.png">
+<meta property="article:published_time" content="2019-11-25T18:12:14.000Z">
+<meta property="article:modified_time" content="2019-12-19T13:31:04.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/26/BlocksKit-%E7%9A%84%E4%BD%BF%E7%94%A8/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/11/26/BlocksKit-的使用/" title="BlocksKit 的使用" itemprop="url">BlocksKit 的使用</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-11-25T18:12:14.000Z" itemprop="datePublished"> Published 2019-11-26</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="不可变集合类型"><a href="#不可变集合类型" class="headerlink" title="不可变集合类型"></a>不可变集合类型</h4><p>下面的方法适用于如下类型：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSArray</span></span><br><span class="line"><span class="built_in">NSDictionary</span></span><br><span class="line"><span class="built_in">NSIndexSet</span></span><br><span class="line"><span class="built_in">NSSet</span></span><br><span class="line"><span class="built_in">NSOrderedSet</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="keyword">void</span>)bk_each<span class="operator">:</span>(<span class="keyword">void</span> (<span class="operator">^</span>)(<span class="built_in">id</span> <span class="type">obj</span>))block;</span><br></pre></td></tr></table></figure>
+<p>对数组内的每个元素进行block指定的处理</p>
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="keyword">void</span>)bk_apply<span class="operator">:</span>(<span class="keyword">void</span> (<span class="operator">^</span>)(<span class="built_in">id</span> <span class="type">obj</span>))block;</span><br></pre></td></tr></table></figure>
+<p>这个功能上和bk_each其实是一致的，但是它是异步的，速度上会比bk_each快，特别是在双核处理器上，但是必须注意线程安全，并且它不是按照顺序处理的。</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(id)</span>bk_match:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>会找到第一个经过block处理后返回YES的元素</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(NSArray *)</span>bk_select:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>对所有对元素进行block处理，将所有返回YES的元素放到一个数组中返回。</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(NSArray *)</span>bk_reject:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>这个会剔除掉不匹配的</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(NSArray *)</span>bk_map:<span class="params">(id (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>对数组进行通用block进行处理</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(id)</span>bk_reduce:<span class="params">(id)</span>initial withBlock:<span class="params">(id (^)</span><span class="params">(id sum, id obj)</span>)block;</span><br><span class="line"></span><br><span class="line">- <span class="params">(NSInteger)</span>bk_reduceInteger:<span class="params">(NSInteger)</span>initial withBlock:<span class="params">(NSInteger(^)</span><span class="params">(NSInteger result, id obj)</span>)block;</span><br><span class="line"></span><br><span class="line">- <span class="params">(CGFloat)</span>bk_reduceFloat:<span class="params">(CGFloat)</span>inital withBlock:<span class="params">(CGFloat(^)</span><span class="params">(CGFloat result, id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>对所有的元素进行递归处理，不断累加效果。</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>bk_any:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>查看数组内部是否有满足条件的元素</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>bk_none:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>查看数组内是否没有满足条件的元素</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>bk_all:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>查看数组内是否全部原始都满足</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>bk_corresponds:<span class="params">(NSArray *)</span>list withBlock:<span class="params">(BOOL (^)</span><span class="params">(id obj1, id obj2)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>查看当前数组和list的对应元素是否对应“相等”。</p>
+<h4 id="可变集合类型"><a href="#可变集合类型" class="headerlink" title="可变集合类型"></a>可变集合类型</h4><p>下面的方法适用于如下几种可变集合类型：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSMutableArray</span></span><br><span class="line"><span class="built_in">NSMutableDictionary</span></span><br><span class="line"><span class="built_in">NSMutableIndexSet</span></span><br><span class="line"><span class="built_in">NSMutableOrderedSet</span></span><br><span class="line"><span class="built_in">NSMutableSet</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>bk_performSelect:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>找出满足条件的</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>bk_performReject:<span class="params">(BOOL (^)</span><span class="params">(id obj)</span>)block;</span><br></pre></td></tr></table></figure>
+
+<p>剔除不满足条件的</p>
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="keyword">void</span>)bk_performMap<span class="operator">:</span>(<span class="built_in">id</span> (<span class="operator">^</span>)(<span class="built_in">id</span> <span class="type">obj</span>))block;</span><br></pre></td></tr></table></figure>
+
+<p>对各个元素进行map处理</p>
+<h4 id="关联对象"><a href="#关联对象" class="headerlink" title="关联对象"></a>关联对象</h4><figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>bk_associateValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">+ <span class="params">(void)</span>bk_associateValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">- <span class="params">(void)</span>bk_atomicallyAssociateValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">+ <span class="params">(void)</span>bk_atomicallyAssociateValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">- <span class="params">(void)</span>bk_associateCopyOfValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">+ <span class="params">(void)</span>bk_associateCopyOfValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">- <span class="params">(void)</span>bk_atomicallyAssociateCopyOfValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">+ <span class="params">(void)</span>bk_atomicallyAssociateCopyOfValue:<span class="params">(id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">- <span class="params">(void)</span>bk_weaklyAssociateValue:<span class="params">(__autoreleasing id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">+ <span class="params">(void)</span>bk_weaklyAssociateValue:<span class="params">(__autoreleasing id)</span>value withKey:<span class="params">(const void *)</span>key;</span><br><span class="line">- <span class="params">(id)</span>bk_associatedValueForKey:<span class="params">(const void *)</span>key;</span><br><span class="line">+ <span class="params">(id)</span>bk_associatedValueForKey:<span class="params">(const void *)</span>key;</span><br><span class="line">- <span class="params">(void)</span>bk_removeAllAssociatedObjects;</span><br><span class="line">+ <span class="params">(void)</span>bk_removeAllAssociatedObjects;</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="NSInvocation"><a href="#NSInvocation" class="headerlink" title="NSInvocation"></a>NSInvocation</h4><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSInvocation</span> *invocation = [<span class="built_in">NSInvocation</span> bk_invocationWithTarget:<span class="keyword">self</span> block:^(<span class="type">id</span> target) &#123;</span><br><span class="line">    [target testMethod];</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line">[invocation invoke];</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)testMethod &#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;===&gt;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这个用于触发某个target的对应方法，在block中传递进来target对象，直接使用该对象调用方法。</p>
+<h4 id="performSelector-的简化"><a href="#performSelector-的简化" class="headerlink" title="performSelector 的简化"></a>performSelector 的简化</h4><p>它的最大优点在于能够取消已经对应的block。</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(id)</span>bk_performBlock:<span class="params">(void (^)</span><span class="params">(id obj)</span>)block afterDelay:<span class="params">(NSTimeInterval)</span>delay;</span><br><span class="line">+ <span class="params">(id)</span>bk_performBlock:<span class="params">(void (^)</span><span class="params">(void)</span>)block afterDelay:<span class="params">(NSTimeInterval)</span>delay;</span><br><span class="line">- <span class="params">(id)</span>bk_performBlockInBackground:<span class="params">(void (^)</span><span class="params">(id obj)</span>)block afterDelay:<span class="params">(NSTimeInterval)</span>delay;</span><br><span class="line">+ <span class="params">(id)</span>bk_performBlockInBackground:<span class="params">(void (^)</span><span class="params">(void)</span>)block afterDelay:<span class="params">(NSTimeInterval)</span>delay;</span><br><span class="line">+ <span class="params">(id)</span>bk_performBlock:<span class="params">(void (^)</span><span class="params">(void)</span>)block onQueue:<span class="params">(dispatch_queue_t)</span>queue afterDelay:<span class="params">(NSTimeInterval)</span></span><br><span class="line">delay;</span><br><span class="line">- <span class="params">(id)</span>bk_performBlock:<span class="params">(void (^)</span><span class="params">(id obj)</span>)block onQueue:<span class="params">(dispatch_queue_t)</span>queue afterDelay:<span class="params">(NSTimeInterval)</span>delay;</span><br><span class="line">+ <span class="params">(void)</span>bk_cancelBlock:<span class="params">(id)</span>block;</span><br></pre></td></tr></table></figure>
+<h4 id="KVO"><a href="#KVO" class="headerlink" title="KVO"></a>KVO</h4><figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(NSString *)</span>bk_addObserverForKeyPath:<span class="params">(NSString *)</span>keyPath task:<span class="params">(void (^)</span><span class="params">(id target)</span>)task;</span><br><span class="line">- <span class="params">(NSString *)</span>bk_addObserverForKeyPaths:<span class="params">(NSArray *)</span>keyPaths task:<span class="params">(void (^)</span><span class="params">(id obj, NSString *keyPath)</span>)task;</span><br><span class="line">- <span class="params">(NSString *)</span>bk_addObserverForKeyPath:<span class="params">(NSString *)</span>keyPath options:<span class="params">(NSKeyValueObservingOptions)</span>options task:<span class="params">(void (^)</span><span class="params">(id obj, NSDictionary *change)</span>)task;</span><br><span class="line">- <span class="params">(NSString *)</span>bk_addObserverForKeyPaths:<span class="params">(NSArray *)</span>keyPaths options:<span class="params">(NSKeyValueObservingOptions)</span>options task:<span class="params">(void (^)</span><span class="params">(id obj, NSString *keyPath, NSDictionary *change)</span>)task;</span><br><span class="line">- <span class="params">(void)</span>bk_addObserverForKeyPath:<span class="params">(NSString *)</span>keyPath identifier:<span class="params">(NSString *)</span>token options:<span class="params">(NSKeyValueObservingOptions)</span>options task:<span class="params">(void (^)</span><span class="params">(id obj, NSDictionary *change)</span>)task;</span><br><span class="line">- <span class="params">(void)</span>bk_addObserverForKeyPaths:<span class="params">(NSArray *)</span>keyPaths identifier:<span class="params">(NSString *)</span>token options:<span class="params">(NSKeyValueObservingOptions)</span>options task:<span class="params">(void (^)</span><span class="params">(id obj, NSString *keyPath, NSDictionary *change)</span>)task;</span><br><span class="line">- <span class="params">(void)</span>bk_removeObserverForKeyPath:<span class="params">(NSString *)</span>keyPath identifier:<span class="params">(NSString *)</span>token;</span><br><span class="line">- <span class="params">(void)</span>bk_removeObserversWithIdentifier:<span class="params">(NSString *)</span>token;</span><br><span class="line">- <span class="params">(void)</span>bk_removeAllBlockObservers;</span><br></pre></td></tr></table></figure>
+
+<h4 id="NSTimer"><a href="#NSTimer" class="headerlink" title="NSTimer"></a>NSTimer</h4><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="built_in">NSTimer</span> *)bk_scheduledTimerWithTimeInterval:(<span class="built_in">NSTimeInterval</span>)inTimeInterval block:(<span class="type">void</span> (^)(<span class="built_in">NSTimer</span> *timer))inBlock repeats:(<span class="type">BOOL</span>)inRepeats;</span><br><span class="line">+ (<span class="built_in">NSTimer</span> *)bk_timerWithTimeInterval:(<span class="built_in">NSTimeInterval</span>)inTimeInterval block:(<span class="type">void</span> (^)(<span class="built_in">NSTimer</span> *timer))inBlock repeats:(<span class="type">BOOL</span>)inRepeats;</span><br></pre></td></tr></table></figure>
+
+<h4 id="UIView"><a href="#UIView" class="headerlink" title="UIView"></a>UIView</h4><figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>bk_whenTouches:<span class="params">(NSUInteger)</span>numberOfTouches tapped:<span class="params">(NSUInteger)</span>numberOfTaps handler:<span class="params">(void (^)</span><span class="params">(void)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>numberOfTouches 多少个手指<br>numberOfTaps 点击多少次</p>
+<p>规定多少个手指，多少点击多少次才会触发该handler Block进行处理。</p>
+<figure class="highlight nim"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)bk_whenTapped:(<span class="type">void</span> (^)(<span class="type">void</span>))<span class="keyword">block</span>;</span><br><span class="line">- (<span class="type">void</span>)bk_whenDoubleTapped:(<span class="type">void</span> (^)(<span class="type">void</span>))<span class="keyword">block</span>;</span><br></pre></td></tr></table></figure>
+<p>单击双击UIView对象会执行指定的block</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>bk_eachSubview:<span class="params">(void (^)</span><span class="params">(UIView *subview)</span>)block;</span><br></pre></td></tr></table></figure>
+<p>非递归方式遍历当前View的子View</p>
+<h4 id="UIGestureRecognizer"><a href="#UIGestureRecognizer" class="headerlink" title="UIGestureRecognizer"></a>UIGestureRecognizer</h4><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">UITapGestureRecognizer</span> *singleTap = [<span class="built_in">UITapGestureRecognizer</span> recognizerWithHandler:^(<span class="type">id</span> sender) &#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;Single tap.&quot;</span>);</span><br><span class="line">&#125; delay:<span class="number">0.18</span>];</span><br><span class="line">[<span class="keyword">self</span> addGestureRecognizer:singleTap];</span><br><span class="line"></span><br><span class="line"><span class="built_in">UITapGestureRecognizer</span> *doubleTap = [<span class="built_in">UITapGestureRecognizer</span> recognizerWithHandler:^(<span class="type">id</span> sender) &#123;</span><br><span class="line">[singleTap cancel];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;Double tap.&quot;</span>);</span><br><span class="line">&#125;];</span><br><span class="line">doubleTap.numberOfTapsRequired = <span class="number">2</span>;</span><br><span class="line">[<span class="keyword">self</span> addGestureRecognizer:doubleTap];</span><br></pre></td></tr></table></figure>
+
+<h4 id="UIControl"><a href="#UIControl" class="headerlink" title="UIControl"></a>UIControl</h4><figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>bk_addEventHandler:<span class="params">(void (^)</span><span class="params">(id sender)</span>)handler forControlEvents:<span class="params">(UIControlEvents)</span>controlEvents;</span><br><span class="line">- <span class="params">(void)</span>bk_removeEventHandlersForControlEvents:<span class="params">(UIControlEvents)</span>controlEvents;</span><br><span class="line">- <span class="params">(BOOL)</span>bk_hasEventHandlersForControlEvents:<span class="params">(UIControlEvents)</span>controlEvents;</span><br></pre></td></tr></table></figure>
+
+<h4 id="部分源码解析："><a href="#部分源码解析：" class="headerlink" title="部分源码解析："></a>部分源码解析：</h4><h5 id="UIControl-1"><a href="#UIControl-1" class="headerlink" title="UIControl"></a>UIControl</h5><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)bk_addEventHandler:(<span class="type">void</span> (^)(<span class="type">id</span> sender))handler forControlEvents:(<span class="built_in">UIControlEvents</span>)controlEvents&#123;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">NSParameterAssert</span>(handler);</span><br><span class="line">	</span><br><span class="line">    <span class="comment">//获取对象绑定到的事件</span></span><br><span class="line">	<span class="built_in">NSMutableDictionary</span> *events = objc_getAssociatedObject(<span class="keyword">self</span>, BKControlHandlersKey);</span><br><span class="line">	<span class="keyword">if</span> (!events) &#123;</span><br><span class="line">		events = [<span class="built_in">NSMutableDictionary</span> dictionary];</span><br><span class="line">        <span class="comment">//如果当前为首次给对象添加事件，则新建一个事件字典，并动态关联到对象</span></span><br><span class="line">		objc_setAssociatedObject(<span class="keyword">self</span>, BKControlHandlersKey, events, OBJC_ASSOCIATION_RETAIN_NONATOMIC);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//取出该事件的处理者</span></span><br><span class="line">	<span class="built_in">NSNumber</span> *key = @(controlEvents);</span><br><span class="line">	<span class="built_in">NSMutableSet</span> *handlers = events[key];</span><br><span class="line">	<span class="keyword">if</span> (!handlers) &#123;</span><br><span class="line">		handlers = [<span class="built_in">NSMutableSet</span> set];</span><br><span class="line">		events[key] = handlers;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//将处理的Block 以及处理类型存储到BKControlWrapper对象</span></span><br><span class="line">	BKControlWrapper *target = [[BKControlWrapper alloc] initWithHandler:handler forControlEvents:controlEvents];</span><br><span class="line">	[handlers addObject:target];</span><br><span class="line">    <span class="comment">//触发BKControlWrapper的invoke方法。</span></span><br><span class="line">	[<span class="keyword">self</span> addTarget:target action:<span class="keyword">@selector</span>(invoke:) forControlEvents:controlEvents];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2019/11/26/BlocksKit-%E7%9A%84%E4%BD%BF%E7%94%A8/00001.png"></p>
+<p>UIControl+BlocksKit 中是通过为每个UIControl对象添加一个以UIControlEvents为key，value为BKControlWrapper集合的字典，当我们要为某个UIControlEvents添加一个事件的时候只要找到对应的handlers集合，然后将handler和UIControlEvents封装到BKControlWrapper，然后再调用[self addTarget:target action:@selector(invoke:) forControlEvents:controlEvents];<br>这样一旦发生controlEvents事件，就会触发BKControlWrapper的invoke方法,在invoke方法中就会执行对应的block。</p>
+<h5 id="UIGestureRecognizer-1"><a href="#UIGestureRecognizer-1" class="headerlink" title="UIGestureRecognizer"></a>UIGestureRecognizer</h5><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="type">id</span>)bk_recognizerWithHandler:(<span class="type">void</span> (^)(<span class="built_in">UIGestureRecognizer</span> *sender, <span class="built_in">UIGestureRecognizerState</span> state, <span class="built_in">CGPoint</span> location))block delay:(<span class="built_in">NSTimeInterval</span>)delay &#123;</span><br><span class="line">	<span class="keyword">return</span> [[[<span class="keyword">self</span> <span class="keyword">class</span>] alloc] bk_initWithHandler:block delay:delay];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">id</span>)bk_initWithHandler:(<span class="type">void</span> (^)(<span class="built_in">UIGestureRecognizer</span> *sender, <span class="built_in">UIGestureRecognizerState</span> state, <span class="built_in">CGPoint</span> location))block delay:(<span class="built_in">NSTimeInterval</span>)delay &#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="keyword">self</span> initWithTarget:<span class="keyword">self</span> action:<span class="keyword">@selector</span>(bk_handleAction:)];</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">self</span>) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">self</span>.bk_handler = block;</span><br><span class="line">    <span class="keyword">self</span>.bk_handlerDelay = delay;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>初始化的时候会将delay以及block保存到<strong><strong>bk_handler</strong></strong>以及<strong><strong>bk_handlerDelay</strong></strong>，并指定当前处理的Action为<strong><strong>bk_handleAction</strong></strong>。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)bk_handleAction:(<span class="built_in">UIGestureRecognizer</span> *)recognizer&#123;</span><br><span class="line">	<span class="type">void</span> (^handler)(<span class="built_in">UIGestureRecognizer</span> *sender, <span class="built_in">UIGestureRecognizerState</span> state, <span class="built_in">CGPoint</span> location) = recognizer.bk_handler;</span><br><span class="line">	<span class="keyword">if</span> (!handler) <span class="keyword">return</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">NSTimeInterval</span> delay = <span class="keyword">self</span>.bk_handlerDelay;</span><br><span class="line">	<span class="built_in">CGPoint</span> location = [<span class="keyword">self</span> locationInView:<span class="keyword">self</span>.view];</span><br><span class="line">	<span class="type">void</span> (^block)(<span class="type">void</span>) = ^&#123;</span><br><span class="line">		<span class="keyword">if</span> (!<span class="keyword">self</span>.bk_shouldHandleAction) <span class="keyword">return</span>;</span><br><span class="line">		handler(<span class="keyword">self</span>, <span class="keyword">self</span>.state, location);</span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">self</span>.bk_shouldHandleAction = <span class="literal">YES</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (!delay) &#123;</span><br><span class="line">		block();</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * <span class="built_in">NSEC_PER_SEC</span>));</span><br><span class="line">	dispatch_after(popTime, dispatch_get_main_queue(), block);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在对应的手势事件触发的时候会调用bk_handleAction 这时候取出bk_handler，然后根据是否需要延迟执行来执行对应的bk_handler</p>
+<p>介绍了UIGestureRecognizer+BlocksKit这里顺带介绍下UIView+BlocksKit,它实际上也是在UIView的基础上添加手势识别器来实现的：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)bk_whenTouches:(<span class="built_in">NSUInteger</span>)numberOfTouches tapped:(<span class="built_in">NSUInteger</span>)numberOfTaps handler:(<span class="type">void</span> (^)(<span class="type">void</span>))block &#123;</span><br><span class="line">	<span class="keyword">if</span> (!block) <span class="keyword">return</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">UITapGestureRecognizer</span> *gesture = [<span class="built_in">UITapGestureRecognizer</span> bk_recognizerWithHandler:^(<span class="built_in">UIGestureRecognizer</span> *sender, <span class="built_in">UIGestureRecognizerState</span> state, <span class="built_in">CGPoint</span> location) &#123;</span><br><span class="line">		<span class="keyword">if</span> (state == <span class="built_in">UIGestureRecognizerStateRecognized</span>) block();</span><br><span class="line">	&#125;];</span><br><span class="line">	</span><br><span class="line">	gesture.numberOfTouchesRequired = numberOfTouches;</span><br><span class="line">	gesture.numberOfTapsRequired = numberOfTaps;</span><br><span class="line"></span><br><span class="line">	[<span class="keyword">self</span>.gestureRecognizers enumerateObjectsUsingBlock:^(<span class="type">id</span> obj, <span class="built_in">NSUInteger</span> idx, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">		<span class="keyword">if</span> (![obj isKindOfClass:[<span class="built_in">UITapGestureRecognizer</span> <span class="keyword">class</span>]]) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">		<span class="built_in">UITapGestureRecognizer</span> *tap = obj;</span><br><span class="line">		<span class="type">BOOL</span> rightTouches = (tap.numberOfTouchesRequired == numberOfTouches);</span><br><span class="line">		<span class="type">BOOL</span> rightTaps = (tap.numberOfTapsRequired == numberOfTaps);</span><br><span class="line">		<span class="keyword">if</span> (rightTouches &amp;&amp; rightTaps) &#123;</span><br><span class="line">			[gesture requireGestureRecognizerToFail:tap];</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;];</span><br><span class="line"></span><br><span class="line">	[<span class="keyword">self</span> addGestureRecognizer:gesture];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)bk_whenTapped:(<span class="type">void</span> (^)(<span class="type">void</span>))block&#123;</span><br><span class="line">	[<span class="keyword">self</span> bk_whenTouches:<span class="number">1</span> tapped:<span class="number">1</span> handler:block];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="关联对象-1"><a href="#关联对象-1" class="headerlink" title="关联对象"></a>关联对象</h5><p>这部分没太多新颖的内容，比较有意思的是实现weak方式的关联，它实际上使用了一个中间对象，来做过渡，它持有一个weak类型的属性value来存储实际所赋的值。在获取关联对象时就判断其是否为_BKWeakAssociatedObject类型的对象，如果是就返回该对象value的属性值。</p>
+<figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">+ (void)bk_weaklyAssociateValue:(__autoreleasing id)value withKey:(const void *)<span class="built_in">key</span> &#123;</span><br><span class="line">	_BKWeakAssociatedObject *<span class="built_in">assoc</span> = objc_getAssociatedObject(self, <span class="built_in">key</span>);</span><br><span class="line">	<span class="keyword">if</span> (!<span class="built_in">assoc</span>) &#123;</span><br><span class="line">		<span class="built_in">assoc</span> = [_BKWeakAssociatedObject <span class="built_in">new</span>];</span><br><span class="line">		[self bk_associateValue:<span class="built_in">assoc</span> withKey:<span class="built_in">key</span>];</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">assoc</span>.value = value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="NSObject-BKBlockExecution"><a href="#NSObject-BKBlockExecution" class="headerlink" title="NSObject+BKBlockExecution"></a>NSObject+BKBlockExecution</h5><figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">- (id)bk_performBlock:(<span class="type">void</span> (^)(id obj))block onQueue:(dispatch_queue_t)queue afterDelay:(NSTimeInterval)delay &#123;</span><br><span class="line">	NSParameterAssert(block != nil);</span><br><span class="line"></span><br><span class="line">	__block <span class="type">BOOL</span> cancelled = <span class="keyword">NO</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">void</span> (^<span class="keyword">wrapper</span>)(<span class="type">BOOL</span>) = ^(<span class="type">BOOL</span> cancel) &#123;</span><br><span class="line">		<span class="keyword">if</span> (cancel) &#123;</span><br><span class="line">			cancelled = YES;</span><br><span class="line">			<span class="keyword">return</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (!cancelled) block(self);</span><br><span class="line">	&#125;;</span><br><span class="line">	</span><br><span class="line">	dispatch_after(BKTimeDelay(delay), queue, ^&#123;</span><br><span class="line">		<span class="keyword">wrapper</span>(<span class="keyword">NO</span>);</span><br><span class="line">	&#125;);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> [<span class="keyword">wrapper</span> <span class="keyword">copy</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">+ (<span class="type">void</span>)bk_cancelBlock:(id)block &#123;</span><br><span class="line">	NSParameterAssert(block != nil);</span><br><span class="line">	<span class="type">void</span> (^<span class="keyword">wrapper</span>)(<span class="type">BOOL</span>) = block;</span><br><span class="line">	<span class="keyword">wrapper</span>(YES);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用了一个__block的cacelled标记，标记无效时才执行block。默认情况下就传入NO，使其能正常工作。将要取消时传入YES即可，所以在取消的时候就直接调用了wrapper(YES);</p>
+<h5 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h5><p>BlocksKit的动态代理部分是整个BlocksKit的精华所在，它用于解决什么问题呢？<br>我们先来看下我们要给一个对象设置代理一般有如下步骤：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1.</span> 创建代理对象</span><br><span class="line"><span class="bullet">2.</span> 代理对象遵守协议；</span><br><span class="line"><span class="bullet">3.</span> 代理对象实现协议</span><br><span class="line"><span class="bullet">4.</span> 将代理对象赋给delegate属性</span><br></pre></td></tr></table></figure>
+
+<p>这有个不好的地方就是代码会显得比较散乱，必须要新建一个代理类，并且代理实现方法和设置代理的方法是分开的，这种问题之前我们会采用rac_signalForSelector来将代理实现聚合在设置代理的方法地方。但是这还不算是十分优雅的方式：</p>
+<p>在BlocksKit中给出下面的一个例子：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">UIAlertView</span> *alertView = [[<span class="built_in">UIAlertView</span> alloc]</span><br><span class="line">							initWithTitle:<span class="string">@&quot;Hello World!&quot;</span></span><br><span class="line">							message:<span class="string">@&quot;This alert&#x27;s delegate is implemented using blocks. That&#x27;s so cool!&quot;</span></span><br><span class="line">							delegate:<span class="literal">nil</span></span><br><span class="line">							cancelButtonTitle:<span class="string">@&quot;Meh.&quot;</span></span><br><span class="line">							otherButtonTitles:<span class="string">@&quot;Woo!&quot;</span>, <span class="literal">nil</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// Get the dynamic delegate</span></span><br><span class="line">A2DynamicDelegate *dd = alertView.bk_dynamicDelegate;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Implement -alertViewShouldEnableFirstOtherButton:</span></span><br><span class="line">[dd implementMethod:<span class="keyword">@selector</span>(alertViewShouldEnableFirstOtherButton:) withBlock:^(<span class="built_in">UIAlertView</span> *alertView) &#123;</span><br><span class="line">	<span class="built_in">NSLog</span>(<span class="string">@&quot;Message: %@&quot;</span>, alertView.message);</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">YES</span>;</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line"><span class="comment">// Implement -alertView:willDismissWithButtonIndex:</span></span><br><span class="line">[dd implementMethod:<span class="keyword">@selector</span>(alertView:willDismissWithButtonIndex:) withBlock:^(<span class="built_in">UIAlertView</span> *alertView, <span class="built_in">NSInteger</span> buttonIndex) &#123;</span><br><span class="line">	<span class="built_in">NSLog</span>(<span class="string">@&quot;You pushed button #%d (%@)&quot;</span>, buttonIndex, [alertView buttonTitleAtIndex:buttonIndex]);</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line"><span class="comment">// Set the delegate</span></span><br><span class="line">alertView.delegate = dd;</span><br><span class="line"></span><br><span class="line">[alertView show];</span><br></pre></td></tr></table></figure>
+
+<p>这个就是BlocksKit动态代理的使用过程：</p>
+<p>首先通过bk_dynamicDelegate来获得UIAlertView的动态代理，然后通过implementMethod将代理方法selector与对应的block绑定，最后将动态代理设置给UIAlertView。<br>整个代码一气呵成。但是背后实际上还是存在代理类的创建，后面会一一向大家介绍整个流程,我们先来看下涉及到的关键类有哪些：</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">A<span class="symbol">2B</span>lockInvocation 的主要用于存储和转发<span class="keyword">block</span></span><br><span class="line"><span class="keyword"></span>A2DynamicDelegate 用来实现类的代理和数据源</span><br><span class="line">NSObject+A2DynamicDelegate 负责为返回 <span class="keyword">bk_dynamicDelegate </span>和 <span class="keyword">bk_dynamicDataSource </span>等 A2DynamicDelegate 类型的实例，</span><br><span class="line">NSObject+A<span class="symbol">2B</span>lockDelegate 提供了一系列接口将代理方法映射到 <span class="keyword">block </span>上</span><br></pre></td></tr></table></figure>
+
+<p>我们接下来顺着上面的例子过一遍代码，看下如何实现动态代理的功能。</p>
+<p>在载入UIAlertView+BlocksKit 分类的时候会调用load方法，这里主要做了两件事情，一个是通过bk_registerDynamicDelegate来注册动态代理，另一个是通过bk_linkDelegateMethods将指定的Block与对应的Delegate方法链接起来。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">+ (void)load&#123;</span><br><span class="line"><span class="meta">	@autoreleasepool &#123;</span></span><br><span class="line">		[self bk_registerDynamicDelegate];</span><br><span class="line">		[self bk_linkDelegateMethods:@&#123;</span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_willShowBlock&quot;</span>: @<span class="string">&quot;willPresentAlertView:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_didShowBlock&quot;</span>: @<span class="string">&quot;didPresentAlertView:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_willDismissBlock&quot;</span>: @<span class="string">&quot;alertView:willDismissWithButtonIndex:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_didDismissBlock&quot;</span>: @<span class="string">&quot;alertView:didDismissWithButtonIndex:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_shouldEnableFirstOtherButtonBlock&quot;</span>: @<span class="string">&quot;alertViewShouldEnableFirstOtherButton:&quot;</span></span></span><br><span class="line">		&#125;];</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>注册动态代理</strong></strong>：</p>
+<p>注册动态代理相关代码如下：</p>
+<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line">+ (<span class="literal">void</span>)bk_registerDynamicDelegate &#123;</span><br><span class="line">	<span class="meta">[</span><span class="built_in">self</span> bk_registerDynamicDelegateNamed:@<span class="string">&quot;delegate&quot;</span> forProtocol:a2_delegateProtocol(<span class="built_in">self</span><span class="comment">/*UIAlertView*/</span>)<span class="comment">/*UIAlertViewDelegate*/</span><span class="meta">]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Protocol *a2<span class="constructor">_delegateProtocol(Class <span class="params">cls</span>)</span> &#123;</span><br><span class="line">    <span class="comment">/*获取到UIActionSheetDelegate协议*/</span></span><br><span class="line">	return a2<span class="constructor">_classProtocol(<span class="params">cls</span>, @<span class="string">&quot;Delegate&quot;</span>, @<span class="string">&quot;delegate&quot;</span>)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static Protocol *a2<span class="constructor">_classProtocol(Class <span class="params">_cls</span><span class="operator">/</span><span class="operator">*</span>UIAlertView<span class="operator">*</span><span class="operator">/</span>, NSString <span class="operator">*</span><span class="params">suffix</span><span class="operator">/</span><span class="operator">*</span>Delegate<span class="operator">*</span><span class="operator">/</span>, NSString <span class="operator">*</span><span class="params">description</span><span class="operator">/</span><span class="operator">*</span><span class="params">delegate</span><span class="operator">*</span><span class="operator">/</span>)</span> &#123;</span><br><span class="line">	Class cls = _cls;</span><br><span class="line">	<span class="keyword">while</span> (cls) &#123;</span><br><span class="line">		NSString *className = <span class="constructor">NSStringFromClass(<span class="params">cls</span>)</span>;</span><br><span class="line">        <span class="comment">//UIAlertViewDelegate</span></span><br><span class="line">		NSString *protocolName = <span class="literal">[<span class="identifier">className</span> <span class="identifier">stringByAppendingString</span>:<span class="identifier">suffix</span>]</span>;</span><br><span class="line">        <span class="comment">//获得UIAlertViewDelegate协议</span></span><br><span class="line">		Protocol *protocol = objc<span class="constructor">_getProtocol(<span class="params">protocolName</span>.UTF8String)</span>;</span><br><span class="line">		<span class="keyword">if</span> (protocol) return protocol;</span><br><span class="line">		cls = <span class="keyword">class</span><span class="constructor">_getSuperclass(<span class="params">cls</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//............</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="type">void</span>)bk_registerDynamicDelegateNamed:(<span class="built_in">NSString</span> *)delegateName &#123;</span><br><span class="line">	[<span class="keyword">self</span> bk_registerDynamicDelegateNamed:delegateName forProtocol:a2_delegateProtocol(<span class="keyword">self</span>)];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="type">void</span>)bk_registerDynamicDelegateNamed:(<span class="built_in">NSString</span> *)delegateName<span class="comment">/*delegate*/</span> forProtocol:(Protocol *)protocol<span class="comment">/*UIAlertViewDelegate*/</span> &#123;</span><br><span class="line">	<span class="built_in">NSMapTable</span> *propertyMap = [<span class="keyword">self</span> bk_delegateInfoByProtocol:<span class="literal">YES</span>];</span><br><span class="line">	A2BlockDelegateInfo *infoAsPtr = (__bridge <span class="type">void</span> *)[propertyMap objectForKey:protocol];</span><br><span class="line">	<span class="keyword">if</span> (infoAsPtr != <span class="literal">NULL</span>) &#123; <span class="keyword">return</span>; &#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">const</span> <span class="type">char</span> *name = delegateName.UTF8String;                 <span class="comment">/*delegate*/</span></span><br><span class="line">	objc_property_t property = class_getProperty(<span class="keyword">self</span>, name);   <span class="comment">/*获得UIAlertView 的 delegate property属性*/</span></span><br><span class="line">	SEL <span class="keyword">setter</span> = setterForProperty(property, name);             <span class="comment">/*setDelegate:*/</span></span><br><span class="line">	SEL a2_setter = prefixedSelector(<span class="keyword">setter</span>);                   <span class="comment">/*a2_SetDelegate:*/</span></span><br><span class="line">	SEL <span class="keyword">getter</span> = getterForProperty(property, name);             <span class="comment">/*delegate*/</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">//A2BlockDelegateInfo 包着setter，a2_setter，getter 三个Selector</span></span><br><span class="line">	A2BlockDelegateInfo info = &#123;</span><br><span class="line">		<span class="keyword">setter</span>, a2_setter, <span class="keyword">getter</span></span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//这里将A2BlockDelegateInfo设置propertyMap到</span></span><br><span class="line">	[propertyMap setObject:(__bridge <span class="type">id</span>)&amp;info forKey:protocol];</span><br><span class="line">	infoAsPtr = (__bridge <span class="type">void</span> *)[propertyMap objectForKey:protocol];</span><br><span class="line"></span><br><span class="line">	<span class="comment">//交换delegate setter的selector，也就是说在XXXX.delegate 的时候就会将delegte值赋给dynamicDelegate.realDelegate</span></span><br><span class="line">	IMP setterImplementation = imp_implementationWithBlock(^(<span class="built_in">NSObject</span> *delegatingObject, <span class="type">id</span> delegate) &#123;</span><br><span class="line">		A2DynamicDelegate *dynamicDelegate = getDynamicDelegate(delegatingObject, protocol, infoAsPtr, <span class="literal">YES</span>);</span><br><span class="line">		<span class="comment">//如果dynamicDelegate 等于 delegate的话也不使用delegate</span></span><br><span class="line">		<span class="keyword">if</span> ([delegate isEqual:dynamicDelegate]) &#123;</span><br><span class="line">			delegate = <span class="literal">nil</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">//dynamicDelegate 表示真实的delegate</span></span><br><span class="line">		dynamicDelegate.realDelegate = delegate;</span><br><span class="line">	&#125;);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//将设置方法setter设为a2_SetDelegate</span></span><br><span class="line">	<span class="keyword">if</span> (!swizzleWithIMP(<span class="keyword">self</span>, <span class="keyword">setter</span>, a2_setter, setterImplementation, <span class="string">&quot;v@:@&quot;</span>, <span class="literal">YES</span>)) &#123;</span><br><span class="line">		bzero(infoAsPtr, <span class="keyword">sizeof</span>(A2BlockDelegateInfo));</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (![<span class="keyword">self</span> instancesRespondToSelector:<span class="keyword">getter</span>]) &#123;</span><br><span class="line">		IMP getterImplementation = imp_implementationWithBlock(^(<span class="built_in">NSObject</span> *delegatingObject) &#123;</span><br><span class="line">			<span class="comment">//获取到对应的动态代理对象</span></span><br><span class="line">			<span class="keyword">return</span> [delegatingObject bk_dynamicDelegateForProtocol:a2_protocolForDelegatingObject(delegatingObject, protocol)];</span><br><span class="line">		&#125;);</span><br><span class="line">		addMethodWithIMP(<span class="keyword">self</span>, <span class="keyword">getter</span>, <span class="literal">NULL</span>, getterImplementation, <span class="string">&quot;@@:&quot;</span>, <span class="literal">NO</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">inline</span> A2DynamicDelegate *getDynamicDelegate(<span class="built_in">NSObject</span> *delegatingObject,<span class="comment">/*被代理对象*/</span> Protocol *protocol, <span class="keyword">const</span> A2BlockDelegateInfo *info, <span class="type">BOOL</span> ensuring) &#123;</span><br><span class="line">	A2DynamicDelegate *dynamicDelegate = [delegatingObject bk_dynamicDelegateForProtocol:a2_protocolForDelegatingObject(delegatingObject, protocol)<span class="comment">/*UIAlertViewDelegate*/</span>];</span><br><span class="line">	<span class="comment">//......</span></span><br><span class="line">	<span class="keyword">return</span> dynamicDelegate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">id</span>)bk_dynamicDelegateForProtocol:(Protocol *)protocol&#123;</span><br><span class="line">	Class <span class="keyword">class</span> = [A2DynamicDelegate <span class="keyword">class</span>];</span><br><span class="line">    <span class="comment">/*UIAlertViewDelegate*/</span></span><br><span class="line">	<span class="built_in">NSString</span> *protocolName = <span class="built_in">NSStringFromProtocol</span>(protocol);</span><br><span class="line">	<span class="keyword">if</span> ([protocolName hasSuffix:<span class="string">@&quot;Delegate&quot;</span>]) &#123;</span><br><span class="line">		<span class="keyword">class</span> = a2_dynamicDelegateClass([<span class="keyword">self</span> <span class="keyword">class</span>], <span class="string">@&quot;Delegate&quot;</span>);</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> ([protocolName hasSuffix:<span class="string">@&quot;DataSource&quot;</span>]) &#123;</span><br><span class="line">		<span class="keyword">class</span> = a2_dynamicDelegateClass([<span class="keyword">self</span> <span class="keyword">class</span>], <span class="string">@&quot;DataSource&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">/*A2DynamicUIAlertViewDelegate*/</span></span><br><span class="line">	<span class="keyword">return</span> [<span class="keyword">self</span> bk_dynamicDelegateWithClass:<span class="keyword">class</span> forProtocol:protocol];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> Class a2_dynamicDelegateClass(Class cls, <span class="built_in">NSString</span> *suffix) &#123;</span><br><span class="line">	<span class="keyword">while</span> (cls) &#123;</span><br><span class="line">		<span class="comment">//A2DynamicUIAlertViewDelegate</span></span><br><span class="line">		<span class="built_in">NSString</span> *className = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@&quot;A2Dynamic%@%@&quot;</span>, <span class="built_in">NSStringFromClass</span>(cls), suffix];</span><br><span class="line">		Class ddClass = <span class="built_in">NSClassFromString</span>(className);</span><br><span class="line">		<span class="keyword">if</span> (ddClass) <span class="keyword">return</span> ddClass;</span><br><span class="line">		cls = class_getSuperclass(cls);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> [A2DynamicDelegate <span class="keyword">class</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">- (id)bk_dynamicDelegateWithClass:(Class)cls forProtocol:(Protocol *)protocol&#123;</span><br><span class="line"></span><br><span class="line">	__block A2DynamicDelegate *dynamicDelegate;</span><br><span class="line"></span><br><span class="line">	dispatch<span class="constructor">_sync(<span class="params">a2_backgroundQueue</span>()</span>, ^&#123;</span><br><span class="line">		dynamicDelegate = objc<span class="constructor">_getAssociatedObject(<span class="params">self</span>, (<span class="params">__bridge</span> <span class="params">const</span> <span class="params">void</span> <span class="operator">*</span>)</span>protocol);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (!dynamicDelegate) &#123;</span><br><span class="line">			<span class="comment">//将当前代理与当前对象关联，这里可以起到缓存作用</span></span><br><span class="line">			dynamicDelegate = <span class="literal">[[<span class="identifier">cls</span> <span class="identifier">alloc</span>]</span> initWithProtocol:protocol];</span><br><span class="line">			objc<span class="constructor">_setAssociatedObject(<span class="params">self</span>, (<span class="params">__bridge</span> <span class="params">const</span> <span class="params">void</span> <span class="operator">*</span>)</span>protocol, dynamicDelegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;);</span><br><span class="line">	return dynamicDelegate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最为关键的在于：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="type">void</span>)bk_registerDynamicDelegateNamed:(<span class="built_in">NSString</span> *)delegateName forProtocol:(Protocol *)protocol;</span><br></pre></td></tr></table></figure>
+
+<p>以及</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(id)</span>bk_dynamicDelegateForProtocol:<span class="params">(Protocol *)</span>protocol</span><br></pre></td></tr></table></figure>
+
+<p>在bk_registerDynamicDelegateNamed方法中会将通过bk_dynamicDelegateForProtocol方法获取到的代理对象通过关联对象与当前对象产生关联，也就是说将A2DynamicUIAlertViewDelegate对象作为当前的dynamicDelegate属性添加到当前类中，并且原本的delegate存到dynamicDelegate 的 realDelegate对象中，获取delegate的时候，返回就是dynamicDelegate这个管理对象。从而达到替换的目的。也就是说在我们调用delegate的时候实际上是返回<strong><strong>A2DynamicUIAlertViewDelegate</strong></strong>，这时候系统调用delegate方法的时候会转调A2DynamicUIAlertViewDelegate对应的方法，</p>
+<p>我们接下来看下<strong><strong>A2DynamicUIAlertViewDelegate</strong></strong>中的具体一个代理方法：</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">BOOL)alertViewShouldEnableFirstOtherButton:(UIAlertView </span>*)alertView &#123;</span><br><span class="line">	<span class="keyword">BOOL </span><span class="keyword">should </span>= YES;</span><br><span class="line">	id realDelegate = self.realDelegate;</span><br><span class="line">	if (realDelegate &amp;&amp; [realDelegate respondsToSelector:@selector(alertViewShouldEnableFirstOtherButton:)])</span><br><span class="line">		<span class="keyword">should </span>&amp;= [realDelegate alertViewShouldEnableFirstOtherButton:alertView];</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">BOOL </span>(^<span class="keyword">block)(UIAlertView </span>*) = [self <span class="keyword">blockImplementationForMethod:_cmd];</span></span><br><span class="line"><span class="keyword"></span>	if (<span class="keyword">block)</span></span><br><span class="line"><span class="keyword"></span>		<span class="keyword">should </span>&amp;= <span class="keyword">block(alertView);</span></span><br><span class="line"><span class="keyword"></span>	</span><br><span class="line">	return <span class="keyword">should;</span></span><br><span class="line"><span class="keyword"></span>&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在这里调用了<strong><strong>blockImplementationForMethod</strong></strong>，通过这个方法取出这个代理对应的Block执行。我们看下<strong><strong>blockImplementationForMethod</strong></strong>方法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">id</span>)blockImplementationForMethod:(SEL)selector&#123;</span><br><span class="line">	A2BlockInvocation *invocation = <span class="literal">nil</span>;</span><br><span class="line">	<span class="keyword">if</span> ((invocation = [<span class="keyword">self</span>.invocationsBySelectors bk_objectForSelector:selector]))</span><br><span class="line">		<span class="keyword">return</span> invocation.block;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法会通过selector 从 A2BlockInvocation中获取对应的invocation，而block就存在这里，这个接下来会进行介绍。</p>
+<p>这里做个简单的总结：</p>
+<p>首先在load方法中通过bk_registerDynamicDelegate方法将delegate替换为我们已经实现好的A2DynamicUIAlertViewDelegate，这样在系统事件发生需要调用delegate方法的时候就会将流程转到A2DynamicUIAlertViewDelegate，在这里会通过当前selector从A2BlockInvocation中获取到对应的invocation，block就存在这个invocation中。那么这里就会产生一个问题，selector怎么和invocation产生关联的？我们接下来介绍这部分。</p>
+<p>如果我们还有印象的话在load方法中还调用了<strong><strong>bk_linkDelegateMethods</strong></strong></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">+ (void)load&#123;</span><br><span class="line"><span class="meta">	@autoreleasepool &#123;</span></span><br><span class="line">		[self bk_registerDynamicDelegate];</span><br><span class="line">		[self bk_linkDelegateMethods:@&#123;</span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_willShowBlock&quot;</span>: @<span class="string">&quot;willPresentAlertView:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_didShowBlock&quot;</span>: @<span class="string">&quot;didPresentAlertView:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_willDismissBlock&quot;</span>: @<span class="string">&quot;alertView:willDismissWithButtonIndex:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_didDismissBlock&quot;</span>: @<span class="string">&quot;alertView:didDismissWithButtonIndex:&quot;</span>,</span></span><br><span class="line"><span class="meta">			@<span class="string">&quot;bk_shouldEnableFirstOtherButtonBlock&quot;</span>: @<span class="string">&quot;alertViewShouldEnableFirstOtherButton:&quot;</span></span></span><br><span class="line">		&#125;];</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">+ (void)<span class="keyword">bk_linkDelegateMethods:(NSDictionary </span>*)<span class="keyword">dictionary&#123;</span></span><br><span class="line"><span class="keyword"></span>	[self <span class="keyword">bk_linkProtocol:a2_delegateProtocol(self) </span>methods:<span class="keyword">dictionary];</span></span><br><span class="line"><span class="keyword"></span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>bk_linkProtocol</strong></strong>是这部分最为关键的方法，会将block与delegate中的selector进行关联。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">+ (void)bk_linkProtocol:(Protocol *)protocol methods:(NSDictionary *)dictionary &#123;</span><br><span class="line"></span><br><span class="line">	<span class="literal">[<span class="identifier">dictionary</span> <span class="identifier">enumerateKeysAndObjectsUsingBlock</span>:^(NSS<span class="identifier">tring</span> <span class="operator">*</span><span class="identifier">propertyName</span>, NSS<span class="identifier">tring</span> <span class="operator">*</span><span class="identifier">selectorName</span>, BOOL <span class="operator">*</span><span class="identifier">stop</span>) &#123;</span></span><br><span class="line"><span class="literal"></span></span><br><span class="line"><span class="literal">		<span class="operator">/</span><span class="operator">/</span><span class="operator">...</span><span class="operator">...</span></span></span><br><span class="line"><span class="literal">		IMP <span class="identifier">getterImplementation</span> = <span class="identifier">imp_implementationWithBlock</span>(^(NSO<span class="identifier">bject</span> <span class="operator">*</span><span class="identifier">delegatingObject</span>) &#123;</span></span><br><span class="line"><span class="literal">			A2D<span class="identifier">ynamicDelegate</span> <span class="operator">*</span><span class="identifier">delegate</span> = <span class="identifier">getDynamicDelegate</span>(<span class="identifier">delegatingObject</span>, <span class="identifier">protocol</span>, <span class="identifier">info</span>, NO);</span></span><br><span class="line"><span class="literal">			<span class="identifier">return</span> [<span class="identifier">delegate</span> <span class="identifier">blockImplementationForMethod</span>:<span class="identifier">selector</span>]</span>;</span><br><span class="line">		&#125;);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (!<span class="keyword">class</span><span class="constructor">_addMethod(<span class="params">self</span>, <span class="params">getter</span>, <span class="params">getterImplementation</span>, <span class="string">&quot;@@:&quot;</span>)</span>) &#123;</span><br><span class="line">			<span class="constructor">NSCAssert(NO, @<span class="string">&quot;Could not implement getter for \&quot;%@\&quot; property.&quot;</span>, <span class="params">propertyName</span>)</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		IMP setterImplementation = imp<span class="constructor">_implementationWithBlock(^(NSObject <span class="operator">*</span><span class="params">delegatingObject</span>, <span class="params">id</span> <span class="params">block</span>)</span> &#123;</span><br><span class="line">			A2DynamicDelegate *delegate = get<span class="constructor">DynamicDelegate(<span class="params">delegatingObject</span>, <span class="params">protocol</span>, <span class="params">info</span>, YES)</span>;</span><br><span class="line">			<span class="literal">[<span class="identifier">delegate</span> <span class="identifier">implementMethod</span>:<span class="identifier">selector</span> <span class="identifier">withBlock</span>:<span class="identifier">block</span>]</span>;</span><br><span class="line">		&#125;);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (!<span class="keyword">class</span><span class="constructor">_addMethod(<span class="params">self</span>, <span class="params">setter</span>, <span class="params">setterImplementation</span>, <span class="string">&quot;v@:@&quot;</span>)</span>) &#123;</span><br><span class="line">			<span class="constructor">NSCAssert(NO, @<span class="string">&quot;Could not implement setter for \&quot;%@\&quot; property.&quot;</span>, <span class="params">propertyName</span>)</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看下<strong><strong>implementMethod</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)implementMethod:(SEL)selector withBlock:(<span class="type">id</span>)block &#123;</span><br><span class="line">	<span class="type">BOOL</span> isClassMethod = <span class="keyword">self</span>.isClassProxy;</span><br><span class="line">	<span class="comment">//.......</span></span><br><span class="line">	<span class="keyword">struct</span> objc_method_description methodDescription = protocol_getMethodDescription(<span class="keyword">self</span>.protocol, selector, <span class="literal">YES</span>, !isClassMethod);</span><br><span class="line">	<span class="keyword">if</span> (!methodDescription.name) methodDescription = protocol_getMethodDescription(<span class="keyword">self</span>.protocol, selector, <span class="literal">NO</span>, !isClassMethod);</span><br><span class="line"></span><br><span class="line">	A2BlockInvocation *inv = <span class="literal">nil</span>;</span><br><span class="line">	<span class="keyword">if</span> (methodDescription.name) &#123;</span><br><span class="line">		<span class="built_in">NSMethodSignature</span> *protoSig = [<span class="built_in">NSMethodSignature</span> signatureWithObjCTypes:methodDescription.types];</span><br><span class="line">		inv = [[A2BlockInvocation alloc] initWithBlock:block methodSignature:protoSig];</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		inv = [[A2BlockInvocation alloc] initWithBlock:block];</span><br><span class="line">	&#125;</span><br><span class="line">	[<span class="keyword">self</span>.invocationsBySelectors bk_setObject:inv forSelector:selector];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里会新建一个A2BlockInvocation并将block 保存到 A2BlockInvocation中，并以selector为key A2BlockInvocation为value 存到self.invocationsBySelectors中。这样上一步就可以通过selector找到A2BlockInvocation进而找到关联的block了，这部分逻辑在<strong><strong>blockImplementationForMethod</strong></strong>中。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">id</span>)blockImplementationForMethod:(SEL)selector &#123;</span><br><span class="line">	A2BlockInvocation *invocation = <span class="literal">nil</span>;</span><br><span class="line">	<span class="keyword">if</span> ((invocation = [<span class="keyword">self</span>.invocationsBySelectors bk_objectForSelector:selector]))</span><br><span class="line">		<span class="keyword">return</span> invocation.block;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是你们想过没为什么要通过A2BlockInvocation而不是直接将block与selector关联？这其实涉及到下面这些部分，往分类添加的属性，这些属性分类中并没有设置它的getter方法和setter方法。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">setter</span> = bk_setCancelBlock:) <span class="type">void</span> (^bk_cancelBlock)(<span class="type">void</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">setter</span> = bk_setWillShowBlock:) <span class="type">void</span> (^bk_willShowBlock)(<span class="built_in">UIAlertView</span> *alertView);</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">setter</span> = bk_setDidShowBlock:) <span class="type">void</span> (^bk_didShowBlock)(<span class="built_in">UIAlertView</span> *alertView);</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">setter</span> = bk_setWillDismissBlock:) <span class="type">void</span> (^bk_willDismissBlock)(<span class="built_in">UIAlertView</span> *alertView, <span class="built_in">NSInteger</span> buttonIndex);</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">setter</span> = bk_setDidDismissBlock:) <span class="type">void</span> (^bk_didDismissBlock)(<span class="built_in">UIAlertView</span> *alertView, <span class="built_in">NSInteger</span> buttonIndex);</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">setter</span> = bk_SetShouldEnableFirstOtherButtonBlock:) <span class="type">BOOL</span> (^bk_shouldEnableFirstOtherButtonBlock)(<span class="built_in">UIAlertView</span> *alertView) <span class="built_in">NS_AVAILABLE_IOS</span>(<span class="number">5</span>_0);</span><br></pre></td></tr></table></figure>
+
+<p>这样做的目的就是为了通过消息分发机制来找到对应的block。</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@implementation</span> UIAlertView (BlocksKit)</span><br><span class="line"><span class="variable">@dynamic</span> bk_willShowBlock, bk_didShowBlock, bk_willDismissBlock, bk_didDismissBlock, bk_shouldEnableFirstOtherButtonBlock;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>整个分发过程在<strong><strong>A2BlockInvocation</strong></strong>类中。</p>
+<p>到此为止整个流程已经结束，相关细节可以查看代码中的具体实现。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-源码解析/" title=" FBRetainCycleDetector  FBAllocationTracker 源码解析">
+  <span>
+   FBRetainCycleDetector  FBAllocationTracker 源码解析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/11/24/MLeaksFinder-源码解析/"  title="MLeaksFinder 源码解析">
+ <span>MLeaksFinder 源码解析
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/11/26/BlocksKit-的使用/" data-title="BlocksKit 的使用" data-url="http://yoursite.com/2019/11/26/BlocksKit-%E7%9A%84%E4%BD%BF%E7%94%A8/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E5%8F%AF%E5%8F%98%E9%9B%86%E5%90%88%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">不可变集合类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E5%8F%98%E9%9B%86%E5%90%88%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">可变集合类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E8%81%94%E5%AF%B9%E8%B1%A1"><span class="toc-number">3.</span> <span class="toc-text">关联对象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NSInvocation"><span class="toc-number">4.</span> <span class="toc-text">NSInvocation</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#performSelector-%E7%9A%84%E7%AE%80%E5%8C%96"><span class="toc-number">5.</span> <span class="toc-text">performSelector 的简化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#KVO"><span class="toc-number">6.</span> <span class="toc-text">KVO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NSTimer"><span class="toc-number">7.</span> <span class="toc-text">NSTimer</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UIView"><span class="toc-number">8.</span> <span class="toc-text">UIView</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UIGestureRecognizer"><span class="toc-number">9.</span> <span class="toc-text">UIGestureRecognizer</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UIControl"><span class="toc-number">10.</span> <span class="toc-text">UIControl</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%83%A8%E5%88%86%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%EF%BC%9A"><span class="toc-number">11.</span> <span class="toc-text">部分源码解析：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#UIControl-1"><span class="toc-number">11.1.</span> <span class="toc-text">UIControl</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#UIGestureRecognizer-1"><span class="toc-number">11.2.</span> <span class="toc-text">UIGestureRecognizer</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E8%81%94%E5%AF%B9%E8%B1%A1-1"><span class="toc-number">11.3.</span> <span class="toc-text">关联对象</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#NSObject-BKBlockExecution"><span class="toc-number">11.4.</span> <span class="toc-text">NSObject+BKBlockExecution</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="toc-number">11.5.</span> <span class="toc-text">动态代理</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,1253 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Android | 全栈工程师">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Edgar&#39;s Blog">
+<meta property="og:url" content="http://yoursite.com/page/21/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Android | 全栈工程师">
+<meta property="og:locale">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/22/Android-进阶之设计模式-装饰器模式/" title="Android 进阶之设计模式 装饰器模式" itemprop="url">Android 进阶之设计模式 装饰器模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-22T13:29:17.000Z" itemprop="datePublished"> Published 2016-05-22</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>装饰模式主要用于为某个现有的类添加某个功能，扩展现有的类的功能一般有两种方式，一种是通过继承，一种是通过对象组合，第一种是比较强行植入的方式，而第二种就比较灵活，其实设计模式中有很多都可以看到这种方式的影子，它本质上是通过植入具有相同接口的对象，植入哪个对象就由哪个对象来实现这个功能，通过需要达到的效果植入不同的对象，被植入对象的框架都保持原样，这就达到了复用的效果。<br><img src="/2016/05/22/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%A3%85%E9%A5%B0%E5%99%A8%E6%A8%A1%E5%BC%8F/1.png"></p>
+<p>回到装饰模式，使用装饰模式的目的在于透明，动态地为某个类扩展某个功能，这里的透明指的是所有对原对象的装饰对于被装饰的对象来说是不知情的，对原对象一点都不会产生影响。<br>装饰模式还有个用途就是可以用于控制功能的访问权限问题。</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">AbsComponent</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">OriginalComponent</span>()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreComponent</span> <span class="keyword">extends</span> <span class="title">AbsComponent</span> </span>&#123;</span><br><span class="line">    public void <span class="type">OriginalComponent</span>() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">&quot;This is from OriginalComponent&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbsDecorator</span> <span class="keyword">extends</span> <span class="title">AbsComponent</span></span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="type">AbsComponent</span> component = <span class="literal">null</span>;</span><br><span class="line">    public <span class="type">AbsDecorator</span>(<span class="type">AbsComponent</span> conponent) &#123;</span><br><span class="line">        <span class="keyword">this</span>.component = conponent;</span><br><span class="line">    &#125;</span><br><span class="line">    public void <span class="type">OriginalComponent</span>() &#123;</span><br><span class="line">        component.<span class="type">OriginalComponent</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreDecorator</span> <span class="keyword">extends</span> <span class="title">AbsDecorator</span> </span>&#123;</span><br><span class="line">    public <span class="type">ConcreDecorator</span>(<span class="type">AbsComponent</span> conponent) &#123;</span><br><span class="line">        <span class="keyword">super</span>(conponent);</span><br><span class="line">    &#125;</span><br><span class="line">    public void selfFunction() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">&quot;extend the original function with self function&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.component.<span class="type">OriginalComponent</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> void main(<span class="keyword">String</span> args[]) &#123;</span><br><span class="line">        AbsComponent component = <span class="keyword">new</span> <span class="type">ConcreComponent</span>();</span><br><span class="line">        ConcreDecorator decorator = <span class="keyword">new</span> <span class="type">ConcreDecorator</span>(component);</span><br><span class="line">        decorator.selfFunction();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/22/Android-进阶之设计模式-装饰器模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/22/Android-进阶之设计模式-装饰器模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/21/Android-进阶之设计模式-组合模式/" title="Android 进阶之设计模式 组合模式" itemprop="url">Android 进阶之设计模式 组合模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-21T13:30:15.000Z" itemprop="datePublished"> Published 2016-05-21</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>组合模式用于让客户端不再区分操作的是组合对象还是叶子对象，而是以一个统一的方式来操作。它的关键在于使用一个抽象的组件，来代表组合对象和叶子对象。这样客户就可以不用区分到底操作的是组合对象还是叶子对象了，只需要把他们全部当作组件对象进行统一操作就可以了。</p>
+<p><img src="/2016/05/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E7%BB%84%E5%90%88%E6%A8%A1%E5%BC%8F/1.png"></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Component</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">String</span> name = <span class="literal">null</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">Component</span>(<span class="title class_">String</span> name) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">addChild</span>(<span class="params">Component component</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnsupportedOperationException</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">removeChild</span>(<span class="params">Component component</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnsupportedOperationException</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">Component</span> <span class="title function_">getComponent</span>(<span class="params">int index</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnsupportedOperationException</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="title class_">String</span> <span class="title function_">getName</span>();</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.awt.List;</span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Compositive</span> <span class="keyword">extends</span> <span class="title class_">Component</span>&#123;</span><br><span class="line">    <span class="keyword">private</span> ArrayList&lt;Component&gt; componentlist = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;Component&gt;();</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Compositive</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(name);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">super</span>.name;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addChild</span><span class="params">(Component component)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(component!= <span class="literal">null</span>) &#123;</span><br><span class="line">            componentlist.add(component);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">removeChild</span><span class="params">(Component component)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(componentlist!= <span class="literal">null</span> &amp;&amp; componentlist.contains(component)) &#123;</span><br><span class="line">            componentlist.remove(component);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> Component <span class="title function_">getComponent</span><span class="params">(<span class="type">int</span> index)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(componentlist != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> componentlist.get(index);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">Leaf</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">    public <span class="type">Leaf</span>(<span class="type">String</span> name) &#123;</span><br><span class="line">        <span class="keyword">super</span>(name);</span><br><span class="line">    &#125;</span><br><span class="line">    public <span class="type">String</span> getName() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> Client &#123;</span><br><span class="line">    public static void main(String args<span class="literal">[]</span>) &#123;</span><br><span class="line">        Component component1 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;组合1&quot;</span>)</span>;</span><br><span class="line">        Component component2 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;组合2&quot;</span>)</span>;</span><br><span class="line">        Component component3 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;组合3&quot;</span>)</span>;</span><br><span class="line">        Component component4 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;组合4&quot;</span>)</span>;</span><br><span class="line">        Component component5 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;组合5&quot;</span>)</span>;</span><br><span class="line">        </span><br><span class="line">        Component leaf1 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;根节点1&quot;</span>)</span>;</span><br><span class="line">        Component leaf2 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;根节点2&quot;</span>)</span>;</span><br><span class="line">        Component leaf3 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;根节点3&quot;</span>)</span>;</span><br><span class="line">        Component leaf4 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;根节点4&quot;</span>)</span>;</span><br><span class="line">        Component leaf5 = <span class="keyword">new</span> <span class="constructor">Compositive(<span class="string">&quot;根节点5&quot;</span>)</span>;</span><br><span class="line">        </span><br><span class="line">        component1.add<span class="constructor">Child(<span class="params">component2</span>)</span>;</span><br><span class="line">        component1.add<span class="constructor">Child(<span class="params">component3</span>)</span>;</span><br><span class="line">        component1.add<span class="constructor">Child(<span class="params">component4</span>)</span>;</span><br><span class="line">        component1.add<span class="constructor">Child(<span class="params">component5</span>)</span>;</span><br><span class="line">        component2.add<span class="constructor">Child(<span class="params">leaf1</span>)</span>;</span><br><span class="line">        component2.add<span class="constructor">Child(<span class="params">leaf2</span>)</span>;</span><br><span class="line">        component3.add<span class="constructor">Child(<span class="params">leaf3</span>)</span>;</span><br><span class="line">        component4.add<span class="constructor">Child(<span class="params">leaf4</span>)</span>;</span><br><span class="line">        component4.add<span class="constructor">Child(<span class="params">leaf5</span>)</span>;  </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/21/Android-进阶之设计模式-组合模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/21/Android-进阶之设计模式-组合模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/20/Android-进阶之设计模式-策略模式/" title="Android 进阶之设计模式 策略模式" itemprop="url">Android 进阶之设计模式 策略模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-20T13:30:41.000Z" itemprop="datePublished"> Published 2016-05-20</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="简介："><a href="#简介：" class="headerlink" title="简介："></a>简介：</h4><p>之前讲过模板方法，它的好处就是可以保持模板整体固定，只是特定步骤通过子类的复写，从而实现对整个模板的影响。<br>这里要介绍的策略方法和模板方法有类似地方，但是也存在较大的区别，这是废话，不然就不用多个策略模式了，<br>那么什么是策略模式呢？策略模式就是把一系列的算法从具体的业务处理中独立封装起来，把它们实现成为独立的算法类，使得他们可以相互替换，通过这种方式来实现客户和算法之间的解耦。<br>它的具体思路是通过一个持有算法的上下文对象，来封装一系列算法，这个对象并不负责决定具体选用哪个算法，而把算法选择的工作交给了客户，客户选择好具体的算法后设置到上下文对象中让上下文对象持有客户选择的算法，当客户通知上下文对象执行功能的时候，上下文对象则转调具体的算法，这样具体的算法和直接使用算法的客户就能够实现分离了。<br>在策略模式中上下文对象就是各个策略算法的公共类，可以在这里面存放各个算法所公用的数据以及所需要的公共方法。<br><img src="/2016/05/20/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F/1.png"></p>
+<p>其实说到公共方法这里有三种组织方式：<br>在上下文当中实现公共功能，让所有具体的策略算法回调这些方法。<br>将策略的接口改成抽象类，然后在其中实现具体算法的公共功能<br>为所有的策略算法定义一个抽象父类，让这个父类去实现策略的接口，然后在这个父类中实现公共的功能。</p>
+<h4 id="策略模式的使用场合："><a href="#策略模式的使用场合：" class="headerlink" title="策略模式的使用场合："></a>策略模式的使用场合：</h4><p>在出现很多仅仅是行为有差别的相关类的情况下，可以使用策略模式来在这些行为之间动态切换。<br>出现同一个算法，有很多不同实现的情况下，可以使用策略模式来吧这些不同的实现，实现成为一个算法的类层次。<br>需要封装算法中存在和算法相关数据的情况下，可以使用策略模式来避免暴露这些跟算法相关的数据结构。</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">StragryInterface</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stragryMethod</span>()</span>;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">AbstractStragry</span> <span class="title">implements</span> <span class="title">StragryInterface</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">commonMethodOne</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is common Method One&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">commonMethodTwo</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is common Method Two&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">stepOne</span>()</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">stepTwo</span>()</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stragryMethod</span>()</span> &#123;</span><br><span class="line">        stepOne();</span><br><span class="line">        stepTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreStragryOne</span> <span class="keyword">extends</span> <span class="title">AbstractStragry</span> </span>&#123;</span><br><span class="line">    public void stepOne() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">&quot;This is from ConcreStragryOne&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodOne();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void stepTwo() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">&quot;This is from ConcreStragryOne&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ConcreStragryTwo</span> <span class="keyword">extends</span> <span class="title">AbstractStragry</span> </span>&#123;</span><br><span class="line">    public void stepOne() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">&quot;This is from ConcreStragryTwo&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodOne();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void stepTwo() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">&quot;This is from ConcreStragryTwo&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.commonMethodTwo();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Context</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> AbstractStragry mStragry = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Context</span>(<span class="params">AbstractStragry stragrey</span>)</span> &#123;</span><br><span class="line">        mStragry = stragrey;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callStragrey</span>()</span> &#123;</span><br><span class="line">        mStragry.stragryMethod();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStragrey</span>(<span class="params">AbstractStragry stragrey</span>)</span> &#123;</span><br><span class="line">        mStragry = stragrey;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> void main(<span class="keyword">String</span>[] args) &#123;</span><br><span class="line">        AbstractStragry stragryOne = <span class="keyword">new</span> <span class="type">ConcreStragryOne</span>();</span><br><span class="line">        AbstractStragry stragryTwo = <span class="keyword">new</span> <span class="type">ConcreStragryTwo</span>();</span><br><span class="line">        Context contextOne = <span class="keyword">new</span> <span class="type">Context</span>(stragryOne);</span><br><span class="line">        contextOne.callStragrey();</span><br><span class="line">        </span><br><span class="line">        contextOne.setStragrey(stragryTwo);</span><br><span class="line">        contextOne.callStragrey();</span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/20/Android-进阶之设计模式-策略模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/20/Android-进阶之设计模式-策略模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/19/Android-进阶之设计模式-状态模式/" title="Android 进阶之设计模式 状态模式" itemprop="url">Android 进阶之设计模式 状态模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-19T13:30:51.000Z" itemprop="datePublished"> Published 2016-05-19</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2016/05/19/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/1.png"></p>
+<h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>在状态模式中，状态通常指的是对象实例的某个属性值，而行为指的就是对象的方法。<br>它通过把状态和状态对应的行为分离开来，把所有与一个特定的状态相关的行为都放在一个对象中，通过维护状态的变化，来调用不同状态对应的方法。使得应用程序在控制的时候只需要关心状态的转换，而不用关心这个状态对应的真正处理。简而言之就是状态决定行为。<br>在状态模式中，上下文是持有状态的对象，但是上下文自己并不处理和状态相关的行为，而是把处理状态的功能委托给了状态对应的对象处理。一般而言上下文持有一个状态对象，以及状态维护，状态处理类负责状态的改变。当然状态的改变也可以放在上下文中<br>在具体的状态类处理类中经常需要获取上下文自身的数据，以及回调上下文的方法，因此通常情况下会将上下文作为一个参数传递给具体的状态处理类。<br>客户端一般只和上下文交互，并且一般不负责运行期间状态的维护，也不负责决定后续到底使用哪个具体的状态处理对象。</p>
+<p>在状态模式中，状态的维护指的是维护状态的数据，给状态设置不同的状态值，而状态的转换指的是根据状态的变化选择不同的状态处理对象。</p>
+<h4 id="状态维护和转换控制"><a href="#状态维护和转换控制" class="headerlink" title="状态维护和转换控制"></a>状态维护和转换控制</h4><p>一般通常有如下几个地方可以进行状态的维护和转换控制：<br>1.上下文中，因为状态本身通常被实现为上下文对象的状态，因此可以在上下文中进行状态的维护和状态的转换。这种情况一般适用于状态转换规则相对固定，不需要进行什么扩展。<br>2.状态的处理类中：当每个状态处理对象处理完自身状态所对应的功能后，可以根据需要指定后继状态，一遍让应用能够正确处理后续的请求。<br>这种情况适用于当前状态取决于前一个状态动态处理的结果，或者是依赖于外部数据的情况<br>3.使用数据库或者文件：<br>这种方式可以通过在程序中查询数据库中的数据来得到状态编码，然后根据状态编码来创建出相应的状态对象，在委托相应的状态对象进行功能处理。<br>使用这种方式的话，还可以通过将状态码和状态处理类名存放到配置文件中，这样就可以直接通过配置文件获取到状态处理类的类名，再通过反射机制创建出处理类，这种方式的好处就在于上下文中状态转换维护的代码就相对固定。<br>状态扩展<br>状态模式的扩展只需要新增一个实现状态处理的公共接口实现类，然后在进行状态维护的地方，设置状态变化到这个新的状态即可。</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">State</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">someOperation</span>()</span>;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ConcreStateOne</span> <span class="title">implements</span> <span class="title">State</span>&#123;   </span><br><span class="line">    <span class="keyword">private</span> Context mContext = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConcreStateOne</span>(<span class="params">Context context</span>)</span> &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">someOperation</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ConcreStateOne&quot;</span>);</span><br><span class="line">        mContext.changeStateCode(<span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ConcreStateTwo</span> <span class="title">implements</span> <span class="title">State</span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Context mContext = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConcreStateTwo</span>(<span class="params">Context context</span>)</span> &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">someOperation</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ConcreStateTwo&quot;</span>);</span><br><span class="line">        mContext.changeStateCode(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">public class Context &#123;</span><br><span class="line">    private State mState = null;</span><br><span class="line">    private int <span class="keyword">state</span>Code = -<span class="number">1</span>;</span><br><span class="line">    public void changeStateCode(int <span class="keyword">state</span>Code) &#123;</span><br><span class="line">        this.<span class="keyword">state</span>Code = <span class="keyword">state</span>Code;</span><br><span class="line">    &#125;</span><br><span class="line">    private void createState() &#123;</span><br><span class="line">        if(<span class="keyword">state</span>Code == -<span class="number">1</span> || <span class="keyword">state</span>Code == <span class="number">1</span>) &#123;</span><br><span class="line">            mState = new ConcreStateOne(this);</span><br><span class="line">        &#125;else if(<span class="keyword">state</span>Code == <span class="number">2</span>) &#123;</span><br><span class="line">            mState = new ConcreStateTwo(this);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public void doSomeOperationInstate() &#123;</span><br><span class="line">        createState();</span><br><span class="line">        if(mState != null) &#123;</span><br><span class="line">            mState.someOperation();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> Client &#123;</span><br><span class="line">    public static void main(String<span class="literal">[]</span> args) &#123;</span><br><span class="line">        Context mContext = <span class="keyword">new</span> <span class="constructor">Context()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">        mContext.<span class="keyword">do</span><span class="constructor">SomeOperationInstate()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/19/Android-进阶之设计模式-状态模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/19/Android-进阶之设计模式-状态模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/18/Android-进阶之设计模式-模板方法模式/" title="Android 进阶之设计模式 模板方法模式" itemprop="url">Android 进阶之设计模式 模板方法模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-18T13:31:06.000Z" itemprop="datePublished"> Published 2016-05-18</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>模板方法是通过定义一个算法骨架，而将算法中的步骤延迟到子类，这样子类就可以复写这些步骤的实现来实现特定的算法。<br>同时由于父类定义好了算法的步骤，只是在某几个固定的点才回调用到被之类实现的方法，所以也就只允许在几个点类扩展功能。<br>从实现角度来看：模板方法主要通过制定模板，把算法步骤固定下来。至于谁来实现，模板可以自己提供，也可以子类去实现，还可以通过回调让其他类来实现。<br><img src="/2016/05/18/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%A8%A1%E6%9D%BF%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F/1.png"></p>
+<h4 id="在模板里面包含如下几类方法："><a href="#在模板里面包含如下几类方法：" class="headerlink" title="在模板里面包含如下几类方法："></a>在模板里面包含如下几类方法：</h4><ul>
+<li>模板方法：用于定义算法的框架。</li>
+<li>具体方法：在模板中直接实现某些步骤的方法，通常这些步骤的实现算法是固定的，而且是不怎么变化的，因此可以将其当做公共功能实现在模板中，如果不需要为子类提供访问这些方法的话，可以将这些方法定义为privete，如果是提供给子类访问的，可以吧这些方法定义为protected final，从而避免子类对这些方法的复写。</li>
+<li>原语操作，在模板中定义的抽象操作，通常是模板方法需要调用的操作，而且这些操作在父类中还没有办法确定下来。需要子类来实现真正的方法。</li>
+<li>回调方法：通过回调机制来调用其他类中的方法。</li>
+<li>工厂方法，在模板方法中如果需要得到某些对象的实例的话，可以考虑通过工厂方法来获取，把具体的创建对象延迟到子类中去。</li>
+</ul>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">TempleClass</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">stepOne</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is step One from TempleClass&quot;</span>);</span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">stepTwo</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is step Two will be call by Child Temple with Overwrite&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> final <span class="keyword">void</span> <span class="title">stepThree</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is step Three will be call by Child Temple without Overwrite&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">TempleMethodOne</span>()</span>;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">TempleMethodTwo</span>()</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">temple</span>(<span class="params">HookCallBack callback</span>)</span>&#123;</span><br><span class="line">        stepOne();</span><br><span class="line">        stepTwo();</span><br><span class="line">        stepThree();</span><br><span class="line">        TempleMethodOne();</span><br><span class="line">        TempleMethodTwo();</span><br><span class="line">        callback.methodFromHook();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">HookCallBack</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodFromHook</span>()</span>;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ChildTempleClassOne</span> <span class="title">extends</span> <span class="title">TempleClass</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">stepTwo</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ChildTempleClassOne&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">TempleMethodOne</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ChildTempleClassOne TempleMethodOne&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">TempleMethodTwo</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ChildTempleClassOne TempleMethodTwo&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ChildTempleClassTwo</span> <span class="title">extends</span> <span class="title">TempleClass</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">stepTwo</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ChildTempleClassTwo&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">TempleMethodOne</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ChildTempleClassTwo TempleMethodOne&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">TempleMethodTwo</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from ChildTempleClassTwo TempleMethodTwo&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Client</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span>(<span class="params">String args[]</span>)</span>&#123;</span><br><span class="line">        TempleClass temple1 = <span class="keyword">new</span> ChildTempleClassOne();</span><br><span class="line">        TempleClass temple2 = <span class="keyword">new</span> ChildTempleClassTwo();</span><br><span class="line">        temple1.temple(<span class="keyword">new</span> HookCallBack() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodFromHook</span>()</span> &#123;</span><br><span class="line">                System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from HookCallBack from temple1&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        </span><br><span class="line">        temple2.temple(<span class="keyword">new</span> HookCallBack() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodFromHook</span>()</span> &#123;</span><br><span class="line">                System.<span class="keyword">out</span>.println(<span class="string">&quot;This is from HookCallBack from temple2&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/18/Android-进阶之设计模式-模板方法模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/18/Android-进阶之设计模式-模板方法模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/17/Android-进阶之设计模式-桥接模式/" title="Android 进阶之设计模式 桥接模式" itemprop="url">Android 进阶之设计模式 桥接模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-17T13:30:03.000Z" itemprop="datePublished"> Published 2016-05-17</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>桥接模式适合于存在两个维度变化的情形。这种情况下一个维度的变化往往会引起另一个维度的变化。这样扩展起来变得十分困难。桥接模式的主要思路就是将两个维度的变化独立开来，不会产生相互影响。<br>抽象部分的接口一般维护一个现实部分的对象引用，抽象对象里面的方法，需要调用实现部分的对象来完成。这个对象中的方法通常都是和具体的业务相关的方法。</p>
+<p>扩展抽象方法通常在这些对象中定义和业务相关的方法，这些方法会使用抽象部分接口中的方法。也可能需要调用实现部分对象来完成。</p>
+<p>实现部分的接口，提供基本操作，抽象部分定义的一般都是基于这些基本操作的业务方法。<br>实现部分的接口一般有如下几种实现方式：</p>
+<ol>
+<li>由客户端负责创建，并在创建抽象部分接口的时候作为参数设置到抽象部分的对象中去。</li>
+<li>可以在抽象部分对象构建的时候，由抽象部分的对象自己来创建对应的现实部分的对象。</li>
+<li>可以使用抽象工厂或者简单工厂来选择并创建具体的实现部分。</li>
+<li>可以在抽象部分选择并创建一个默认的实现部分，子类可以根据具体的需要改变这个实现。</li>
+</ol>
+<h4 id="何时使用桥接模式："><a href="#何时使用桥接模式：" class="headerlink" title="何时使用桥接模式："></a>何时使用桥接模式：</h4><p>不希望抽象和实现部分采用固定的绑定关系的时候，可以采用桥接模式把抽象和实现部分分开，然后在程序运行期间动态得设置抽象部分需要用到的具体实现，还可以动态地切换具体的实现。<br>如果希望实现部分的修改不会对客户端产生影响，可以采用桥接模式，由于客户是面向抽象的接口在运行，实现部分的修改可以独立于抽象部分，而不会对客户端产生影响。<br><img src="/2016/05/17/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F/1.png"></p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">Implementor</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">someOperator</span>()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="symbol">ConcreImplementor1</span> <span class="symbol">implements</span> <span class="symbol">Implementor</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> someOperator() &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is someOperator from ConcreImplementor1&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="symbol">ConcreImplementor2</span> <span class="symbol">implements</span> <span class="symbol">Implementor</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> someOperator() &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is someOperator from ConcreImplementor2&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">AbstractPart</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> Implementor mImplementor = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">AbstractPart</span>(<span class="params">Implementor imp</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.mImplementor = imp;</span><br><span class="line">    &#125;   </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">otherOperator</span>()</span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.mImplementor.someOperator();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">RedefineAbstract</span> <span class="keyword">extends</span> <span class="title">AbstractPart</span> </span>&#123;</span><br><span class="line">    public <span class="type">RedefineAbstract</span>(<span class="type">Implementor</span> imp) &#123;</span><br><span class="line">        <span class="keyword">super</span>(imp);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public void othersOperator() &#123;</span><br><span class="line">        <span class="type">System</span>.out.println(<span class="string">&quot;Add some pre Operation&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.otherOperator();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> void main(<span class="keyword">String</span>[] args) &#123;</span><br><span class="line">        Implementor imp1 = <span class="keyword">new</span> <span class="type">ConcreImplementor1</span>();</span><br><span class="line">        RedefineAbstract abstract1 = <span class="keyword">new</span> <span class="type">RedefineAbstract</span>(imp1);</span><br><span class="line">        abstract1.othersOperator();</span><br><span class="line">        </span><br><span class="line">        Implementor imp2 = <span class="keyword">new</span> <span class="type">ConcreImplementor2</span>();</span><br><span class="line">        RedefineAbstract abstract2 = <span class="keyword">new</span> <span class="type">RedefineAbstract</span>(imp2);</span><br><span class="line">        abstract2.othersOperator();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/17/Android-进阶之设计模式-桥接模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/17/Android-进阶之设计模式-桥接模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/16/Android-进阶之设计模式-建造者模式/" title="Android 进阶之设计模式 建造者模式" itemprop="url">Android 进阶之设计模式 建造者模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-16T13:28:21.000Z" itemprop="datePublished"> Published 2016-05-16</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="应用场景："><a href="#应用场景：" class="headerlink" title="应用场景："></a>应用场景：</h4><p>建造者模式细分起来有两个用途<br>1.将整体构建过程和具体部件的构建过程分离，达到使用同一个构建过程创建出不同表示的效果。<br>就比如按照同一个装修方案装修你刚买的房子，虽然设计布局都一样，这里摆个电视，这里摆个沙发，但是你定制的家具的风格不一样的话，即使使用同一个装修方案，装修出来的房间也大不相同。<br>2.在构造方法需要大量参数或者构造带约束规则的场景<br>我们知道构造方法的参数一般是有限的，但是如果一个类的成员变量较多，并且并不是每个都需要设置的时候，这种情况就比较灵活，通过建造者模式只对需要设置的成员变量进行设置，对于不需要的则使用默认的就可以，这时候的构造者模式就相当于一个灵活的构造方法。</p>
+<h4 id="建造者模式类图："><a href="#建造者模式类图：" class="headerlink" title="建造者模式类图："></a>建造者模式类图：</h4><p><img src="/2016/05/16/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/1.png"></p>
+<p>从上面类图可以看出主要有三个部分</p>
+<ul>
+<li>产品类：是我们目标创建对象，一般是过程复杂的对象</li>
+<li>建造者：定义创建产品各个部分的操作。负责部件构造和部件装配。<br>在建造者中包含两个部分，一部分创建部件对象，一部分组装部件。</li>
+<li>指导者：规定如何将builder构建出的部件组装起来。它只负责整体的构建算法，并不负责每部分的具体创建过程。<br>指导者是较为固定的部分。一般在指导者中有较为复杂的算法，在执行过程中根据需要调用建造者创建出需要的部件。<br>整个过程如下所示：<br>指导者运行构建算法，在算法运行到某个阶段需要某个部件的时候调用构造者创建所需的部件，这时候可以将参数传递给建造者供构建过程使用，建造者完成所需部件的构建后，返回构建的部件，指导者继续执行构建算法，直到最后将这些部件给装配起来。</li>
+</ul>
+<ol>
+<li>第一种用法：</li>
+</ol>
+<p>抽象Builder：可以是抽象类或者接口</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> interface AbsBuilder &#123;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">buildwheel</span><span class="params">(<span class="type">String</span> wheelType)</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">buildCarBody</span><span class="params">(<span class="type">String</span> bodyType)</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">buildCarDoor</span><span class="params">(<span class="type">String</span> doorType)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>具体Builder</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConcreBuilder</span> <span class="keyword">implements</span> <span class="title class_">AbsBuilder</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">ProductCar</span> mCar = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">ConcreBuilder</span>() &#123;</span><br><span class="line">        mCar = <span class="keyword">new</span> <span class="title class_">ProductCar</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">buildwheel</span>(<span class="params"><span class="built_in">String</span> wheelType</span>) &#123;</span><br><span class="line">        mCar.<span class="title function_">setWheel</span>(wheelType);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">buildCarBody</span>(<span class="params"><span class="built_in">String</span> bodyType</span>) &#123;</span><br><span class="line">        mCar.<span class="title function_">setCarBody</span>(bodyType);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">buildCarDoor</span>(<span class="params"><span class="built_in">String</span> doorType</span>) &#123;</span><br><span class="line">        mCar.<span class="title function_">setCarDoor</span>(doorType);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">resultCar</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(mCar == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="title class_">System</span>.<span class="property">out</span>.<span class="title function_">println</span>(<span class="string">&quot;车轮:&quot;</span>+mCar.<span class="title function_">getWheel</span>());</span><br><span class="line">        <span class="title class_">System</span>.<span class="property">out</span>.<span class="title function_">println</span>(<span class="string">&quot;车门:&quot;</span>+mCar.<span class="title function_">getCarDoor</span>());</span><br><span class="line">        <span class="title class_">System</span>.<span class="property">out</span>.<span class="title function_">println</span>(<span class="string">&quot;车身:&quot;</span>+mCar.<span class="title function_">getCarBody</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>产品类</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProductCar</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">String</span> wheel = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">String</span> carBody = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">String</span> carDoor = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">String</span> <span class="title function_">getWheel</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> wheel;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">setWheel</span>(<span class="params"><span class="built_in">String</span> wheel</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">wheel</span> = wheel;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">String</span> <span class="title function_">getCarBody</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> carBody;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">setCarBody</span>(<span class="params"><span class="built_in">String</span> carBody</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">carBody</span> = carBody;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">String</span> <span class="title function_">getCarDoor</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> carDoor;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">setCarDoor</span>(<span class="params"><span class="built_in">String</span> carDoor</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">carDoor</span> = carDoor;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Director类</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Director</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> ConcreBuilder builder = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Director</span>(<span class="params">ConcreBuilder builder</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.builder = builder;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">makeCarProduct</span>()</span> &#123;</span><br><span class="line">        builder.buildCarBody(<span class="string">&quot;红色的车身&quot;</span>);</span><br><span class="line">        builder.buildCarDoor(<span class="string">&quot;白色的车门&quot;</span>);</span><br><span class="line">        builder.buildwheel(<span class="string">&quot;五个车轮&quot;</span>);</span><br><span class="line">        builder.resultCar();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Client类</p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> void main(<span class="keyword">String</span> args[]) &#123;</span><br><span class="line">        ConcreBuilder builder = <span class="keyword">new</span> <span class="type">ConcreBuilder</span>();</span><br><span class="line">        Director direcor = <span class="keyword">new</span> <span class="type">Director</span>(builder);</span><br><span class="line">        direcor.makeCarProduct();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>第二种用法：</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ProductCar</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> mCarwheelNum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> mCarDoorNum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> String mCarColor = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*构建产品*/</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ProductCar</span>(<span class="params">CarBuilder carBuilder</span>)</span> &#123;</span><br><span class="line">        mCarColor = carBuilder.getColor();</span><br><span class="line">        mCarwheelNum = carBuilder.getWheelNum();</span><br><span class="line">        mCarDoorNum = carBuilder.getDoorNum();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;一辆&quot;</span>+mCarColor+<span class="string">&quot;色,&quot;</span>+mCarwheelNum+<span class="string">&quot;轮,&quot;</span>+mCarDoorNum+<span class="string">&quot;个门的车跑起来了&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*可以在set方法中以及build方法中添加限制条件*/</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">CarBuilder</span> &#123;</span><br><span class="line">        <span class="comment">/*可以设置的属性*/</span></span><br><span class="line">        <span class="keyword">private</span> <span class="built_in">int</span> wheelNum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="built_in">int</span> doorNum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> String color = <span class="literal">null</span>;</span><br><span class="line">        <span class="comment">/*这里可以通过构造方法传入参数*/</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">CarBuilder</span>()</span> &#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="built_in">int</span> <span class="title">getWheelNum</span>()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> wheelNum;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> CarBuilder <span class="title">setWheelNum</span>(<span class="params"><span class="built_in">int</span> wheelNum</span>)</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.wheelNum = wheelNum;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="built_in">int</span> <span class="title">getDoorNum</span>()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> doorNum;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> CarBuilder <span class="title">setDoorNum</span>(<span class="params"><span class="built_in">int</span> doorNum</span>)</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.doorNum = doorNum;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">getColor</span>()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> color;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> CarBuilder <span class="title">setColor</span>(<span class="params">String color</span>)</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.color = color;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> ProductCar <span class="title">build</span>()</span> &#123;</span><br><span class="line">         <span class="comment">/*将Builder传给产品类*/</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> ProductCar(<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Client</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String args[])</span> &#123;</span><br><span class="line">        ProductCar.<span class="type">CarBuilder</span> <span class="variable">builder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ProductCar</span>.CarBuilder();</span><br><span class="line">        <span class="type">ProductCar</span> <span class="variable">car</span> <span class="operator">=</span> builder.setColor(<span class="string">&quot;红&quot;</span>).setDoorNum(<span class="number">2</span>).setWheelNum(<span class="number">4</span>).build();</span><br><span class="line">        car.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/16/Android-进阶之设计模式-建造者模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/16/Android-进阶之设计模式-建造者模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/15/Android-进阶之设计模式-外观模式/" title="Android 进阶之设计模式 外观模式" itemprop="url">Android 进阶之设计模式 外观模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-15T13:29:30.000Z" itemprop="datePublished"> Published 2016-05-15</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>外观模式的主要目的在于让外部减少与子系统内部多个模块的交互，从而让外部能够更简单得使用子系统。它负责把客户端的请求转发给子系统内部的各个模块进行处理，Facade 的方法本身并不进行功能的处理，只是实现一个功能的组合调用。并且一般不会在外观类中定义一些子系统没有的功能，它主要负责组合已有功能来实现客户端的需求，而不是添加新的功能实现。</p>
+<h4 id="外观模式的优点"><a href="#外观模式的优点" class="headerlink" title="外观模式的优点"></a>外观模式的优点</h4><p>外观模式的好处有如下几点：</p>
+<ul>
+<li>由于Facade类封装了各个模块交互的过程，如果今后内部模块调用关系发生了变化，只需要修改Facade实现就可以了。</li>
+<li>Facade实现是可以被多个客户端调用的，所以在Facade类中的方法是可以被共享的。</li>
+<li>即使有外观类的存在也可以不适用，而直接调用模块内的方法。这样就可以兼顾组合功能和细节功能。</li>
+</ul>
+<p><img src="/2016/05/15/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%A4%96%E8%A7%82%E6%A8%A1%E5%BC%8F/1.png"><br>如果没有外观类，客户端需要和子系统内部多个模块交互，客户端和这些模块之间都有依赖关系，任何一个模块的变动都可能会引起客户端的变动。使用外观类之后客户端就不需要去关心系统内部模块的变动情况了，客户端只需要和这个外部类有依赖关系，这样当系统内部多个模块发生变化的时候，这个变化可以被这个外观类吸收和消化，并不影响到客户端。<br>一般系统只需要一个外观类，所以可以使用单例或者私有化构造方法，并将其他方法声明为静态方法。</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ModuleA</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testFuncA</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is Function From ModuleA&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ModuleB</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testFuncB</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is Function From ModuleB&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ModuleC</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testFuncC</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;This is Function From ModuleC&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Facade</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">ModuleA</span> <span class="variable">moduleA</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">ModuleB</span> <span class="variable">moduleB</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">ModuleC</span> <span class="variable">moduleC</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Facade</span> <span class="variable">mFacade</span> <span class="operator">=</span> <span class="literal">null</span>; </span><br><span class="line">    <span class="keyword">private</span> <span class="title function_">Facade</span><span class="params">()</span>&#123;</span><br><span class="line">        moduleA = <span class="keyword">new</span> <span class="title class_">ModuleA</span>();</span><br><span class="line">        moduleB = <span class="keyword">new</span> <span class="title class_">ModuleB</span>();</span><br><span class="line">        moduleC = <span class="keyword">new</span> <span class="title class_">ModuleC</span>();</span><br><span class="line">    &#125;   </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Facade <span class="title function_">getInstance</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(mFacade == <span class="literal">null</span>) &#123;</span><br><span class="line">            mFacade = <span class="keyword">new</span> <span class="title class_">Facade</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mFacade;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testOperation</span><span class="params">()</span> &#123;</span><br><span class="line">        moduleA.testFuncA();</span><br><span class="line">        moduleB.testFuncB();</span><br><span class="line">        moduleC.testFuncC();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Client</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">void</span> <span class="title function_">main</span>(<span class="params"><span class="built_in">String</span> arg[]</span>) &#123;</span><br><span class="line">        <span class="title class_">Facade</span>.<span class="title function_">getInstance</span>().<span class="title function_">testOperation</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/15/Android-进阶之设计模式-外观模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/15/Android-进阶之设计模式-外观模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/14/Android-进阶之设计模式-备忘录模式/" title="Android 进阶之设计模式 备忘录模式" itemprop="url">Android 进阶之设计模式 备忘录模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-14T13:31:51.000Z" itemprop="datePublished"> Published 2016-05-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2016/05/14/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%A4%87%E5%BF%98%E5%BD%95%E6%A8%A1%E5%BC%8F/1.png"></p>
+<h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>备忘录模式是为了在不破坏封装性的前提下，捕获一个对象的内部状态，并在该对象之外保存这个状态，以便以后这个对象可以恢复到原先保存的状态。<br>备忘录模式引入一个存储状态的备忘录对象，它存储另一个对象在某个瞬时的内部状态。为了让外部无法访问这个对象的值一般把这个对象实现成为需要保存数据的对象的私有内部类。这样一来除了这个需要保存数据的对象，外部无法访问到这个备忘录对象的数据。</p>
+<h4 id="备忘录模式的组成"><a href="#备忘录模式的组成" class="headerlink" title="备忘录模式的组成"></a>备忘录模式的组成</h4><p>备忘录模式中有三个主要对象：</p>
+<ul>
+<li>备忘录对象：主要用来存储Originator对象的内部状态，另外它只能由Originator对象来访问它内部的数据，Originator 外部的对象不应该访问到备忘录对象内部的数据。</li>
+<li>Originator对象：可以创建备忘录对象来保存某个时刻自身的状态，也可以使用备忘录来恢复内部状态。</li>
+<li>备忘录管理对象：负责保存备忘录对象，虽然管理者能够存取备忘录对象，但是它不能访问备忘录对象的内部数据。<br>并不是一定要特别设定一个管理者对象，调用Originator 获得备忘录对象后，备忘录对象存放在哪里，哪个对象就可以算得上是管理者对象。管理者对象并不是只能管理一个备忘录对象，一个管理对象可以管理很多备忘录对象。并且还可以是多个不同类型的备忘录对象。</li>
+</ul>
+<p>如果需要频繁创建备忘录对象，并且创建和应用备忘录对象来恢复状态的顺序是可控的，那么可以让备忘录进行增量存储，也就是备忘录仅仅存储Originator 内部相对于上一次存储状态后的增量改变。<br>如果在Originator 创建备忘录对象的时候，如果Originator对象中全部或者大部分的状态都需要保存，一个简单的方式就是直接克隆一个Originator对象，这时候备忘录对象中存放的就是一个Originator对象的实例。<br>从备忘录模式的功能和实现上，是可以把备忘录的数据实现成为离线存储的，也就是不仅仅限于存储在内存中，还可以把这些数据存储到文件中XML中数据库中。从而实现跨越会话的备份和恢复功能。<br>当然并不是所有的备份数据都需要离线存储，一般来讲需要存储很长时间，或者需要支持跨越会话的备份和恢复功能，或者希望系统关闭后还能被保存的备份数据的情况下使用离线备份。<br>离线备份的实现，只需要修改管理者对象，把保存备忘录对象的方法实现成为保存到文件中，而恢复对象实现成为读取文件就可以了，而对于其他的相关对象，主要是实现序列化，通过序列化来将对象存储到文件中。</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="symbol">Memento</span> &#123;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Originator</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">String</span> mState = <span class="literal">null</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">Originator</span>(<span class="title class_">String</span> state) &#123;</span><br><span class="line">        mState = state;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">runSomeOperationBeforeBackup</span>(<span class="params"><span class="built_in">String</span> state</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">mState</span> = state;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">reportState</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="title class_">System</span>.<span class="property">out</span>.<span class="title function_">println</span>(mState);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">MementoImp</span> <span class="keyword">implements</span> <span class="title class_">Memento</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="title class_">String</span> backupState = <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">public</span> <span class="title class_">MementoImp</span>(<span class="title class_">String</span> backupState) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">backupState</span> = backupState; </span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> <span class="title class_">String</span> <span class="title function_">getState</span>(<span class="params"></span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">backupState</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">Memento</span> <span class="title function_">backUpState</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MementoImp</span>(<span class="variable language_">this</span>.<span class="property">mState</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">restoreState</span>(<span class="params">Memento memento</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">mState</span> = ((<span class="title class_">MementoImp</span>)memento).<span class="title function_">getState</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"> <span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MementoManger</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">Memento</span> mMemento = <span class="literal">null</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">saveMemento</span>(<span class="params">Memento memento</span>) &#123;</span><br><span class="line">        mMemento = memento;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">Memento</span> <span class="title function_">getMemento</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">mMemento</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> Client &#123;</span><br><span class="line">    public static void main(String<span class="literal">[]</span> args) &#123;</span><br><span class="line">        Originator originator = <span class="keyword">new</span> <span class="constructor">Originator(<span class="string">&quot;初始状态&quot;</span>)</span>;</span><br><span class="line">        originator.run<span class="constructor">SomeOperationBeforeBackup(<span class="string">&quot;运行一段时间后的状态&quot;</span>)</span>;</span><br><span class="line">        Memento memento = originator.back<span class="constructor">UpState()</span>;</span><br><span class="line">        MementoManger manager = <span class="keyword">new</span> <span class="constructor">MementoManger()</span>;</span><br><span class="line">        manager.save<span class="constructor">Memento(<span class="params">memento</span>)</span>;</span><br><span class="line">        originator.run<span class="constructor">SomeOperationBeforeBackup(<span class="string">&quot;再次运行一段时间后的状态&quot;</span>)</span>;</span><br><span class="line">        originator.report<span class="constructor">State()</span>;</span><br><span class="line">        Memento memento1 = manager.get<span class="constructor">Memento()</span>;</span><br><span class="line">        originator.restore<span class="constructor">State(<span class="params">memento1</span>)</span>;</span><br><span class="line">        originator.report<span class="constructor">State()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/14/Android-进阶之设计模式-备忘录模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/14/Android-进阶之设计模式-备忘录模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/13/Android-进阶之设计模式-命令模式/" title="Android 进阶之设计模式 命令模式" itemprop="url">Android 进阶之设计模式 命令模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-13T13:31:43.000Z" itemprop="datePublished"> Published 2016-05-13</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2016/05/13/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F/1.png"></p>
+<h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>在命令模式中有三个关键的对象：</p>
+<ul>
+<li>命令类：在标准的命令模式里面，命令实现类是没有真正实现命令要求的功能的，真正执行命令的功能是接收者。</li>
+<li>接收者：在命令模式中接收者可以是任意的类，它是持有真正执行方法的类，它可以处理多个命令，接收者提供的方法个数，名称功能和命令中的可以不一样，只要能够通过调用接收者的方法来实现命令对应的功能就可以了。</li>
+<li>命令触发器：命令出发器是持有命令的对象，但是请求究竟由谁处理，如何处理，发起请求的对象是不知道的，也就是发起请求的对象和真正实现的对象是解偶的，发起请求的对象只管发出命令，其他的就不管了。</li>
+</ul>
+<p>命令模式的优点是实现了命令的发起对象和命令的具体实现对象—命令接收者的完全解耦，这样很方便扩展新的命令，只要实现新的命令对象，然后在装配的时候，把具体实现对象设置到命令中，就可以使用这个命令对象了，不用改变已有的实现。</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">AbsCommand</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">excuteCommand</span>()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConcreComand</span> <span class="keyword">implements</span> <span class="title class_">AbsCommand</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">CommandReceiver</span> <span class="variable">mReceiver</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ConcreComand</span><span class="params">(CommandReceiver receiver)</span> &#123;</span><br><span class="line">        mReceiver = receiver;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">excuteCommand</span><span class="params">()</span> &#123;</span><br><span class="line">        mReceiver.action();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">CommandReceiver</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">action</span>()</span> &#123;</span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;Receiver excute command&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">CommandInvoker</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> AbsCommand mCommand = <span class="literal">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CommandInvoker</span>(<span class="params">AbsCommand command</span>)</span> &#123;</span><br><span class="line">        mCommand = command;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">runCommand</span>()</span>&#123;</span><br><span class="line">        mCommand.excuteCommand();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> void main(<span class="keyword">String</span> args[]) &#123;</span><br><span class="line">        CommandReceiver receiver = <span class="keyword">new</span> <span class="type">CommandReceiver</span>();</span><br><span class="line">        AbsCommand command = <span class="keyword">new</span> <span class="type">ConcreComand</span>(receiver);</span><br><span class="line">        CommandInvoker invoker = <span class="keyword">new</span> <span class="type">CommandInvoker</span>(command);</span><br><span class="line">        invoker.runCommand();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/05/13/Android-进阶之设计模式-命令模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/05/13/Android-进阶之设计模式-命令模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/20/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="extend next" rel="next" href="/page/22/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

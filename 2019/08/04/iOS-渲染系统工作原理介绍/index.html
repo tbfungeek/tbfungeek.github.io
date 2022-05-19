@@ -1,0 +1,796 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS 渲染系统工作原理介绍 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="0. 开篇叨叨这篇博客主要从原理的角度来向大家介绍下一个界面是如何在CPU和GPU的配合下显示到屏幕上的，后续博客还会对Core Graphic，OpenGL, Core Animation的使用一一介绍，优化部分也会单独抽到后续的博客中进行介绍。下面是该博客的内容目录：  iOS 渲染框架组成概述 界面渲染的整体流程 离屏渲染  1. iOS 渲染框架组成概述 上图是iOS 渲染框架组成部分,其">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 渲染系统工作原理介绍">
+<meta property="og:url" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="0. 开篇叨叨这篇博客主要从原理的角度来向大家介绍下一个界面是如何在CPU和GPU的配合下显示到屏幕上的，后续博客还会对Core Graphic，OpenGL, Core Animation的使用一一介绍，优化部分也会单独抽到后续的博客中进行介绍。下面是该博客的内容目录：  iOS 渲染框架组成概述 界面渲染的整体流程 离屏渲染  1. iOS 渲染框架组成概述 上图是iOS 渲染框架组成部分,其">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0001.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0002.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0005.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00017.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0003.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0004.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0006.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0008.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00010.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0009.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00011.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00012.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00013.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00016.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00014.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00015.png">
+<meta property="article:published_time" content="2019-08-03T17:27:31.000Z">
+<meta property="article:modified_time" content="2020-02-21T12:34:38.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 理论基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/08/04/iOS-渲染系统工作原理介绍/" title="iOS 渲染系统工作原理介绍" itemprop="url">iOS 渲染系统工作原理介绍</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-08-03T17:27:31.000Z" itemprop="datePublished"> Published 2019-08-04</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="0-开篇叨叨"><a href="#0-开篇叨叨" class="headerlink" title="0. 开篇叨叨"></a><strong><strong>0. 开篇叨叨</strong></strong></h5><p>这篇博客主要从原理的角度来向大家介绍下一个界面是如何在CPU和GPU的配合下显示到屏幕上的，后续博客还会对Core Graphic，OpenGL, Core Animation的使用一一介绍，优化部分也会单独抽到后续的博客中进行介绍。下面是该博客的内容目录：</p>
+<ul>
+<li>iOS 渲染框架组成概述</li>
+<li>界面渲染的整体流程</li>
+<li>离屏渲染</li>
+</ul>
+<h5 id="1-iOS-渲染框架组成概述"><a href="#1-iOS-渲染框架组成概述" class="headerlink" title="1. iOS 渲染框架组成概述"></a><strong><strong>1. iOS 渲染框架组成概述</strong></strong></h5><p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0001.png"></p>
+<p>上图是iOS 渲染框架组成部分,其中UIKit位于最上层，组成界面的各个元素基本上都来自UIKit,我们可以给它设置布局，可以通过绘制改变它的显示内容，除此之外还负责事件的接收，其实界面的显示是由它的一个被称为图层的属性CALayer来完成的。这个放在后面详细介绍。UIKit的下一层是Core Animation,最开始接触iOS的时候，我一直以为Core Animation只是用于生成动画的，实际上动画的生成只是Core Animation的冰山一角，可以说在iOS上绝大多数的原生控件都是通过Core Animation绘制出来的，Core Animation在这里最重要的任务是尽可能快地合成图层送到下一级。位于Core Animation之下是Open GL 以及 Core Graphic，其中Open GL 使用GPU进行渲染，而Core Graphic则是使用Qurtaz 2D引擎使用CPU进行渲染，这里个人理解Core Graphic不单单只有CPU参与，最终渲染到屏幕上还是需要GPU参与，这部分在下个小结中将会进行详细介绍，各个GPU厂商的实现是不同的，为了隔离这个不同，在GPU的上层添加了GPU驱动层,经过GPU处理后的数据会放到帧缓冲区中，最终显示到显示器上。</p>
+<h5 id="2-界面渲染的整体流程"><a href="#2-界面渲染的整体流程" class="headerlink" title="2.界面渲染的整体流程"></a><strong><strong>2.界面渲染的整体流程</strong></strong></h5><p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0002.png"></p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0005.png"></p>
+<h5 id="2-1-UIView-amp-amp-CALayer"><a href="#2-1-UIView-amp-amp-CALayer" class="headerlink" title="2.1 UIView &amp;&amp; CALayer"></a><strong><strong>2.1 UIView &amp;&amp; CALayer</strong></strong></h5><p>对于UIView和CALayer大家都比较熟悉，UIView内部包含着一个CALayer属性，它继承自NSObject，负责界面上的内容显示，而UIView继承自UIResponder它作为CALayer的CALayerDelegate负责事件的响应，以及创建并管理它的图层，以确保当子视图在层级关系中添加或者被移除的时候，它们关联的图层也同样对应在层级关系树当中有相同的操作。每个View被创建的时候都会自动创建一个CALayer,同时还可以在后续的操作中添加多个layer。</p>
+<p>我们先来看下UIView 和 CALayer的结构：<br>上面我们介绍了二者的分工，UIView 负责事件的响应，CALayer负责内容的显示，但是为什么需要有这样的分工？归根到底是因为Mac上和iPhone上的事件存在很大的区别？iPhone 上的事件绝大多数是屏幕触摸事件，而Mac上还有鼠标，键盘等事件，但是显示上却是高度一致的，因此就可以将这部分显示的给拎出来，作为CALayer单独存在。<br>CALayer有个id类型的contents属性，它指向内存中的一个成为backing storage的存储空间。往contents上赋值的时候就会将图片存储到这个backing storage中，这里虽然是id类型，但是如果传递其他类型进去会不显示，这里为什么使用id类型而不是明确的CGImageRef，也还是为了兼容，因为图像类型在Mac OS中是NSImage类型而在iOS上却是CGImageRef类型。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00017.png"></p>
+<p>下面是整个UIView 和 CALayer的结构图：</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0003.png"></p>
+<p>接下来看下最重要的一点：我们怎么将要显示的内容绘制到CALayer上，下图是整个流程，总共分成两大分支：</p>
+<ol>
+<li>第一个分支是通过给layer.contents赋值，将内容绘制到CALayer 默认的backing store上，在我们调用[UIView setNeedsDisplay]的时候，会间接触发[view.layer setNeedsDisplay],紧接着调用[view.layer display] 在这个方法中会判断delegate 是否实现了displaylayer如果有则将layer传递出去，在这里可以对contents进行赋值，也就是说可以选择覆写CALayer的display方法为content赋值，或者直接对CALayer的content赋值，或者作为代理为在displaylayer方法中对content赋值。</li>
+</ol>
+<p>比如<strong><strong>SDAnimatedImageView中</strong></strong>有如下代码：</p>
+<pre><code><figure class="highlight gml"><table><tr><td class="code"><pre><span class="line">- (void)displayLayer:(CALayer *)<span class="variable language_">layer</span> &#123;</span><br><span class="line">    UIImage *currentFrame = <span class="variable language_">self</span>.currentFrame;</span><br><span class="line">    <span class="keyword">if</span> (currentFrame) &#123;</span><br><span class="line">        <span class="variable language_">layer</span>.contentsScale = currentFrame.scale;</span><br><span class="line">        <span class="variable language_">layer</span>.contents = (__bridge <span class="variable language_">id</span>)currentFrame.CGImage;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</code></pre>
+<p>YYText中的*<em><strong>YYTextAsyncLayer</strong></em>**覆写了display方法</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">void</span>)display &#123;</span><br><span class="line">    <span class="keyword">super</span>.contents = <span class="keyword">super</span>.contents;</span><br><span class="line"><span class="string">    [self _displayAsync:_displaysAsynchronously]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>第二个分支开始的时候会创建一个新的backing store,然后开始走drawInContext，这时候会先看delegate是否实现了drawRect如果有则用drawRect,否则调用drawLayer:inContext:并将管理新建backing store的context传递出来。<br>这里需要注意的是drawRect: 方法没有默认的实现，因为对UIView来说，寄宿图并不是必须的，但是如果UIView检测到drawRect: 方法被调用了，它就会为视图分配一个寄宿图。因此如果没有自定义绘制的任务就不要在子类中写一个空的-drawRect:方法。</li>
+</ol>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0004.png"></p>
+<p>因此只有在创建单独的图层外，我们很少会用到CALayerDelegate，因为在UIView创建了它的Root Layer时，它就会自动地把Root Layer的delegate设置为它自己，并内部提供了-displayLayer:的实现。如果我们需要重新对控件进行自定义也不必实现-displayLayer:和-drawLayer:inContext:方法。通常做法是实现UIView的-drawRect:方法，UIView就会帮你做完剩下的工作，包括在需要重绘的时候调用-display方法。</p>
+<h5 id="2-2-Core-Graphics-amp-amp-图片加载"><a href="#2-2-Core-Graphics-amp-amp-图片加载" class="headerlink" title="2.2 Core Graphics &amp;&amp; 图片加载"></a><strong><strong>2.2 Core Graphics &amp;&amp; 图片加载</strong></strong></h5><p>从上面的流程可以看出，可以通过两种方式给一个控件显示需要展示的内容，一种是通过设置layer的contents，一种是通过覆写对应的代理方法，在代理方法中会传出新建backing store的CGContextRef,我们可以使用它向backing store中绘制内容。这里需要注意两点：</p>
+<ol>
+<li>使用第一种方式的时候，由于从磁盘文件中加载出来的图片文件往往是经过压缩的，因此在将它设置到contents之前需要对图片进行解压，这一步是可以在后台线程完成的，这往往是一个性能优化点。</li>
+<li>使用第二种方式的时候需要注意的是这种方式会新建一个backing store所以是十分耗费资源的。这也是尽量不要使用重写drawRect来绘制界面的原因。</li>
+</ol>
+<p>最后需要明确一点经过这个步骤我们得到的是Bitmap数据，这个Bitmap将会被输送到后续流程。</p>
+<h5 id="2-3-在提交到Render-Server前都做了什么工作"><a href="#2-3-在提交到Render-Server前都做了什么工作" class="headerlink" title="2.3 在提交到Render Server前都做了什么工作"></a><strong><strong>2.3 在提交到Render Server前都做了什么工作</strong></strong></h5><p>在一个界面从开始到提交到Render Server前一共可以分成三个步骤：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>Layout</span><br><span class="line"><span class="bullet">* </span>Prepare &amp;&amp; Display</span><br><span class="line"><span class="bullet">* </span>Commit</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-3-1-Layout"><a href="#2-3-1-Layout" class="headerlink" title="2.3.1 Layout"></a><strong><strong>2.3.1 Layout</strong></strong></h5><p>在一个控件被加到界面上的时候，首先会触发控件的布局，从而确定出整个层级树中每个控件的frame。这部分大家可以看下我之前写的iOS布局总结，这里就不做重复介绍了。  </p>
+<h5 id="2-3-2-Prepare-amp-amp-Display"><a href="#2-3-2-Prepare-amp-amp-Display" class="headerlink" title="2.3.2 Prepare &amp;&amp; Display"></a><strong><strong>2.3.2 Prepare &amp;&amp; Display</strong></strong></h5><p>这部分主要是由CPU参与，在2.1 和 2.2已经描述得相对比较详细了，这部分会涉及到图片的解码，文本绘制，或者通过CALayer暴露出来的CGContextRef在backing store中进行绘制。图片解码一般发生在Prepare阶段。存储在backing store的 bitmap后续就会被打包送到Render Server中。</p>
+<h5 id="2-3-3-Commit"><a href="#2-3-3-Commit" class="headerlink" title="2.3.3 Commit"></a><strong><strong>2.3.3 Commit</strong></strong></h5><p>当RunLoop即将进入休眠期间或者即将退出的时候，会通过已经注册的通知回调执行_ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv函数，在这个函数会递归将待处理的图层进行打包压缩，并通过IPC方式发送到Render Server，这里还需要提到一点：这时候的Core Animation会创建一个OpenGL ES纹理并将2.3.2 中backing store中的位图上传到对应的纹理中。</p>
+<h5 id="2-4-在送到GPU之前Core-Animation-都做了什处理"><a href="#2-4-在送到GPU之前Core-Animation-都做了什处理" class="headerlink" title="2.4 在送到GPU之前Core Animation 都做了什处理"></a><strong><strong>2.4 在送到GPU之前Core Animation 都做了什处理</strong></strong></h5><p>Render Server在拿到压缩后的数据的时候，首先对这些数据进行解压，从而拿到图层树，然后根据图层树的层次结构，每个层的alpha值opeue值，RGBA值、以及图层的frame值等对被遮挡的图层进行过滤，最终得到渲染树，渲染树就是指将图层树对应每个图层的信息，比如顶点坐标、顶点颜色这些信息，抽离出来，形成的树状结构。渲染树就是下一步送往GPU进行渲染的数据。</p>
+<h5 id="2-5-在GPU中做了哪些处理"><a href="#2-5-在GPU中做了哪些处理" class="headerlink" title="2.5 在GPU中做了哪些处理"></a><strong><strong>2.5 在GPU中做了哪些处理</strong></strong></h5><p>这步骤输入的是两类数据，一个是渲染指令，一个是2.4 生成的顶点，以及对应的纹理数据，输出的是像素数据</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0006.png"></p>
+<p>整个管线从整体来讲可以分成两大阶段：</p>
+<ol>
+<li>将3D 坐标转换到2D 的屏幕坐标系</li>
+<li>把2D 坐标系转换为有颜色的像素值。</li>
+</ol>
+<p>往细得分可以分成六个阶段：</p>
+<ul>
+<li>顶点着色器（Vertex Shader）</li>
+<li>图元装配（Shape Assembly）</li>
+<li>几何着色器（Geometry Shader）</li>
+<li>光栅化（Rasterization）</li>
+<li>片段着色器（Fragment Shader）</li>
+<li>测试与混合（Tests and Blending）</li>
+</ul>
+<p>下面是整个流程的示意图：</p>
+<p>其中蓝色部分是代表着色器，着色器是运行在GPU上的非常独立的可编程小程序，可以通过这些小程序来控制整个管线的各个部分。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0008.png"></p>
+<h5 id="2-5-1-顶点着色器"><a href="#2-5-1-顶点着色器" class="headerlink" title="2.5.1 顶点着色器"></a><strong><strong>2.5.1 顶点着色器</strong></strong></h5><p>在Render Server 拿到顶点数据并输入到渲染管线的时候，顶点着色器会对每个顶点数据进行一次运算，每个顶点都对应一组顶点数组，这些数组可以用于存储：顶点坐标，表面法线，RGBA颜色，辅助颜色，颜色索引，雾坐标，纹理坐标以及多边形边界标志等。</p>
+<ul>
+<li><strong><strong>Step 1 模型坐标系 –&gt; 世界坐标系</strong></strong></li>
+</ul>
+<p>模型坐标系是为了方便建立模型而设立的坐标，在模型坐标系中我们不用考虑模型显示在屏幕的哪个位置，它是模型的自身坐标系，描述的是模型的各个部分相对于模型原点的坐标值。<br>要理解世界坐标系就需要先理解世界这个概念，在一个世界中可以存在很多模型，打个比方，整个银河系是一个世界，这个世界上存在很多的行星，这里的行星可以看成是一个个模型，模型本身也有它的坐标系，在Step 1 阶段就是将模型安放到制定的世界中，并将模型上的坐标转换为在这个世界中的坐标值。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00010.png"><br><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/0009.png"></p>
+<p>上图第一张为三个茶壶各自的模型坐标系，第二张表示三个茶壶被放置到同一个世界坐标系的时候各个茶壶的坐标情况。</p>
+<ul>
+<li><strong><strong>Step 2 世界坐标系 –&gt; 相机坐标系</strong></strong></li>
+</ul>
+<p>在将多个模型放到同一个世界上并拥有同一个世界坐标系后，就需要考虑另一个问题，从哪个视角捕获我们想要的场景，相机坐标系中的坐标，就是从相机的角度来解释世界坐标系中位置，OpenGL中相机始终位于原点，指向-Z轴，而以相反的方式来调整场景中物体，从而达到相同的观察效果。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00011.png"></p>
+<ul>
+<li><strong><strong>Step 3 相机坐标系 –&gt; 裁剪坐标系</strong></strong></li>
+</ul>
+<p>投影是顺着相机的视角，将物体投射到屏幕上，投影方式有很多种，OpenGL中主要使用两种方式，即透视投影和正交投影，经过投影后我们获得的是二维的图像。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00012.png"></p>
+<ul>
+<li><strong><strong>Step 4 规范化设备坐标系 –&gt; 屏幕坐标系</strong></strong></li>
+</ul>
+<p>这个步骤最终决定生成的二维图像到底显示在屏幕的什么位置和显示窗口的大小。</p>
+<h5 id="2-5-2-图元装配"><a href="#2-5-2-图元装配" class="headerlink" title="2.5.2 图元装配"></a><strong><strong>2.5.2 图元装配</strong></strong></h5><p>该阶段将顶点着色器输出的所有顶点作为输入，并将所有的点装配成指定图元的形状。图元是渲染的单位，用于表示如何渲染顶点数据,OpenGL ES 支持三种图元—– 点、线、三角形。也就是说图元装配的过程就是将顶点连接起来，形成一个个所支持的图元元素。</p>
+<h5 id="2-5-3-几何着色器"><a href="#2-5-3-几何着色器" class="headerlink" title="2.5.3 几何着色器"></a><strong><strong>2.5.3 几何着色器</strong></strong></h5><p>几何着色器把图元形式的一系列顶点的集合作为输入，它可以通过产生新顶点构造出新的图元来生成其他形状，它是一个可选的阶段。</p>
+<h5 id="2-5-4-光栅化"><a href="#2-5-4-光栅化" class="headerlink" title="2.5.4 光栅化"></a><strong><strong>2.5.4 光栅化</strong></strong></h5><p>光栅化会把图元映射为最终屏幕上相应的像素，生成供片段着色器使用的片段。在片段着色器运行之前会执行裁切。裁切会丢弃超出你的视图以外的所有像素，用来提升执行效率。</p>
+<h5 id="2-5-5-片段着色器"><a href="#2-5-5-片段着色器" class="headerlink" title="2.5.5 片段着色器"></a><strong><strong>2.5.5 片段着色器</strong></strong></h5><p>在经过光栅化后得到的是一个一个片段，在介绍片段着色器之前，先了解下什么是片段，OpenGL中的一个片段是OpenGL渲染一个像素所需的所有数据，它包含位置，颜色，纹理坐标等信息。这些值是由图元的顶点信息进行插值计算得到的。片段着色器的主要目的是计算一个像素的最终颜色，这也是所有OpenGL高级效果产生的地方。通常，片段着色器包含3D场景的数据（比如光照、阴影、光的颜色等等），这些数据可以被用来计算最终像素的颜色。</p>
+<p>其中贴图是最重要的部分，我们的 Resources资源中，可以包含纹理等数据，片段着色器可以根据顶点着色器输出的顶点纹理坐标对纹理进行采样，以计算该片段的颜色值。从而调整成各种各样不同的效果图。除了纹理贴图外另一个很重要的功能就是光照特效：我们可以传给片段着色器一个光源位置和光源颜色，就可以根据一定的公式计算出一个新的颜色值，这样就可以实现光照特效。</p>
+<h5 id="2-5-6-测试和混合阶段"><a href="#2-5-6-测试和混合阶段" class="headerlink" title="2.5.6 测试和混合阶段"></a><strong><strong>2.5.6 测试和混合阶段</strong></strong></h5><p>这个阶段检测片段的对应的深度值，用它们来判断这个像素是其它物体的前面还是后面，决定是否应该丢弃。这个阶段也会检查alpha值并对物体进行混合(Blend)。所以，即使在片段着色器中计算出来了一个像素输出的颜色，在渲染多个三角形的时候最后的像素颜色也可能完全不同。总得来说这个阶段主要决定同一个位置的物体到底哪一个可以显示在屏幕上以及颜色的混合。</p>
+<p>到目前位置我们拿到各个点的最终像素值，最后我们要做的就是将这些像素值写到帧缓存器中，等待VSync信号到来。</p>
+<h5 id="2-6-显示的原理"><a href="#2-6-显示的原理" class="headerlink" title="2.6 显示的原理"></a><strong><strong>2.6 显示的原理</strong></strong></h5><p>在介绍显示原理前需要先了解下CRT显示器的原理。CRT 的电子枪会从屏幕的左上角从上到下一行行扫描，扫描完成后显示器就呈现一帧画面，随后电子枪回到初始位置继续下一次扫描。但是这里存在生产者消费者现象，对于屏幕而言它是消费者，而GPU是生产者，为了同步二者的节奏显示器通过用硬件时钟产生一系列的定时信号，当电子枪换到新的一行，准备进行扫描时，显示器会发出一个水平同步信号，简称 HSync，而当一帧画面绘制完成后，电子枪回复到原位，准备画下一帧前，显示器会发出一个垂直同步信号，简称 VSync，并且在显示器和GPU之间使用了双缓存机制，在显示器显示某帧数据的时候，GPU可以往另一个缓存中提交渲染好的数据，在VSync信号到来的时候，视频控制器切换到另一个缓存用于显示，也就是说在Vsync信号到来的时候另一个缓存必须填满渲染数据，也就是之前的步骤必须完成，在iOS设备中，每秒60帧，每帧16.7ms。那么如果在16.7ms还没渲染完呢？这时候视频控制器就不会将缓存切换到未完成的帧，而是继续显示当前的内容。这就给人们带来视觉上的卡顿。因此在UI线程尽量少处理耗时操作。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00013.png"><br><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00016.png"></p>
+<h5 id="2-7-动画渲染"><a href="#2-7-动画渲染" class="headerlink" title="2.7 动画渲染"></a><strong><strong>2.7 动画渲染</strong></strong></h5><p>iOS 动画的渲染也是基于上述 Core Animation 流水线完成的，所以大致的流程也是类似的，但是它需要CAdisplayLink 定时器协助下完成整个动画。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00014.png"></p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1.</span> 调用 animationWithDuration:animations: 方法</span><br><span class="line"><span class="bullet">2.</span> 在 Animation Block 中进行 Layout，Display，Prepare，Commit 等步骤。</span><br><span class="line"><span class="bullet">3.</span> Render Server 根据 Animation 逐帧进行渲染。</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-离屏渲染"><a href="#3-离屏渲染" class="headerlink" title="3.离屏渲染"></a><strong><strong>3.离屏渲染</strong></strong></h5><h5 id="3-1-什么是离屏渲染"><a href="#3-1-什么是离屏渲染" class="headerlink" title="3.1 什么是离屏渲染"></a><strong><strong>3.1 什么是离屏渲染</strong></strong></h5><p>上面介绍的渲染为当前屏幕渲染(On-Screen Rendering)，也就是GPU的操作是在当前用于显示的屏幕缓冲区中进行的，但是还有一种渲染模式为离屏渲染，它发生在某些图层元素未预先合成之前不能直接在当前屏幕上绘制的情况下，这种情况下系统会新开一个缓冲区，在这里进行渲染操作。</p>
+<h5 id="3-2-触发离屏渲染的因素"><a href="#3-2-触发离屏渲染的因素" class="headerlink" title="3.2 触发离屏渲染的因素"></a><strong><strong>3.2 触发离屏渲染的因素</strong></strong></h5><p>离屏渲染一般发生在如下几种情况：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>shouldRasterize = YES（开启光栅化）</span><br><span class="line"><span class="bullet">* </span>edge antialiasing（抗锯齿）</span><br><span class="line"><span class="bullet">* </span>group opacity（不透明）</span><br><span class="line"></span><br><span class="line"><span class="bullet">* </span>circleRadius (圆角)</span><br><span class="line"><span class="bullet">* </span>masks（遮罩）</span><br><span class="line"><span class="bullet">* </span>shadows（阴影）</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-3-为什么离屏渲染会比较耗时"><a href="#3-3-为什么离屏渲染会比较耗时" class="headerlink" title="3.3 为什么离屏渲染会比较耗时"></a><strong><strong>3.3 为什么离屏渲染会比较耗时</strong></strong></h5><p>之所以耗时是因为离屏渲染涉及到两个开销较大的操作：</p>
+<ol>
+<li><strong><strong>创建新缓冲区</strong></strong></li>
+</ol>
+<p>要想进行离屏渲染，首先要创建一个新的缓冲区。</p>
+<ol start="2">
+<li><strong><strong>上下文切换</strong></strong></li>
+</ol>
+<p>离屏渲染的整个过程，需要多次切换上下文环境：先是从当前屏幕切换到离屏；等到离屏渲染结束以后，将离屏缓冲区的渲染结果显示到屏幕上有需要将上下文环境从离屏切换到当前屏幕。而上下文环境的切换是要付出很大代价的。</p>
+<p>所以能够避免离屏渲染尽量避免。</p>
+<p>下图为Marks离屏渲染过程图，可以看到它其实是分两大部分，一部分用于渲染图层纹理，一部分用于生成遮罩纹理。最后再将这两部分合成。</p>
+<p><img src="/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/00015.png"></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/72653360">关于iOS离屏渲染的深入研究</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/23cc01ada2ba">iOS 和常见的离屏渲染Say Goodbye！</a></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/">iOS 理论基础</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-理论基础/">iOS 理论基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/08/06/iOS-内置布局方式对比-布局相关函数介绍-布局相关三方开源项目对比/" title="iOS 布局总结">
+  <span>
+  iOS 布局总结</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/08/01/iOS-生命周期/"  title="iOS 生命周期">
+ <span>iOS 生命周期
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/08/04/iOS-渲染系统工作原理介绍/" data-title="iOS 渲染系统工作原理介绍" data-url="http://yoursite.com/2019/08/04/iOS-%E6%B8%B2%E6%9F%93%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#0-%E5%BC%80%E7%AF%87%E5%8F%A8%E5%8F%A8"><span class="toc-number">1.</span> <span class="toc-text">0. 开篇叨叨</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-iOS-%E6%B8%B2%E6%9F%93%E6%A1%86%E6%9E%B6%E7%BB%84%E6%88%90%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. iOS 渲染框架组成概述</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E7%95%8C%E9%9D%A2%E6%B8%B2%E6%9F%93%E7%9A%84%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">2.界面渲染的整体流程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-1-UIView-amp-amp-CALayer"><span class="toc-number">4.</span> <span class="toc-text">2.1 UIView &amp;&amp; CALayer</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-Core-Graphics-amp-amp-%E5%9B%BE%E7%89%87%E5%8A%A0%E8%BD%BD"><span class="toc-number">5.</span> <span class="toc-text">2.2 Core Graphics &amp;&amp; 图片加载</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-%E5%9C%A8%E6%8F%90%E4%BA%A4%E5%88%B0Render-Server%E5%89%8D%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88%E5%B7%A5%E4%BD%9C"><span class="toc-number">6.</span> <span class="toc-text">2.3 在提交到Render Server前都做了什么工作</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-1-Layout"><span class="toc-number">7.</span> <span class="toc-text">2.3.1 Layout</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-2-Prepare-amp-amp-Display"><span class="toc-number">8.</span> <span class="toc-text">2.3.2 Prepare &amp;&amp; Display</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-3-Commit"><span class="toc-number">9.</span> <span class="toc-text">2.3.3 Commit</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-4-%E5%9C%A8%E9%80%81%E5%88%B0GPU%E4%B9%8B%E5%89%8DCore-Animation-%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E5%A4%84%E7%90%86"><span class="toc-number">10.</span> <span class="toc-text">2.4 在送到GPU之前Core Animation 都做了什处理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-%E5%9C%A8GPU%E4%B8%AD%E5%81%9A%E4%BA%86%E5%93%AA%E4%BA%9B%E5%A4%84%E7%90%86"><span class="toc-number">11.</span> <span class="toc-text">2.5 在GPU中做了哪些处理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-1-%E9%A1%B6%E7%82%B9%E7%9D%80%E8%89%B2%E5%99%A8"><span class="toc-number">12.</span> <span class="toc-text">2.5.1 顶点着色器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-2-%E5%9B%BE%E5%85%83%E8%A3%85%E9%85%8D"><span class="toc-number">13.</span> <span class="toc-text">2.5.2 图元装配</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-3-%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8"><span class="toc-number">14.</span> <span class="toc-text">2.5.3 几何着色器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-4-%E5%85%89%E6%A0%85%E5%8C%96"><span class="toc-number">15.</span> <span class="toc-text">2.5.4 光栅化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-5-%E7%89%87%E6%AE%B5%E7%9D%80%E8%89%B2%E5%99%A8"><span class="toc-number">16.</span> <span class="toc-text">2.5.5 片段着色器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-6-%E6%B5%8B%E8%AF%95%E5%92%8C%E6%B7%B7%E5%90%88%E9%98%B6%E6%AE%B5"><span class="toc-number">17.</span> <span class="toc-text">2.5.6 测试和混合阶段</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-6-%E6%98%BE%E7%A4%BA%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">18.</span> <span class="toc-text">2.6 显示的原理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-7-%E5%8A%A8%E7%94%BB%E6%B8%B2%E6%9F%93"><span class="toc-number">19.</span> <span class="toc-text">2.7 动画渲染</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93"><span class="toc-number">20.</span> <span class="toc-text">3.离屏渲染</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-1-%E4%BB%80%E4%B9%88%E6%98%AF%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93"><span class="toc-number">21.</span> <span class="toc-text">3.1 什么是离屏渲染</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-2-%E8%A7%A6%E5%8F%91%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E7%9A%84%E5%9B%A0%E7%B4%A0"><span class="toc-number">22.</span> <span class="toc-text">3.2 触发离屏渲染的因素</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%A6%BB%E5%B1%8F%E6%B8%B2%E6%9F%93%E4%BC%9A%E6%AF%94%E8%BE%83%E8%80%97%E6%97%B6"><span class="toc-number">23.</span> <span class="toc-text">3.3 为什么离屏渲染会比较耗时</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,749 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之性能优化 UI视图优化 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="性能优化步骤刚接触Android开发的时候时不时地会听到帧率，60fps这些名词，当时没放在心上但是后来在工作逐渐深入的情况下，接触到了性能优化的问题，测试有的时候会抱怨apk十分卡顿，软件项目经理看到性能测试报告后会找来说怎么占用这么多资源。这时候就需要我们针对具体情况对Apk进行性能优化了。性能优化一般分成三步：  首先初步定位当前要优化的问题是属于哪一类？UI渲染？内存？电量？网络?这个一般">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之性能优化 UI视图优化">
+<meta property="og:url" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="性能优化步骤刚接触Android开发的时候时不时地会听到帧率，60fps这些名词，当时没放在心上但是后来在工作逐渐深入的情况下，接触到了性能优化的问题，测试有的时候会抱怨apk十分卡顿，软件项目经理看到性能测试报告后会找来说怎么占用这么多资源。这时候就需要我们针对具体情况对Apk进行性能优化了。性能优化一般分成三步：  首先初步定位当前要优化的问题是属于哪一类？UI渲染？内存？电量？网络?这个一般">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/5.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/6.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/7.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/8.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/9.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/10.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/12.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/13.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/14.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/15.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/16.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/17.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/18.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/30.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/19.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/20.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/22.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/23.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/24.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/25.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/27.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/28.png">
+<meta property="article:published_time" content="2016-06-01T12:36:59.000Z">
+<meta property="article:modified_time" content="2016-08-07T15:51:36.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/06/01/Android-进阶之性能优化-视图优化/" title="Android 进阶之性能优化 UI视图优化" itemprop="url">Android 进阶之性能优化 UI视图优化</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-06-01T12:36:59.000Z" itemprop="datePublished"> Published 2016-06-01</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h3 id="性能优化步骤"><a href="#性能优化步骤" class="headerlink" title="性能优化步骤"></a>性能优化步骤</h3><p>刚接触Android开发的时候时不时地会听到帧率，60fps这些名词，当时没放在心上但是后来在工作逐渐深入的情况下，接触到了性能优化的问题，测试有的时候会抱怨apk十分卡顿，软件项目经理看到性能测试报告后会找来说怎么占用这么多资源。这时候就需要我们针对具体情况对Apk进行性能优化了。<br>性能优化一般分成三步：</p>
+<ul>
+<li>首先初步定位当前要优化的问题是属于哪一类？UI渲染？内存？电量？网络?这个一般很容易从表象看出个大概，但是要注意这里有些因素是相互影响的，比如网络有可能导致电量消耗过快，内存抖动有可能照成界面卡顿。</li>
+<li>其次确定选择什么工具对性能进行测试，在这方面虽然工具较多，但是每个方面的性能测试工具一般都有那么几款主流的的工具，最主要的就是要知道我们要获取哪些指标，也就是在收集数据之前要明确我们要收集哪些数据。</li>
+<li>再其次就是使用工具对Apk的某项指标进行收集。<br>有了数据最难的问题也来了—如何分析这些数据，这部分一般要求你对代码比较了解，这也是为什么一般性能优化不会让一个刚刚接触某个模块的人来完成。最后就是着手进行优化了，这一步要注意的就是权衡二字，看下改动是否是伤筋动骨的，如果是那种改动十分大的，就需要考虑是否值得开展，或者在临时版本上进行，优化结束后让测试介入进行专项测试。</li>
+</ul>
+<h3 id="性能优化学习资料推荐"><a href="#性能优化学习资料推荐" class="headerlink" title="性能优化学习资料推荐"></a>性能优化学习资料推荐</h3><p>关于性能优化主要分成如下几类：UI渲染，内存优化，电量优化，网络优化，代码级别优化，apk资源优化。这里面有些优化还具有相互关联的关系，比如电量优化和网络优化之间存在着十分密切的关联。接下来的几篇文章将把当时学习性能优化时候的总结分享出来，如果大家想从原始的资源进行学习我这边可以推荐大家如下的资源：</p>
+<ol>
+<li>yutobe 下搜索 Android性能优化典范 这个是google 提供的是比较权威的学习材料</li>
+<li>优达的Android 系统性能 <a target="_blank" rel="noopener" href="https://cn.udacity.com/course/android-performance--ud825/">https://cn.udacity.com/course/android-performance--ud825/</a> 这个也是google推出的。</li>
+<li>胡凯的Android性能优化典范的学习笔记 <a target="_blank" rel="noopener" href="http://hukai.me/blog/archives/">http://hukai.me/blog/archives/</a></li>
+</ol>
+<p>		</p>
+<h3 id="UI视图优化"><a href="#UI视图优化" class="headerlink" title="UI视图优化"></a>UI视图优化</h3><p>UI是一个Apk的脸面，在当前看脸的时代在很大程度上决定了Apk的命运。但是当当是漂亮还不行还需要流畅，你也许会常常听到用户抱怨在执行动画或者滑动ListView的时候感知到卡顿不流畅，其实这是因为这里的操作相对复杂，容易发生丢帧的现象，从而带来卡顿的感觉。</p>
+<p>丢帧的原因很多：</p>
+<ul>
+<li>在主线程执行耗时操作，比如文件读写等操作。这个一般比较好被发现，用StrictMode一般都可以发现。</li>
+<li>一种是由于Layout太过复杂，布局嵌套节点太多，无法在16ms内完成渲染。</li>
+<li>一种可能是UI上有层叠太多的绘制单元，造成Over Draw。</li>
+<li>还有一种可能是动画执行的次数太多，动画过于复杂。</li>
+<li>内存频繁触发GC，照成内存抖动</li>
+</ul>
+<p>但是最根本的原因是由于复杂的布局和动画导致CPU和GPU无法在16ms时间内完成当前页面的绘制与渲染，从而导致下一帧来的时候来不及绘制导致了丢帧的问题。接下来的部分将从上述的这几个方面对UI视图渲染优化进行讲解。主要涉及如下几个关键点：</p>
+<ol>
+<li>为什么要保证所有绘制任务要在16ms内完成</li>
+<li>Android 系统UI绘制原理</li>
+<li>影响UI视图渲染效率的原因</li>
+<li>有那些测量工具和解决的方案</li>
+</ol>
+<h4 id="为什么要保证所有绘制任务要在16ms内完成"><a href="#为什么要保证所有绘制任务要在16ms内完成" class="headerlink" title="为什么要保证所有绘制任务要在16ms内完成"></a>为什么要保证所有绘制任务要在16ms内完成</h4><p>这里要求的60fps不是无故规定的，这是因为人眼与大脑之间的协作无法感知超过60fps的画面更新，所以大于60fps是没有必要的，这里有几个比较常见的帧率：12fps大概类似手动快速翻动书籍的帧率，这明显是可以感知到不够顺滑的。24fps是电影胶圈通常使用的帧率，这个速率能使得人眼感知当前的画面是连续线性的运动，但是只能足够支撑大部分电影画面需要表达的内容，还是达到顺畅的标准，一般而言低于30fps是无法顺畅表现绚丽的画面内容的，此时就需要用到60fps来达到想要的效果。<br>要使得帧率大于60fps就要求每个绘制任务必须要在16ms内完成，否则就会出现丢帧的现象：<br>下面两图分别是不丢帧的情况以及丢帧的情况：<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/1.png"><br>下图的第二帧更新时间要花费24ms导致了下一帧的绘图信号来的时候当前更新还未完成导致丢帧，这样在下一帧该显示的时候依旧停留在当前帧。从而在视觉上会造成卡顿的现象。当然更新任务花费的时间越短越好，因为在主线程中除了界面更新外还有用户交互等任务需要处理。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/2.png"></p>
+<h5 id="从刷新频率和帧率角度看丢帧现象："><a href="#从刷新频率和帧率角度看丢帧现象：" class="headerlink" title="从刷新频率和帧率角度看丢帧现象："></a>从刷新频率和帧率角度看丢帧现象：</h5><p>Refresh Rate：刷新率代表了在一秒内刷新屏幕的次数，这是由硬件决定的，一般会有个范围可以调整。<br>Frame Rate：帧率代表了GPU在一秒内绘制操作的帧数，例如30fps，60fps。<br>理想的情况下两个速率应该是一致的。但是在现实情况下帧率往往小于刷新频率。在这种情况下，某些帧显示的画面内容就会与上一帧的画面相同。这也就是常说的丢帧的问题。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/3.png"><br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/4.png"></p>
+<h4 id="Android-系统UI绘制渲染原理"><a href="#Android-系统UI绘制渲染原理" class="headerlink" title="Android 系统UI绘制渲染原理"></a>Android 系统UI绘制渲染原理</h4><p>UI 的绘制渲染任务主要是由CPU和GPU两大组件来完成的，CPU负责包括Measure，Layout，Record，Execute的计算操作，GPU负责Rasterization。下图描述了CPU，GPU的Pileline主要的问题，解决问题的工具以及解决问题的方案。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/5.png"><br>从图上可以看出CPU负责将需要绘制的UI组件计算成Polygons，Texture，然后交给GPU,GPU对其进行快速栅格化，也就是把Button等组件进行拆分到不同的像素上。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/6.png"><br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/7.png"><br>通过GPU栅格化后最终才绘制到屏幕上，为了能够使得我们的App运行得顺畅，不丢帧，需要保证在16ms内CPU 和 GPU 完成上述的计算，绘制，渲染等全部操作。</p>
+<h4 id="视图的渲染"><a href="#视图的渲染" class="headerlink" title="视图的渲染"></a>视图的渲染</h4><p>对于布局，在进行绘制的时候Android需要在DisplayList的帮助下把XML布局文件转换成GPU能够识别并绘制的对象。DisplayList持有所有将要交给GPU绘制到屏幕上的数据信息。<br>在某个View第一次需要被渲染时，Display List会因此被创建，当这个View要显示到屏幕上时，我们会执行GPU的绘制指令来进行渲染。如果只是View的Property属性发生了改变（例如移动位置），我们就仅仅需要Execute Display List就够了。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/8.png"><br>但是如果View中的某些可见部分发生了变化那么就需要重新创建一个DisplayList，而不能继续使用原先的DisplayList了。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/9.png"><br>需要注意的是任何时候View中的绘制内容发生变化时，都会需要重新创建并渲染DisplayList，并将渲染后的结果更新到屏幕上。举个例子，假设某个Button的大小需要增大到目前的两倍，在增大Button大小之前，需要通过父View重新计算并摆放其他子View的位置。修改View的大小会触发整个HierarcyView的重新计算大小的操作。如果是修改View的位置则会触发HierarchView重新计算其他View的位置。如果布局很复杂，这就会很容易导致严重的性能问题。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/10.png"></p>
+<h4 id="影响UI视图渲染效率的原因："><a href="#影响UI视图渲染效率的原因：" class="headerlink" title="影响UI视图渲染效率的原因："></a>影响UI视图渲染效率的原因：</h4><ul>
+<li><p>CPU部分的问题—布局的层级太深<br>最理想的布局在Hierarchy View 上是呈现扁平状的，也就是布局的层级结构不能太深，不要使用太多的布局嵌套关系。这部分的优化可以使用Hierarcy Viewer进行优化。</p>
+</li>
+<li><p>GPU 部分的主要问题有两个方面：</p>
+</li>
+</ul>
+<ol>
+<li>Overdraw过度绘制</li>
+<li>渲染太过耗时<br>Overdraw指的是屏幕上的某些像素块在同一帧的时间内被绘制了多次。在多层次重叠的UI结构里面，如果对不可见的UI也进行绘制操作，就会导致某些像素区域被绘制了多次。从而浪费CPU以及GPU的时间。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/12.png"></li>
+</ol>
+<p>但是从布局代码上很难直观得找出哪些像素块发生了Overdraw现象，如果要查看UI上的Overdraw情况可以打开Settings开发者选项的Show GPU Overdraw开关进行观察。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/13.png"></p>
+<p>蓝色，淡绿，淡红，深红代表了4种不同程度的Overdraw情况，我们优化的目标就是尽量减少红色的区域。</p>
+<p>具体的优化有如下的方案：<br>移除默认的Background<br>移除XML布局文件中非必需的Background<br>按需显示占位背景图片（也就是在ListView每个Item的ImageView上不事先显示占位图片，先去获取要显示的图片如果获取失败的时候再使用占位图片来显示在ImageView上）<br>对于复杂的自定义View由于Android系统无法检测在onDraw里面具体会执行什么操作，这就导致难以避免Overdraw。但是这个问题并不是完全没有办法解决，Android提供了canvas.clipRect()方法来帮助系统识别那些可见的区域。使用canvas.clipRect()方法可以指定一块矩形区域，只有在这个区域内的View才会被绘制，其他的区域的View都将被忽略。这种方法极大地避免了CPU与GPU资源的浪费。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/14.png"></p>
+<p>下面是使用clipRect来解决自定义View Over Draw的例子，首先我们来看下原始方案的效果，在Over Draw 开启的情况下在层叠部分显示了大面积的红色区块，这是不可取的。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/15.png"></p>
+<p>我们查看下该自定义View的onDraw方法：<br>代码逻辑很简单就是每隔一段偏移绘制一个图片。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/16.png"><br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/17.png"><br>下面是使用clipRect()方法来解决自定义View OverDraw问题的方案以及效果：</p>
+<p><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/18.png"><br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/30.png"><br>从效果上看红色区块已经完全去掉了。</p>
+<h4 id="使用Profile-GPU-Rendering-查看GPU渲染信息："><a href="#使用Profile-GPU-Rendering-查看GPU渲染信息：" class="headerlink" title="使用Profile GPU Rendering 查看GPU渲染信息："></a>使用Profile GPU Rendering 查看GPU渲染信息：</h4><p>打开手机Settings里面的开发者选项，选择Profile GPU Rendering，选中On screen as bars的选项。就可以在手机屏幕上看到GPU Rending信息。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/19.png"><br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/20.png"></p>
+<p>随着界面的刷新，界面上会用实时滚动的垂直柱状图来表示每帧画面所需要渲染的时间，柱状图越高表示花费的渲染时间越长。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/22.png"></p>
+<p>界面上使用一条绿线表示16ms，如果柱状图的某个项超过这条横线那么就有可能导致丢帧照成的卡顿现象的发生。</p>
+<p>从Android M系统开始，系统对GPU Profiling 功能进行了增强，早期的CPU Profiling工具只能粗略的显示出Process，Execute，Update三大步骤的时间耗费情况。下面是对应的视图情况。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/23.png"><br>在Android M版本开始，GPU Profiling工具把渲染操作拆解成如下8个阶段：<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/24.png"><br>旧版本中提到的Proces，Execute，Update还是继续得到了保留，他们的对应关系如下：<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/25.png"></p>
+<p>接下去我们看下其他五个步骤分别代表了什么含义：<br>Swap Buffers 对应的是之前的Process阶段，表示渲染引擎执行显示列表所花的时间，view越多，时间就越长。<br>Command Issue对应的是之前的Execute阶段，表示把一帧数据发送到屏幕上排版显示实际花费的时间。其实是实际显示帧数据的后台缓存区与前台缓冲区交换后并将前台缓冲区的内容显示到屏幕上的时间。所以这个时间，一般都很短。<br>Draw 对应的是之前的Update阶段，表示在Java中创建显示列表部分中，OnDraw()方法占用的时间。<br>Sync &amp; Upload：通常表示的是准备当前界面上有待绘制的图片所耗费的时间，为了减少该段区域的执行时间，我们可以减少屏幕上的图片数量或者是缩小图片本身的大小。<br>Measure &amp; Layout：这里表示的是布局的onMeasure与onLayout所花费的时间，一旦时间过长，就需要仔细检查自己的布局是不是存在严重的性能问题。<br>Animation：表示的是计算执行动画所需要花费的时间，包含的动画有 ObjectAnimator，ViewPropertyAnimator，Transition等等。一旦这里的执行时间过长，就需要检查是不是使用了 非官方的动画工具或者是检查动画执行的过程中是不是触发了读写操作等等。<br>Input Handling：表示的是系统处理输入事件所耗费的时间，粗略等于对于的事件处理方法所执行的时间。一旦执行时间过长，意味着在处理用户的输入事件的地方执行了复杂的操作。<br>Misc&#x2F;Vsync Delay：如果稍加注意，我们可以在开发应用的Log日志里面看到这样一行提 示：I&#x2F;Choreographer(691): Skipped XXX frames! The application may be doing too much work on its main thread。这意味着我们在主线程执行了太多的任务，导致UI渲染跟不上vSync的信号而出现掉帧的情况。</p>
+<h4 id="Hierarchy-的使用："><a href="#Hierarchy-的使用：" class="headerlink" title="Hierarchy 的使用："></a>Hierarchy 的使用：</h4><p>Hierarchy 工具位于sdk的tool目录下，如果你使用的是Android Studio的话需要点击Android Device Monitor 工具进入。插入手机后会在左边的面板上会显示各个Activity的名字，点击要测试的Activity的名称就可以进入这个Activity的层级视图树。<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/27.png"><br>通过这个视图树可以很明显得看出整个页面布局的视图结构，一般理想的布局的视图树是扁平的。<br>Save as PNG用来把当前视图树保存为一张png图片<br>Capture Layers用来分层保存<br>Load View Hierarchy用来手动刷新变化<br>Profile Node：用于触发测试。获取某个节点View的个数，Measure，Layout，Draw各个步骤所消耗的时间。这里通过红，黄，绿三种不同的颜色来区分布局的Measure，Layout，Executive的相对性能表现<br>右侧显示选中View的当前属性状态<br>右下角以红色框的形式显示当前View在Activity中的位置<br>其他的按钮也是很常见的大家可以自己探索下。<br>我们重点看下每个节点的视图信息部分：<br>在上面提到了点击Profile Node会触发测试，点击某个节点将会出现如下界面：<br><img src="/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/28.png"><br>上图最底那三个彩色灯代表了当前View的性能指标，从左到右依次代表测量、布局、绘制的渲 染时间，红色和黄色的点代表速度渲染较慢的View<br>在自定义View的性能调试时，HierarchyViewer上面的invalidate Layout和requestLayout两个功能十分有帮助，我们可以在我们自定义View的代码上打上断点使用这两个按钮就可以执行invalidate()和 requestLayout()过程。</p>
+<h4 id="命令行方式获取帧率："><a href="#命令行方式获取帧率：" class="headerlink" title="命令行方式获取帧率："></a>命令行方式获取帧率：</h4><ol>
+<li>点击Android设备的“设置”-&gt;”开发者选项”，然后点击“GPU 呈现模式分析”，这时候会弹出一个对话框对话框中有三个选项，选择“在adb shell dumpsys gfxinfo中”这一项。</li>
+<li>重启待测试的应用。在应用的页面上做要测试的动作。<br>3.打开命令行工具，在命令行输入：adb shell dumpsys gfxinfo “apk名字”<br>4.找到Profile data in ms这部分数据就是当前的各个阶段的帧率。</li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android性能优化/">Android性能优化</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/06/02/Android-进阶之性能优化-内存优化/" title="Android 进阶之性能优化 内存优化">
+  <span>
+  Android 进阶之性能优化 内存优化</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/05/31/Android-进阶之重要的控件-DrawerLayout-NavigationView-ActionBarDrawerToggle/"  title="Android 进阶之重要的控件 DrawerLayout &amp;&amp; NavigationView &amp;&amp; ActionBarDrawerToggle">
+ <span>Android 进阶之重要的控件 DrawerLayout &amp;&amp; NavigationView &amp;&amp; ActionBarDrawerToggle
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/06/01/Android-进阶之性能优化-视图优化/" data-title="Android 进阶之性能优化 UI视图优化" data-url="http://yoursite.com/2016/06/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.</span> <span class="toc-text">性能优化步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E6%8E%A8%E8%8D%90"><span class="toc-number">2.</span> <span class="toc-text">性能优化学习资料推荐</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UI%E8%A7%86%E5%9B%BE%E4%BC%98%E5%8C%96"><span class="toc-number">3.</span> <span class="toc-text">UI视图优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BF%9D%E8%AF%81%E6%89%80%E6%9C%89%E7%BB%98%E5%88%B6%E4%BB%BB%E5%8A%A1%E8%A6%81%E5%9C%A816ms%E5%86%85%E5%AE%8C%E6%88%90"><span class="toc-number">3.1.</span> <span class="toc-text">为什么要保证所有绘制任务要在16ms内完成</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BB%8E%E5%88%B7%E6%96%B0%E9%A2%91%E7%8E%87%E5%92%8C%E5%B8%A7%E7%8E%87%E8%A7%92%E5%BA%A6%E7%9C%8B%E4%B8%A2%E5%B8%A7%E7%8E%B0%E8%B1%A1%EF%BC%9A"><span class="toc-number">3.1.1.</span> <span class="toc-text">从刷新频率和帧率角度看丢帧现象：</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Android-%E7%B3%BB%E7%BB%9FUI%E7%BB%98%E5%88%B6%E6%B8%B2%E6%9F%93%E5%8E%9F%E7%90%86"><span class="toc-number">3.2.</span> <span class="toc-text">Android 系统UI绘制渲染原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%86%E5%9B%BE%E7%9A%84%E6%B8%B2%E6%9F%93"><span class="toc-number">3.3.</span> <span class="toc-text">视图的渲染</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BD%B1%E5%93%8DUI%E8%A7%86%E5%9B%BE%E6%B8%B2%E6%9F%93%E6%95%88%E7%8E%87%E7%9A%84%E5%8E%9F%E5%9B%A0%EF%BC%9A"><span class="toc-number">3.4.</span> <span class="toc-text">影响UI视图渲染效率的原因：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8Profile-GPU-Rendering-%E6%9F%A5%E7%9C%8BGPU%E6%B8%B2%E6%9F%93%E4%BF%A1%E6%81%AF%EF%BC%9A"><span class="toc-number">3.5.</span> <span class="toc-text">使用Profile GPU Rendering 查看GPU渲染信息：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Hierarchy-%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%9A"><span class="toc-number">3.6.</span> <span class="toc-text">Hierarchy 的使用：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%B9%E5%BC%8F%E8%8E%B7%E5%8F%96%E5%B8%A7%E7%8E%87%EF%BC%9A"><span class="toc-number">3.7.</span> <span class="toc-text">命令行方式获取帧率：</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

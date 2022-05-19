@@ -1,0 +1,806 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之Android开发中的质量跟踪工具 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Bugly 网易云捕 Crashlytic 是目前比较流行的崩溃异常的收集工具，能够及时地跟踪我们发布出去的Apk的质量并有专门的统计功能，能够让我们运筹帷幄之中，发现Bug于千里之外。借来将介绍怎么将Bugly，网易云捕这两款产品应用到我们项目中。在这里我们都只介绍自动导入的方式，如果要手动导入可以到官网查看对应的信息，这个没什么技术含量，一看就会，之所以在这里介绍第一是为了整个知识体系的完整性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之Android开发中的质量跟踪工具">
+<meta property="og:url" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Bugly 网易云捕 Crashlytic 是目前比较流行的崩溃异常的收集工具，能够及时地跟踪我们发布出去的Apk的质量并有专门的统计功能，能够让我们运筹帷幄之中，发现Bug于千里之外。借来将介绍怎么将Bugly，网易云捕这两款产品应用到我们项目中。在这里我们都只介绍自动导入的方式，如果要手动导入可以到官网查看对应的信息，这个没什么技术含量，一看就会，之所以在这里介绍第一是为了整个知识体系的完整性">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/13.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/14.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/15.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/16.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/17.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/18.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/19.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/20.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/21.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/22.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/23.png">
+<meta property="article:published_time" content="2016-06-21T14:31:11.000Z">
+<meta property="article:modified_time" content="2016-07-18T22:11:20.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android质量管理工具">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/13.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/06/21/Android-进阶之工具的使用-Crashlytics/" title="Android 进阶之Android开发中的质量跟踪工具" itemprop="url">Android 进阶之Android开发中的质量跟踪工具</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-06-21T14:31:11.000Z" itemprop="datePublished"> Published 2016-06-21</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>Bugly 网易云捕 Crashlytic 是目前比较流行的崩溃异常的收集工具，能够及时地跟踪我们发布出去的Apk的质量并有专门的统计功能，能够让我们运筹帷幄之中，发现Bug于千里之外。借来将介绍怎么将Bugly，网易云捕这两款产品应用到我们项目中。<br>在这里我们都只介绍自动导入的方式，如果要手动导入可以到官网查看对应的信息，这个没什么技术含量，一看就会，之所以在这里介绍第一是为了整个知识体系的完整性，其二是为了避免每次都查阅官网耗费时间。</p>
+<p>在介绍网易云捕和Bugly之前先贴一个别人关于当前代码质量管理工具对比的文章以便让大家对这些工具有个初步的了解：<br><a target="_blank" rel="noopener" href="http://wwww.blog.csdn.net/zhuobattle/article/details/50848745">移动平台质量跟踪系统对比-crashlytics、网易云捕、友盟、bugly</a></p>
+<h3 id="网易云捕"><a href="#网易云捕" class="headerlink" title="网易云捕"></a>网易云捕</h3><p><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/13.png"><br><a href="crash.163.com">官方地址</a><br>一. 库文件导入<br>方式一：自动导入（推荐）</p>
+<p>在Module的build.gradle文件中添加依赖和属性配置：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">   defaultConfig &#123;</span><br><span class="line">       ndk &#123;</span><br><span class="line">           <span class="regexp">//</span>设置支持的SO库架构</span><br><span class="line">           abiFilters <span class="string">&quot;armeabi&quot;</span> <span class="regexp">//</span>,<span class="string">&quot;armeabi-v7a&quot;</span>, <span class="string">&quot;x86&quot;</span>,<span class="string">&quot;arm64-v8a&quot;</span>,<span class="string">&quot;x86_64&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile <span class="string">&#x27;com.netease.nis.plugin:bugrpt:latest.release&#x27;</span>  <span class="regexp">//</span>集成最新版本，也可以指定版本号，比如<span class="number">3.6</span>.<span class="number">5</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意：自动集成时会自动包含Bugrpt SO库，建议在Module的build.gradle文件中使用NDK的“abiFilter”配置，设置支持的SO库架构。<br>如果在添加“abiFilter”之后Android Studio出现以下提示：</p>
+<blockquote>
+<p>NDK integration is deprecated in the current plugin. Consider trying the new experimental plugin.<br>则在项目根目录的gradle.properties文件中添加：</p>
+</blockquote>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">android.useDeprecatedNdk</span>=<span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>二. 权限信息配置</p>
+<p>需要在AndroidManifest.xml中添加以下权限：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.READ_PHONE_STATE&quot;</span>/&gt;</span><span class="comment">&lt;!-- 获取设备信息 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.INTERNET&quot;</span>/&gt;</span><span class="comment">&lt;!-- 网络通信--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.ACCESS_NETWORK_STATE&quot;</span>/&gt;</span><span class="comment">&lt;!-- 获取网络状态 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.ACCESS_WIFI_STATE&quot;</span>/&gt;</span><span class="comment">&lt;!-- 获取MAC地址--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.READ_LOGS&quot;</span> /&gt;</span><span class="comment">&lt;!-- 获取日志--&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在Android M系统以后，android.permission.READ_PHONE_STATE被设定为敏感权限，如果AndroidManifest.xml文件中targetSdkVersion被设置为23以上，且代码中没有请求过该权限，可能导致获取的imei、deviceID等设备信息为空，但是对程序的稳定性并没有影响。</p>
+<p>三. AppID配置<br>还需在AndroidManifest.xml的application中添加<meta-data>标签，其中android:value填写您APP的AppID值，可以在”用户中心“-”设置“-”产品信息“中获取。<br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/14.png"></meta-data></p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">application</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta-data</span> <span class="attr">android:name</span>=<span class="string">&quot;BUGRPT_APPID&quot;</span>  <span class="attr">android:value</span>=<span class="string">&quot;Please input your Appid&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>四. 简单的初始化调用</p>
+<p>在项目Application类或者主Activity类的onCreate()方法中添加以下代码：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>init(get<span class="constructor">ApplicationContext()</span>);</span><br></pre></td></tr></table></figure>
+<p>如果Java层或NDK代码发生异常时，bugrpt便会捕获到该异常并发送给服务器。</p>
+<p>六. 简单例子</p>
+<ul>
+<li>Java 例子：</li>
+</ul>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;  </span><br><span class="line">    super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">    <span class="comment">//1.初始化云捕sdk</span></span><br><span class="line">    com.netease.nis.bugrpt.<span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>get<span class="constructor">Instance()</span>.init(this.get<span class="constructor">ApplicationContext()</span>,null);</span><br><span class="line"></span><br><span class="line">    set<span class="constructor">ContentView(R.<span class="params">layout</span>.<span class="params">activity_main</span>)</span>;   </span><br><span class="line">    btn_crash = (Button)find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">btn_crash</span>)</span>;</span><br><span class="line">    btn_crash.set<span class="constructor">OnClickListener(<span class="params">new</span> OnClickListener()</span> &#123; </span><br><span class="line">        @Override</span><br><span class="line">        public void on<span class="constructor">Click(View <span class="params">v</span>)</span> &#123;</span><br><span class="line">            <span class="comment">//2.测试异常代码</span></span><br><span class="line">            throw <span class="keyword">new</span> <span class="constructor">RuntimeException(<span class="string">&quot;This is a crash!&quot;</span>)</span>;  </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>NDK 例子<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">   <span class="comment">//导入demo.so</span></span><br><span class="line">　　<span class="title class_">System</span>.<span class="title function_">loadLibrary</span>(<span class="string">&quot;demo&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> native <span class="built_in">void</span> <span class="title function_">msg</span>(<span class="title class_">String</span> s);</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span> <span class="built_in">void</span> <span class="title function_">onCreate</span>(<span class="params">Bundle savedInstanceState</span>) &#123;  </span><br><span class="line">   <span class="variable language_">super</span>.<span class="title function_">onCreate</span>(savedInstanceState);</span><br><span class="line">   <span class="comment">//1.初始化云捕sdk</span></span><br><span class="line">   com.<span class="property">netease</span>.<span class="property">nis</span>.<span class="property">bugrpt</span>.<span class="property">CrashHandler</span>.<span class="title function_">getInstance</span>().<span class="title function_">init</span>(<span class="variable language_">this</span>.<span class="title function_">getApplicationContext</span>(),<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">   btn_crash.<span class="title function_">setOnClickListener</span>(<span class="keyword">new</span> <span class="title class_">OnClickListener</span>() &#123;</span><br><span class="line">　     　<span class="meta">@Override</span></span><br><span class="line">　     　<span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onClick</span>(<span class="params">View v</span>) &#123;</span><br><span class="line">             <span class="comment">//2.调用ndk层msg函数</span></span><br><span class="line">　　　        　<span class="title function_">msg</span>(<span class="string">&quot;hellondk&quot;</span>);</span><br><span class="line">　     　&#125;</span><br><span class="line">   &#125;);    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+而msg函数则是打印一个字符串最后触发了一个异常，C++实现代码如下：<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">JNIEXPORT <span class="type">void</span> <span class="title">msg</span><span class="params">(JNIEnv *env, jobject  clazz, jstring str)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">char</span> *pszstr = <span class="literal">NULL</span>; </span><br><span class="line">    pszstr = <span class="built_in">jstringTostring</span>(env, str);</span><br><span class="line">    <span class="built_in">LOGI</span>(<span class="string">&quot;%s&quot;</span>, pszstr);</span><br><span class="line">    <span class="built_in">free</span>(pszstr);</span><br><span class="line">　　<span class="comment">//以下是触发异常的代码</span></span><br><span class="line">    pszstr = <span class="literal">NULL</span>;</span><br><span class="line">    *pszstr = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+可以尝试生成APK之后，点击按钮触发模拟异常，后台便能查询到如下崩溃日志：</li>
+</ul>
+<p>崩溃日志内容：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> NATIVE CRASH LOG BY BUGRPT- <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span></span><br><span class="line">CRASH TIME: 1425530709912</span><br><span class="line">CRASH APP: com.example.crash, pid: 12916, tid: 12916</span><br><span class="line">Build fingerprint: &#x27;Meizu/meizu_mx3/mx3<span class="function">:4.4.4</span>/KTU84P/m35x.Flyme_OS_3.7.3.20140909113158<span class="function">:user</span>/release-keys&#x27;</span><br><span class="line">signal 11 <span class="params">(SIGSEGV)</span>, code 1 <span class="params">(SEGV_MAPERR)</span>, fault addr 00000000</span><br><span class="line"><span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span></span><br><span class="line">registers:</span><br><span class="line"> r0 00000000  r1 00000000  r2 00000001  r3 00000000</span><br><span class="line"> r4 774a1458  r5 415ab438  r6 00000000  r7 6d460dd0</span><br><span class="line"> r8 beb81508  r9 6d460dc8  10 415ab448  fp beb8151c</span><br><span class="line"> ip 00000001  sp beb81500  lr 40047ce1  pc 7528edf2  cpsr 60070030</span><br><span class="line"><span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span></span><br><span class="line">callstacks:</span><br><span class="line">         <span class="comment">#00  pc 00000df2  /data/app-lib/com.example.crash-2/libdemo.so (msg + 21)</span></span><br><span class="line">         <span class="comment">#01  pc 0001db8c  /system/lib/libdvm.so (dvmPlatformInvoke + 70)</span></span><br><span class="line">         <span class="comment">#02  pc 0004e174  /system/lib/libdvm.so (_Z16dvmCallJNIMethodPKjP6JValuePK6MethodP6Thread + 18f)</span></span><br><span class="line">         <span class="comment">#03  pc 00026fa0  /system/lib/libdvm.so</span></span><br><span class="line">         <span class="comment">#04  pc 0002dfb8  /system/lib/libdvm.so (_Z11dvmMterpStdP6Thread + 4c)</span></span><br><span class="line">         <span class="comment">#05  pc 0002b61c  /system/lib/libdvm.so (_Z12dvmInterpretP6ThreadPK6MethodP6JValue + b8)</span></span><br><span class="line">         <span class="comment">#06  pc 0006087a  /system/lib/libdvm.so (_Z15dvmInvokeMethodP6ObjectPK6MethodP11ArrayObjectS5_P11ClassObjectb + 189)</span></span><br><span class="line">         <span class="comment">#07  pc 00068896  /system/lib/libdvm.so</span></span><br><span class="line">         <span class="comment">#08  pc 00026fa0  /system/lib/libdvm.so</span></span><br><span class="line">         <span class="comment">#09  pc 0002dfb8  /system/lib/libdvm.so (_Z11dvmMterpStdP6Thread + 4c)</span></span><br><span class="line">         <span class="comment">#10  pc 0002b61c  /system/lib/libdvm.so (_Z12dvmInterpretP6ThreadPK6MethodP6JValue + b8)</span></span><br><span class="line">         <span class="comment">#11  pc 00060596  /system/lib/libdvm.so (_Z14dvmCallMethodVP6ThreadPK6MethodP6ObjectbP6JValueSt9__va_list + 151)</span></span><br><span class="line">         <span class="comment">#12  pc 00049d5a  /system/lib/libdvm.so</span></span><br><span class="line">         <span class="comment">#13  pc 0004dec2  /system/lib/libandroid_runtime.so</span></span><br><span class="line">         <span class="comment">#14  pc 0004ebe6  /system/lib/libandroid_runtime.so (_ZN7android14AndroidRuntime5startEPKcS2_ + 161)</span></span><br><span class="line">         <span class="comment">#15  pc 4001a090  /system/bin/app_process</span></span><br><span class="line">         <span class="comment">#16  pc 0000e41e  /system/lib/libc.so (__libc_init + 31)</span></span><br><span class="line"><span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span> <span class="params">---</span></span><br></pre></td></tr></table></figure>
+<p>可以很清晰地看出崩溃发生在msg函数的某个偏移，pc为00000df2，可以通过addr2line很方便地转换为出错的代码行号。<br>addr2line -C -f -e libxxx.so 00000df2</p>
+<p>五. Proguard混淆配置<br>避免混淆Bugrpt SDK，请在Proguard混淆文件中配置：</p>
+<figure class="highlight axapta"><table><tr><td class="code"><pre><span class="line">-keep <span class="keyword">class</span> <span class="title class_">com</span>.netease.nis.bugrpt.** &#123;*;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>六. 配置mapping</p>
+<p>生成APK的时候一般都需要进行混淆处理，此时崩溃发生时产生的崩溃堆栈信息都是混淆后的符号，不便于排查BUG。为了能正确地还原回源码时的堆栈，需要配置一下mapping.txt文件，让“云捕”自动化进行反混淆处理。<br>混淆处理时，利用proguard在混淆后会生成一个mapping.txt文件，该文件地址Android Studio则是根据配置生成在指定目录下。</p>
+<p>Android Studio:<br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/15.png"><br>只需要把这个mapping.txt文件上传到后台即可。登录云捕系统，选择您的APP后点击“上传mapping“</p>
+<p>七.高级设置：<br>我们提供UserStrategy类作为Bugrpt的初始化扩展，开发者可以传入一些自定义信息。通过以下方式传入：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Context appCtx = this.get<span class="constructor">ApplicationContext()</span>;</span><br><span class="line">UserStrategy strategy = <span class="keyword">new</span> <span class="constructor">UserStrategy(<span class="params">appCtx</span>)</span>;</span><br><span class="line"><span class="comment">//...在这里设置strategy的属性，在bugrpt初始化时传入</span></span><br><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>init(appCtx, strategy);</span><br></pre></td></tr></table></figure>
+<p>UserStrategy与CrashHandler类的主要API：</p>
+<ul>
+<li><p>设置渠道：<br>Bugrpt默认读取AndroidManifest.xml文件中渠道信息,可通过该接口修改渠道信息。</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">strategy.setChannel(<span class="string">&quot;myChannel&quot;</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>设置用户账户：<br>Bugrpt可以设置用户的账户信息，方便开发者针对性排错。</p>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">strategy.<span class="built_in">set</span>UserId(<span class="string">&quot;myUserID&quot;</span>)</span><br></pre></td></tr></table></figure></li>
+<li><p>设置场景：<br>Bugrpt可以设置崩溃场景。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>set<span class="constructor">UserScene(<span class="string">&quot;myScene&quot;</span>)</span>;</span><br></pre></td></tr></table></figure></li>
+<li><p>设置自定义Map参数对：<br>Bugrpt支持用户自定义Map参数可以保存发生Crash时的一些自定义的环境信息。在发生Crash时会随着异常信息一起上报并在页面展示。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>add<span class="constructor">UserParam(<span class="string">&quot;key&quot;</span>, <span class="string">&quot;value&quot;</span>)</span>;</span><br></pre></td></tr></table></figure>
+<p>注意：最多可以有9对自定义的key-value（超过则添加失败），key限长50字节、value限长200字节，过长截断。</p>
+</li>
+<li><p>主动上报开发者catched的异常<br>开发者可能会关注到某个重要异常的catch情况，我们提供了这样的接口：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;catch (Exception e)&#123;</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>upload<span class="constructor">CatchedException(<span class="params">e</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>开发者主动上传信息接口<br>为了方便开发者跟踪代码的执行情况，通过主动上传信息接口获取当前程序执行的一些信息（开发者记录的信息+堆栈信息）。使用示例：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>upload<span class="constructor">TrackRecord(<span class="string">&quot;myTrackLog&quot;</span>)</span>;</span><br></pre></td></tr></table></figure></li>
+<li><p>开发者记录面包屑接口<br>开发者通过面包屑功能，追踪程序执行的路径信息，这些信息在App Crash的时候一并上传。使用示例：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashHandler</span>.</span></span>leave<span class="constructor">Breadcrumb(<span class="string">&quot;track message&quot;</span>)</span>;</span><br></pre></td></tr></table></figure></li>
+<li><p>ReLinker.loadLibrary接口<br>为了防止Android系统本身的安装逻辑bug导致的java.lang.UnsatisfiedLinkError致命错误，集成了Relinker类的loadLibrary接口，用来替代System.loadLibrary接口。使用说明：<br>在原本使用System.loadLibrary调用处</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">System</span>.</span></span>load<span class="constructor">Library(<span class="string">&quot;mylib&quot;</span>)</span>;</span><br></pre></td></tr></table></figure>
+<p>替换为Relinker.loadLibrary</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">ReLinker</span>.</span></span>load<span class="constructor">Library(<span class="params">this</span>.<span class="params">getApplicationContext</span>()</span>,<span class="string">&quot;mylib&quot;</span>);</span><br></pre></td></tr></table></figure>
+<p><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/16.png"><br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/17.png"><br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/18.png"><br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/19.png"><br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/20.png"><br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/21.png"></p>
+</li>
+</ul>
+<p>网易除了推出了云捕外还推出了云加密，下面是对应的链接：<br><a target="_blank" rel="noopener" href="http://apk.aq.163.com/#apkpack/help">网易云加密</a></p>
+<h3 id="Bugly"><a href="#Bugly" class="headerlink" title="Bugly"></a>Bugly</h3><p><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/22.png"></p>
+<p><a target="_blank" rel="noopener" href="https://bugly.qq.com/">官方地址</a><br>Bugly 相对功能会比网易云捕的功能强大些，但是就基本Crash跟踪的话和网易云捕使用方法类似。下面是Bugly的四大核心功能，个人偏向推荐使用这个平台。<br><img src="/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/23.png"></p>
+<p>一. 库文件导入</p>
+<p>如果您使用Gradle编译Apk，我们强烈推荐您使用自动接入方式配置库文件。Bugly支持JCenter仓库和 Maven仓库。<br>方式1：自动导入（推荐）<br>为了实现更加灵活的配置，Bugly SDK（2.1.5及以上版本）和NDK（SO库）目前已经分开成两个独立的仓库：</p>
+<figure class="highlight elm"><table><tr><td class="code"><pre><span class="line"><span class="type">SDK</span>：com.tencent.bugly:crashre<span class="keyword">port</span></span><br><span class="line"><span class="type">NDK</span>：com.tencent.bugly:nativecrashre<span class="keyword">port</span></span><br></pre></td></tr></table></figure>
+<p>其中，集成Bugly NDK时，需要同时集成Bugly SDK。<br>单独集成Bugly SDK<br>在Module的build.gradle文件中添加依赖和属性配置：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">dependencies</span> &#123;</span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.tencent.bugly:crashreport:latest.release&#x27;</span> <span class="comment">//其中latest.release指代最新版本号，也可以指定明确的版本号，例如2.1.5</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同时集成Bugly SDK和NDK<br>在Module的build.gradle文件中添加依赖和属性配置：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">   defaultConfig &#123;</span><br><span class="line">        ndk &#123;</span><br><span class="line">            <span class="regexp">//</span> 设置支持的SO库架构</span><br><span class="line">            abiFilters <span class="string">&#x27;armeabi&#x27;</span> <span class="regexp">//</span>, <span class="string">&#x27;x86&#x27;</span>, <span class="string">&#x27;armeabi-v7a&#x27;</span>, <span class="string">&#x27;x86_64&#x27;</span>, <span class="string">&#x27;arm64-v8a&#x27;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile <span class="string">&#x27;com.tencent.bugly:crashreport:latest.release&#x27;</span> <span class="regexp">//</span>其中latest.release指代最新版本号，也可以指定明确的版本号，例如<span class="number">2.1</span>.<span class="number">5</span></span><br><span class="line">    compile <span class="string">&#x27;com.tencent.bugly:nativecrashreport:latest.release&#x27;</span> <span class="regexp">//</span>其中latest.release指代最新版本号，也可以指定明确的版本号，例如<span class="number">2.2</span>.<span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意：自动集成时会自动包含Bugly SO库，建议在Module的build.gradle文件中使用NDK的“abiFilter”配置，设置支持的SO库架构。<br>如果在添加“abiFilter”之后Android Studio出现以下提示：</p>
+<blockquote>
+<p>NDK integration is deprecated in the current plugin. Consider trying the new experimental plugin.</p>
+</blockquote>
+<p>则在项目根目录的gradle.properties文件中添加：</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">android.useDeprecatedNdk</span>=<span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>为了使APP Crash堆栈的可读性更高，建议您配置符号表文件，更准确地定位问题：<br>纯Java代码的工程：只需要配置混淆后生成的Mapping文件即可；<br>含有Native代码的工程：建议配置符号表工具从Debug SO中提取的Symbol符号表文件。</p>
+<p>Bugly支持手动和自动配置两种方式，具体的配置方法请参考如下：</p>
+<p>二. Bugly Android符号表配置</p>
+<ul>
+<li>什么是符号表？</li>
+</ul>
+<blockquote>
+<p>符号表是内存地址与函数名、文件名、行号的映射表。符号表元素如下所示：<br>&lt;起始地址&gt; &lt;结束地址&gt; &lt;函数&gt; [&lt;文件名: 行号&gt;]</p>
+</blockquote>
+<ul>
+<li><p>为什么要配置符号表<br>为了能快速并准确地定位用户APP发生Crash的代码位置，Bugly使用符号表对APP发生Crash的程序堆栈进行解析和还原。</p>
+</li>
+<li><p>自动配置：使用Android Studio插件</p>
+</li>
+</ul>
+<p>Bugly插件最新版本为：1.3.9，注意插件位于JCenter仓库。<br>在项目的buid.gradle文件的dependencies（buildscript部分）中添加：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">classpath</span> &#x27;com.tencent.bugly:symtabfileuploader:<span class="number">1</span>.<span class="number">3</span>.<span class="number">9</span>&#x27;</span><br></pre></td></tr></table></figure>
+<p>其中1.3.9为插件版本号<br>在module的buid.gradle文件的顶部添加：</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">apply</span> plugin: <span class="string">&#x27;bugly&#x27;</span></span><br><span class="line">bugly &#123;</span><br><span class="line">    <span class="attribute">appId</span> = <span class="string">&#x27;&lt;App ID&gt;&#x27;</span></span><br><span class="line">    appKey = <span class="string">&#x27;&lt;App Key&gt;&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>除了appId和appKey之外，还可以设置其他属性，属性列表如下：<br>属性 	值 	说明<br>appId 	String 	App ID<br>appKey 	String 	App Key<br>execute 	boolean 	插件开关<br>upload 	boolean 	上传开关<br>outputDir 	String 	符号表文件输出路径</p>
+<p><Project>&#x2F;build.gradle文件如下：</Project></p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">buildscript</span> &#123;</span><br><span class="line">    <span class="keyword">repositories</span> &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">dependencies</span> &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">classpath</span> <span class="string">&#x27;com.tencent.bugly:symtabfileuploader:1.3.9&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>其中”1.3.9”为Bugly插件版本号，更新插件只需要修改这个版本号并Rebuild一下工程即可。</p>
+<p><Project>&#x2F;<Module>&#x2F;build.gradle文件如下：</Module></Project></p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">apply</span> plugin: <span class="string">&#x27;bugly&#x27;</span></span><br><span class="line">...</span><br><span class="line">bugly &#123; </span><br><span class="line">    <span class="attribute">appId</span> = <span class="string">&#x27;900000000&#x27;</span></span><br><span class="line">    appKey = <span class="string">&#x27;abcdefghijklmn&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>项目应用了Bugly插件之后，Gradle会新建出一个“uploadReleaseSymtabFile”的任务，该任 务被“assembleRelease”任务依赖，即在Release编译时执行。</p>
+<p>uploadReleaseSymtabFile任务将执行以下动作：<br>当项目使用了Proguard，将自动上传生成的mapping文件；<br>当项目使用了NDK，将自动扫描Debug SO文件，生成符号表文件（zip）并自动上传。<br>其中查找Debug SO文件时，首先会扫描默认的NDK路径，如果未找到，将继续扫描 项目路径。</p>
+<p>三、参数配置</p>
+<p>在AndroidManifest.xml中添加权限：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.READ_PHONE_STATE&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.INTERNET&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.ACCESS_NETWORK_STATE&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.ACCESS_WIFI_STATE&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.READ_LOGS&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<p>请避免混淆Bugly，在Proguard混淆文件中增加一行配置：</p>
+<figure class="highlight axapta"><table><tr><td class="code"><pre><span class="line">-dontwarn com.tencent.bugly.**</span><br><span class="line">-keep <span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">com</span>.tencent.bugly.**&#123;*;&#125;</span><br></pre></td></tr></table></figure>
+<p>四、最简单的初始化</p>
+<p>获取APP ID并将以下代码复制到项目Application类onCreate()中，Bugly会为自动检测环境并完成配置：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashReport</span>.</span></span>init<span class="constructor">CrashReport(<span class="params">getApplicationContext</span>()</span>, <span class="string">&quot;注册时申请的APPID&quot;</span>, <span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+<p>为了保证运营数据的准确性，建议不要在异步线程初始化Bugly。</p>
+<p>第三个参数为SDK调试模式开关，调试模式的行为特性如下：</p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line">● 输出详细的Bugly SDK的<span class="built_in">Log</span>；</span><br><span class="line">● 每一条Crash都会被立即上报；</span><br><span class="line">● 自定义日志将会在Logcat中输出。</span><br></pre></td></tr></table></figure>
+<p>建议在测试阶段建议设置成true，发布时设置为false。<br> 此外，Bugly2.0及以上版本还支持通过“AndroidManifest.xml”来配置APP信息。如果同时又通过代码中配置了APP信息，则最终以代码配置的信息为准。</p>
+<p>在“AndroidManifest.xml”的“Application”中增加“metadata”配置项：</p>
+<figure class="highlight django"><table><tr><td class="code"><pre><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">application</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	&lt;!<span class="attr">--</span> 配置<span class="attr">APP</span> <span class="attr">ID</span> <span class="attr">--</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="tag">&lt;<span class="name">meta-data</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:name</span>=<span class="string">&quot;BUGLY_APPID&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:value</span>=<span class="string">&quot;&lt;APP ID&gt;&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="comment">&lt;!-- 配置APP版本号 --&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="tag">&lt;<span class="name">meta-data</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:name</span>=<span class="string">&quot;BUGLY_APP_VERSION&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:value</span>=<span class="string">&quot;&lt;APP Version&gt;&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="comment">&lt;!-- 配置APP渠道号 --&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="tag">&lt;<span class="name">meta-data</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:name</span>=<span class="string">&quot;BUGLY_APP_CHANNEL&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:value</span>=<span class="string">&quot;&lt;APP Channel&gt;&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="comment">&lt;!-- 配置Bugly调试模式（true或者false）--&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="tag">&lt;<span class="name">meta-data</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:name</span>=<span class="string">&quot;BUGLY_ENABLE_DEBUG&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">	<span class="attr">android:value</span>=<span class="string">&quot;&lt;isDebug&gt;&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>不同于“android:versionName”，“BUGLY_APP_VERSION”配置的是Bugly平台的APP版本号。</p>
+<p>通过“AndroidManifest.xml”配置后的初始化方法如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">CrashReport</span>.</span></span>init<span class="constructor">CrashReport(<span class="params">getApplicationContext</span>()</span>);</span><br></pre></td></tr></table></figure>
+<p>同样 Bugly也提供了UserStrage功能，也就是从功能上看网易云盘有的功能Bugly都有，而Buyly还具备一些网易云盘没有的特色功能如ANR等。<br>要进一步了解这些功能可以查看如下链接：</p>
+<p><a target="_blank" rel="noopener" href="https://bugly.qq.com/androidmore">https://bugly.qq.com/androidmore</a><br><a target="_blank" rel="noopener" href="https://bugly.qq.com/document">https://bugly.qq.com/document</a><br><a target="_blank" rel="noopener" href="https://bugly.qq.com/betaDocument">https://bugly.qq.com/betaDocument</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android质量管理工具/">Android质量管理工具</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/06/22/Android-进阶之工具的使用-Findbugs/" title="Android 进阶之工具的使用 Findbugs">
+  <span>
+  Android 进阶之工具的使用 Findbugs</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/06/20/Android-进阶之第三方库的介绍-RxJava-RxAndroid-七/"  title="Android 进阶之第三方库的介绍 RxJava &amp;&amp; RxAndroid 七 [学习RxJava必备的文章]">
+ <span>Android 进阶之第三方库的介绍 RxJava &amp;&amp; RxAndroid 七 [学习RxJava必备的文章]
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/06/21/Android-进阶之工具的使用-Crashlytics/" data-title="Android 进阶之Android开发中的质量跟踪工具" data-url="http://yoursite.com/2016/06/21/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8-Crashlytics/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E6%98%93%E4%BA%91%E6%8D%95"><span class="toc-number">1.</span> <span class="toc-text">网易云捕</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Bugly"><span class="toc-number">2.</span> <span class="toc-text">Bugly</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

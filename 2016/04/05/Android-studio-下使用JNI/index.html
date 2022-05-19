@@ -1,0 +1,692 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android studio 下使用JNI | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="在网上搜索大部分的关于Android studio 下使用JNI的例子都是基于Window 平台上而且很多按照上面的操作一步步来都是不一定行得通的，该文章将针对Linux平台下Android Studio 2.0 Beta 6.0 版本，创建 JNI Demo项目。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android studio 下使用JNI">
+<meta property="og:url" content="http://yoursite.com/2016/04/05/Android-studio-%E4%B8%8B%E4%BD%BF%E7%94%A8JNI/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="在网上搜索大部分的关于Android studio 下使用JNI的例子都是基于Window 平台上而且很多按照上面的操作一步步来都是不一定行得通的，该文章将针对Linux平台下Android Studio 2.0 Beta 6.0 版本，创建 JNI Demo项目。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-04-05T13:17:46.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:29:52.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android基础">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/05/Android-studio-下使用JNI/" title="Android studio 下使用JNI" itemprop="url">Android studio 下使用JNI</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-05T13:17:46.000Z" itemprop="datePublished"> Published 2016-04-05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>Android studio 版本： Android Studio 2.0 Beta 6.0<br>Gradle 版本：gradle-2.10<br>NDK    版本：android-ndk-r10e</p>
+<ol>
+<li>创建一个空项目<br>![](Android studio 下使用JNI&#x2F;project.png)</li>
+<li>打开Setting 在 Setting中设置NDK的路径：	<br>![](Android studio 下使用JNI&#x2F;setNDK.png)</li>
+<li>添加Native代码，以及LoadLibrary，由于这里还没生成这些所以还是显示错误的，但是不要管它。<br>![](Android studio 下使用JNI&#x2F;native.png)</li>
+<li>点击Build-&gt; make project 编译项目：<br>![](Android studio 下使用JNI&#x2F;makepro.png)	<br>这时候会在，[项目名]&#x2F;app&#x2F;build&#x2F;intermediates&#x2F;classes&#x2F;debug&#x2F;com&#x2F;idealist&#x2F;testjniusage 下产生编译出来的class文件<br>进入到[项目名]&#x2F;app&#x2F;src&#x2F;main 目录下，运行如下javah命令：<br>![](Android studio 下使用JNI&#x2F;path.png)	<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">javah -d jni -<span class="keyword">classpath</span> <span class="regexp">/home/</span>jimmy<span class="regexp">/Dev/</span>sdk_m<span class="regexp">/sdk/</span>platforms<span class="regexp">/android-23/</span>android.jar:<span class="regexp">/home/</span>jimmy<span class="regexp">/Dev/</span>sdk_m<span class="regexp">/sdk/</span>extras<span class="regexp">/android/</span>support<span class="regexp">/v7/</span>appcompat<span class="regexp">/libs/</span>android-support-v4.jar:<span class="regexp">/home/</span>jimmy<span class="regexp">/Dev/</span>sdk_m<span class="regexp">/sdk/</span>extras<span class="regexp">/android/</span>support<span class="regexp">/v7/</span>appcompat<span class="regexp">/libs/</span>android-support-v7-appcompat.jar:<span class="regexp">/home/</span>jimmy<span class="regexp">/GitHub_Opensrc/</span>TestJNIUsage<span class="regexp">/app/</span>build<span class="regexp">/intermediates/</span>classes<span class="regexp">/debug/</span> com.idealist.testjniusage.MainActivity</span><br></pre></td></tr></table></figure>
+这时候会在项目目录树下产生一个jni的文件夹，如下图所示：<br>![](Android studio 下使用JNI&#x2F;protree.png)</li>
+</ol>
+<p>	</p>
+<p>打开生成的头文件可以看到如下内容：	</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* DO NOT EDIT THIS FILE - it is machine generated */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="comment">/* Header for class com_idealist_testjniusage_MainActivity */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> _Included_com_idealist_testjniusage_MainActivity</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _Included_com_idealist_testjniusage_MainActivity</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_ABOVE_CLIENT</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_ABOVE_CLIENT 8L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_ADJUST_WITH_ACTIVITY</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_ADJUST_WITH_ACTIVITY 128L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_ALLOW_OOM_MANAGEMENT</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_ALLOW_OOM_MANAGEMENT 16L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_AUTO_CREATE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_AUTO_CREATE 1L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_DEBUG_UNBIND</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_DEBUG_UNBIND 2L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_IMPORTANT</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_IMPORTANT 64L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_NOT_FOREGROUND</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_NOT_FOREGROUND 4L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_BIND_WAIVE_PRIORITY</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_BIND_WAIVE_PRIORITY 32L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_CONTEXT_IGNORE_SECURITY</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_CONTEXT_IGNORE_SECURITY 2L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_CONTEXT_INCLUDE_CODE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_CONTEXT_INCLUDE_CODE 1L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_CONTEXT_RESTRICTED</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_CONTEXT_RESTRICTED 4L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MODE_APPEND</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MODE_APPEND 32768L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MODE_ENABLE_WRITE_AHEAD_LOGGING</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MODE_ENABLE_WRITE_AHEAD_LOGGING 8L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MODE_MULTI_PROCESS</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MODE_MULTI_PROCESS 4L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MODE_PRIVATE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MODE_PRIVATE 0L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MODE_WORLD_READABLE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MODE_WORLD_READABLE 1L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MODE_WORLD_WRITEABLE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MODE_WORLD_WRITEABLE 2L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_DIALER</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_DIALER 1L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_DISABLE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_DISABLE 0L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_SEARCH_GLOBAL</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_SEARCH_GLOBAL 4L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_SEARCH_LOCAL</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_SEARCH_LOCAL 3L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_SHORTCUT</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_DEFAULT_KEYS_SHORTCUT 2L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_RESULT_CANCELED</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_RESULT_CANCELED 0L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_RESULT_FIRST_USER</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_RESULT_FIRST_USER 1L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_RESULT_OK</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_RESULT_OK -1L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_HONEYCOMB</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_HONEYCOMB 11L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MSG_REALLY_STOPPED</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MSG_REALLY_STOPPED 1L</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> com_idealist_testjniusage_MainActivity_MSG_RESUME_PENDING</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> com_idealist_testjniusage_MainActivity_MSG_RESUME_PENDING 2L</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Class:     com_idealist_testjniusage_MainActivity</span></span><br><span class="line"><span class="comment"> * Method:    getNativeString</span></span><br><span class="line"><span class="comment"> * Signature: ()Ljava/lang/String;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">JNIEXPORT jstring JNICALL <span class="title">Java_com_idealist_testjniusage_MainActivity_getNativeString</span></span></span><br><span class="line"><span class="function">  <span class="params">(JNIEnv *, jobject)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>创建对应的源码文件如下：	很简单就是返回一个Hello From JNI!字符串。</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;android/log.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> LOG_TAG</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOG_TAG <span class="string">&quot;ANDROID_LAB&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> _Included_com_idealist_testjniusage_MainActivity</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _Included_com_idealist_testjniusage_MainActivity</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Class: lab_sodino_jnitest_MainActivity</span></span><br><span class="line"><span class="comment"> * Method: getStringFromNative</span></span><br><span class="line"><span class="comment"> * Signature: ()Ljava/lang/String;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">JNIEXPORT jstring JNICALL <span class="title">Java_com_idealist_testjniusage_MainActivity_getNativeString</span></span></span><br><span class="line"><span class="function">        <span class="params">(JNIEnv * env, jobject jObj)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (*env)-&gt;<span class="built_in">NewStringUTF</span>(env,<span class="string">&quot;Hello From JNI!&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>点击运行按钮，这时候很有可能会出现如下的错误：<br>![](Android studio 下使用JNI&#x2F;ndkbug.png)	<br>这个问题很简单其实上面已经给出解决方案了，就是在gradle.property这个文件下添加如下配置：<br>![](Android studio 下使用JNI&#x2F;fixed.png)	</p>
+<p>6.修改Module 下的 gradle.build	</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">apply plugin: <span class="string">&#x27;com.android.application&#x27;</span></span><br><span class="line"></span><br><span class="line">android &#123;</span><br><span class="line">    compileSdkVersion <span class="number">23</span></span><br><span class="line">    buildToolsVersion <span class="string">&quot;23.0.1&quot;</span></span><br><span class="line"></span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        applicationId <span class="string">&quot;com.idealist.testjni&quot;</span></span><br><span class="line">        minSdkVersion <span class="number">15</span></span><br><span class="line">        targetSdkVersion <span class="number">23</span></span><br><span class="line">        versionCode <span class="number">1</span></span><br><span class="line">        versionName <span class="string">&quot;1.0&quot;</span></span><br><span class="line">        <span class="regexp">//</span>这里是新增加的 </span><br><span class="line">        ndk &#123;</span><br><span class="line">            moduleName <span class="string">&quot;Testjni&quot;</span>   <span class="regexp">//</span>这个是LoadLibary 参数相同的名字</span><br><span class="line">            ldLibs <span class="string">&quot;log&quot;</span>, <span class="string">&quot;z&quot;</span>, <span class="string">&quot;m&quot;</span></span><br><span class="line">            abiFilters <span class="string">&quot;armeabi&quot;</span>, <span class="string">&quot;armeabi-v7a&quot;</span>, <span class="string">&quot;x86&quot;</span></span><br><span class="line">            <span class="regexp">//</span>ldLibs <span class="string">&quot;log&quot;</span>, <span class="string">&quot;z&quot;</span>, <span class="string">&quot;m&quot;</span>  <span class="regexp">//</span>链接时使用到的库，对应LOCAL_LDLIBS</span><br><span class="line">            <span class="regexp">//</span>cFlags 编译gcc的flag，对应LOCAL_CFLAGS</span><br><span class="line">        &#125; </span><br><span class="line">    &#125;</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        release &#123;</span><br><span class="line">            minifyEnabled false</span><br><span class="line">            proguardFiles getDefaultProguardFile(<span class="string">&#x27;proguard-android.txt&#x27;</span>), <span class="string">&#x27;proguard-rules.pro&#x27;</span></span><br><span class="line">            <span class="regexp">//</span>这里是新增加的，用于支持JNIdebug的</span><br><span class="line">            ndk &#123;</span><br><span class="line">                debuggable = true</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        debug &#123;</span><br><span class="line">            <span class="regexp">//</span>这里是新增加的，用于支持JNIdebug的</span><br><span class="line">            debuggable = true</span><br><span class="line">            jniDebuggable = true</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile fileTree(dir: <span class="string">&#x27;libs&#x27;</span>, include: [<span class="string">&#x27;*.jar&#x27;</span>])</span><br><span class="line">    testCompile <span class="string">&#x27;junit:junit:4.12&#x27;</span></span><br><span class="line">    compile <span class="string">&#x27;com.android.support:appcompat-v7:23.1.0&#x27;</span></span><br><span class="line">    compile <span class="string">&#x27;com.android.support:design:23.1.0&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li><p>点击运行。<br>在手机上就可以看到如下的界面了：</p>
+<p> ![](Android studio 下使用JNI&#x2F;result.png)</p>
+</li>
+</ol>
+<p>	</p>
+<p>可能长期被eclipse虐惯的人会问了，不用写mk吗？是不用写了，其实在bradle.build上面已经做了类似的工作，这个mk文件会根据你的配置在output 目录下生成，包括各个平台的库文件都会在这个目录下生成，如下图所示：<br>![](Android studio 下使用JNI&#x2F;output.png)	</p>
+<p>下面是生成的mk文件内容：<br>![](Android studio 下使用JNI&#x2F;mk.png)	</p>
+<p>Demo可以在如下地址进行下载：<br><a target="_blank" rel="noopener" href="https://github.com/tbfungeek/TestJni">Demo Github</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E5%88%9D%E6%AD%A5/">Android初步</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android基础/">Android基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/04/06/Android-初步之Android-安全机制/" title="Android 初步之Android 安全机制">
+  <span>
+  Android 初步之Android 安全机制</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/04/04/Android-初步之AIDL/"  title="Android 初步之 使用Android studio 开发 AIDL">
+ <span>Android 初步之 使用Android studio 开发 AIDL
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/04/05/Android-studio-下使用JNI/" data-title="Android studio 下使用JNI" data-url="http://yoursite.com/2016/04/05/Android-studio-%E4%B8%8B%E4%BD%BF%E7%94%A8JNI/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

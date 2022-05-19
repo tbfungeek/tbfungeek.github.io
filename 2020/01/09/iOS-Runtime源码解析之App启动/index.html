@@ -1,0 +1,725 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS Runtime源码解析之App启动 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="上一篇博客介绍了Mach O文件的格式，以及每个部分的作用，这一部分开始将要介绍的是在上一个基础上如何将Mach O文件加载并运行起来。我们会从点击执行应用开始，到加载dyld，初始化dyld，再到dyld将镜像加载到内存，Rebase&#x2F;Bind，Runtime初始化，其它的初始化代码，最后运行main函数为止。整个过程如下图所示：  在开始这篇博客内容规划之前，最难的是从哪里开头讲，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS Runtime源码解析之App启动">
+<meta property="og:url" content="http://yoursite.com/2020/01/09/iOS-Runtime%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E4%B9%8BApp%E5%90%AF%E5%8A%A8/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="上一篇博客介绍了Mach O文件的格式，以及每个部分的作用，这一部分开始将要介绍的是在上一个基础上如何将Mach O文件加载并运行起来。我们会从点击执行应用开始，到加载dyld，初始化dyld，再到dyld将镜像加载到内存，Rebase&#x2F;Bind，Runtime初始化，其它的初始化代码，最后运行main函数为止。整个过程如下图所示：  在开始这篇博客内容规划之前，最难的是从哪里开头讲，">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2020/01/09/iOS-Runtime%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E4%B9%8BApp%E5%90%AF%E5%8A%A8/000001.png">
+<meta property="article:published_time" content="2020-01-09T13:34:38.000Z">
+<meta property="article:modified_time" content="2020-02-07T09:41:50.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Objective C 相关">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/01/09/iOS-Runtime%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E4%B9%8BApp%E5%90%AF%E5%8A%A8/000001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2020/01/09/iOS-Runtime源码解析之App启动/" title="iOS Runtime源码解析之App启动" itemprop="url">iOS Runtime源码解析之App启动</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2020-01-09T13:34:38.000Z" itemprop="datePublished"> Published 2020-01-09</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>上一篇博客介绍了Mach O文件的格式，以及每个部分的作用，这一部分开始将要介绍的是在上一个基础上如何将Mach O文件加载并运行起来。我们会从点击执行应用开始，到加载dyld，初始化dyld，再到dyld将镜像加载到内存，Rebase&#x2F;Bind，Runtime初始化，其它的初始化代码，最后运行main函数为止。整个过程如下图所示：</p>
+<p><img src="/2020/01/09/iOS-Runtime%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E4%B9%8BApp%E5%90%AF%E5%8A%A8/000001.png"></p>
+<p>在开始这篇博客内容规划之前，最难的是从哪里开头讲，后面查看了XNU代码后发现个人能hold住的起点应该是load_init_program，当然后面随着技术的提高肯定能够从更深层次给大家讲明白这个问题，都是时间问题，对自己有信心，好了不说太多无关的内容了，直接切入主题：</p>
+<p>我们知道XNU内核启动后，启动的第一个进程是launchd。launchd启动之后会启动其他守护进程。我们可以看XNU源码中有如下一句注释：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">//</span> Description:	Load the <span class="string">&quot;init&quot;</span> program; <span class="keyword">in</span> most cases, this will be <span class="string">&quot;launchd&quot;</span></span><br></pre></td></tr></table></figure>
+<p>我们先来看下<strong><strong>load_init_program</strong></strong>：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span></span><br><span class="line">load_init_program(proc_t p)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Copy out program name.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    init_addr = VM_MIN_ADDRESS;</span><br><span class="line">    (<span class="type">void</span>) vm_allocate(current_map(), &amp;init_addr, PAGE_SIZE,VM_FLAGS_ANYWHERE);</span><br><span class="line">    <span class="keyword">if</span> (init_addr == <span class="number">0</span>)</span><br><span class="line">        init_addr++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//将/sbin/launchd拷贝到 init_addr = 1 </span></span><br><span class="line">    (<span class="type">void</span>) copyout((caddr_t) init_program_name, <span class="built_in">CAST_USER_ADDR_T</span>(init_addr),(<span class="type">unsigned</span>) <span class="keyword">sizeof</span>(init_program_name)+<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    argv[argc++] = (<span class="type">char</span> *) init_addr; <span class="comment">//argv[0] = &quot;/sbin/launchd&quot;</span></span><br><span class="line">    init_addr += <span class="keyword">sizeof</span>(init_program_name);</span><br><span class="line">    init_addr = (vm_offset_t)ROUND_PTR(<span class="type">char</span>, init_addr);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (boothowto &amp; RB_SINGLE) &#123;</span><br><span class="line">        <span class="keyword">const</span> <span class="type">char</span> *init_args = <span class="string">&quot;-s&quot;</span>;</span><br><span class="line">        copyout(init_args, <span class="built_in">CAST_USER_ADDR_T</span>(init_addr),strlen(init_args));</span><br><span class="line">        argv[argc++] = (<span class="type">char</span> *)init_addr; <span class="comment">//argv[1] = &quot;-s&quot;</span></span><br><span class="line">        init_addr += strlen(init_args);</span><br><span class="line">        init_addr = (vm_offset_t)ROUND_PTR(<span class="type">char</span>, init_addr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Null-end the argument list</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    argv[argc] = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Copy out the argument list.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//参数拷贝到指定到位置</span></span><br><span class="line">    (<span class="type">void</span>) copyout((caddr_t) argv, <span class="built_in">CAST_USER_ADDR_T</span>(init_addr),(<span class="type">unsigned</span>) <span class="keyword">sizeof</span>(argv));</span><br><span class="line"></span><br><span class="line">    <span class="comment">//到此位置 argv[0] = &quot;/sbin/launchd&quot;</span></span><br><span class="line">    <span class="comment">//        argv[1] = &quot;-s&quot;</span></span><br><span class="line">    <span class="comment">//        argv[2] = 参数列表</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Set up argument block for fake call to execve.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    init_exec_args.fname = <span class="built_in">CAST_USER_ADDR_T</span>(argv[<span class="number">0</span>]);  <span class="comment">//argv[0] = &quot;/sbin/launchd&quot;</span></span><br><span class="line">    init_exec_args.argp = <span class="built_in">CAST_USER_ADDR_T</span>((<span class="type">char</span> **)init_addr);</span><br><span class="line">    init_exec_args.envp = <span class="built_in">CAST_USER_ADDR_T</span>(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//将init_exec_args作为参数传递给execve</span></span><br><span class="line">    error = execve(p,&amp;init_exec_args,retval);</span><br><span class="line">    <span class="keyword">if</span> (error)</span><br><span class="line">        panic(<span class="string">&quot;Process 1 exec of %s failed, errno %d\n&quot;</span>,</span><br><span class="line">              init_program_name, error);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们接下来看下<strong><strong>execve</strong></strong></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">execve</span><span class="params">(<span class="type">proc_t</span> p, <span class="keyword">struct</span> execve_args *uap, <span class="type">register_t</span> *retval)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">__mac_execve_args</span> muap;</span><br><span class="line">    <span class="type">int</span> err;</span><br><span class="line">    muap.fname = uap-&gt;fname;   <span class="comment">//程序执行路径</span></span><br><span class="line">    muap.argp = uap-&gt;argp;     <span class="comment">//参数列表</span></span><br><span class="line">    muap.envp = uap-&gt;envp;     <span class="comment">//环境变量</span></span><br><span class="line">    muap.mac_p = USER_ADDR_NULL;</span><br><span class="line">    <span class="comment">//这里只是调用了__mac_execve将执行文件名，参数列表，环境变量传入</span></span><br><span class="line">    err = __mac_execve(p, &amp;muap, retval);</span><br><span class="line">    <span class="keyword">return</span>(err);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在execve主要将execve_args中的程序执行文件路径，参数列表，环境变量通过__mac_execve传入到后续流程：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="built_in">int</span> <span class="constructor">__mac_execve(<span class="params">proc_t</span> <span class="params">p</span>, <span class="params">struct</span> <span class="params">__mac_execve_args</span> <span class="operator">*</span><span class="params">uap</span>, <span class="params">register_t</span> <span class="operator">*</span><span class="params">retval</span>)</span> &#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    task = current<span class="constructor">_task()</span>;   <span class="comment">//获取当前的任务</span></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="comment">//激活镜像:主要是为加载镜像进行数据的初始化，以及资源相关的操作</span></span><br><span class="line">    error = exec<span class="constructor">_activate_image(<span class="params">imgp</span>)</span>;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    return(error);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>__mac_execve 主要是调用exec_activate_image来激活镜像</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">/*</span><br><span class="line"> * exec_activate_image</span><br><span class="line"> * 遍历可用镜像激活器，并激活与imgp 结构相关的镜像</span><br><span class="line"> * 主要是拷贝可执行文件到内存中，并根据不同的可执行文件类型选择不同的加载函数，</span><br><span class="line"> * 所有的镜像的加载要么终止在一个错误上，要么最终完成加载镜像。</span><br><span class="line"> */</span><br><span class="line">static int exec_activate_image(struct image_params *imgp) &#123;</span><br><span class="line">    <span class="regexp">//</span>.......</span><br><span class="line">again:</span><br><span class="line">    <span class="regexp">//</span> 检查镜像是否是普通文件，是否可执行，是否可读</span><br><span class="line">    error = exec_check_permissions(imgp);</span><br><span class="line">    <span class="regexp">//</span>......</span><br><span class="line">encapsulated_binary:</span><br><span class="line">    <span class="regexp">//</span>根据不同的可执行文件类型选择不同的加载函数</span><br><span class="line">    <span class="regexp">//</span>OS X有三种可执行文件，mach-o由exec_mach_imgact处理，fat binary由exec_fat_imgact处理，</span><br><span class="line">    <span class="regexp">//i</span>nterpreter（解释器）由exec_shell_imgact处理</span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; error == -<span class="number">1</span> &amp;&amp; execsw[i].ex_imgact != NULL; i++) &#123;</span><br><span class="line">        <span class="regexp">//</span>遍历镜像激活函数，寻找可以激活当前镜像的激活器</span><br><span class="line">        error = (*execsw[i].ex_imgact)(imgp);</span><br><span class="line">        <span class="regexp">//</span>...........</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="regexp">//</span>........</span><br><span class="line">    return (error);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>exec_activate_image主要任务是遍历可用镜像激活器，按照可执行文件的格式，执行不同的函数。目前有三种格式，单指令集可执行文件（Mach-o Binary），多指令集可执行文件（Fat Binary），shell 脚本（Interpreter Script）。<br>exec_activate_image首先会对镜像文件进行一次校验，检查镜像是否是普通文件，是否可执行，是否可读，然后遍历镜像激活函数，寻找可以激活当前镜像的激活器。<strong><strong>execsw</strong></strong>是当前能够支持的镜像激活表。它是一个结构体指针，每项结构体的结构如下所示：</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> execsw &#123;</span><br><span class="line">    <span class="built_in">int</span> (*ex_imgact)(<span class="keyword">struct</span> image_params *); <span class="comment">//激活镜像的方法指针</span></span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">char</span> *ex_name;                     <span class="comment">//镜像名</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>包含激活镜像的方法，以及镜像名。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> execsw &#123;</span><br><span class="line">    <span class="type">int</span> (*ex_imgact)(<span class="keyword">struct</span> image_params *); <span class="comment">//激活镜像的方法指针</span></span><br><span class="line">    <span class="keyword">const</span> <span class="type">char</span> *ex_name;                     <span class="comment">//镜像名</span></span><br><span class="line">&#125; execsw[] = &#123;</span><br><span class="line">    &#123; exec_mach_imgact, <span class="string">&quot;Mach-o Binary&quot;</span> &#125;,</span><br><span class="line">    &#123; exec_fat_imgact, <span class="string">&quot;Fat Binary&quot;</span> &#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> IMGPF_POWERPC</span></span><br><span class="line">    &#123; exec_powerpc32_imgact, <span class="string">&quot;PowerPC binary&quot;</span> &#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span>  <span class="comment">/* IMGPF_POWERPC */</span></span></span><br><span class="line">    &#123; exec_shell_imgact, <span class="string">&quot;Interpreter Script&quot;</span> &#125;,</span><br><span class="line">    &#123; <span class="literal">NULL</span>, <span class="literal">NULL</span>&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>我们这里只以Mach-o Binary的激活器为例子来看下是怎么激活的。</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">static int exec_mach_imgact(struct image_params *imgp) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">struct</span> mach_header *mach_header = (struct mach_header *)imgp-&gt;</span>ip_vdata;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * 首先确保这是个Mach-O 1.0 或者Mach-O 2.0二进制文件</span></span><br><span class="line"><span class="comment">     * make sure it&#x27;s a Mach-O 1.0 or Mach-O 2.0 binary; the difference</span></span><br><span class="line"><span class="comment">     * is a reserved field on the end, so for the most part, we can</span></span><br><span class="line"><span class="comment">     * treat them as if they were identical.</span></span><br><span class="line"><span class="comment">     * magic检查</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="title">if</span> ((mach_header-&gt;</span>magic != MH_MAGIC<span class="comment">/*32位架构*/</span>) &amp;&amp;</span><br><span class="line">        (<span class="function"><span class="title">mach_header</span>-&gt;</span>magic != MH_MAGIC_64<span class="comment">/*64位架构*/</span>)) &#123;</span><br><span class="line">        error = -<span class="number">1</span>;</span><br><span class="line">        goto bad;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果文件类型为MH_DYLIB 或者MH_BUNDLE 返回错误</span></span><br><span class="line">    <span class="comment">//为什么MH_DYLIB，MH_BUNDLE 要认定为error</span></span><br><span class="line">    <span class="function"><span class="title">switch</span> (mach_header-&gt;</span>filetype) &#123;</span><br><span class="line">    case MH_DYLIB:</span><br><span class="line">    case MH_BUNDLE:</span><br><span class="line">        error = -<span class="number">1</span>;</span><br><span class="line">        goto bad;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//cpu 类型检查</span></span><br><span class="line">    <span class="function"><span class="title">if</span> (!imgp-&gt;</span>ip_origcputype) &#123;</span><br><span class="line">        <span class="function"><span class="title">imgp</span>-&gt;</span><span class="function"><span class="title">ip_origcputype</span> = mach_header-&gt;</span>cputype;</span><br><span class="line">        <span class="function"><span class="title">imgp</span>-&gt;</span><span class="function"><span class="title">ip_origcpusubtype</span> = mach_header-&gt;</span>cpusubtype;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    task = current_task();</span><br><span class="line">    thread = current_thread();</span><br><span class="line">    uthread = get_bsdthread_info(thread);</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     *  加载 Mach-O 文件 </span></span><br><span class="line"><span class="comment">     *  Load the Mach-O file.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * <span class="doctag">NOTE:</span> An error after this point  indicates we have potentially</span></span><br><span class="line"><span class="comment">     * destroyed or overwrote some process state while attempting an</span></span><br><span class="line"><span class="comment">     * execve() following a vfork(), which is an unrecoverable condition.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * We reset the task to 64-bit (or not) here.  It may have picked up</span></span><br><span class="line"><span class="comment">     * a new map, and we need that to reflect its true 64-bit nature.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    task_set_64bit(task, </span><br><span class="line">               ((<span class="function"><span class="title">imgp</span>-&gt;</span>ip_flags &amp; IMGPF_IS_64BIT) == IMGPF_IS_64BIT));</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * 实际加载我们之前想要加载的镜像</span></span><br><span class="line"><span class="comment">     * Actually load the image file we previously decided to load.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    lret = load_machfile(imgp, mach_header, thread, map, &amp;load_result);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">/* load_machfile() maps the vnode */</span></span><br><span class="line">    (<span class="function"><span class="title">void</span>)ubc_map(imgp-&gt;</span>ip_vp, PROT_READ | PROT_EXEC);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Set up the system reserved areas in the new address space.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    vm_map_exec(get_task_map(task),</span><br><span class="line">            task,</span><br><span class="line">            (<span class="function"><span class="title">void</span> *) p-&gt;</span><span class="function"><span class="title">p_fd</span>-&gt;</span>fd_rdir,</span><br><span class="line">            cpu_type());</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>exec_mach_imgact 其实会对Mach O文件的header信息校验，确保当前的文件是Mach O文件，并且校验它的cpu类型是否符合当前设备平台。当这些都校验通过后就通过load_machfile加载Mach O文件。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">load_return_t</span> <span class="title">load_machfile</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="keyword">struct</span> image_params *imgp,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="keyword">struct</span> mach_header  *header,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">thread_t</span>    thread,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">vm_map_t</span>    new_map,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">load_result_t</span>   *result</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">//解析mach文件</span></span><br><span class="line">    lret = <span class="built_in">parse_machfile</span>(vp, map, thread, header, file_offset, macho_size,<span class="number">0</span>, result);</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>load_machfile会加载Mach-O中的各种load monmand命令。在其内部会禁止数据段执行防止溢出漏洞攻击，还会设置地址空间布局随机化（ASLR），还有一些映射的调整。load_machfile内部直接调用了parse_machfile方法。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> <span class="type">load_return_t</span> <span class="title">parse_machfile</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="keyword">struct</span> vnode         *vp,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">vm_map_t</span>             map,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">thread_t</span>             thread,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="keyword">struct</span> mach_header   *header,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">off_t</span>                file_offset,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">off_t</span>                macho_size,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>                  depth,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">load_result_t</span>       *result</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">//类型校验</span></span><br><span class="line">    <span class="keyword">if</span> (header-&gt;magic == MH_MAGIC_64 || header-&gt;magic == MH_CIGAM_64) &#123;</span><br><span class="line">        mach_header_sz = <span class="built_in">sizeof</span>(<span class="keyword">struct</span> mach_header_64);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     *	Break infinite recursion</span></span><br><span class="line"><span class="comment">     *  打破因为层级较深导致的无限递归</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (depth &gt; <span class="number">6</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>(LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    task = (<span class="type">task_t</span>)<span class="built_in">get_threadtask</span>(thread);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//深度计数值递增</span></span><br><span class="line">    <span class="comment">// depth负责parse_machfile 遍历次数，第一次是解析mach-o, 第二次&#x27;load_dylinker&#x27;会调用此函数来进行dyld的解析</span></span><br><span class="line">    depth++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     *  检查是否是正确的计算机类型</span></span><br><span class="line"><span class="comment">     *  Check to see if right machine type.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (((<span class="type">cpu_type_t</span>)(header-&gt;cputype &amp; ~CPU_ARCH_MASK) != <span class="built_in">cpu_type</span>()) ||</span><br><span class="line">        !<span class="built_in">grade_binary</span>(header-&gt;cputype, </span><br><span class="line">            header-&gt;cpusubtype &amp; ~CPU_SUBTYPE_MASK))</span><br><span class="line">        <span class="keyword">return</span>(LOAD_BADARCH);</span><br><span class="line"></span><br><span class="line">    abi64 = ((header-&gt;cputype &amp; CPU_ARCH_ABI64) == CPU_ARCH_ABI64);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//主要是用来对Mach-O做检测，会检测Mach-O头部，解析其架构、检查imgp等内容，</span></span><br><span class="line">    <span class="comment">//并拒绝接受Dylib和Bundle这样的文件，这些文件会由dyld负责加载</span></span><br><span class="line">    <span class="keyword">switch</span> (header-&gt;filetype) &#123;</span><br><span class="line">    <span class="keyword">case</span> MH_OBJECT:</span><br><span class="line">    <span class="keyword">case</span> MH_EXECUTE:</span><br><span class="line">    <span class="keyword">case</span> MH_PRELOAD:</span><br><span class="line">        <span class="comment">//第一次的时候这里会走通</span></span><br><span class="line">        <span class="keyword">if</span> (depth != <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> MH_FVMLIB:</span><br><span class="line">    <span class="keyword">case</span> MH_DYLIB:</span><br><span class="line">        <span class="keyword">if</span> (depth == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> MH_DYLINKER:</span><br><span class="line">        <span class="comment">//第二次的时候这里会走通</span></span><br><span class="line">        <span class="keyword">if</span> (depth != <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     *  Round size of Mach-O commands up to page boundry.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    size = <span class="built_in">round_page</span>(mach_header_sz + header-&gt;sizeofcmds);</span><br><span class="line">    <span class="keyword">if</span> (size &lt;= <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span>(LOAD_BADMACHO);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * 将加载命令映射到内核地址</span></span><br><span class="line"><span class="comment">     * Map the load commands into kernel memory.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     *  扫描每个命令，处理每个命令</span></span><br><span class="line"><span class="comment">     *  Scan through the commands, processing each one as necessary.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="keyword">for</span> (pass = <span class="number">1</span>; pass &lt;= <span class="number">2</span>; pass++) &#123;</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Loop through each of the load_commands indicated by the</span></span><br><span class="line"><span class="comment">         * Mach-O header; if an absurd value is provided, we just</span></span><br><span class="line"><span class="comment">         * run off the end of the reserved section by incrementing</span></span><br><span class="line"><span class="comment">         * the offset too far, so we are implicitly fail-safe.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        offset = mach_header_sz;</span><br><span class="line">        <span class="comment">//加载命令数目</span></span><br><span class="line">        ncmds = header-&gt;ncmds;</span><br><span class="line">        <span class="keyword">while</span> (ncmds--) &#123;</span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">             *  获取指向命令的地址</span></span><br><span class="line"><span class="comment">             *  Get a pointer to the command.</span></span><br><span class="line"><span class="comment">            */</span></span><br><span class="line">            lcp = (<span class="keyword">struct</span> load_command *)(addr + offset);</span><br><span class="line">            oldoffset = offset;</span><br><span class="line">            offset += lcp-&gt;cmdsize;</span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">             * Perform prevalidation of the struct load_command</span></span><br><span class="line"><span class="comment">             * before we attempt to use its contents.  Invalid</span></span><br><span class="line"><span class="comment">             * values are ones which result in an overflow, or</span></span><br><span class="line"><span class="comment">             * which can not possibly be valid commands, or which</span></span><br><span class="line"><span class="comment">             * straddle or exist past the reserved section at the</span></span><br><span class="line"><span class="comment">             * start of the image.</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            <span class="keyword">if</span> (oldoffset &gt; offset ||</span><br><span class="line">                lcp-&gt;cmdsize &lt; <span class="built_in">sizeof</span>(<span class="keyword">struct</span> load_command) ||</span><br><span class="line">                offset &gt; header-&gt;sizeofcmds + mach_header_sz) &#123;</span><br><span class="line">                ret = LOAD_BADMACHO;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">             * Act on struct load_command&#x27;s for which kernel</span></span><br><span class="line"><span class="comment">             * intervention is required.</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            <span class="keyword">switch</span>(lcp-&gt;cmd) &#123;</span><br><span class="line">            <span class="comment">/*加载64位segment*/</span></span><br><span class="line">            <span class="keyword">case</span> LC_SEGMENT_64:</span><br><span class="line">                <span class="keyword">if</span> (pass != <span class="number">1</span>)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                ret = <span class="built_in">load_segment_64</span>(</span><br><span class="line">                        (<span class="keyword">struct</span> segment_command_64 *)lcp,</span><br><span class="line">                           pager,</span><br><span class="line">                           file_offset,</span><br><span class="line">                           macho_size,</span><br><span class="line">                           <span class="built_in">ubc_getsize</span>(vp),</span><br><span class="line">                           map,</span><br><span class="line">                           result);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">/*加载32位segment*/</span></span><br><span class="line">            <span class="keyword">case</span> LC_SEGMENT:</span><br><span class="line">                <span class="keyword">if</span> (pass != <span class="number">1</span>)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                ret = <span class="built_in">load_segment</span>(</span><br><span class="line">                           (<span class="keyword">struct</span> segment_command *) lcp,</span><br><span class="line">                           pager,</span><br><span class="line">                           file_offset,</span><br><span class="line">                           macho_size,</span><br><span class="line">                           <span class="built_in">ubc_getsize</span>(vp),</span><br><span class="line">                           map,</span><br><span class="line">                           result);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">/*加载线程数据*/</span></span><br><span class="line">            <span class="keyword">case</span> LC_THREAD:</span><br><span class="line">                <span class="keyword">if</span> (pass != <span class="number">2</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">                ret = <span class="built_in">load_thread</span>((<span class="keyword">struct</span> thread_command *)lcp,</span><br><span class="line">                           thread,</span><br><span class="line">                           result);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">/*加载unix线程数据*/</span></span><br><span class="line">            <span class="keyword">case</span> LC_UNIXTHREAD:</span><br><span class="line">                <span class="keyword">if</span> (pass != <span class="number">2</span>)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                ret = <span class="built_in">load_unixthread</span>(</span><br><span class="line">                        (<span class="keyword">struct</span> thread_command *) lcp,</span><br><span class="line">                         thread,</span><br><span class="line">                         result);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">/*加载动态加载器 程序需要的dyld的路径*/</span></span><br><span class="line">            <span class="keyword">case</span> LC_LOAD_DYLINKER:</span><br><span class="line">                <span class="keyword">if</span> (pass != <span class="number">2</span>)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">if</span> ((depth == <span class="number">1</span>) &amp;&amp; (dlp == <span class="number">0</span>)) &#123;</span><br><span class="line">                    dlp = (<span class="keyword">struct</span> dylinker_command *)lcp;</span><br><span class="line">                    dlarchbits = (header-&gt;cputype &amp; CPU_ARCH_MASK);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    ret = LOAD_FAILURE;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">/*加载代码签名加载器*/</span></span><br><span class="line">            <span class="keyword">case</span> LC_CODE_SIGNATURE:</span><br><span class="line">                <span class="comment">/* CODE SIGNING */</span></span><br><span class="line">                <span class="keyword">if</span> (pass != <span class="number">2</span>)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="comment">/* pager -&gt; uip -&gt;</span></span><br><span class="line"><span class="comment">                   load signatures &amp; store in uip</span></span><br><span class="line"><span class="comment">                    set VM object &quot;signed_pages&quot;</span></span><br><span class="line"><span class="comment">                */</span></span><br><span class="line">                ret = <span class="built_in">load_code_signature</span>(</span><br><span class="line">                    (<span class="keyword">struct</span> linkedit_data_command *) lcp,</span><br><span class="line">                    vp,</span><br><span class="line">                    file_offset,</span><br><span class="line">                    macho_size,</span><br><span class="line">                    header-&gt;cputype,</span><br><span class="line">                    (depth == <span class="number">1</span>) ? result : <span class="literal">NULL</span>);</span><br><span class="line">                <span class="keyword">if</span> (ret != LOAD_SUCCESS) &#123;</span><br><span class="line">                        <span class="built_in">printf</span>(<span class="string">&quot;proc %d: load code signature error %d &quot;</span></span><br><span class="line">                           <span class="string">&quot;for file \&quot;%s\&quot;\n&quot;</span>,</span><br><span class="line">                           p-&gt;p_pid, ret, vp-&gt;v_name);</span><br><span class="line">                    ret = LOAD_SUCCESS; <span class="comment">/* ignore error */</span></span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    got_code_signatures = TRUE;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="comment">/* Other commands are ignored by the kernel */</span></span><br><span class="line">                ret = LOAD_SUCCESS;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (ret != LOAD_SUCCESS)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (ret != LOAD_SUCCESS)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//加载成功</span></span><br><span class="line">    <span class="keyword">if</span> (ret == LOAD_SUCCESS) &#123; </span><br><span class="line">        <span class="keyword">if</span> (! got_code_signatures) &#123;</span><br><span class="line">            <span class="keyword">struct</span> <span class="title class_">cs_blob</span> *blob;</span><br><span class="line">            <span class="comment">/* no embedded signatures: look for detached ones */</span></span><br><span class="line">            blob = <span class="built_in">ubc_cs_blob_get</span>(vp, <span class="number">-1</span>, file_offset);</span><br><span class="line">            <span class="keyword">if</span> (blob != <span class="literal">NULL</span>) &#123;</span><br><span class="line">                <span class="comment">/* get flags to be applied to the process */</span></span><br><span class="line">                result-&gt;csflags |= blob-&gt;csb_flags;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//加载动态链接器dlp为从上面获取到的动态dyliner的路径</span></span><br><span class="line">        <span class="keyword">if</span> (dlp != <span class="number">0</span>)</span><br><span class="line">            <span class="comment">//加载dylinker</span></span><br><span class="line">            ret = <span class="built_in">load_dylinker</span>(dlp, dlarchbits, map, thread, depth, result, abi64);</span><br><span class="line">            <span class="comment">//......</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="keyword">return</span>(ret);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在parse_machfile中会将Mach O文件中loadCommand部分的命令加载到内存执行。这些command中最重要的命令是<strong><strong>LC_SEGMENT&#x2F;LC_SEGMENT_64</strong></strong> 以及 <strong><strong>LC_UNIXTHREAD&#x2F;LC_MAIN</strong></strong>，<strong><strong>LC_SEGMENT&#x2F;LC_SEGMENT_64</strong></strong>用于告诉加载器某些可执行的部分代码需要映射到指定的内存区域，<strong><strong>LC_UNIXTHREAD&#x2F;LC_MAIN</strong></strong> 告诉加载器在可执行代码加载后的入口点，有了它动态加载器知道在加载结束后跳到哪个位置，这些入口点要么是main方法，要么是在编译时期编译器添加的启动代码。如果没有动态库，这些命令已经足够了，但是如果有依赖动态库，在将所有的segments映射到内存中的时候，加载器还需要处理可执行代码的全部依赖，这些在后面的时候会详细介绍。由于parse_machfile会在后续递归调用，所以这里用了一个depth来控制递归深度。</p>
+<p>当depth等于1的时候：</p>
+<figure class="highlight gml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">switch</span> (header-&gt;filetype) &#123;</span><br><span class="line"><span class="keyword">case</span> MH_OBJECT:</span><br><span class="line"><span class="keyword">case</span> MH_EXECUTE:</span><br><span class="line"><span class="keyword">case</span> MH_PRELOAD:</span><br><span class="line">    <span class="comment">//depth=1 时候这里会走通</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">depth</span> != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> MH_FVMLIB:</span><br><span class="line"><span class="keyword">case</span> MH_DYLIB:</span><br><span class="line">    <span class="comment">//depth=1 时候这里会失败</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">depth</span> == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> MH_DYLINKER:</span><br><span class="line">    <span class="comment">//depth=1 时候这里会失败</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">depth</span> != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">    <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这时候如果Mach O 文件类型为 <strong><strong>MH_OBJECT</strong></strong>，<strong><strong>MH_EXECUTE</strong></strong>，<strong><strong>MH_PRELOAD</strong></strong> 就会走到下面的流程，下面的流程会先执行LC_SEGMENT_64，LC_SEGMENT将某些可执行的代码映射到指定的内存区域。然后再执行LC_THREAD，LC_UNIXTHREAD，LC_LOAD_DYLINKER，LC_CODE_SIGNATURE。这里最为关键的命令是LC_LOAD_DYLINKER，它会对dyld进行赋值。在最后会调用：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">ret = load<span class="constructor">_dylinker(<span class="params">dlp</span>, <span class="params">dlarchbits</span>, <span class="params">map</span>, <span class="params">thread</span>, <span class="params">depth</span>, <span class="params">result</span>, <span class="params">abi64</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span></span></span><br><span class="line"><span class="function"><span class="type">load_return_t</span></span></span><br><span class="line"><span class="function"><span class="title">load_dylinker</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="keyword">struct</span> dylinker_command *lcp,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">integer_t</span>   archbits,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">vm_map_t</span>    map,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">thread_t</span>    thread,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>         depth,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">load_result_t</span>   *result,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">boolean_t</span>       is_64bit</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//..........</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * 首先直接映射dyld </span></span><br><span class="line"><span class="comment">     *  First try to map dyld in directly.  This should work most of</span></span><br><span class="line"><span class="comment">     *  the time since there shouldn&#x27;t normally be something already</span></span><br><span class="line"><span class="comment">     *  mapped to its address.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">// 解析dyld</span></span><br><span class="line">    ret = <span class="built_in">parse_machfile</span>(vp, map, thread, &amp;header, file_offset, macho_size, depth, &amp;myresult);</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     *  If it turned out something was in the way, then we&#x27;ll take</span></span><br><span class="line"><span class="comment">     *  take this longer path to map dyld into a temporary map and</span></span><br><span class="line"><span class="comment">     *  copy it into destination map at a different address.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//如果加载成功设置会返回entry_point</span></span><br><span class="line">    <span class="keyword">if</span> (ret == LOAD_SUCCESS) &#123;</span><br><span class="line">        result-&gt;dynlinker = TRUE;</span><br><span class="line">        result-&gt;entry_point = myresult.entry_point;</span><br><span class="line">        (<span class="type">void</span>)<span class="built_in">ubc_map</span>(vp, PROT_READ | PROT_EXEC);</span><br><span class="line">    &#125;</span><br><span class="line">out:</span><br><span class="line">    <span class="built_in">vnode_put</span>(vp);</span><br><span class="line">    <span class="keyword">return</span> (ret);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>load_dylinker函数主要负责加载dyld,以及调用parse_machfile函数对dyld解析。这时候header-&gt;filetype &#x3D; MH_DYLINKER 并且 depth &#x3D; 2.</p>
+<figure class="highlight gml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">switch</span> (header-&gt;filetype) &#123;</span><br><span class="line"><span class="keyword">case</span> MH_OBJECT:</span><br><span class="line"><span class="keyword">case</span> MH_EXECUTE:</span><br><span class="line"><span class="keyword">case</span> MH_PRELOAD:</span><br><span class="line">    <span class="comment">//depth=2 时候这里走不通</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">depth</span> != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> MH_FVMLIB:</span><br><span class="line"><span class="keyword">case</span> MH_DYLIB:</span><br><span class="line">    <span class="comment">//depth=2 时候这里会走通</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">depth</span> == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> MH_DYLINKER:</span><br><span class="line">    <span class="comment">//depth=2 时候这里会走通</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">depth</span> != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">    <span class="keyword">return</span> (LOAD_FAILURE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面的流程会先执行LC_SEGMENT_64，LC_SEGMENT将某些可执行的代码映射到指定的内存区域。然后再执行LC_THREAD，LC_UNIXTHREAD，LC_CODE_SIGNATURE。这时候dyld就被加载进来了，在LC_UNIXTHREAD中会设置dyld的entry point。</p>
+<p>我们来看下LC_UNIXTHREAD</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">case</span> LC_UNIXTHREAD:</span><br><span class="line">    <span class="keyword">if</span> (pass != <span class="number">2</span>)</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    ret = <span class="built_in">load_unixthread</span>(</span><br><span class="line">                (<span class="keyword">struct</span> thread_command *) lcp,</span><br><span class="line">                thread,</span><br><span class="line">                result);</span><br><span class="line">    <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span></span></span><br><span class="line"><span class="function"><span class="type">load_return_t</span></span></span><br><span class="line"><span class="function"><span class="title">load_thread</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">	<span class="keyword">struct</span> thread_command	*tcp,</span></span></span><br><span class="line"><span class="params"><span class="function">	<span class="type">thread_t</span>			thread,</span></span></span><br><span class="line"><span class="params"><span class="function">	<span class="type">load_result_t</span>		*result</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">	task = <span class="built_in">get_threadtask</span>(thread);</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line"></span><br><span class="line">	lret = <span class="built_in">load_threadstate</span>(thread,</span><br><span class="line">		       (<span class="type">unsigned</span> <span class="type">long</span> *)(((<span class="type">vm_offset_t</span>)tcp) + </span><br><span class="line">		       		<span class="built_in">sizeof</span>(<span class="keyword">struct</span> thread_command)),</span><br><span class="line">		       tcp-&gt;cmdsize - <span class="built_in">sizeof</span>(<span class="keyword">struct</span> thread_command));</span><br><span class="line">	<span class="keyword">if</span> (lret != LOAD_SUCCESS)</span><br><span class="line">		<span class="keyword">return</span> (lret);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (result-&gt;thread_count == <span class="number">0</span>) &#123;</span><br><span class="line">		lret = <span class="built_in">load_threadstack</span>(thread,</span><br><span class="line">				(<span class="type">unsigned</span> <span class="type">long</span> *)(((<span class="type">vm_offset_t</span>)tcp) + </span><br><span class="line">					<span class="built_in">sizeof</span>(<span class="keyword">struct</span> thread_command)),</span><br><span class="line">				tcp-&gt;cmdsize - <span class="built_in">sizeof</span>(<span class="keyword">struct</span> thread_command),</span><br><span class="line">				&amp;result-&gt;user_stack,</span><br><span class="line">				&amp;customstack);</span><br><span class="line">		<span class="keyword">if</span> (customstack)</span><br><span class="line">				result-&gt;customstack = <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">				result-&gt;customstack = <span class="number">0</span>;</span><br><span class="line">			</span><br><span class="line">		<span class="keyword">if</span> (lret != LOAD_SUCCESS)</span><br><span class="line">			<span class="keyword">return</span>(lret);</span><br><span class="line"></span><br><span class="line">		lret = <span class="built_in">load_threadentry</span>(thread,</span><br><span class="line">				(<span class="type">unsigned</span> <span class="type">long</span> *)(((<span class="type">vm_offset_t</span>)tcp) + </span><br><span class="line">					<span class="built_in">sizeof</span>(<span class="keyword">struct</span> thread_command)),</span><br><span class="line">				tcp-&gt;cmdsize - <span class="built_in">sizeof</span>(<span class="keyword">struct</span> thread_command),</span><br><span class="line">				&amp;result-&gt;entry_point);</span><br><span class="line">		<span class="keyword">if</span> (lret != LOAD_SUCCESS)</span><br><span class="line">			<span class="keyword">return</span>(lret);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="built_in">thread_resume</span>(thread);</span><br><span class="line">		</span><br><span class="line">	result-&gt;thread_count++;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span>(LOAD_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里最关键的部分是<strong><strong>load_threadentry</strong></strong></p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span></span></span><br><span class="line"><span class="function"><span class="type">load_return_t</span></span></span><br><span class="line"><span class="function"><span class="title">load_threadentry</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">	<span class="type">thread_t</span>	thread,</span></span></span><br><span class="line"><span class="params"><span class="function">	<span class="type">unsigned</span> <span class="type">long</span>	*ts,</span></span></span><br><span class="line"><span class="params"><span class="function">	<span class="type">unsigned</span> <span class="type">long</span>	total_size,</span></span></span><br><span class="line"><span class="params"><span class="function">	<span class="type">mach_vm_offset_t</span>	*entry_point</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 *	Set the thread state.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	*entry_point = MACH_VM_MIN_ADDRESS;</span><br><span class="line">	<span class="keyword">while</span> (total_size &gt; <span class="number">0</span>) &#123;</span><br><span class="line">		flavor = *ts++;</span><br><span class="line">		size = *ts++;</span><br><span class="line">		entry_size = (size+<span class="number">2</span>)*<span class="built_in">sizeof</span>(<span class="type">unsigned</span> <span class="type">long</span>);</span><br><span class="line">		<span class="keyword">if</span> (entry_size &gt; total_size)</span><br><span class="line">			<span class="keyword">return</span>(LOAD_BADMACHO);</span><br><span class="line">		total_size -= entry_size;</span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		 * Third argument is a kernel space pointer; it gets cast</span></span><br><span class="line"><span class="comment">		 * to the appropriate type in thread_entrypoint() based on</span></span><br><span class="line"><span class="comment">		 * the value of flavor.</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		ret = <span class="built_in">thread_entrypoint</span>(thread, flavor, (<span class="type">thread_state_t</span>)ts, size, entry_point);</span><br><span class="line">		<span class="keyword">if</span> (ret != KERN_SUCCESS) &#123;</span><br><span class="line">			<span class="keyword">return</span>(LOAD_FAILURE);</span><br><span class="line">		&#125;</span><br><span class="line">		ts += size;	<span class="comment">/* ts is a (unsigned long *) */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span>(LOAD_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">kern_return_t</span></span></span><br><span class="line"><span class="function"><span class="title">thread_entrypoint</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    __unused <span class="type">thread_t</span>   thread,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>                 flavor,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">thread_state_t</span>      tstate,</span></span></span><br><span class="line"><span class="params"><span class="function">    __unused <span class="type">unsigned</span> <span class="type">int</span>        count,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">mach_vm_offset_t</span>    *entry_point</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Set a default.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (*entry_point == <span class="number">0</span>)</span><br><span class="line">		*entry_point = VM_MIN_ADDRESS;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">switch</span> (flavor) &#123;</span><br><span class="line">	<span class="keyword">case</span> x86_THREAD_STATE32:</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="type">x86_thread_state32_t</span> *state25;</span><br><span class="line"></span><br><span class="line">			state25 = (<span class="type">i386_thread_state_t</span> *) tstate;</span><br><span class="line">			*entry_point = state25-&gt;eip ? state25-&gt;eip: VM_MIN_ADDRESS;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">case</span> x86_THREAD_STATE64:</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="type">x86_thread_state64_t</span> *state25;</span><br><span class="line"></span><br><span class="line">			state25 = (<span class="type">x86_thread_state64_t</span> *) tstate;</span><br><span class="line">			*entry_point = state25-&gt;rip ? state25-&gt;rip: VM_MIN_ADDRESS64;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> (KERN_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>thread_entrypoint 中会对entry_point进行设置。那么state25-&gt;rip又是什么呢？它就是dyld的入口地址****_dyld_start<strong><strong>。也就是说在dyld加载到内存结束后，会将入口指向</strong></strong>_dyld_start****。<br>如果想对dyld有比较直观的了解，其实在deviceSupport&#x2F;xx.x.x&#x2F;Symbols&#x2F;usr&#x2F;lib&#x2F;dyld.到此为止就是从launchd开始到dyld加载结束到指定dyld的入口地址的全部过程。下篇博客将会对dyld进行详细的介绍。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://justinyan.me/post/4057">macOS 内核之一个 App 如何运行起来</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/39863112/what-is-required-for-a-mach-o-executable-to-load">What is required for a Mach-O executable to load?</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhangbuhuai.com/post/dyld-bootstrap.html">分析 dyld 的启动过程</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.cnbluebox.com/blog/2017/06/30/dyld2/">Dyld系列之一：_dyld_start之前</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apple/darwin-xnu">darwin-xnu</a></li>
+<li><a target="_blank" rel="noopener" href="http://darlinghq.org/developer-zone/mach-o-dynamic-loader/">Darling</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/I60p2M-IHDmeUanDUkFdVw">XNU、dyld源码分析Mach-O和动态库的加载过程(上)</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/fdDPyjRkVf9AdWiikBagHg">XNU、dyld 源码分析，Mach-O 和动态库的加载过程 (下)</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5a0c5c3451882554bd509a46">趣探 Mach-O：加载过程</a></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2020/01/14/iOS-Runtime源码解析之dyld/" title="iOS Runtime源码解析之dyld">
+  <span>
+  iOS Runtime源码解析之dyld</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2020/01/08/iOS-Runtime源码解析之Mach-O-结构/"  title="iOS Runtime源码解析Mach O 结构">
+ <span>iOS Runtime源码解析Mach O 结构
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2020/01/09/iOS-Runtime源码解析之App启动/" data-title="iOS Runtime源码解析之App启动" data-url="http://yoursite.com/2020/01/09/iOS-Runtime%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E4%B9%8BApp%E5%90%AF%E5%8A%A8/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

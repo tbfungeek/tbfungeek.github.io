@@ -1,0 +1,807 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>YYModel 源码解析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="开源库信息YYModel 与同类开源库的性能对比：  YYModel是一个序列化和反序列化库，说得更直白一点就是将NSString,NSData,NSDictionary形式的数据转换为具体类型的对象，以及将具体类型的对象转换为NSDictionary。 我们在没有开始看源码之前，我们猜测下如果这件事情要做应该怎么做？  将NSString,NSData,NSDictionary形式的数据转换为具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="YYModel 源码解析">
+<meta property="og:url" content="http://yoursite.com/2019/11/20/YYModel-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="开源库信息YYModel 与同类开源库的性能对比：  YYModel是一个序列化和反序列化库，说得更直白一点就是将NSString,NSData,NSDictionary形式的数据转换为具体类型的对象，以及将具体类型的对象转换为NSDictionary。 我们在没有开始看源码之前，我们猜测下如果这件事情要做应该怎么做？  将NSString,NSData,NSDictionary形式的数据转换为具">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/11/20/YYModel-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png">
+<meta property="article:published_time" content="2019-11-19T18:05:35.000Z">
+<meta property="article:modified_time" content="2019-12-19T13:29:56.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/20/YYModel-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/11/20/YYModel-源码解析/" title="YYModel 源码解析" itemprop="url">YYModel 源码解析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-11-19T18:05:35.000Z" itemprop="datePublished"> Published 2019-11-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="开源库信息"><a href="#开源库信息" class="headerlink" title="开源库信息"></a>开源库信息</h5><p><a target="_blank" rel="noopener" href="https://github.com/ibireme/YYModel">YYModel</a></p>
+<p>与同类开源库的性能对比：</p>
+<p><img src="/2019/11/20/YYModel-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png"></p>
+<p>YYModel是一个序列化和反序列化库，说得更直白一点就是将NSString,NSData,NSDictionary形式的数据转换为具体类型的对象，以及将具体类型的对象转换为NSDictionary。</p>
+<p>我们在没有开始看源码之前，我们猜测下如果这件事情要做应该怎么做？</p>
+<ul>
+<li>将NSString,NSData,NSDictionary形式的数据转换为具体类型的对象</li>
+</ul>
+<p>首先我们需要将这些对象统一转换为NSDictionary，然后获取目标对象类的所有属性，创建一个目标对象，以目标对象的属性名为key到NSDictionary中去取值设置到目标对象上。最后返回这个对象。</p>
+<ul>
+<li>将具体类型的对象转换为NSDictionary</li>
+</ul>
+<p>这个其实是上一个过程的逆过程，首先需要获取当前对象类的信息，以及各个属性的getter&#x2F;setter方法，使用getter方法取出当前对象当前属性的值，然后再将属性名为key，属性值为value存到NSDictionary中返回。</p>
+<p>当然这仅仅是大体的构想，过程中还有很多细节需要考虑到，比如key和属性名的映射，容器类型属性的元素类型的指定方式等，我们接下来就来看下这部分代码，YYModel代码量不大，只要记住上面两点就可以把握大致的一个方向，如果对runtime机制比较熟悉会有更多的帮助，但是即使不知道也不妨碍你对整个代码的理解。</p>
+<h5 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h5><h5 id="1-JSON-to-Model"><a href="#1-JSON-to-Model" class="headerlink" title="1.JSON to Model"></a>1.JSON to Model</h5><p><strong><strong>1.1 转换前准备工作 – 将JSON统一成NSDictionary</strong></strong></p>
+<p>将JSON结构转换为Model是通过yy_modelWithJSON方法转换的，这里的json可以是NSString,NSData,NSDictionary</p>
+<figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">+ (nullable instance<span class="keyword">type</span>)yy_modelWithJSON:(id)json;</span><br></pre></td></tr></table></figure>
+
+<p>yy_modelWithJSON作为总的入口会将这些类型统一通过_yy_dictionaryWithJSON转换为NSDictionary，再调用yy_modelWithDictionary将NSDictionary转换为Model返回。</p>
+<figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">+ (instance<span class="keyword">type</span>)yy_modelWithJSON:(id)json &#123;</span><br><span class="line">    //将所有类型的数据都转换为<span class="type">NSDictionary</span>类型</span><br><span class="line">    <span class="type">NSDictionary</span> *dic = [self _yy_dictionaryWithJSON:json];</span><br><span class="line">    //将<span class="type">NSDictionary</span>类型转换为model</span><br><span class="line">    return [self yy_modelWithDictionary:dic];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="built_in">NSDictionary</span> *)_yy_dictionaryWithJSON:(<span class="type">id</span>)json &#123;</span><br><span class="line">    <span class="keyword">if</span> (!json || json == (<span class="type">id</span>)kCFNull) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSDictionary</span> *dic = <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSData</span> *jsonData = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        dic = json;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        jsonData = [(<span class="built_in">NSString</span> *)json dataUsingEncoding : <span class="built_in">NSUTF8StringEncoding</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSData</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        jsonData = json;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//不论传入的json是NSDictionary，NSString还是NSData都将结果都转换为dic</span></span><br><span class="line">    <span class="keyword">if</span> (jsonData) &#123;</span><br><span class="line">        dic = [<span class="built_in">NSJSONSerialization</span> JSONObjectWithData:jsonData options:kNilOptions error:<span class="literal">NULL</span>];</span><br><span class="line">        <span class="keyword">if</span> (![dic isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) dic = <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> dic;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>_yy_dictionaryWithJSON 这块没什么好介绍的如果是NSDictionary就直接返回，如果是NSString或者NSData都通过JSONObjectWithData 转化为 NSDictionary对象，如果是其他类型就直接返回nil。</p>
+<p><strong><strong>1.2 将NSDictionary 转换为Model对象</strong></strong></p>
+<p>接下来的yy_modelWithDictionary开始就比较重要了，这里就开始对Model类进行分析，提取出它的全部属性，以及各种信息。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="keyword">instancetype</span>)yy_modelWithDictionary:(<span class="built_in">NSDictionary</span> *)dictionary &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (!dictionary || dictionary == (<span class="type">id</span>)kCFNull) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> (![dictionary isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    </span><br><span class="line">    Class cls = [<span class="keyword">self</span> <span class="keyword">class</span>];</span><br><span class="line">    <span class="comment">//获取当前类的属性</span></span><br><span class="line">    _YYModelMeta *modelMeta = [_YYModelMeta metaWithClass:cls];</span><br><span class="line">    <span class="keyword">if</span> (modelMeta-&gt;_hasCustomClassFromDictionary) &#123;</span><br><span class="line">        <span class="comment">//根据dictionary来决定最后的cls</span></span><br><span class="line">        cls = [cls modelCustomClassForDictionary:dictionary] ?: cls;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 上面是获取当前类有哪些属性，哪些方法，以及实例方法，相当于建立了一个模版，</span></span><br><span class="line">    <span class="comment">// 就比方说我们定义了一个类，到上面为止，我们知道了它有a，b，c三个属性，每个属性的类型分别是NSString,NSInteger,BOOL 仅此而已，</span></span><br><span class="line">    <span class="comment">// 下面要做的就是创建出一个当前类的对象，并将传进来的字典里面的值赋给它的每个元素。这个在yy_modelSetWithDictionary中实现的。</span></span><br><span class="line">    <span class="built_in">NSObject</span> *one = [cls new];</span><br><span class="line">    <span class="keyword">if</span> ([one yy_modelSetWithDictionary:dictionary]) <span class="keyword">return</span> one;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>1.2.1 提取Model信息</strong></strong></p>
+<p>在上一个阶段将各种JSON格式转换为NSDictionary后，接下啦就从Model入手提取它的各种信息，我们看下_YYModelMeta的结构：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">_YYModelMeta</span> : <span class="title">NSObject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">@package</span></span><br><span class="line">    YYClassInfo *_classInfo;                <span class="comment">//Model类的信息</span></span><br><span class="line">    <span class="comment">/// Key:mapped key and key path, Value:_YYModelPropertyMeta.</span></span><br><span class="line">    <span class="built_in">NSDictionary</span> *_mapper;                  <span class="comment">//所有属性的key和keyPath</span></span><br><span class="line">    <span class="comment">/// Array&lt;_YYModelPropertyMeta&gt;, all property meta of this model.</span></span><br><span class="line">    <span class="built_in">NSArray</span> *_allPropertyMetas;            <span class="comment">//所有属性的信息</span></span><br><span class="line">    <span class="comment">/// Array&lt;_YYModelPropertyMeta&gt;, property meta which is mapped to a key path.</span></span><br><span class="line">    <span class="built_in">NSArray</span> *_keyPathPropertyMetas;        <span class="comment">//属于keyPath的属性列表</span></span><br><span class="line">    <span class="comment">/// Array&lt;_YYModelPropertyMeta&gt;, property meta which is mapped to multi keys.</span></span><br><span class="line">    <span class="built_in">NSArray</span> *_multiKeysPropertyMetas;     <span class="comment">//一个属性多个key的属性列表</span></span><br><span class="line">    <span class="comment">/// The number of mapped key (and key path), same to _mapper.count.</span></span><br><span class="line">    <span class="built_in">NSUInteger</span> _keyMappedCount;           <span class="comment">//全部属性数量</span></span><br><span class="line">    <span class="comment">/// Model class type.</span></span><br><span class="line">    YYEncodingNSType _nsType;             <span class="comment">//Model类的对象</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//这个类实现覆盖方法的情况</span></span><br><span class="line">    <span class="type">BOOL</span> _hasCustomWillTransformFromDictionary;</span><br><span class="line">    <span class="type">BOOL</span> _hasCustomTransformFromDictionary;</span><br><span class="line">    <span class="type">BOOL</span> _hasCustomTransformToDictionary;</span><br><span class="line">    <span class="type">BOOL</span> _hasCustomClassFromDictionary;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>从_YYModelMeta结构中我们可以看到_YYModelMeta既有key与属性的映射关系，又有各个属性的Meta信息，所以基本上就可以通过明确知道字典中的每个key对应的value值对应的属性。只要有这个关系就可以将NSDictionary中的值映射到Model属性上。我们接下来看下这部分源码：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="keyword">instancetype</span>)metaWithClass:(Class)cls &#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">CFMutableDictionaryRef</span> cache;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</span><br><span class="line">    <span class="keyword">static</span> dispatch_semaphore_t lock;</span><br><span class="line">    <span class="comment">//建立缓存</span></span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">        cache = <span class="built_in">CFDictionaryCreateMutable</span>(<span class="built_in">CFAllocatorGetDefault</span>(), <span class="number">0</span>, &amp;kCFTypeDictionaryKeyCallBacks, &amp;kCFTypeDictionaryValueCallBacks);</span><br><span class="line">        lock = dispatch_semaphore_create(<span class="number">1</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">//通过cls从缓存中取出meta</span></span><br><span class="line">    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);</span><br><span class="line">    _YYModelMeta *meta = <span class="built_in">CFDictionaryGetValue</span>(cache, (__bridge <span class="keyword">const</span> <span class="type">void</span> *)(cls));</span><br><span class="line">    dispatch_semaphore_signal(lock);</span><br><span class="line">    <span class="comment">//如果之前没有缓存过或者缓存的信息需要更新</span></span><br><span class="line">    <span class="keyword">if</span> (!meta || meta-&gt;_classInfo.needUpdate) &#123;</span><br><span class="line">        <span class="comment">//通过cls 创建出一个 _YYModelMeta</span></span><br><span class="line">        meta = [[_YYModelMeta alloc] initWithClass:cls];</span><br><span class="line">        <span class="keyword">if</span> (meta) &#123;</span><br><span class="line">            <span class="comment">//将新建的_YYModelMeta添加到缓存供下次使用</span></span><br><span class="line">            dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);</span><br><span class="line">            <span class="built_in">CFDictionarySetValue</span>(cache, (__bridge <span class="keyword">const</span> <span class="type">void</span> *)(cls), (__bridge <span class="keyword">const</span> <span class="type">void</span> *)(meta));</span><br><span class="line">            dispatch_semaphore_signal(lock);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> meta;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在第一调用metaWithClass的时候会创建一个缓存，并且为这个缓存添加一个dispatch_semaphor信号量，为了避免每次都进行查询，这里会将每次查询的数据缓存到新建的缓存中，以加快查询速度。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">- (<span class="keyword">instancetype</span>)initWithClass:(Class)cls &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//用于存储类的信息 包括当前类，父类，当前属性，实例变量，方法</span></span><br><span class="line">    YYClassInfo *classInfo = [YYClassInfo classInfoWithClass:cls];</span><br><span class="line">    <span class="keyword">if</span> (!classInfo) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="variable language_">super</span> init];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取属性黑名单</span></span><br><span class="line">    <span class="built_in">NSSet</span> *blacklist = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelPropertyBlacklist)]) &#123;</span><br><span class="line">        <span class="built_in">NSArray</span> *properties = [(<span class="type">id</span>&lt;YYModel&gt;)cls modelPropertyBlacklist];</span><br><span class="line">        <span class="keyword">if</span> (properties) &#123;</span><br><span class="line">            blacklist = [<span class="built_in">NSSet</span> setWithArray:properties];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取属性白名单</span></span><br><span class="line">    <span class="built_in">NSSet</span> *whitelist = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelPropertyWhitelist)]) &#123;</span><br><span class="line">        <span class="built_in">NSArray</span> *properties = [(<span class="type">id</span>&lt;YYModel&gt;)cls modelPropertyWhitelist];</span><br><span class="line">        <span class="keyword">if</span> (properties) &#123;</span><br><span class="line">            whitelist = [<span class="built_in">NSSet</span> setWithArray:properties];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取容器的元素对象，存储到genericMapper key为属性名 value为该容器类里面元素的类型</span></span><br><span class="line">    <span class="built_in">NSDictionary</span> *genericMapper = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelContainerPropertyGenericClass)]) &#123;</span><br><span class="line">        genericMapper = [(<span class="type">id</span>&lt;YYModel&gt;)cls modelContainerPropertyGenericClass];</span><br><span class="line">        <span class="keyword">if</span> (genericMapper) &#123;</span><br><span class="line">            <span class="built_in">NSMutableDictionary</span> *tmp = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">            [genericMapper enumerateKeysAndObjectsUsingBlock:^(<span class="type">id</span> key, <span class="type">id</span> obj, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">                <span class="keyword">if</span> (![key isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) <span class="keyword">return</span>;</span><br><span class="line">                Class meta = object_getClass(obj);</span><br><span class="line">                <span class="keyword">if</span> (!meta) <span class="keyword">return</span>;</span><br><span class="line">                <span class="keyword">if</span> (class_isMetaClass(meta)) &#123;</span><br><span class="line">                    <span class="comment">//key为属性名 value为该容器类里面元素的类型</span></span><br><span class="line">                    tmp[key] = obj;</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([obj isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                    Class cls = <span class="built_in">NSClassFromString</span>(obj);</span><br><span class="line">                    <span class="keyword">if</span> (cls) &#123;</span><br><span class="line">                        tmp[key] = cls;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;];</span><br><span class="line">            genericMapper = tmp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    <span class="built_in">NSMutableDictionary</span> *allPropertyMetas = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">    YYClassInfo *curClassInfo = classInfo;</span><br><span class="line">    <span class="comment">//遍历当前类及其父类的属性，</span></span><br><span class="line">    <span class="keyword">while</span> (curClassInfo &amp;&amp; curClassInfo.superCls != <span class="literal">nil</span>) &#123; <span class="comment">// recursive parse super class, but ignore root class (NSObject/NSProxy)</span></span><br><span class="line">        <span class="keyword">for</span> (YYClassPropertyInfo *propertyInfo <span class="keyword">in</span> curClassInfo.propertyInfos.allValues) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!propertyInfo.name) <span class="keyword">continue</span>;</span><br><span class="line">            <span class="comment">//只有不在黑名单并且再白名单中的属性才会被加到allPropertyMetas</span></span><br><span class="line">            <span class="keyword">if</span> (blacklist &amp;&amp; [blacklist containsObject:propertyInfo.name]) <span class="keyword">continue</span>;</span><br><span class="line">            <span class="keyword">if</span> (whitelist &amp;&amp; ![whitelist containsObject:propertyInfo.name]) <span class="keyword">continue</span>;</span><br><span class="line">            _YYModelPropertyMeta *meta = [_YYModelPropertyMeta metaWithClassInfo:classInfo</span><br><span class="line">                                                                    propertyInfo:propertyInfo</span><br><span class="line">                                                                         generic:genericMapper[propertyInfo.name]];</span><br><span class="line">            <span class="comment">//meta必须有值，并且有getter/setters</span></span><br><span class="line">            <span class="keyword">if</span> (!meta || !meta-&gt;_name) <span class="keyword">continue</span>;</span><br><span class="line">            <span class="keyword">if</span> (!meta-&gt;_<span class="keyword">getter</span> || !meta-&gt;_<span class="keyword">setter</span>) <span class="keyword">continue</span>;</span><br><span class="line">            <span class="comment">//已经存在allPropertyMetas中了则不再继续</span></span><br><span class="line">            <span class="keyword">if</span> (allPropertyMetas[meta-&gt;_name]) <span class="keyword">continue</span>;</span><br><span class="line">            <span class="comment">//将meta存到allPropertyMetas中</span></span><br><span class="line">            allPropertyMetas[meta-&gt;_name] = meta;</span><br><span class="line">        &#125;</span><br><span class="line">        curClassInfo = curClassInfo.superClassInfo;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (allPropertyMetas.count) _allPropertyMetas = allPropertyMetas.allValues.copy;</span><br><span class="line">    <span class="comment">//将所有的类属性都添加到allPropertyMetas</span></span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 建立映射关系</span></span><br><span class="line">    <span class="built_in">NSMutableDictionary</span> *mapper = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *keyPathPropertyMetas = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *multiKeysPropertyMetas = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//处理映射</span></span><br><span class="line">    <span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelCustomPropertyMapper)]) &#123;</span><br><span class="line">        <span class="comment">//获得自定义映射字典，它用于解决json文件中关键字和定义的类的属性不一致的问题。</span></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         + (NSDictionary *) modelCustomPropertyMapper &#123;</span></span><br><span class="line"><span class="comment">            return @&#123;@&quot;errnoTest&quot;类属性 : @&quot;errno&quot;json中的字段&#125;;</span></span><br><span class="line"><span class="comment">        &#125;*/</span></span><br><span class="line">        <span class="built_in">NSDictionary</span> *customMapper = [(<span class="type">id</span> &lt;YYModel&gt;)cls modelCustomPropertyMapper];</span><br><span class="line">        [customMapper enumerateKeysAndObjectsUsingBlock:^(<span class="built_in">NSString</span> *propertyName, <span class="built_in">NSString</span> *mappedToKey, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">            <span class="comment">//取出原来key对应的属性信息</span></span><br><span class="line">            _YYModelPropertyMeta *propertyMeta = allPropertyMetas[propertyName];</span><br><span class="line">            <span class="keyword">if</span> (!propertyMeta) <span class="keyword">return</span>;</span><br><span class="line">            <span class="comment">//从allPropertyMetas移除</span></span><br><span class="line">            [allPropertyMetas removeObjectForKey:propertyName];</span><br><span class="line">            <span class="comment">//要被映射到的属性名字</span></span><br><span class="line">            <span class="keyword">if</span> ([mappedToKey isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                <span class="keyword">if</span> (mappedToKey.length == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">                <span class="comment">//只有一个key</span></span><br><span class="line">                propertyMeta-&gt;_mappedToKey = mappedToKey;</span><br><span class="line">                </span><br><span class="line">                <span class="comment">//去掉空keyPath</span></span><br><span class="line">                <span class="built_in">NSArray</span> *keyPath = [mappedToKey componentsSeparatedByString:<span class="string">@&quot;.&quot;</span>];</span><br><span class="line">                <span class="keyword">for</span> (<span class="built_in">NSString</span> *onePath <span class="keyword">in</span> keyPath) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (onePath.length == <span class="number">0</span>) &#123;</span><br><span class="line">                        <span class="built_in">NSMutableArray</span> *tmp = keyPath.mutableCopy;</span><br><span class="line">                        [tmp removeObject:<span class="string">@&quot;&quot;</span>];</span><br><span class="line">                        keyPath = tmp;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">if</span> (keyPath.count &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="comment">//有多个path的key，例如xxx.xxxx.xxx</span></span><br><span class="line">                    propertyMeta-&gt;_mappedToKeyPath = keyPath;</span><br><span class="line">                    [keyPathPropertyMetas addObject:propertyMeta];</span><br><span class="line">                &#125;</span><br><span class="line">                propertyMeta-&gt;_next = mapper[mappedToKey] ?: <span class="literal">nil</span>;</span><br><span class="line">                mapper[mappedToKey] = propertyMeta;</span><br><span class="line">                </span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([mappedToKey isKindOfClass:[<span class="built_in">NSArray</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                </span><br><span class="line">                <span class="built_in">NSMutableArray</span> *mappedToKeyArray = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">                <span class="keyword">for</span> (<span class="built_in">NSString</span> *oneKey <span class="keyword">in</span> ((<span class="built_in">NSArray</span> *)mappedToKey)) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (![oneKey isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) <span class="keyword">continue</span>;</span><br><span class="line">                    <span class="keyword">if</span> (oneKey.length == <span class="number">0</span>) <span class="keyword">continue</span>;</span><br><span class="line">                    </span><br><span class="line">                    <span class="built_in">NSArray</span> *keyPath = [oneKey componentsSeparatedByString:<span class="string">@&quot;.&quot;</span>];</span><br><span class="line">                    <span class="keyword">if</span> (keyPath.count &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                        [mappedToKeyArray addObject:keyPath];</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        [mappedToKeyArray addObject:oneKey];</span><br><span class="line">                    &#125;</span><br><span class="line">                    </span><br><span class="line">                    <span class="keyword">if</span> (!propertyMeta-&gt;_mappedToKey) &#123;</span><br><span class="line">                        propertyMeta-&gt;_mappedToKey = oneKey;</span><br><span class="line">                        propertyMeta-&gt;_mappedToKeyPath = keyPath.count &gt; <span class="number">1</span> ? keyPath : <span class="literal">nil</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (!propertyMeta-&gt;_mappedToKey) <span class="keyword">return</span>;</span><br><span class="line">                </span><br><span class="line">                propertyMeta-&gt;_mappedToKeyArray = mappedToKeyArray;</span><br><span class="line">                [multiKeysPropertyMetas addObject:propertyMeta];</span><br><span class="line">                </span><br><span class="line">                propertyMeta-&gt;_next = mapper[mappedToKey] ?: <span class="literal">nil</span>;</span><br><span class="line">                mapper[mappedToKey] = propertyMeta;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//这些是上面还没处理的，处理后添加到mapper，所以mapper包含了全部的属性</span></span><br><span class="line">    [allPropertyMetas enumerateKeysAndObjectsUsingBlock:^(<span class="built_in">NSString</span> *name, _YYModelPropertyMeta *propertyMeta, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">        propertyMeta-&gt;_mappedToKey = name;</span><br><span class="line">        <span class="comment">//如果有其他值绑定在同一个key上则将它赋给next</span></span><br><span class="line">        propertyMeta-&gt;_next = mapper[name] ?: <span class="literal">nil</span>;</span><br><span class="line">        <span class="comment">//将属性添加到mapper</span></span><br><span class="line">        mapper[name] = propertyMeta;</span><br><span class="line">    &#125;];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//将上述的属性信息添加到_mapper以及_keyPathPropertyMetas，_multiKeysPropertyMetas</span></span><br><span class="line">    <span class="keyword">if</span> (mapper.count) _mapper = mapper;</span><br><span class="line">    <span class="keyword">if</span> (keyPathPropertyMetas) _keyPathPropertyMetas = keyPathPropertyMetas;</span><br><span class="line">    <span class="keyword">if</span> (multiKeysPropertyMetas) _multiKeysPropertyMetas = multiKeysPropertyMetas;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//赋值到对应的属性上</span></span><br><span class="line">    _classInfo = classInfo;</span><br><span class="line">    _keyMappedCount = _allPropertyMetas.count;</span><br><span class="line">    _nsType = YYClassGetNSType(cls);</span><br><span class="line">    _hasCustomWillTransformFromDictionary = ([cls instancesRespondToSelector:<span class="keyword">@selector</span>(modelCustomWillTransformFromDictionary:)]);</span><br><span class="line">    _hasCustomTransformFromDictionary = ([cls instancesRespondToSelector:<span class="keyword">@selector</span>(modelCustomTransformFromDictionary:)]);</span><br><span class="line">    _hasCustomTransformToDictionary = ([cls instancesRespondToSelector:<span class="keyword">@selector</span>(modelCustomTransformToDictionary:)]);</span><br><span class="line">    _hasCustomClassFromDictionary = ([cls respondsToSelector:<span class="keyword">@selector</span>(modelCustomClassForDictionary:)]);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯 是的 上面是_YYModelMeta的构造方法，哈哈，长吧。在_YYModelMeta的构造方法中主要是负责填充前面介绍过的_YYModelMeta中的属性。我们接下来将它拆成一段一段进行介绍：</p>
+<ul>
+<li><strong><strong>获取当前类的属性信息</strong></strong></li>
+</ul>
+<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line"><span class="comment">//用于存储类的信息 包括当前类，父类，当前属性，实例变量，方法</span></span><br><span class="line">YYClassInfo *classInfo = [YYClassInfo classInfoWithClass:<span class="keyword">cls</span>];</span><br><span class="line"><span class="keyword">if</span> (!classInfo) <span class="keyword">return</span> nil;</span><br></pre></td></tr></table></figure>
+
+<p>如果看过runtime源码的同学应该对接下来的这部分代码理解会比较透彻，如果不属性也无防在这里先了解下，后面看runtime的代码的时候会恍然大悟，看源码其实很多时候第一遍可能理解的只是一个大概，不要太去纠结细节，后面在某项技术补上后，或者在项目上遇到类似的问题的时候会有更深的理解，所以看不懂埋着头看下去，一遍不行，再来一遍，就是这种傻办法慢慢积累。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">YYClassInfo</span> : <span class="title">NSObject</span></span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">assign</span>, <span class="keyword">readonly</span>) Class cls; <span class="comment">///&lt; //当前YYClassInfo 所对应的cls</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nullable</span>, <span class="keyword">nonatomic</span>, <span class="keyword">assign</span>, <span class="keyword">readonly</span>) Class superCls; <span class="comment">///&lt; 当前类的父类</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nullable</span>, <span class="keyword">nonatomic</span>, <span class="keyword">assign</span>, <span class="keyword">readonly</span>) Class metaCls;  <span class="comment">///&lt; 当前类的meta对象</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="type">BOOL</span> isMeta; <span class="comment">///&lt; 当前类是否是meta类</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readonly</span>) <span class="built_in">NSString</span> *name; <span class="comment">///&lt; 类名</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nullable</span>, <span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readonly</span>) YYClassInfo *superClassInfo; <span class="comment">///&lt; 父类信息</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nullable</span>, <span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readonly</span>) <span class="built_in">NSDictionary</span>&lt;<span class="built_in">NSString</span> *, YYClassIvarInfo *&gt; *ivarInfos; <span class="comment">///&lt; 实例变量信息</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nullable</span>, <span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readonly</span>) <span class="built_in">NSDictionary</span>&lt;<span class="built_in">NSString</span> *, YYClassMethodInfo *&gt; *methodInfos; <span class="comment">///&lt; 方法信息</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nullable</span>, <span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readonly</span>) <span class="built_in">NSDictionary</span>&lt;<span class="built_in">NSString</span> *, YYClassPropertyInfo *&gt; *propertyInfos; <span class="comment">///&lt; 属性信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//.......</span></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来看下classInfoWithClass：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="keyword">instancetype</span>)classInfoWithClass:(Class)cls &#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//创建缓存</span></span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">        classCache = <span class="built_in">CFDictionaryCreateMutable</span>(<span class="built_in">CFAllocatorGetDefault</span>(), <span class="number">0</span>, &amp;kCFTypeDictionaryKeyCallBacks, &amp;kCFTypeDictionaryValueCallBacks);</span><br><span class="line">        metaCache = <span class="built_in">CFDictionaryCreateMutable</span>(<span class="built_in">CFAllocatorGetDefault</span>(), <span class="number">0</span>, &amp;kCFTypeDictionaryKeyCallBacks, &amp;kCFTypeDictionaryValueCallBacks);</span><br><span class="line">        lock = dispatch_semaphore_create(<span class="number">1</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">//获取class信息</span></span><br><span class="line">    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);</span><br><span class="line">    YYClassInfo *info = <span class="built_in">CFDictionaryGetValue</span>(class_isMetaClass(cls) ? metaCache : classCache, (__bridge <span class="keyword">const</span> <span class="type">void</span> *)(cls));</span><br><span class="line">    <span class="comment">//查看是否需要更新，如果需要更新的话则调用info的_update方法</span></span><br><span class="line">    <span class="keyword">if</span> (info &amp;&amp; info-&gt;_needUpdate) &#123;</span><br><span class="line">        [info _update];</span><br><span class="line">    &#125;</span><br><span class="line">    dispatch_semaphore_signal(lock);</span><br><span class="line">    <span class="comment">//如果缓存没有则新建后添加到缓存中</span></span><br><span class="line">    <span class="keyword">if</span> (!info) &#123;</span><br><span class="line">        info = [[YYClassInfo alloc] initWithClass:cls];</span><br><span class="line">        <span class="keyword">if</span> (info) &#123;</span><br><span class="line">            dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);</span><br><span class="line">            <span class="built_in">CFDictionarySetValue</span>(info.isMeta ? metaCache : classCache, (__bridge <span class="keyword">const</span> <span class="type">void</span> *)(cls), (__bridge <span class="keyword">const</span> <span class="type">void</span> *)(info));</span><br><span class="line">            dispatch_semaphore_signal(lock);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> info;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，熟悉吧，还是使用了缓存，很明显数据的序列化其实是一个特别频繁的任务，基本上每次网络请求回来后都需要经过序列化后进行交付，如果每次都进行类信息的提取将会是很影响性能的任务。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">instancetype</span>)initWithClass:(Class)cls &#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="variable language_">super</span> init];</span><br><span class="line">    _cls = cls;</span><br><span class="line">    _superCls = class_getSuperclass(cls);</span><br><span class="line">    _isMeta = class_isMetaClass(cls);</span><br><span class="line">    <span class="keyword">if</span> (!_isMeta) &#123;</span><br><span class="line">        _metaCls = objc_getMetaClass(class_getName(cls));</span><br><span class="line">    &#125;</span><br><span class="line">    _name = <span class="built_in">NSStringFromClass</span>(cls);</span><br><span class="line">    [<span class="keyword">self</span> _update];</span><br><span class="line">    _superClassInfo = [<span class="keyword">self</span>.class classInfoWithClass:_superCls];</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)_update &#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    </span><br><span class="line">    Class cls = <span class="keyword">self</span>.cls;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> methodCount = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//获取当前类的方法数</span></span><br><span class="line">    Method *methods = class_copyMethodList(cls, &amp;methodCount);</span><br><span class="line">    <span class="keyword">if</span> (methods) &#123;</span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *methodInfos = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">        _methodInfos = methodInfos;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">unsigned</span> <span class="type">int</span> i = <span class="number">0</span>; i &lt; methodCount; i++) &#123;</span><br><span class="line">            YYClassMethodInfo *info = [[YYClassMethodInfo alloc] initWithMethod:methods[i]];</span><br><span class="line">            <span class="comment">//key --&gt; 方法名  value 方法信息</span></span><br><span class="line">            <span class="keyword">if</span> (info.name) methodInfos[info.name] = info;</span><br><span class="line">        &#125;</span><br><span class="line">        free(methods);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//获取当前的属性</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> propertyCount = <span class="number">0</span>;</span><br><span class="line">    objc_property_t *properties = class_copyPropertyList(cls, &amp;propertyCount);</span><br><span class="line">    <span class="keyword">if</span> (properties) &#123;</span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *propertyInfos = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">        _propertyInfos = propertyInfos;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">unsigned</span> <span class="type">int</span> i = <span class="number">0</span>; i &lt; propertyCount; i++) &#123;</span><br><span class="line">            YYClassPropertyInfo *info = [[YYClassPropertyInfo alloc] initWithProperty:properties[i]];</span><br><span class="line">            <span class="comment">//key --&gt; 属性名  value 属性信息</span></span><br><span class="line">            <span class="keyword">if</span> (info.name) propertyInfos[info.name] = info;</span><br><span class="line">        &#125;</span><br><span class="line">        free(properties);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//获取当前对象的实例变量</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> ivarCount = <span class="number">0</span>;</span><br><span class="line">    Ivar *ivars = class_copyIvarList(cls, &amp;ivarCount);</span><br><span class="line">    <span class="keyword">if</span> (ivars) &#123;</span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *ivarInfos = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">        _ivarInfos = ivarInfos;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">unsigned</span> <span class="type">int</span> i = <span class="number">0</span>; i &lt; ivarCount; i++) &#123;</span><br><span class="line">            YYClassIvarInfo *info = [[YYClassIvarInfo alloc] initWithIvar:ivars[i]];</span><br><span class="line">            <span class="keyword">if</span> (info.name) ivarInfos[info.name] = info;</span><br><span class="line">        &#125;</span><br><span class="line">        free(ivars);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">//更新结束</span></span><br><span class="line">    _needUpdate = <span class="literal">NO</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面一整段代码就是负责使用runtime方法提取class中的属性信息，实例遍历信息，方法信息，父类信息等，</p>
+<ul>
+<li><strong><strong>通过属性黑白名单对属性进行过滤</strong></strong></li>
+</ul>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 获取属性黑名单</span></span><br><span class="line"><span class="built_in">NSSet</span> *blacklist = <span class="literal">nil</span>;</span><br><span class="line"><span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelPropertyBlacklist)]) &#123;</span><br><span class="line">    <span class="built_in">NSArray</span> *properties = [(<span class="type">id</span>&lt;YYModel&gt;)cls modelPropertyBlacklist];</span><br><span class="line">    <span class="keyword">if</span> (properties) &#123;</span><br><span class="line">        blacklist = [<span class="built_in">NSSet</span> setWithArray:properties];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取属性白名单</span></span><br><span class="line"><span class="built_in">NSSet</span> *whitelist = <span class="literal">nil</span>;</span><br><span class="line"><span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelPropertyWhitelist)]) &#123;</span><br><span class="line">    <span class="built_in">NSArray</span> *properties = [(<span class="type">id</span>&lt;YYModel&gt;)cls modelPropertyWhitelist];</span><br><span class="line">    <span class="keyword">if</span> (properties) &#123;</span><br><span class="line">        whitelist = [<span class="built_in">NSSet</span> setWithArray:properties];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取容器的元素对象，存储到genericMapper key为属性名 value为该容器类里面元素的类型</span></span><br><span class="line"><span class="built_in">NSDictionary</span> *genericMapper = <span class="literal">nil</span>;</span><br><span class="line"><span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelContainerPropertyGenericClass)]) &#123;</span><br><span class="line">    genericMapper = [(<span class="type">id</span>&lt;YYModel&gt;)cls modelContainerPropertyGenericClass];</span><br><span class="line">    <span class="keyword">if</span> (genericMapper) &#123;</span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *tmp = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">        [genericMapper enumerateKeysAndObjectsUsingBlock:^(<span class="type">id</span> key, <span class="type">id</span> obj, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">            <span class="keyword">if</span> (![key isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) <span class="keyword">return</span>;</span><br><span class="line">            Class meta = object_getClass(obj);</span><br><span class="line">            <span class="keyword">if</span> (!meta) <span class="keyword">return</span>;</span><br><span class="line">            <span class="keyword">if</span> (class_isMetaClass(meta)) &#123;</span><br><span class="line">                <span class="comment">//key为属性名 value为该容器类里面元素的类型</span></span><br><span class="line">                tmp[key] = obj;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([obj isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                Class cls = <span class="built_in">NSClassFromString</span>(obj);</span><br><span class="line">                <span class="keyword">if</span> (cls) &#123;</span><br><span class="line">                    tmp[key] = cls;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;];</span><br><span class="line">        genericMapper = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSMutableDictionary</span> *allPropertyMetas = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">YYClassInfo *curClassInfo = classInfo;</span><br><span class="line"><span class="comment">//遍历当前类及其父类的属性，</span></span><br><span class="line"><span class="keyword">while</span> (curClassInfo &amp;&amp; curClassInfo.superCls != <span class="literal">nil</span>) &#123; <span class="comment">// recursive parse super class, but ignore root class (NSObject/NSProxy)</span></span><br><span class="line">    <span class="keyword">for</span> (YYClassPropertyInfo *propertyInfo <span class="keyword">in</span> curClassInfo.propertyInfos.allValues) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!propertyInfo.name) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="comment">//只有不在黑名单并且再白名单中的属性才会被加到allPropertyMetas</span></span><br><span class="line">        <span class="keyword">if</span> (blacklist &amp;&amp; [blacklist containsObject:propertyInfo.name]) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">if</span> (whitelist &amp;&amp; ![whitelist containsObject:propertyInfo.name]) <span class="keyword">continue</span>;</span><br><span class="line">        _YYModelPropertyMeta *meta = [_YYModelPropertyMeta metaWithClassInfo:classInfo</span><br><span class="line">                                                                propertyInfo:propertyInfo</span><br><span class="line">                                                                        generic:genericMapper[propertyInfo.name]];</span><br><span class="line">        <span class="comment">//meta必须有值，并且有getter/setters</span></span><br><span class="line">        <span class="keyword">if</span> (!meta || !meta-&gt;_name) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">if</span> (!meta-&gt;_<span class="keyword">getter</span> || !meta-&gt;_<span class="keyword">setter</span>) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="comment">//已经存在allPropertyMetas中了则不再继续</span></span><br><span class="line">        <span class="keyword">if</span> (allPropertyMetas[meta-&gt;_name]) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="comment">//将meta存到allPropertyMetas中</span></span><br><span class="line">        allPropertyMetas[meta-&gt;_name] = meta;</span><br><span class="line">    &#125;</span><br><span class="line">    curClassInfo = curClassInfo.superClassInfo;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (allPropertyMetas.count) _allPropertyMetas = allPropertyMetas.allValues.copy;</span><br><span class="line"><span class="comment">//将所有的类属性都添加到allPropertyMetas</span></span><br></pre></td></tr></table></figure>
+
+<p>上面代码虽然长但是完成的工作却很简单就是从类中提取出黑白名单，然后对当前类的全部属性，包括父对象在内的全部属性进行过滤，对于不在白名单，在黑名单的属性进行过滤。当中穿插了一个容器类元素对象类型的获取过程，如果我们的某个属性是容器对象：比如数组，元素类型这部分其实信息是丢失的。需要我们通过外部方式指定，YYmodel中会通过覆写modelContainerPropertyGenericClass方法，指定某个属性的元素类型。最终存放在genericMapper，在初始化_YYModelPropertyMeta的时候就可以通过属性最为key，查到对应的generic。添加到_YYModelProperty中。这里还必须注意每个属性都必须具备getter&#x2F;Setter 方法。最终将各个属性添加到_allPropertyMetas上。</p>
+<p><strong><strong>1.2.2 提取Model信息</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 建立映射关系</span></span><br><span class="line"><span class="built_in">NSMutableDictionary</span> *mapper = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line"><span class="built_in">NSMutableArray</span> *keyPathPropertyMetas = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line"><span class="built_in">NSMutableArray</span> *multiKeysPropertyMetas = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line"></span><br><span class="line"><span class="comment">//处理映射</span></span><br><span class="line"><span class="keyword">if</span> ([cls respondsToSelector:<span class="keyword">@selector</span>(modelCustomPropertyMapper)]) &#123;</span><br><span class="line">    <span class="comment">//获得自定义映射字典，它用于解决json文件中关键字和定义的类的属性不一致的问题。</span></span><br><span class="line">    <span class="built_in">NSDictionary</span> *customMapper = [(<span class="type">id</span> &lt;YYModel&gt;)cls modelCustomPropertyMapper];</span><br><span class="line">    [customMapper enumerateKeysAndObjectsUsingBlock:^(<span class="built_in">NSString</span> *propertyName, <span class="built_in">NSString</span> *mappedToKey, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">        <span class="comment">//取出原来key对应的属性信息</span></span><br><span class="line">        _YYModelPropertyMeta *propertyMeta = allPropertyMetas[propertyName];</span><br><span class="line">        <span class="keyword">if</span> (!propertyMeta) <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//从allPropertyMetas移除</span></span><br><span class="line">        [allPropertyMetas removeObjectForKey:propertyName];</span><br><span class="line">        <span class="keyword">if</span> ([mappedToKey isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">            <span class="keyword">if</span> (mappedToKey.length == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">            <span class="comment">// 1.最简单的形式</span></span><br><span class="line">            propertyMeta-&gt;_mappedToKey = mappedToKey;</span><br><span class="line">            <span class="comment">//去掉空keyPath</span></span><br><span class="line">            <span class="built_in">NSArray</span> *keyPath = [mappedToKey componentsSeparatedByString:<span class="string">@&quot;.&quot;</span>];</span><br><span class="line">            <span class="keyword">for</span> (<span class="built_in">NSString</span> *onePath <span class="keyword">in</span> keyPath) &#123;</span><br><span class="line">                <span class="keyword">if</span> (onePath.length == <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="built_in">NSMutableArray</span> *tmp = keyPath.mutableCopy;</span><br><span class="line">                    [tmp removeObject:<span class="string">@&quot;&quot;</span>];</span><br><span class="line">                    keyPath = tmp;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (keyPath.count &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="comment">//2. 有多个path的key，例如xxx.xxxx.xxx</span></span><br><span class="line">                propertyMeta-&gt;_mappedToKeyPath = keyPath;</span><br><span class="line">                <span class="comment">//添加到keyPathPropertyMetas</span></span><br><span class="line">                [keyPathPropertyMetas addObject:propertyMeta];</span><br><span class="line">            &#125;</span><br><span class="line">            propertyMeta-&gt;_next = mapper[mappedToKey] ?: <span class="literal">nil</span>;</span><br><span class="line">            mapper[mappedToKey] = propertyMeta;</span><br><span class="line">            </span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([mappedToKey isKindOfClass:[<span class="built_in">NSArray</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">            <span class="comment">//3.映射的对象是数组类型的时候</span></span><br><span class="line">            <span class="built_in">NSMutableArray</span> *mappedToKeyArray = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">            <span class="keyword">for</span> (<span class="built_in">NSString</span> *oneKey <span class="keyword">in</span> ((<span class="built_in">NSArray</span> *)mappedToKey)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (![oneKey isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) <span class="keyword">continue</span>;</span><br><span class="line">                <span class="keyword">if</span> (oneKey.length == <span class="number">0</span>) <span class="keyword">continue</span>;</span><br><span class="line">                </span><br><span class="line">                <span class="built_in">NSArray</span> *keyPath = [oneKey componentsSeparatedByString:<span class="string">@&quot;.&quot;</span>];</span><br><span class="line">                <span class="keyword">if</span> (keyPath.count &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                    [mappedToKeyArray addObject:keyPath];</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    [mappedToKeyArray addObject:oneKey];</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">if</span> (!propertyMeta-&gt;_mappedToKey) &#123;</span><br><span class="line">                    propertyMeta-&gt;_mappedToKey = oneKey;</span><br><span class="line">                    propertyMeta-&gt;_mappedToKeyPath = keyPath.count &gt; <span class="number">1</span> ? keyPath : <span class="literal">nil</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (!propertyMeta-&gt;_mappedToKey) <span class="keyword">return</span>;</span><br><span class="line">            <span class="comment">//添加到multiKeysPropertyMetas</span></span><br><span class="line">            propertyMeta-&gt;_mappedToKeyArray = mappedToKeyArray;</span><br><span class="line">            [multiKeysPropertyMetas addObject:propertyMeta];</span><br><span class="line">            </span><br><span class="line">            propertyMeta-&gt;_next = mapper[mappedToKey] ?: <span class="literal">nil</span>;</span><br><span class="line">            mapper[mappedToKey] = propertyMeta;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;];</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>我们结合下面的例子来解析上面的代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;n&quot;</span>:<span class="string">&quot;Harry Pottery&quot;</span>,</span><br><span class="line">    <span class="string">&quot;ext&quot;</span> : &#123;</span><br><span class="line">        <span class="string">&quot;desc&quot;</span> : <span class="string">&quot;A book written by J.K.Rowing.&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;ID&quot;</span> : <span class="number">100010</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (NSDictionary *)modelCustomPropertyMapper &#123;</span><br><span class="line">    <span class="keyword">return</span> @&#123;@<span class="string">&quot;name&quot;</span> : @<span class="string">&quot;n&quot;</span>,</span><br><span class="line"><span class="meta">             @<span class="string">&quot;desc&quot;</span> : @<span class="string">&quot;ext.desc&quot;</span>,</span></span><br><span class="line"><span class="meta">             @<span class="string">&quot;bookID&quot;</span> : @[@<span class="string">&quot;id&quot;</span>,@<span class="string">&quot;ID&quot;</span>,@<span class="string">&quot;book_id&quot;</span>]&#125;;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子三个属性分别对应代码中标出的1，2，3 三种例子，我们分别看这三种情况：</p>
+<p><strong><strong>情况一 最简单的映射:</strong></strong></p>
+<p>这种没啥好介绍的就是将modelCustomPropertyMapper对应的value存到propertyMeta-&gt;_mappedToKey</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1.最简单的形式</span></span><br><span class="line"><span class="function"><span class="title">propertyMeta</span>-&gt;</span>_mappedToKey = mappedToKey;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>情况二 keyPath的映射:</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSArray</span> *keyPath = [mappedToKey componentsSeparatedByString:<span class="string">@&quot;.&quot;</span>];</span><br><span class="line"><span class="keyword">for</span> (<span class="built_in">NSString</span> *onePath <span class="keyword">in</span> keyPath) &#123;</span><br><span class="line">    <span class="keyword">if</span> (onePath.length == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">NSMutableArray</span> *tmp = keyPath.mutableCopy;</span><br><span class="line">        [tmp removeObject:<span class="string">@&quot;&quot;</span>];</span><br><span class="line">        keyPath = tmp;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (keyPath.count &gt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">//2. 有多个path的key，例如xxx.xxxx.xxx</span></span><br><span class="line">    propertyMeta-&gt;_mappedToKeyPath = keyPath;</span><br><span class="line">    <span class="comment">//添加到keyPathPropertyMetas</span></span><br><span class="line">    [keyPathPropertyMetas addObject:propertyMeta];</span><br><span class="line">&#125;</span><br><span class="line">propertyMeta-&gt;_next = mapper[mappedToKey] ?: <span class="literal">nil</span>;</span><br><span class="line">mapper[mappedToKey] = propertyMeta;</span><br></pre></td></tr></table></figure>
+<p>这里和上面的区别是它会将类似ext.desc这种形式的路径转化为数组@[@”ext”,@”desc”],然后存到_mappedToKeyPath中并添加到keyPathPropertyMetas，以后如果要找到这种带路径的属性可以直接从keyPathPropertyMetas找。</p>
+<p><strong><strong>情况三 多映射类型key的映射:</strong></strong></p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="comment">//3.映射的对象是数组类型的时候</span></span><br><span class="line">NSMutableArray *mappedToKeyArray = [NSMutableArray new];</span><br><span class="line"><span class="keyword">for</span> (NSString *oneKey <span class="built_in">in</span> ((NSArray *)mappedToKey)) &#123;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    NSArray *keyPath = [oneKey componentsSeparatedByString:@<span class="string">&quot;.&quot;</span>];</span><br><span class="line">    <span class="keyword">if</span> (keyPath.count &gt; <span class="number">1</span>) &#123;</span><br><span class="line">        [mappedToKeyArray addObject:keyPath];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        [mappedToKeyArray addObject:oneKey];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//先填充_mappedToKey和_mappedToKeyPath</span></span><br><span class="line">    <span class="function"><span class="title">if</span> (!propertyMeta-&gt;</span>_mappedToKey) &#123;</span><br><span class="line">        <span class="function"><span class="title">propertyMeta</span>-&gt;</span>_mappedToKey = oneKey;</span><br><span class="line">        <span class="function"><span class="title">propertyMeta</span>-&gt;</span>_mappedToKeyPath = keyPath.count &gt; <span class="number">1</span> ? keyPath : <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="title">if</span> (!propertyMeta-&gt;</span>_mappedToKey) return;</span><br><span class="line"><span class="comment">//添加到multiKeysPropertyMetas</span></span><br><span class="line"><span class="function"><span class="title">propertyMeta</span>-&gt;</span>_mappedToKeyArray = mappedToKeyArray;</span><br><span class="line">[multiKeysPropertyMetas addObject:propertyMeta];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">propertyMeta</span>-&gt;</span>_next = mapper[mappedToKey] ?: <span class="literal">nil</span>;</span><br><span class="line">mapper[mappedToKey] = propertyMeta;</span><br></pre></td></tr></table></figure>
+
+<p>我们拿 @”bookID” : @[@”id”,@”ID”,@”book_id”]作为例子，经过上面处理后propertyMeta-&gt;_mappedToKey &#x3D; @”ID”,propertyMeta-&gt;_mappedToKeyPath &#x3D; nil, propertyMeta-&gt;_mappedToKeyArray &#x3D; @[@”id”,@”ID”,@”book_id”] 最后propertyMeta会被添加到multiKeysPropertyMetas数组中。</p>
+<p><strong><strong>情况四 其余不在modelCustomPropertyMapper中指定的映射:</strong></strong></p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">[allPropertyMetas enumerateKeysAndObjectsUsingBlock:^(NSString *<span class="built_in">name</span>, <span class="variable">_YYModelPropertyMeta</span> *propertyMeta, BOOL *<span class="built_in">stop</span>) &#123;</span><br><span class="line">    propertyMeta-&gt;<span class="variable">_mappedToKey</span> = <span class="built_in">name</span>;</span><br><span class="line">    <span class="comment">//如果有其他值绑定在同一个key上则将它赋给next</span></span><br><span class="line">    propertyMeta-&gt;<span class="variable">_next</span> = mapper[<span class="built_in">name</span>] ?: <span class="literal">nil</span>;</span><br><span class="line">    <span class="comment">//将属性添加到mapper</span></span><br><span class="line">    mapper[<span class="built_in">name</span>] = propertyMeta;</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+
+<p>上面三种情况都是处理在modelCustomPropertyMapper中特别指定的属性，而上面的这种情况是没有特殊指定的属性，这种情况下就是将属性名赋给_mappedToKey。</p>
+<p>综上几种情况，所有的映射关系都存在于_mappedToKey，_mappedToKeyPath，_mappedToKeyArray这三个属性中,比如下面这种情况：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Model:</span></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Book</span> : <span class="title">NSObject</span></span></span><br><span class="line"><span class="keyword">@property</span> <span class="built_in">NSString</span> *name;</span><br><span class="line"><span class="keyword">@property</span> <span class="built_in">NSString</span> *test;</span><br><span class="line"><span class="keyword">@property</span> <span class="built_in">NSString</span> *desc;</span><br><span class="line"><span class="keyword">@property</span> <span class="built_in">NSString</span> *bookID;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Book</span></span></span><br><span class="line">+ (<span class="built_in">NSDictionary</span> *)modelCustomPropertyMapper &#123;</span><br><span class="line">    <span class="keyword">return</span> @&#123;<span class="string">@&quot;name&quot;</span> : <span class="string">@&quot;n&quot;</span>,</span><br><span class="line">             <span class="string">@&quot;desc&quot;</span> : <span class="string">@&quot;ext.desc&quot;</span>,</span><br><span class="line">             <span class="string">@&quot;bookID&quot;</span> : @[<span class="string">@&quot;id&quot;</span>,<span class="string">@&quot;ID&quot;</span>,<span class="string">@&quot;book_id&quot;</span>]&#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>属性name的_mappedToKey &#x3D; @”n”,_mappedToKeyPath &#x3D; nil,_mappedToKeyArray &#x3D; nil<br>属性test的_mappedToKey &#x3D; @”test”,_mappedToKeyPath &#x3D; nil,_mappedToKeyArray &#x3D; nil<br>属性desc的_mappedToKey &#x3D; @”ext.desc”,_mappedToKeyPath &#x3D; @[@”ext”,@”desc”],_mappedToKeyArray &#x3D; nil<br>属性bookID的_mappedToKey &#x3D; @”id”,_mappedToKeyPath &#x3D; nil ,_mappedToKeyArray &#x3D; @[@”id”,@”ID”,@”book_id”]</p>
+<p><strong><strong>1.2.3 使用NSDictionary的数据填充Model</strong></strong></p>
+<p>我们前面已经获取到了Model类的class结构信息，并且完成了属性黑白名单的过滤，以及属性名和JSON中字段名的对应关系，接下来我们就可以使用Model 类创建出一个Model,并从JSON (NSDictionary)中取出对应的值，对Model对象进行填充，最后再将生成的model对象返回就完成了整个序列化过程,这部分代码位于<strong><strong>yy_modelSetWithDictionary</strong></strong>：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">BOOL</span>)yy_modelSetWithDictionary:(<span class="built_in">NSDictionary</span> *)dic &#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    _YYModelMeta *modelMeta = [_YYModelMeta metaWithClass:object_getClass(<span class="keyword">self</span>)];</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">//构建context 上下文中包括modelMeta model的各种映射信息，model 要填充的model对象， dictionary 包含数据的字典</span></span><br><span class="line">    ModelSetContext context = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">    context.modelMeta = (__bridge <span class="type">void</span> *)(modelMeta);</span><br><span class="line">    context.model = (__bridge <span class="type">void</span> *)(<span class="keyword">self</span>);</span><br><span class="line">    context.dictionary = (__bridge <span class="type">void</span> *)(dic);</span><br><span class="line">    <span class="comment">//开始将dictionary数据填充到model上，这里最关键的就是ModelSetWithPropertyMetaArrayFunction方法。</span></span><br><span class="line">    <span class="keyword">if</span> (modelMeta-&gt;_keyMappedCount &gt;= <span class="built_in">CFDictionaryGetCount</span>((<span class="built_in">CFDictionaryRef</span>)dic)) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">CFDictionaryApplyFunction</span>((<span class="built_in">CFDictionaryRef</span>)dic, ModelSetWithDictionaryFunction, &amp;context);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (modelMeta-&gt;_keyPathPropertyMetas) &#123;</span><br><span class="line">            <span class="built_in">CFArrayApplyFunction</span>((<span class="built_in">CFArrayRef</span>)modelMeta-&gt;_keyPathPropertyMetas,</span><br><span class="line">                                 <span class="built_in">CFRangeMake</span>(<span class="number">0</span>, <span class="built_in">CFArrayGetCount</span>((<span class="built_in">CFArrayRef</span>)modelMeta-&gt;_keyPathPropertyMetas)),</span><br><span class="line">                                 ModelSetWithPropertyMetaArrayFunction,</span><br><span class="line">                                 &amp;context);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (modelMeta-&gt;_multiKeysPropertyMetas) &#123;</span><br><span class="line">            <span class="built_in">CFArrayApplyFunction</span>((<span class="built_in">CFArrayRef</span>)modelMeta-&gt;_multiKeysPropertyMetas,</span><br><span class="line">                                 <span class="built_in">CFRangeMake</span>(<span class="number">0</span>, <span class="built_in">CFArrayGetCount</span>((<span class="built_in">CFArrayRef</span>)modelMeta-&gt;_multiKeysPropertyMetas)),</span><br><span class="line">                                 ModelSetWithPropertyMetaArrayFunction,</span><br><span class="line">                                 &amp;context);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">CFArrayApplyFunction</span>((<span class="built_in">CFArrayRef</span>)modelMeta-&gt;_allPropertyMetas,</span><br><span class="line">                             <span class="built_in">CFRangeMake</span>(<span class="number">0</span>, modelMeta-&gt;_keyMappedCount),</span><br><span class="line">                             ModelSetWithPropertyMetaArrayFunction,</span><br><span class="line">                             &amp;context);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">YES</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们先来看下：</p>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">CFDictionaryApplyFunction((<span class="name">CFDictionaryRef</span>)dic, ModelSetWithDictionaryFunction, <span class="symbol">&amp;context</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>它实际上是对dic，也就是当前JSON所对应的NSDictionary的所有元素，应用ModelSetWithDictionaryFunction方法,并在每次调用中将context传递进去，下面是<strong><strong>ModelSetWithDictionaryFunction</strong></strong>的定义：CFDictionaryApplyFunction 会将NSDictionary中的每个元素的key，作为ModelSetWithDictionaryFunction第一个参数，value作为第二个参数，最后是一个context用户存对应的公共数据。比如这里的modelMeta，model，dictionary，<strong><strong>ModelSetWithDictionaryFunction</strong></strong>就是将dictionary各个元素取出来，使用key的映射关系来找到modelMeta中的属性meta，取出dictionary中的值通过属性meta中的setter将值设置到model中。我们来看下这部分代码：</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">static void ModelSetWithDictionaryFunction(const void *<span class="variable">_key</span>, const void *<span class="variable">_value</span>, void *<span class="variable">_context</span>) &#123;</span><br><span class="line">    ModelSetContext *context = <span class="variable">_context</span>;</span><br><span class="line">    <span class="variable">__unsafe_unretained</span> <span class="variable">_YYModelMeta</span> *meta = (<span class="variable">__bridge</span> <span class="variable">_YYModelMeta</span> *)(context-&gt;modelMeta);</span><br><span class="line">    <span class="comment">//取出单个属性</span></span><br><span class="line">    <span class="variable">__unsafe_unretained</span> <span class="variable">_YYModelPropertyMeta</span> *propertyMeta = [meta-&gt;<span class="variable">_mapper</span> objectForKey:(<span class="variable">__bridge</span> id)(<span class="variable">_key</span>)];</span><br><span class="line">    <span class="comment">//取出model</span></span><br><span class="line">    <span class="variable">__unsafe_unretained</span> id model = (<span class="variable">__bridge</span> id)(context-&gt;model);</span><br><span class="line">    <span class="keyword">while</span> (propertyMeta) &#123;</span><br><span class="line">        <span class="keyword">if</span> (propertyMeta-&gt;<span class="variable">_setter</span>) &#123;</span><br><span class="line">            <span class="comment">//将从dictionary中获取到的某个值赋给某个model对象的某个属性</span></span><br><span class="line">            ModelSetValueForProperty(model<span class="comment">/*对象*/</span>, (<span class="variable">__bridge</span> <span class="variable">__unsafe_unretained</span> id)<span class="variable">_value</span><span class="comment">/*某个属性的值*/</span>, propertyMeta<span class="comment">/*属性信息*/</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        propertyMeta = propertyMeta-&gt;<span class="variable">_next</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于_keyPathPropertyMetas 以及 _multiKeysPropertyMetas通过调用ModelSetWithPropertyMetaArrayFunction来设置的，最终也是归到<strong><strong>ModelSetValueForProperty</strong></strong></p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">static void ModelSetWithPropertyMetaArrayFunction(const void *<span class="variable">_propertyMeta</span>, void *<span class="variable">_context</span>) &#123;</span><br><span class="line">    ModelSetContext *context = <span class="variable">_context</span>;</span><br><span class="line">    <span class="variable">__unsafe_unretained</span> NSDictionary *dictionary = (<span class="variable">__bridge</span> NSDictionary *)(context-&gt;dictionary);</span><br><span class="line">    <span class="variable">__unsafe_unretained</span> <span class="variable">_YYModelPropertyMeta</span> *propertyMeta = (<span class="variable">__bridge</span> <span class="variable">_YYModelPropertyMeta</span> *)(<span class="variable">_propertyMeta</span>);</span><br><span class="line">    <span class="keyword">if</span> (!propertyMeta-&gt;<span class="variable">_setter</span>) return;</span><br><span class="line">    id value = <span class="literal">nil</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//通过属性信息里面的key的映射关系拿到字典里面对应的value值。</span></span><br><span class="line">    <span class="keyword">if</span> (propertyMeta-&gt;<span class="variable">_mappedToKeyArray</span>) &#123;</span><br><span class="line">        value = YYValueForMultiKeys(dictionary, propertyMeta-&gt;<span class="variable">_mappedToKeyArray</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (propertyMeta-&gt;<span class="variable">_mappedToKeyPath</span>) &#123;</span><br><span class="line">        value = YYValueForKeyPath(dictionary, propertyMeta-&gt;<span class="variable">_mappedToKeyPath</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        value = [dictionary objectForKey:propertyMeta-&gt;<span class="variable">_mappedToKey</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//将value赋给model中的属性</span></span><br><span class="line">    <span class="keyword">if</span> (value) &#123;</span><br><span class="line">        <span class="variable">__unsafe_unretained</span> id model = (<span class="variable">__bridge</span> id)(context-&gt;model);</span><br><span class="line">        ModelSetValueForProperty(model, value, propertyMeta);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ModelSetValueForProperty是整个库中算得上是比较长的代码了，之所以长是因为类型比较多？我们取其中简单的一种作为例子—- JSON中的某个值为字符类型，Model中的某个属性为NSString,或者NSMutableString类型，这时候通过objc_msgSend 完 model中调用对应属性的setter方法将值设置到model上。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="type">void</span> ModelSetValueForProperty(__<span class="keyword">unsafe_unretained</span> <span class="type">id</span> model,</span><br><span class="line">                                     __<span class="keyword">unsafe_unretained</span> <span class="type">id</span> value,</span><br><span class="line">                                     __<span class="keyword">unsafe_unretained</span> _YYModelPropertyMeta *meta) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//获取meta的的类型，也就是要将字典里面的值，转成的目标类型。这里为什么用objc_msgSend，是因为可能有些属性会自定义不同的setter。</span></span><br><span class="line">    <span class="keyword">if</span> (meta-&gt;_isCNumber) &#123;</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (meta-&gt;_nsType) &#123;</span><br><span class="line">        <span class="keyword">if</span> (value == (<span class="type">id</span>)kCFNull) &#123;</span><br><span class="line">            <span class="comment">//......</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">switch</span> (meta-&gt;_nsType) &#123;</span><br><span class="line">                <span class="keyword">case</span> YYEncodingTypeNSString:</span><br><span class="line">                <span class="keyword">case</span> YYEncodingTypeNSMutableString: &#123;</span><br><span class="line">                    <span class="keyword">if</span> ([value isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                        <span class="keyword">if</span> (meta-&gt;_nsType == YYEncodingTypeNSString) &#123;</span><br><span class="line">                            ((<span class="type">void</span> (*)(<span class="type">id</span>, SEL, <span class="type">id</span>))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, meta-&gt;_<span class="keyword">setter</span>, value);</span><br><span class="line">                        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                            ((<span class="type">void</span> (*)(<span class="type">id</span>, SEL, <span class="type">id</span>))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, meta-&gt;_<span class="keyword">setter</span>, ((<span class="built_in">NSString</span> *)value).mutableCopy);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; </span><br><span class="line">                <span class="comment">//......</span></span><br><span class="line">                <span class="keyword">default</span>: <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-Model-to-JSON"><a href="#2-Model-to-JSON" class="headerlink" title="2. Model to JSON"></a>2. Model to JSON</h5><p>在yy_modelToJSONObject方法的开头有下面一段注释：</p>
+<blockquote>
+<p>Apple said:<br>The top level object is an NSArray or NSDictionary.<br>All objects are instances of NSString, NSNumber, NSArray, NSDictionary, or NSNull.<br>All dictionary keys are instances of NSString.<br>Numbers are not NaN or infinity.</p>
+</blockquote>
+<p>翻译成中文就是，标准的JSON顶层是一个NSArray或者NSDictionary，并且所有的对象都是NSString，NSNumber，NSArray，NSDictionary，NSNull这些类的实例，并且字典中的key都是NSString类型的实例，数值都是非NaN或者无穷，这其实大家都比较清楚这里强调下对后续代码的理解会有一定的帮助，我们继续看下怎么将Model转换为NSDictionary Model，入口是<strong><strong>yy_modelToJSONObject</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">id</span>)yy_modelToJSONObject &#123;</span><br><span class="line">    <span class="type">id</span> jsonObject = ModelToJSONObjectRecursive(<span class="keyword">self</span>);</span><br><span class="line">    <span class="keyword">if</span> ([jsonObject isKindOfClass:[<span class="built_in">NSArray</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> jsonObject;</span><br><span class="line">    <span class="keyword">if</span> ([jsonObject isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> jsonObject;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在yy_modelToJSONObject方法中就先调用ModelToJSONObjectRecursive来递归地将当前对象转换为jsonObject，只有顶层对象是NSArray和NSDictionary才返回，否则都是nil。因此最关键的转换应该在ModelToJSONObjectRecursive方法中。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="type">id</span> ModelToJSONObjectRecursive(<span class="built_in">NSObject</span> *model) &#123;</span><br><span class="line">    <span class="comment">// 对于简单的NSString，NSNumber，nill类型</span></span><br><span class="line">    <span class="keyword">if</span> (!model || model == (<span class="type">id</span>)kCFNull) <span class="keyword">return</span> model;</span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> model;</span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSNumber</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> model;</span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSURL</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> ((<span class="built_in">NSURL</span> *)model).absoluteString;</span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSAttributedString</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> ((<span class="built_in">NSAttributedString</span> *)model).string;</span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSDate</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> [YYISODateFormatter() stringFromDate:(<span class="type">id</span>)model];</span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSData</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//如果当前对象是NSDictionary</span></span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        <span class="comment">// 简单的字典</span></span><br><span class="line">        <span class="keyword">if</span> ([<span class="built_in">NSJSONSerialization</span> isValidJSONObject:model]) <span class="keyword">return</span> model;</span><br><span class="line">        <span class="comment">// 对象是复杂的对象</span></span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *newDic = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">        [((<span class="built_in">NSDictionary</span> *)model) enumerateKeysAndObjectsUsingBlock:^(<span class="built_in">NSString</span> *key, <span class="type">id</span> obj, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">            <span class="built_in">NSString</span> *stringKey = [key isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]] ? key : key.description;</span><br><span class="line">            <span class="keyword">if</span> (!stringKey) <span class="keyword">return</span>;</span><br><span class="line">            <span class="comment">//复杂对象需要递归转换</span></span><br><span class="line">            <span class="type">id</span> jsonObj = ModelToJSONObjectRecursive(obj);</span><br><span class="line">            <span class="keyword">if</span> (!jsonObj) jsonObj = (<span class="type">id</span>)kCFNull;</span><br><span class="line">            newDic[stringKey] = jsonObj;</span><br><span class="line">        &#125;];</span><br><span class="line">        <span class="keyword">return</span> newDic;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果当前对象是NSSet</span></span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSSet</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        <span class="comment">// 简单的NSSet</span></span><br><span class="line">        <span class="built_in">NSArray</span> *array = ((<span class="built_in">NSSet</span> *)model).allObjects;</span><br><span class="line">        <span class="keyword">if</span> ([<span class="built_in">NSJSONSerialization</span> isValidJSONObject:array]) <span class="keyword">return</span> array;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 对象是复杂的对象</span></span><br><span class="line">        <span class="built_in">NSMutableArray</span> *newArray = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">id</span> obj <span class="keyword">in</span> array) &#123;</span><br><span class="line">            <span class="keyword">if</span> ([obj isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]] || [obj isKindOfClass:[<span class="built_in">NSNumber</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                [newArray addObject:obj];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="type">id</span> jsonObj = ModelToJSONObjectRecursive(obj);</span><br><span class="line">                <span class="keyword">if</span> (jsonObj &amp;&amp; jsonObj != (<span class="type">id</span>)kCFNull) [newArray addObject:jsonObj];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> newArray;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果当前对象是NSArray</span></span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSArray</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        <span class="comment">// 简单的NSArray</span></span><br><span class="line">        <span class="keyword">if</span> ([<span class="built_in">NSJSONSerialization</span> isValidJSONObject:model]) <span class="keyword">return</span> model;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 对象是复杂的对象</span></span><br><span class="line">        <span class="built_in">NSMutableArray</span> *newArray = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">id</span> obj <span class="keyword">in</span> (<span class="built_in">NSArray</span> *)model) &#123;</span><br><span class="line">            <span class="keyword">if</span> ([obj isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]] || [obj isKindOfClass:[<span class="built_in">NSNumber</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                [newArray addObject:obj];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="type">id</span> jsonObj = ModelToJSONObjectRecursive(obj);</span><br><span class="line">                <span class="keyword">if</span> (jsonObj &amp;&amp; jsonObj != (<span class="type">id</span>)kCFNull) [newArray addObject:jsonObj];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> newArray;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//获取Model信息</span></span><br><span class="line">    _YYModelMeta *modelMeta = [_YYModelMeta metaWithClass:[model <span class="keyword">class</span>]];</span><br><span class="line">    <span class="keyword">if</span> (!modelMeta || modelMeta-&gt;_keyMappedCount == <span class="number">0</span>) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">NSMutableDictionary</span> *result = [[<span class="built_in">NSMutableDictionary</span> alloc] initWithCapacity:<span class="number">64</span>];</span><br><span class="line">    __<span class="keyword">unsafe_unretained</span> <span class="built_in">NSMutableDictionary</span> *dic = result; <span class="comment">// avoid retain and release in block</span></span><br><span class="line">    [modelMeta-&gt;_mapper enumerateKeysAndObjectsUsingBlock:^(<span class="built_in">NSString</span> *propertyMappedKey, _YYModelPropertyMeta *propertyMeta, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!propertyMeta-&gt;_<span class="keyword">getter</span>) <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">// 通过属性信息中的_getter方法使用objc_msgSend从model中获取当前对应属性的值，值获取到了，mapkey也知道了就可以构造返回的dictionary了。</span></span><br><span class="line">        <span class="type">id</span> value = <span class="literal">nil</span>;</span><br><span class="line">        <span class="keyword">if</span> (propertyMeta-&gt;_isCNumber) &#123;</span><br><span class="line">            value = ModelCreateNumberFromProperty(model, propertyMeta);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (propertyMeta-&gt;_nsType) &#123;</span><br><span class="line">            <span class="type">id</span> v = ((<span class="type">id</span> (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">            value = ModelToJSONObjectRecursive(v);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">switch</span> (propertyMeta-&gt;_type &amp; YYEncodingTypeMask) &#123;</span><br><span class="line">                <span class="keyword">case</span> YYEncodingTypeObject: &#123;</span><br><span class="line">                    <span class="type">id</span> v = ((<span class="type">id</span> (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">                    value = ModelToJSONObjectRecursive(v);</span><br><span class="line">                    <span class="keyword">if</span> (value == (<span class="type">id</span>)kCFNull) value = <span class="literal">nil</span>;</span><br><span class="line">                &#125; <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> YYEncodingTypeClass: &#123;</span><br><span class="line">                    Class v = ((Class (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">                    value = v ? <span class="built_in">NSStringFromClass</span>(v) : <span class="literal">nil</span>;</span><br><span class="line">                &#125; <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> YYEncodingTypeSEL: &#123;</span><br><span class="line">                    SEL v = ((SEL (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">                    value = v ? <span class="built_in">NSStringFromSelector</span>(v) : <span class="literal">nil</span>;</span><br><span class="line">                &#125; <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">default</span>: <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!value) <span class="keyword">return</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//根据是否有_mappedToKeyPath将上面获取到的值加入到字典中。</span></span><br><span class="line">        <span class="keyword">if</span> (propertyMeta-&gt;_mappedToKeyPath) &#123;</span><br><span class="line">            <span class="built_in">NSMutableDictionary</span> *superDic = dic;</span><br><span class="line">            <span class="built_in">NSMutableDictionary</span> *subDic = <span class="literal">nil</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="built_in">NSUInteger</span> i = <span class="number">0</span>, max = propertyMeta-&gt;_mappedToKeyPath.count; i &lt; max; i++) &#123;</span><br><span class="line">                <span class="built_in">NSString</span> *key = propertyMeta-&gt;_mappedToKeyPath[i];</span><br><span class="line">                <span class="keyword">if</span> (i + <span class="number">1</span> == max) &#123; <span class="comment">// end</span></span><br><span class="line">                    <span class="keyword">if</span> (!superDic[key]) superDic[key] = value;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                subDic = superDic[key];</span><br><span class="line">                <span class="keyword">if</span> (subDic) &#123;</span><br><span class="line">                    <span class="keyword">if</span> ([subDic isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                        subDic = subDic.mutableCopy;</span><br><span class="line">                        superDic[key] = subDic;</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    subDic = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">                    superDic[key] = subDic;</span><br><span class="line">                &#125;</span><br><span class="line">                superDic = subDic;</span><br><span class="line">                subDic = <span class="literal">nil</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (!dic[propertyMeta-&gt;_mappedToKey]) &#123;</span><br><span class="line">                dic[propertyMeta-&gt;_mappedToKey] = value;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;];</span><br><span class="line">    <span class="keyword">if</span> (modelMeta-&gt;_hasCustomTransformToDictionary) &#123;</span><br><span class="line">        <span class="type">BOOL</span> suc = [((<span class="type">id</span>&lt;YYModel&gt;)model) modelCustomTransformToDictionary:dic];</span><br><span class="line">        <span class="keyword">if</span> (!suc) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ModelToJSONObjectRecurs代码很长我们分段进行解析：</p>
+<p><strong><strong>简单类型</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"> <span class="keyword">if</span> (!model || model == (<span class="type">id</span>)kCFNull) <span class="keyword">return</span> model;</span><br><span class="line"><span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> model;</span><br><span class="line"><span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSNumber</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> model;</span><br><span class="line"><span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSURL</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> ((<span class="built_in">NSURL</span> *)model).absoluteString;</span><br><span class="line"><span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSAttributedString</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> ((<span class="built_in">NSAttributedString</span> *)model).string;</span><br><span class="line"><span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSDate</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> [YYISODateFormatter() stringFromDate:(<span class="type">id</span>)model];</span><br><span class="line"><span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSData</span> <span class="keyword">class</span>]]) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这部分就不介绍了。</p>
+<p><strong><strong>NSDictionary, NSSet,NSArray 容器类型</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        <span class="comment">// 简单的字典</span></span><br><span class="line">        <span class="keyword">if</span> ([<span class="built_in">NSJSONSerialization</span> isValidJSONObject:model]) <span class="keyword">return</span> model;</span><br><span class="line">        <span class="comment">// 对象是复杂的对象</span></span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *newDic = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">        [((<span class="built_in">NSDictionary</span> *)model) enumerateKeysAndObjectsUsingBlock:^(<span class="built_in">NSString</span> *key, <span class="type">id</span> obj, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">            <span class="built_in">NSString</span> *stringKey = [key isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]] ? key : key.description;</span><br><span class="line">            <span class="keyword">if</span> (!stringKey) <span class="keyword">return</span>;</span><br><span class="line">            <span class="comment">//复杂对象需要递归转换</span></span><br><span class="line">            <span class="type">id</span> jsonObj = ModelToJSONObjectRecursive(obj);</span><br><span class="line">            <span class="keyword">if</span> (!jsonObj) jsonObj = (<span class="type">id</span>)kCFNull;</span><br><span class="line">            newDic[stringKey] = jsonObj;</span><br><span class="line">        &#125;];</span><br><span class="line">        <span class="keyword">return</span> newDic;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果当前对象是NSSet</span></span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSSet</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果当前对象是NSArray</span></span><br><span class="line">    <span class="keyword">if</span> ([model isKindOfClass:[<span class="built_in">NSArray</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于NSDictionary, NSSet,NSArray 容器类型处理的过程是类似的，我们这里以NSDictionary为例子进行分析，如果model是NSDictionary会遍历每个元素，对每个值递归调用ModelToJSONObjectRecursive后存储到newDic中作为value。最后返回newDic。</p>
+<p><strong><strong>其他对象类型</strong></strong></p>
+<p>对于我们自定义的类型我们处理逻辑如下：首先我们会先通过metaWithClass进行抽取Model的详细信息，然后对model全部属性进行遍历，通过调用每个属性的getter方法提取出属性值，并通过属性名与NSDictionary key的映射关系确定key后将值存到key对应的value中，从而完成整个过程。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">_YYModelMeta *modelMeta = [_YYModelMeta metaWithClass:[model <span class="keyword">class</span>]];</span><br><span class="line"></span><br><span class="line"><span class="built_in">NSMutableDictionary</span> *result = [[<span class="built_in">NSMutableDictionary</span> alloc] initWithCapacity:<span class="number">64</span>];</span><br><span class="line">__<span class="keyword">unsafe_unretained</span> <span class="built_in">NSMutableDictionary</span> *dic = result; <span class="comment">// avoid retain and release in block</span></span><br><span class="line">[modelMeta-&gt;_mapper enumerateKeysAndObjectsUsingBlock:^(<span class="built_in">NSString</span> *propertyMappedKey, _YYModelPropertyMeta *propertyMeta, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!propertyMeta-&gt;_<span class="keyword">getter</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="comment">// 通过属性信息中的_getter方法使用objc_msgSend从model中获取当前对应属性的值，值获取到了，mapkey也知道了就可以构造返回的dictionary了。</span></span><br><span class="line">    <span class="type">id</span> value = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> (propertyMeta-&gt;_isCNumber) &#123;</span><br><span class="line">        value = ModelCreateNumberFromProperty(model, propertyMeta);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (propertyMeta-&gt;_nsType) &#123;</span><br><span class="line">        <span class="type">id</span> v = ((<span class="type">id</span> (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">        value = ModelToJSONObjectRecursive(v);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">switch</span> (propertyMeta-&gt;_type &amp; YYEncodingTypeMask) &#123;</span><br><span class="line">            <span class="keyword">case</span> YYEncodingTypeObject: &#123;</span><br><span class="line">                <span class="type">id</span> v = ((<span class="type">id</span> (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">                value = ModelToJSONObjectRecursive(v);</span><br><span class="line">                <span class="keyword">if</span> (value == (<span class="type">id</span>)kCFNull) value = <span class="literal">nil</span>;</span><br><span class="line">            &#125; <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> YYEncodingTypeClass: &#123;</span><br><span class="line">                Class v = ((Class (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">                value = v ? <span class="built_in">NSStringFromClass</span>(v) : <span class="literal">nil</span>;</span><br><span class="line">            &#125; <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> YYEncodingTypeSEL: &#123;</span><br><span class="line">                SEL v = ((SEL (*)(<span class="type">id</span>, SEL))(<span class="type">void</span> *) objc_msgSend)((<span class="type">id</span>)model, propertyMeta-&gt;_<span class="keyword">getter</span>);</span><br><span class="line">                value = v ? <span class="built_in">NSStringFromSelector</span>(v) : <span class="literal">nil</span>;</span><br><span class="line">            &#125; <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>: <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!value) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//根据是否有_mappedToKeyPath将上面获取到的值加入到字典中。</span></span><br><span class="line">    <span class="keyword">if</span> (propertyMeta-&gt;_mappedToKeyPath) &#123;</span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *superDic = dic;</span><br><span class="line">        <span class="built_in">NSMutableDictionary</span> *subDic = <span class="literal">nil</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="built_in">NSUInteger</span> i = <span class="number">0</span>, max = propertyMeta-&gt;_mappedToKeyPath.count; i &lt; max; i++) &#123;</span><br><span class="line">            <span class="built_in">NSString</span> *key = propertyMeta-&gt;_mappedToKeyPath[i];</span><br><span class="line">            <span class="keyword">if</span> (i + <span class="number">1</span> == max) &#123; <span class="comment">// end</span></span><br><span class="line">                <span class="keyword">if</span> (!superDic[key]) superDic[key] = value;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            subDic = superDic[key];</span><br><span class="line">            <span class="keyword">if</span> (subDic) &#123;</span><br><span class="line">                <span class="keyword">if</span> ([subDic isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">                    subDic = subDic.mutableCopy;</span><br><span class="line">                    superDic[key] = subDic;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                subDic = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">                superDic[key] = subDic;</span><br><span class="line">            &#125;</span><br><span class="line">            superDic = subDic;</span><br><span class="line">            subDic = <span class="literal">nil</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!dic[propertyMeta-&gt;_mappedToKey]) &#123;</span><br><span class="line">            dic[propertyMeta-&gt;_mappedToKey] = value;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-其他JSON-转-Model-方法"><a href="#3-其他JSON-转-Model-方法" class="headerlink" title="3. 其他JSON 转 Model 方法"></a>3. 其他JSON 转 Model 方法</h5><p>除了上面介绍的JSON 转 Model 方法，适用于如下类型：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;key1&quot;</span><span class="punctuation">:</span><span class="string">&quot;value1&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;key2&quot;</span><span class="punctuation">:</span><span class="string">&quot;value2&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;key3&quot;</span><span class="punctuation">:</span><span class="string">&quot;value3&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;key4&quot;</span><span class="punctuation">:</span><span class="string">&quot;value4&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;key5&quot;</span><span class="punctuation">:</span><span class="string">&quot;value5&quot;</span><span class="punctuation">,</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>当然YYModel还适合序列化对象数组类型的JSON比如：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;key1&quot;</span>:<span class="string">&quot;value1&quot;</span>,</span><br><span class="line">        <span class="string">&quot;key2&quot;</span>:<span class="string">&quot;value2&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;key3&quot;</span>:<span class="string">&quot;value3&quot;</span>,</span><br><span class="line">        <span class="string">&quot;key4&quot;</span>:<span class="string">&quot;value4&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;key5&quot;</span>:<span class="string">&quot;value5&quot;</span>,</span><br><span class="line">        <span class="string">&quot;key6&quot;</span>:<span class="string">&quot;value6&quot;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>这里仅仅贴出代码，有了上面的介绍理解下面的代码应该不会有任何困难。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="built_in">NSArray</span> *)yy_modelArrayWithClass:(Class)cls json:(<span class="type">id</span>)json &#123;</span><br><span class="line">    <span class="keyword">if</span> (!json) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSArray</span> *arr = <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSData</span> *jsonData = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSArray</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        arr = json;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        jsonData = [(<span class="built_in">NSString</span> *)json dataUsingEncoding : <span class="built_in">NSUTF8StringEncoding</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSData</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        jsonData = json;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (jsonData) &#123;</span><br><span class="line">        arr = [<span class="built_in">NSJSONSerialization</span> JSONObjectWithData:jsonData options:kNilOptions error:<span class="literal">NULL</span>];</span><br><span class="line">        <span class="keyword">if</span> (![arr isKindOfClass:[<span class="built_in">NSArray</span> <span class="keyword">class</span>]]) arr = <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> [<span class="keyword">self</span> yy_modelArrayWithClass:cls array:arr];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="built_in">NSArray</span> *)yy_modelArrayWithClass:(Class)cls array:(<span class="built_in">NSArray</span> *)arr &#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls || !arr) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *result = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">NSDictionary</span> *dic <span class="keyword">in</span> arr) &#123;</span><br><span class="line">        <span class="keyword">if</span> (![dic isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="built_in">NSObject</span> *obj = [cls yy_modelWithDictionary:dic];</span><br><span class="line">        <span class="keyword">if</span> (obj) [result addObject:obj];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还可以解析下面类型的JSON,</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;obj1&quot;</span><span class="punctuation">:</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;key1&quot;</span><span class="punctuation">:</span><span class="string">&quot;value1&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;key2&quot;</span><span class="punctuation">:</span><span class="string">&quot;value2&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;obj2&quot;</span><span class="punctuation">:</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;key3&quot;</span><span class="punctuation">:</span><span class="string">&quot;value3&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;key4&quot;</span><span class="punctuation">:</span><span class="string">&quot;value4&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;obj3&quot;</span><span class="punctuation">:</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;key5&quot;</span><span class="punctuation">:</span><span class="string">&quot;value5&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;key6&quot;</span><span class="punctuation">:</span><span class="string">&quot;value6&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>代码如下和上面的那个其实是类似的，只不过是顶层元素换成字典罢了，这类个人在项目中用得不多。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="built_in">NSDictionary</span> *)yy_modelDictionaryWithClass:(Class)cls json:(<span class="type">id</span>)json &#123;</span><br><span class="line">    <span class="keyword">if</span> (!json) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSDictionary</span> *dic = <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSData</span> *jsonData = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        dic = json;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        jsonData = [(<span class="built_in">NSString</span> *)json dataUsingEncoding : <span class="built_in">NSUTF8StringEncoding</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([json isKindOfClass:[<span class="built_in">NSData</span> <span class="keyword">class</span>]]) &#123;</span><br><span class="line">        jsonData = json;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (jsonData) &#123;</span><br><span class="line">        dic = [<span class="built_in">NSJSONSerialization</span> JSONObjectWithData:jsonData options:kNilOptions error:<span class="literal">NULL</span>];</span><br><span class="line">        <span class="keyword">if</span> (![dic isKindOfClass:[<span class="built_in">NSDictionary</span> <span class="keyword">class</span>]]) dic = <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> [<span class="keyword">self</span> yy_modelDictionaryWithClass:cls dictionary:dic];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="built_in">NSDictionary</span> *)yy_modelDictionaryWithClass:(Class)cls dictionary:(<span class="built_in">NSDictionary</span> *)dic &#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls || !dic) <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSMutableDictionary</span> *result = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">NSString</span> *key <span class="keyword">in</span> dic.allKeys) &#123;</span><br><span class="line">        <span class="keyword">if</span> (![key isKindOfClass:[<span class="built_in">NSString</span> <span class="keyword">class</span>]]) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="built_in">NSObject</span> *obj = [cls yy_modelWithDictionary:dic[key]];</span><br><span class="line">        <span class="keyword">if</span> (obj) result[key] = obj;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>除了上面介绍的方法外，YYModel还提供了极大减轻个人工作量的方法：</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 深度拷贝</span></span><br><span class="line">- (id)yy_modelCopy;</span><br><span class="line"><span class="comment">// NSCoding</span></span><br><span class="line">- (void)yy_modelEncodeWithCoder:(NSCoder *)aCoder;</span><br><span class="line">- (id)yy_modelInitWithCoder:(NSCoder *)aDecoder;</span><br><span class="line"><span class="comment">// Hash值生成</span></span><br><span class="line">- (NSUInteger)yy_modelHash;</span><br><span class="line"><span class="comment">// 判断是否一致</span></span><br><span class="line">- (BOOL)yy_modelIsEqual:(id)model;</span><br><span class="line"><span class="comment">// 当前对象的描述</span></span><br><span class="line">- (NSString *)yy_modelDescription;</span><br></pre></td></tr></table></figure>
+<h5 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h5><p>YYModel代码就解析到这里，其实大体的思路就是，解析Model对象信息，明确NSDictionary key 与 Model属性名之间的映射关系，通过这种映射关系，新建一个model对象，使用model对象的setter方法将NSDictionary中的值设置到model中，从而完成JSON转Model 的过程。Model 转 JSON是通过model的getter方法，取出对应属性的值，然后通过NSDictionary key和model属性名的映射关系，确定对应的key，然后将model值设置到NSDictionary中。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/11/22/YYCache-源码解析/" title="YYCache 源码解析">
+  <span>
+  YYCache 源码解析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/11/17/YYDispatchQueuePool-源码解析/"  title="YYDispatchQueuePool 源码解析">
+ <span>YYDispatchQueuePool 源码解析
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/11/20/YYModel-源码解析/" data-title="YYModel 源码解析" data-url="http://yoursite.com/2019/11/20/YYModel-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%E5%BA%93%E4%BF%A1%E6%81%AF"><span class="toc-number">1.</span> <span class="toc-text">开源库信息</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">源码解析</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-JSON-to-Model"><span class="toc-number">3.</span> <span class="toc-text">1.JSON to Model</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-Model-to-JSON"><span class="toc-number">4.</span> <span class="toc-text">2. Model to JSON</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E5%85%B6%E4%BB%96JSON-%E8%BD%AC-Model-%E6%96%B9%E6%B3%95"><span class="toc-number">5.</span> <span class="toc-text">3. 其他JSON 转 Model 方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">4. 总结</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,1002 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS 生命周期 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="App 生命周期应用程序的五种状态应用程序的五种状态：  未运行状态：程序尚未启动，或者应用正在运行但是中途被系统停止，当设备内存紧张的时候，也会将挂起的应用当前状态写入到内存，然后退出应用并释放内存，这时候我们虽然能够在任务栏看到图标，但是它已经退出，我们称之为应用墓碑。  未激活状态：当前应用正在前台运行，但是焦点被其他抢去。比较典型的是用户锁屏或者离开应用去响应来电，信息等事件等时候。还有一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 生命周期">
+<meta property="og:url" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="App 生命周期应用程序的五种状态应用程序的五种状态：  未运行状态：程序尚未启动，或者应用正在运行但是中途被系统停止，当设备内存紧张的时候，也会将挂起的应用当前状态写入到内存，然后退出应用并释放内存，这时候我们虽然能够在任务栏看到图标，但是它已经退出，我们称之为应用墓碑。  未激活状态：当前应用正在前台运行，但是焦点被其他抢去。比较典型的是用户锁屏或者离开应用去响应来电，信息等事件等时候。还有一">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00002.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00003.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00004.gif">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00007.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00008.gif">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00005.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00006.gif">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000011.gif">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00009.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000010.gif">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00001.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000012.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000013.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000014.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000016.png">
+<meta property="article:published_time" content="2019-07-31T17:30:29.000Z">
+<meta property="article:modified_time" content="2020-02-20T05:17:02.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 理论基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00002.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/08/01/iOS-生命周期/" title="iOS 生命周期" itemprop="url">iOS 生命周期</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-31T17:30:29.000Z" itemprop="datePublished"> Published 2019-08-01</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="App-生命周期"><a href="#App-生命周期" class="headerlink" title="App 生命周期"></a><strong><strong>App 生命周期</strong></strong></h5><h6 id="应用程序的五种状态"><a href="#应用程序的五种状态" class="headerlink" title="应用程序的五种状态"></a><strong><strong>应用程序的五种状态</strong></strong></h6><p>应用程序的五种状态：</p>
+<ol>
+<li><p><strong><strong>未运行状态</strong></strong>：程序尚未启动，或者应用正在运行但是中途被系统停止，当设备内存紧张的时候，也会将挂起的应用当前状态写入到内存，然后退出应用并释放内存，这时候我们虽然能够在任务栏看到图标，但是它已经退出，我们称之为应用墓碑。</p>
+</li>
+<li><p><strong><strong>未激活状态</strong></strong>：当前应用正在前台运行，但是焦点被其他抢去。比较典型的是用户锁屏或者离开应用去响应来电，信息等事件等时候。还有一种是比较常见的就是在不同状态切换的时候会短暂处于该状态,这时候App会停止运行，但是依然占用内存空间，用于保存当前状态。</p>
+</li>
+<li><p><strong><strong>激活状态</strong></strong>：当前应用正常运行，应用焦点在当前应用上，所有的事件都会被分发到当前应用，这时应用占用内存和CPU时间。</p>
+</li>
+<li><p><strong><strong>后台状态</strong></strong>：当前应用还是存活的，并且能够执行代码，但是默认处于这种情况的时间不长（最多十分钟），当我们按下Home键的时候会进入后台状态，如果不继续申请在后台运行的时间会快速进入挂起状态。</p>
+</li>
+<li><p><strong><strong>挂起状态</strong></strong>: 应用处在后台，并且已经停止执行代码。这时候应用还驻留在内存中，并没有被系统完全回收，只有在系统发出低内存告警的时候，系统才会把处于挂起状态的应用清除出内存给前台正在运行的应用。这时候不占用CPU资源，但是内存依然占用。</p>
+</li>
+</ol>
+<h6 id="AppDelegate"><a href="#AppDelegate" class="headerlink" title="AppDelegate"></a><strong><strong>AppDelegate</strong></strong></h6><p>App 生命周期的切换会通过AppDelegate来通知开发者，因此我们可以在AppDelegate中的关键方法中注入我们需要的逻辑从而完成任务，下面是一些常见方法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">//告诉代理进程启动但还没进入状态保存</span></span><br><span class="line">- (<span class="type">BOOL</span>)application:(<span class="built_in">UIApplication</span> *)application willFinishLaunchingWithOptions:(<span class="built_in">NSDictionary</span> *)launchOptions</span><br><span class="line"><span class="comment">// 启动基本完成,程序准备开始运行</span></span><br><span class="line">- (<span class="type">BOOL</span>)application:(<span class="built_in">UIApplication</span> *)application didFinishLaunchingWithOptions:(<span class="built_in">NSDictionary</span> *)launchOptions</span><br><span class="line"><span class="comment">// 当应用程序将要进入非活动状态执行，在此期间，应用程序不接收消息或事件，比如打来电话</span></span><br><span class="line">- (<span class="type">void</span>)applicationWillResignActive:(<span class="built_in">UIApplication</span> *)application</span><br><span class="line"><span class="comment">// 当应用程序进入活动状态执行，此方法跟上面那个方法相反</span></span><br><span class="line">- (<span class="type">void</span>)applicationDidBecomeActive:(<span class="built_in">UIApplication</span> *)application</span><br><span class="line"><span class="comment">// 当程序被推送到后台的时候调用。所以要设置后台继续运行，则在这个函数里面设置即可</span></span><br><span class="line">- (<span class="type">void</span>)applicationDidEnterBackground:(<span class="built_in">UIApplication</span> *)application</span><br><span class="line"><span class="comment">// 当程序从后台将要重新回到前台时候调用，此方法跟上面的那个方法相反</span></span><br><span class="line">- (<span class="type">void</span>)applicationWillEnterForeground:(<span class="built_in">UIApplication</span> *)application</span><br><span class="line"><span class="comment">// 当程序将要退出是被调用，通常是用来保存数据和一些退出前的清理工作</span></span><br><span class="line">- (<span class="type">void</span>)applicationWillTerminate:(<span class="built_in">UIApplication</span> *)application </span><br></pre></td></tr></table></figure>
+
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00002.png"></p>
+<h6 id="一些关键场景下的状态及回调"><a href="#一些关键场景下的状态及回调" class="headerlink" title="一些关键场景下的状态及回调"></a><strong><strong>一些关键场景下的状态及回调</strong></strong></h6><ul>
+<li>应用冷启动：</li>
+</ul>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00003.png"><br><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00004.gif"></p>
+<p>相关方法：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">-<span class="selector-attr">[AppDelegate application:didFinishLaunchingWithOptions:]</span></span><br><span class="line">-<span class="selector-attr">[AppDelegate applicationDidBecomeActive:]</span> </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>应用热启动 - 点击图标再次打开程序:</li>
+</ul>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00007.png"><br><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00008.gif"></p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">-<span class="selector-attr">[AppDelegate applicationWillEnterForeground:]</span></span><br><span class="line">-<span class="selector-attr">[AppDelegate applicationDidBecomeActive:]</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>解锁:</li>
+</ul>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">-<span class="selector-attr">[AppDelegate applicationWillEnterForeground:]</span></span><br><span class="line">-<span class="selector-attr">[AppDelegate applicationDidBecomeActive:]</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>按下home键，应用进入后台：</li>
+</ul>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00005.png"><br><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00006.gif"></p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">-<span class="selector-attr">[AppDelegate applicationWillResignActive:]</span></span><br><span class="line">-<span class="selector-attr">[AppDelegate applicationDidEnterBackground:]</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>锁屏：</li>
+</ul>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000011.gif"></p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">-<span class="selector-attr">[AppDelegate applicationWillResignActive:]</span></span><br><span class="line">-<span class="selector-attr">[AppDelegate applicationDidEnterBackground:]</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>其他应用中断了当前应用：</li>
+</ul>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00009.png"><br><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000010.gif"></p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">-<span class="selector-attr">[AppDelegate applicationWillResignActive:]</span></span><br></pre></td></tr></table></figure>
+
+<p>返回</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">-<span class="selector-attr">[AppDelegate applicationDidBecomeActive:]</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="如何优化性能"><a href="#如何优化性能" class="headerlink" title="如何优化性能"></a><strong><strong>如何优化性能</strong></strong></h6><p>主要是如下几个地方：</p>
+<ol>
+<li>applicationWillResignActive: 在应用失去焦点的时候：<br>可以停止视频播放，游戏播放，减少帧率，挂起不必要的操作队列。</li>
+<li>applicationDidEnterBackground：在应用进入后台的时候：<br>这时候需要保存用户数据或状态信息，在进入后台时，写到磁盘去，因为程序可能在后台被杀死。再有就是释放尽可能释放的内存。<br>可以通过去掉对大图片，大视频，大文件的强引用，在回收的时候就可以先回收这部分资源。</li>
+<li>applicationWillTerminate：在系统内存中，必须清除无用数据，但是这个方法有时间限制，默认是5s。<br>如果超过时间还有未完成的任务，我们的程序就会被终止而且从内存中清除</li>
+</ol>
+<h5 id="App后台限制"><a href="#App后台限制" class="headerlink" title="App后台限制"></a><strong><strong>App后台限制</strong></strong></h5><p>iOS设备为了节省电量一般会使用假后台机制</p>
+<p>我们开发的应用在用户按下Home之后，App会转入后台运行，系统默认会给应用短暂的后台时间（iOS7 180s，iOS6 600s），来让用户做一些必要的处理，如果这段时间过去之后，还是可以告诉系统未完成任务，还需要点时间，通过向系统发出申请来争取更多的时间，系统批准申请后可以继续运行，但是不会超过10分钟。这10分钟过去之后，无论怎么向系统申请，系统都会挂起应用，直到用户再次点击后才会继续运行。但是这对于一些应用是完全不够的，比如一款即时通讯软件，一般在后台都需要保持长链接不断，才能保证应用在后台还能收到消息，再比如你的音乐播放器软件，即使处于后台你也希望它能够继续播放音乐。<br>当然iOS也并非全部任务都不能在后台执行，某些任务比如播放音频,获取位置更新,或者从服务器获取最新内容这些任务是可以在后台长时间运行的，只要我们在应用的配置中，指定应用包含这些服务，一旦审核通过，就可以让我们在后台长时间执行任务，而不会被挂起，具体有哪些模式可以在Capabilities 下的Background Mode中选定指定的类型。</p>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/00001.png"></p>
+<p>下面有个较好的关于Background Mode的翻译文章可以看下<br>中文翻译:<a target="_blank" rel="noopener" href="https://github.com/hehonghui/iOS-tech-frontier/blob/master/issue-3/iOS%E5%90%8E%E5%8F%B0%E6%A8%A1%E5%BC%8F%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.md">iOS后台模式开发指南</a></p>
+<p>英文原著:<a target="_blank" rel="noopener" href="https://www.raywenderlich.com/5817-background-modes-tutorial-getting-started">Background Modes Tutorial: Getting Started</a></p>
+<p>但是我们最常见的是通过backgroundTaskIdentifier来申请后台运行的时间，下面是关键代码：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)applicationDidEnterBackground:(<span class="built_in">UIApplication</span> *)application &#123;</span><br><span class="line">    <span class="keyword">self</span>.backgroundTaskIdentifier = [application beginBackgroundTaskWithExpirationHandler:^&#123;</span><br><span class="line">        <span class="comment">//后台任务到期，取消任务</span></span><br><span class="line">        [application endBackgroundTask:<span class="keyword">self</span>.backgroundTaskIdentifier];</span><br><span class="line">        <span class="keyword">self</span>.backgroundTaskIdentifier = <span class="built_in">UIBackgroundTaskInvalid</span>;</span><br><span class="line">    &#125;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)applicationWillEnterForeground:(<span class="built_in">UIApplication</span> *)application &#123;</span><br><span class="line">    <span class="comment">//进入前台的时候取消任务</span></span><br><span class="line">    [application endBackgroundTask:<span class="keyword">self</span>.backgroundTaskIdentifier];</span><br><span class="line">    <span class="keyword">self</span>.backgroundTaskIdentifier = <span class="built_in">UIBackgroundTaskInvalid</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="UIViewController生命周期"><a href="#UIViewController生命周期" class="headerlink" title="UIViewController生命周期"></a><strong><strong>UIViewController生命周期</strong></strong></h5><p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000012.png"></p>
+<h6 id="生命周期方法介绍"><a href="#生命周期方法介绍" class="headerlink" title="生命周期方法介绍"></a><strong><strong>生命周期方法介绍</strong></strong></h6><h6 id="1-load、initialize、init"><a href="#1-load、initialize、init" class="headerlink" title="1. load、initialize、init"></a><strong><strong>1. load、initialize、init</strong></strong></h6><ul>
+<li>在main函数执行前，会初始化objc运行时环境，这时会加载所有类并调用类的load方法，一般在这个方法中实现方法交换(Method Swizzle);</li>
+<li>initialize方法会在类第一次收到消息之前被调用，可以用来初始化静态变量；</li>
+<li>init用来在类的内存被设置好后初始化成员变量.</li>
+</ul>
+<h6 id="2-initWithCoder、initWithNibName、awakeFromNib"><a href="#2-initWithCoder、initWithNibName、awakeFromNib" class="headerlink" title="2. initWithCoder、initWithNibName、awakeFromNib"></a><strong><strong>2. initWithCoder、initWithNibName、awakeFromNib</strong></strong></h6><ul>
+<li>initWithCoder:反归档,如果对象是从文件解析来的就会调用。</li>
+<li>awakeFromNib:从xib或者storyboard加载完毕会调用。</li>
+<li>initWithNibName:使用代码创建对象的时候会调用这个方法。</li>
+</ul>
+<p>用storyboard创建界面的顺序：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">initialize</span> -&gt;</span> <span class="function"><span class="title">initWithCoder</span> -&gt;</span> <span class="function"><span class="title">awakeFromNib</span> -&gt;</span> loadView</span><br></pre></td></tr></table></figure>
+<p>用Xib或者纯代码创建界面的顺序：</p>
+<p>如果用init函数来初始化：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">initialize</span> -&gt;</span> <span class="function"><span class="title">init</span> -&gt;</span> <span class="function"><span class="title">initWithNibName</span> -&gt;</span> loadView</span><br></pre></td></tr></table></figure>
+
+<p>如果用initWithNibName函数来初始化：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">initialize</span> -&gt;</span> <span class="function"><span class="title">initWithNibName</span> -&gt;</span> loadView</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-loadView"><a href="#3-loadView" class="headerlink" title="3. loadView"></a><strong><strong>3. loadView</strong></strong></h6><ul>
+<li><p>当你alloc并init了一个ViewController时，这个ViewController是还没有创建view的.</p>
+</li>
+<li><p>loadView用于加载控制器管理的 view，不能直接手动调用该方法</p>
+</li>
+<li><p>UIViewController的self.view是通过懒加载方式创建的，每次调用控制器的view属性时并且view为nil时，loadView函数就会被调用.加载成功后接着调用viewDidLoad函数，如果self.view已经是非空的情况下会直接调用viewDidLoad函数。</p>
+</li>
+<li><p>如果在loadView函数中自定义了view，那么xib、storyboard中对页面的设置会失效，因为它是在加载之后调用的，所以如果使用 Interface Builder创建view，则务必不要重写该方法</p>
+</li>
+<li><p>[super loadView]默认的逻辑:如果控制器由xib或storyboard初始化,那么会根据xib或storyboard的传入的名字来初始化view；如果没有显示的指定名称，就默认加载和控制器同名的文件；如果没有找到文件，就会创建一个空白的UIView，这个view的frame为屏幕的大小。所以在覆写该方法的时候不应该再调用父类的该方法。</p>
+</li>
+</ul>
+<h6 id="4-viewDidLoad"><a href="#4-viewDidLoad" class="headerlink" title="4. viewDidLoad"></a><strong><strong>4. viewDidLoad</strong></strong></h6><ul>
+<li>在loadView执行完成后，view将会被加载到内存这时候调用viewDidLoad主要完成界面的初始化，例如添加子控件，以及约束的初始化</li>
+</ul>
+<h6 id="5-viewWillAppear"><a href="#5-viewWillAppear" class="headerlink" title="5. viewWillAppear"></a><strong><strong>5. viewWillAppear</strong></strong></h6><ul>
+<li>每次进入页面都会执行viewWillAppear，该方法中可以进行操作即将显示的 view。</li>
+</ul>
+<h6 id="6-updateViewConstraints"><a href="#6-updateViewConstraints" class="headerlink" title="6. updateViewConstraints"></a><strong><strong>6. updateViewConstraints</strong></strong></h6><ul>
+<li>在该函数中用于更新视图的约束.在控制器的view更新视图布局时，会调用updateViewConstraints函数,可以重写这个函数来更新当前视图的布局.这个函数只有在Autolayout布局的时候才会被调用。初始化约束时，最好写到init或viewDidLoad类似的函数中，updateViewConstraints适合于更新约束</li>
+</ul>
+<h6 id="7-viewWillLayoutSubviews"><a href="#7-viewWillLayoutSubviews" class="headerlink" title="7. viewWillLayoutSubviews"></a><strong><strong>7. viewWillLayoutSubviews</strong></strong></h6><ul>
+<li><p>该方法在通知控制器将要布局 view 的子控件时调用。</p>
+</li>
+<li><p>在这个函数中布局子视图，如果用了Autolayout,那么会在viewWillLayoutSubviews和viewDidLayoutSubviews之间用Autolayout机制布局，但是需要注意的是该方法调用时，AutoLayout 未起作用。</p>
+</li>
+</ul>
+<h6 id="8-viewDidLayoutSubviews"><a href="#8-viewDidLayoutSubviews" class="headerlink" title="8. viewDidLayoutSubviews"></a><strong><strong>8. viewDidLayoutSubviews</strong></strong></h6><ul>
+<li>控制器的子视图的布局已完成，这里获取的frame才是最正确的frame。如果用约束来布局，在该函数去设置视图的frame 是无效的。如果用frame来布局的，在该函数中去设置视图的frame是有效的。self.view在该函数中去设置frame是有效的。该方法调用时，AutoLayout 已经完成。</li>
+</ul>
+<h6 id="9-viewDidAppear"><a href="#9-viewDidAppear" class="headerlink" title="9. viewDidAppear"></a><strong><strong>9. viewDidAppear</strong></strong></h6><ul>
+<li>该方法在控制器 view 已经添加到视图层次时被调用</li>
+</ul>
+<h6 id="10-viewWillDisappear"><a href="#10-viewWillDisappear" class="headerlink" title="10. viewWillDisappear"></a><strong><strong>10. viewWillDisappear</strong></strong></h6><ul>
+<li>view即将消失的时候调用</li>
+</ul>
+<h6 id="11-viewDidDisappear"><a href="#11-viewDidDisappear" class="headerlink" title="11. viewDidDisappear"></a><strong><strong>11. viewDidDisappear</strong></strong></h6><ul>
+<li>该方法在控制器 view 已经从视图层次移除时被调用</li>
+</ul>
+<h6 id="12-dealloc"><a href="#12-dealloc" class="headerlink" title="12. dealloc"></a><strong><strong>12. dealloc</strong></strong></h6><ul>
+<li>用于释放自身持有的资源.</li>
+</ul>
+<h6 id="13-didReceiveMemoryWarning"><a href="#13-didReceiveMemoryWarning" class="headerlink" title="13. didReceiveMemoryWarning"></a><strong><strong>13. didReceiveMemoryWarning</strong></strong></h6><p>当系统内存不足时，当前控制器以及所在的Navigation堆栈上的控制器都会调用didReceiveMemoryWarning函数.该函数会判断当前控制器的view是否显示在window上，如果没有会将view以及子view全部销毁.</p>
+<h6 id="14-UI相关代码规范"><a href="#14-UI相关代码规范" class="headerlink" title="14 UI相关代码规范"></a><strong><strong>14 UI相关代码规范</strong></strong></h6><ol>
+<li>ViewController init里不要调用self.view,一般在init里应该只有关键数据的初始化。</li>
+<li>如果确实需要重写loadView，在重写的代码中只初始化view，其他的工作放在viewDidLoad方法中完成。</li>
+<li>viewDidLoad 这时候view已经有了，可以创建并添加界面上的其他子视图，以及设置这些视图的属性。</li>
+<li>viewWillAppear 这个一般在view被添加到superview之前，切换动画之前调用，一般可以用于弹出键盘，status bar和navigationbar颜色设置等。</li>
+<li>viewWillLayoutSubViews&#x2F;viewDidLayoutSubviews  viewDidLayoutSubviews的时候frame值已经确定了，可以在这里做一些依赖frame的操作</li>
+<li>viewDidAppear 这时候view已经被加入到superview上了。</li>
+</ol>
+<p>下面是View加载的流程：</p>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000013.png"></p>
+<p>下面是View卸载的流程：</p>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000014.png"></p>
+<h5 id="UIView-的关键函数"><a href="#UIView-的关键函数" class="headerlink" title="UIView 的关键函数"></a><strong><strong>UIView 的关键函数</strong></strong></h5><ul>
+<li><strong><strong>didAddSubview</strong></strong><blockquote>
+<p>Tells the view that a subview was added.</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>当前View添加子View的时候会被调用</p>
+</blockquote>
+<blockquote>
+<p>The default implementation of this method does nothing. Subclasses can override it to perform additional actions when subviews are added. This method is called in response to adding a subview using any of the relevant view methods.</p>
+</blockquote>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>didAddSubview:<span class="params">(UIView *)</span>subview;</span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><strong><strong>willMoveToSuperview</strong></strong></li>
+</ul>
+<blockquote>
+<p>Tells the view that its superview is about to change to the specified superview.</p>
+</blockquote>
+<blockquote>
+<p>在某个View的SuperView改变的时候会调用这个方法</p>
+</blockquote>
+<blockquote>
+<p>The default implementation of this method does nothing. Subclasses can override it to perform additional actions whenever the superview changes.</p>
+</blockquote>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>willMoveToSuperview:<span class="params">(UIView *)</span>newSuperview;</span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><strong><strong>didMoveToSuperview</strong></strong></li>
+</ul>
+<blockquote>
+<p>Tells the view that its superview changed.</p>
+</blockquote>
+<blockquote>
+<p>在view已经添加到superview上的时候被调用</p>
+</blockquote>
+<blockquote>
+<p>The default implementation of this method does nothing. Subclasses can override it to perform additional actions whenever the superview changes.</p>
+</blockquote>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">- (void)didMoveToSuperview<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>willMoveToWindow</strong></strong></li>
+</ul>
+<blockquote>
+<p>Tells the view that its window object is about to change.</p>
+</blockquote>
+<blockquote>
+<p>在view的window将要发生改变的时候调用,这个在willDisapear之后的阶段</p>
+</blockquote>
+<blockquote>
+<p>The default implementation of this method does nothing. Subclasses can override it to perform additional actions whenever the window changes.</p>
+</blockquote>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>willMoveToWindow:<span class="params">(UIWindow *)</span>newWindow;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>didMoveToWindow</strong></strong></li>
+</ul>
+<blockquote>
+<p>Tells the view that its window object changed.</p>
+</blockquote>
+<blockquote>
+<p>在view的window发生改变的时候调用,这个在willDisapear之后的阶段</p>
+</blockquote>
+<blockquote>
+<p>The default implementation of this method does nothing. Subclasses can override it to perform additional actions whenever the window changes.</p>
+</blockquote>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">- (void)didMoveToWindow<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><strong><strong>willRemoveSubview</strong></strong></li>
+</ul>
+<blockquote>
+<p>Tells the view that a subview is about to be removed.</p>
+</blockquote>
+<blockquote>
+<p>在子view将要被移除的时候调用</p>
+</blockquote>
+<blockquote>
+<p>The default implementation of this method does nothing. Subclasses can override it to perform additional actions whenever subviews are removed. This method is called when the subview’s superview changes or when the subview is removed from the view hierarchy completely.</p>
+</blockquote>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>willRemoveSubview:<span class="params">(UIView *)</span>subview;</span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><strong><strong>removeFromSuperview</strong></strong></li>
+</ul>
+<blockquote>
+<p>Unlinks the view from its superview and its window, and removes it from the responder chain.</p>
+</blockquote>
+<blockquote>
+<p>将当前View从父View和它的window，以及响应链移除</p>
+</blockquote>
+<blockquote>
+<p>If the view’s superview is not nil, the superview releases the view.Calling this method removes any constraints that refer to the view you are removing, or that refer to any view in the subtree of the view you are removing.</p>
+</blockquote>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">- (void)removeFromSuperview<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>下面是在界面上添加一个view 然后在view的各个关键节点上加上log输出的结果：</p>
+<figure class="highlight mel"><table><tr><td class="code"><pre><span class="line">-[IDLViewController viewDidLoad] :@@@==viewDidLoad</span><br><span class="line">-[IDLQuarzCoreSampleView willMoveToSuperview:] :@@@======================================willMoveToSuperview:</span><br><span class="line">-[IDLQuarzCoreSampleView didMoveToSuperview] :@@@======================================didMoveToSuperview</span><br><span class="line">-[IDLViewController onViewWillAppear:] :@@@==onViewWillAppear</span><br><span class="line">-[IDLQuarzCoreSampleView willMoveToWindow:] :@@@======================================willMoveToWindow:</span><br><span class="line">-[IDLQuarzCoreSampleView didMoveToWindow] :@@@======================================didMoveToWindow</span><br><span class="line">-[IDLViewController updateViewConstraints] :@@@==updateViewConstraints</span><br><span class="line">-[IDLViewController viewWillLayoutSubviews] :@@@==viewWillLayoutSubviews</span><br><span class="line">-[IDLViewController viewDidLayoutSubviews] :@@@==viewDidLayoutSubviews</span><br><span class="line">-[IDLViewController viewWillLayoutSubviews] :@@@==viewWillLayoutSubviews</span><br><span class="line">-[IDLViewController viewDidLayoutSubviews] :@@@==viewDidLayoutSubviews</span><br><span class="line">-[IDLQuarzCoreSampleView layoutSubviews] :@@@======================================layoutSubviews</span><br><span class="line">-[IDLQuarzCoreSampleView drawRect:] :@@@======================================drawRect:</span><br><span class="line">-[IDLViewController onViewDidAppear:] :@@@==onViewDidAppear</span><br></pre></td></tr></table></figure>
+
+<p>下面是让viewcontroller不可见时候的调用log输出：</p>
+<figure class="highlight mel"><table><tr><td class="code"><pre><span class="line">-[IDLViewController onViewWillDisappear:] :@@@==onViewWillDisappear</span><br><span class="line">-[IDLQuarzCoreSampleView willMoveToWindow:] :@@@======================================willMoveToWindow:</span><br><span class="line">-[IDLQuarzCoreSampleView didMoveToWindow] :@@@======================================didMoveToWindow</span><br><span class="line">-[IDLViewController onViewDidDisappear:] :@@@==onViewDidDisappear</span><br></pre></td></tr></table></figure>
+
+<p>从上面结果我们做个总结：</p>
+<ol>
+<li><p>在ViewController viewDidLoad 之后，我们会在父view调用addSubView，将当前view添加到superView上面，这时候会调用当前view的willMoveToSuperview，didMoveToSuperview方法，这之后再去寻找自己的subView并依次添加。在添加子view的过程中didAddSubview会被反复调用。等到所有的subView都在内存层面加载完成了，会调用一次viewWillAppear，这时候会调用当前view的willMoveToWindow，didMoveToWindow然后会把加载好的一层层view，分别绘制到window上面。然后layoutSubview，drawRect，最后onViewDidAppear。</p>
+</li>
+<li><p>UIView生命周期移除阶段。会先调用willMoveToWindow表示当前view将会从window上移除，继而调用didMoveToWindow，这里需要注意的是这时候传入的window为nil，然后再removeFromSuperView，dealloc，dealloc之后再removeSubview。</p>
+</li>
+<li><p>如果没有子视图，则不会接收到didAddSubview和willRemoveSubview消息。</p>
+</li>
+<li><p>和superView，window相关的方法，可以通过参数判断是创建还是销毁，如果指针不为空，是创建，如果为空，就是销毁。</p>
+</li>
+<li><p>removeFromSuperview和dealloc在view的生命周期中，调且只调用一次，可以用来removeObserver，移除计时器等操作。</p>
+</li>
+</ol>
+<p>UIView约束，布局，绘图介绍iOS渲染的那篇博客已经介绍过了，但是这里还是把这块再拎出来介绍下，毕竟不是很大块。</p>
+<ul>
+<li><strong><strong>约束相关</strong></strong></li>
+</ul>
+<p><img src="/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/000016.png"></p>
+<ul>
+<li><p><strong><strong>监控约束变化</strong></strong> : APP启动后，随着RunLoop的运行，系统在其内部监听着约束变化（Constraints Change）：如激活或失效约束、修改优先级、修改常量值，添加，删除视图等操作，都可以导致约束发生变化。</p>
+</li>
+<li><p><strong><strong>重新计算布局</strong></strong> : 在接收到布局变化后，布局引擎会根据变化的约束重新计算布局，并通过对其父视图调用setNeedsLayout方法将需要更新布局的视图进行标记，之后便进入延迟布局阶段（Deffered Layout Pass）。这里需要注意的是在进入延迟布局阶段之前，Layout Engine已经将更新的约束计算完毕并将视图的新frame求出。但并不在此时更新视图。</p>
+</li>
+<li><p><strong><strong>延迟布局阶段</strong></strong> ：此阶段的主要作用是将错误位置的视图重新定位。其在视图层级中执行，分为两步：</p>
+</li>
+<li><p>更新约束：从下往上（子视图到父视图），依次遍历视图层级，调用View的updateConstraints方法（或ViewController的updateViewConstraints方法）来更新约束,我们可以在此覆盖本方法来设置自定义约束，且在此设置时，执行效率最高。记得最后调用父类实现。</p>
+</li>
+<li><p>给视图及子视图重新设定位置（给view的frame赋值）：从上到下依次调用View的layoutSubViews方法（或ViewController的viewLayoutSubViews方法），从Layout Engine中取出预算好的frame进行赋值。</p>
+</li>
+</ul>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>setNeedsUpdateConstraints：标记需要updateConstraints。</span><br><span class="line"><span class="bullet">* </span>updateConstraintsIfNeeded：若需要，马上调用updateConstraints应用约束更新。</span><br><span class="line"><span class="bullet">* </span>needsUpdateConstraints：返回是否需要updateConstraints。</span><br><span class="line"><span class="bullet">* </span>updateConstraints：更新约束，在这里一般只针对某个view的现有约束进行更新，约束的初始化一般放在viewDidLoad方法中，注意：要在最后调用[super updateConstraints]</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>布局相关</strong></strong></li>
+</ul>
+<pre><code>* layoutSubviews:在需要进行布局的时候会调用这个方法，我们可以通过覆写这个方法来确定每个view的frame。
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">手动触发layoutSubviews：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+* setNeedsLayout:此方法会将view当前的layout设置为无效的，并在下一个upadte cycle里去触发layout更新。
+* layoutIfNeeded:使用此方法强制立即进行layout,从当前view开始，此方法会遍历整个view层次(包括superviews)请求layout。因此，调用此方法会强制整个view层次布局。
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">哪些条件下会自动触发layoutSubviews：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+1、init初始化不会触发layoutSubviews，但是用initWithFrame进行初始化的时候，当rect的值不是CGRectZero时也会触发
+2、addSubview会触发layoutSubviews。
+3、设置view的frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化。
+4、改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件。
+5、滚动一个UIScrollView会触发layoutSubviews。
+6、旋转屏幕会触发父UIView上的layoutSubviews事件。
+
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="bullet">*</span> <span class="strong">****</span>绘制相关<span class="strong">****</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+* setNeedsDisplay:标记整个视图的边界矩形需要重绘.
+* drawRect:如果你的View画自定义的内容，就要实现该方法。若使用UIView绘图，只能在drawRect：方法中获取相应的ContextRef并绘图,其他方法中获取将获取到一个invalidate 的ContextRef不能用于绘制。
+* 若使用CAlayer绘图，只能在drawInContext: 中绘制,或者在Delegate中的相应方法绘制.
+<figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">哪些条件下会自动触发drawRect:</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+* 如果在UIView初始化时没有设置rect大小将直接导致drawRect不被自动调用。drawRect 调用是在loadView,viewDidLoad 两方法之后掉用的.所以可以在控制器中设置一些在draw阶段需要的值。
+* 该方法在调用sizeToFit后被调用，所以可以先调用sizeToFit计算出size。然后系统自动调用drawRect:方法。
+* 通过设置contentMode属性值为UIViewContentModeRedraw。那么将在每次设置或更改frame的时候自动调用drawRect:。
+* 直接调用setNeedsDisplay，或者setNeedsDisplayInRect:触发drawRect:但是有个前提条件是rect不能为0。
+ <figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="bullet">*</span> 这些方法在UIViewController生命周期的位置：</span><br><span class="line"><span class="code">    在一个UIView init初始化后会把三个标记都置为YES。然后在VC的布局方式中,viewWillLayoutSubviews中会调用updateConstraints，在viewDidLayoutSubviews会调用layoutSubviews，drawRect。</span></span><br><span class="line"><span class="code"></span></span><br><span class="line"><span class="code">    其中updateConstraints是子 -&gt; 父。layoutSubviews和drawRect是父 -&gt; 子。</span></span><br><span class="line"><span class="code"></span></span><br><span class="line"><span class="bullet">*</span> sizeToFit</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+* sizeToFit会自动调用sizeThatFits方法；
+* sizeToFit不应该在子类中被重写，应该重写sizeThatFits
+* sizeThatFits传入的参数是receiver当前的size，返回一个适合的size
+* sizeToFit可以被手动直接调用
+* sizeToFit和sizeThatFits方法都没有递归，只负责自己
+```
+
+最后来一张总结的图，来自之前的一篇博客《图解生命周期》
+![](/iOS-生命周期/000015.png)
+
+
+###### TODO App 保活方案
+</code></pre>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/">iOS 理论基础</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-理论基础/">iOS 理论基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/08/04/iOS-渲染系统工作原理介绍/" title="iOS 渲染系统工作原理介绍">
+  <span>
+  iOS 渲染系统工作原理介绍</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/07/28/iOS-设计规范整理/"  title="iOS 设计规范整理">
+ <span>iOS 设计规范整理
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/08/01/iOS-生命周期/" data-title="iOS 生命周期" data-url="http://yoursite.com/2019/08/01/iOS-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#App-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">1.</span> <span class="toc-text">App 生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E4%BA%94%E7%A7%8D%E7%8A%B6%E6%80%81"><span class="toc-number">1.1.</span> <span class="toc-text">应用程序的五种状态</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#AppDelegate"><span class="toc-number">1.2.</span> <span class="toc-text">AppDelegate</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E5%85%B3%E9%94%AE%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E7%8A%B6%E6%80%81%E5%8F%8A%E5%9B%9E%E8%B0%83"><span class="toc-number">1.3.</span> <span class="toc-text">一些关键场景下的状态及回调</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%E6%80%A7%E8%83%BD"><span class="toc-number">1.4.</span> <span class="toc-text">如何优化性能</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#App%E5%90%8E%E5%8F%B0%E9%99%90%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">App后台限制</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#UIViewController%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">3.</span> <span class="toc-text">UIViewController生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.1.</span> <span class="toc-text">生命周期方法介绍</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#1-load%E3%80%81initialize%E3%80%81init"><span class="toc-number">3.2.</span> <span class="toc-text">1. load、initialize、init</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-initWithCoder%E3%80%81initWithNibName%E3%80%81awakeFromNib"><span class="toc-number">3.3.</span> <span class="toc-text">2. initWithCoder、initWithNibName、awakeFromNib</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-loadView"><span class="toc-number">3.4.</span> <span class="toc-text">3. loadView</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#4-viewDidLoad"><span class="toc-number">3.5.</span> <span class="toc-text">4. viewDidLoad</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#5-viewWillAppear"><span class="toc-number">3.6.</span> <span class="toc-text">5. viewWillAppear</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#6-updateViewConstraints"><span class="toc-number">3.7.</span> <span class="toc-text">6. updateViewConstraints</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#7-viewWillLayoutSubviews"><span class="toc-number">3.8.</span> <span class="toc-text">7. viewWillLayoutSubviews</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#8-viewDidLayoutSubviews"><span class="toc-number">3.9.</span> <span class="toc-text">8. viewDidLayoutSubviews</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#9-viewDidAppear"><span class="toc-number">3.10.</span> <span class="toc-text">9. viewDidAppear</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#10-viewWillDisappear"><span class="toc-number">3.11.</span> <span class="toc-text">10. viewWillDisappear</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#11-viewDidDisappear"><span class="toc-number">3.12.</span> <span class="toc-text">11. viewDidDisappear</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#12-dealloc"><span class="toc-number">3.13.</span> <span class="toc-text">12. dealloc</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#13-didReceiveMemoryWarning"><span class="toc-number">3.14.</span> <span class="toc-text">13. didReceiveMemoryWarning</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#14-UI%E7%9B%B8%E5%85%B3%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83"><span class="toc-number">3.15.</span> <span class="toc-text">14 UI相关代码规范</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#UIView-%E7%9A%84%E5%85%B3%E9%94%AE%E5%87%BD%E6%95%B0"><span class="toc-number">4.</span> <span class="toc-text">UIView 的关键函数</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

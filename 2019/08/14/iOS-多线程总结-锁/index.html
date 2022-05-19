@@ -1,0 +1,761 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS 多线程总结 - 线程安全 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="1. 多线程时间分片模式:多数现代操作系统使用时间分片模式来管理线程的，它会将CPU运行时间分割成一个个时间片，一般在10-100毫秒之间不等，当线程被分配到执行时间后，系统将会将该线程的堆栈以及寄存器加载到CPU，并将旧线程的堆栈和寄存器数据保存起来，这就是所谓的上下文切换，这个切换也是需要耗费时间的，如果将时间片分割得太短就会导致过度频繁的上下文切换，从而导致大量的CPU时间浪费在切换上。这也">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 多线程总结 - 线程安全">
+<meta property="og:url" content="http://yoursite.com/2019/08/14/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%80%BB%E7%BB%93-%E9%94%81/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="1. 多线程时间分片模式:多数现代操作系统使用时间分片模式来管理线程的，它会将CPU运行时间分割成一个个时间片，一般在10-100毫秒之间不等，当线程被分配到执行时间后，系统将会将该线程的堆栈以及寄存器加载到CPU，并将旧线程的堆栈和寄存器数据保存起来，这就是所谓的上下文切换，这个切换也是需要耗费时间的，如果将时间片分割得太短就会导致过度频繁的上下文切换，从而导致大量的CPU时间浪费在切换上。这也">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/08/14/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%80%BB%E7%BB%93-%E9%94%81/000001.png">
+<meta property="article:published_time" content="2019-08-14T02:14:03.000Z">
+<meta property="article:modified_time" content="2020-02-14T02:33:28.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 理论基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/14/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%80%BB%E7%BB%93-%E9%94%81/000001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/08/14/iOS-多线程总结-锁/" title="iOS 多线程总结 - 线程安全" itemprop="url">iOS 多线程总结 - 线程安全</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-08-14T02:14:03.000Z" itemprop="datePublished"> Published 2019-08-14</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="1-多线程时间分片模式"><a href="#1-多线程时间分片模式" class="headerlink" title="1. 多线程时间分片模式:"></a><strong><strong>1. 多线程时间分片模式:</strong></strong></h5><p>多数现代操作系统使用时间分片模式来管理线程的，它会将CPU运行时间分割成一个个时间片，一般在10-100毫秒之间不等，当线程被分配到执行时间后，系统将会将该线程的堆栈以及寄存器加载到CPU，并将旧线程的堆栈和寄存器数据保存起来，这就是所谓的上下文切换，这个切换也是需要耗费时间的，如果将时间片分割得太短就会导致过度频繁的上下文切换，从而导致大量的CPU时间浪费在切换上。这也是自旋锁存在的原因，这个在后面会详细介绍。</p>
+<p>今天介绍的主题是线程安全，之前我们说过同一进程的线程之间是共享资源的，并且多线程是并发执行的，在这种并发环境下资源共享带来的一个问题就是资源竞争，竞争的资源可以是：锁、网络连接、通知事件，磁盘、带宽，以及一切可以被称作“资源”的东西，如果没有对共享资源进行保护，就会导致多个线程对资源进行修改，从而导致资源状态不确定，也就是我们所说的<strong><strong>数据竞态</strong></strong>。</p>
+<p>但是并不是所有情况下多线程访问共享资源都会存在这些问题。<br>以下这些情况就不存在线程安全的情况：</p>
+<ul>
+<li>多线程串行访问共享资源，这也是很多时候解决数据竞态的一种方案，将访问资源的操作串行化。</li>
+<li>多线程并行情况下但是这些线程都是访问共享资源而不去修改共享资源，比如多个线程同时读一个文件。</li>
+</ul>
+<p>所以发生数据竞态的条件有两个:</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1.</span> 至少有两个线程同时访问同一个资源</span><br><span class="line"><span class="bullet">2.</span> 至少其中有一个是改变资源的状态，比如写操作</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-基础概念"><a href="#2-基础概念" class="headerlink" title="2. 基础概念"></a><strong><strong>2. 基础概念</strong></strong></h5><ol>
+<li><strong><strong>临界区</strong></strong>：指的是一块对公共资源进行访问的代码</li>
+<li><strong><strong>竞态条件</strong></strong>：当两个线程竞争同一资源时，如果对资源的访问顺序敏感，就称存在竞态条件</li>
+<li><strong><strong><a target="_blank" rel="noopener" href="https://www.cnblogs.com/ktgu/p/3529143.html">死锁</a></strong></strong>:是指两个或两个以上的线程在执行过程中，因争夺资源而造成的一种互相等待的现象，若无外力作用，它们都将无法推进下去</li>
+</ol>
+<p><strong><strong>死锁发生的条件:</strong></strong></p>
+<ul>
+<li><strong><strong>互斥条件</strong></strong>：线程对资源的访问是排他性的，如果一个线程占用了某个资源，那么其他线程等待，直到锁被释放。</li>
+<li><strong><strong>不可剥夺条件</strong></strong>：线程已获得的资源，在未使用完之前，不能被其他线程剥夺，只能在使用完以后由自己释放。</li>
+<li><strong><strong>保持和请求条件</strong></strong>：线程T1至少已经保持了一个资源R1占用,但又提出对另一个资源R2请求，而此时，资源R2被其他线程T2占用，于是该线程T1也必须等待，但又对自己保持的资源R1不释放。</li>
+<li><strong><strong>环路等待条件</strong></strong>：在死锁发生时，必然存在一个“线程-资源环形链”，即：{p0,p1,p2,…pn},进程p0（或线程）等待p1占用的资源，p1等待p2占用的资源，pn等待p0占用的资源。</li>
+</ul>
+<ol start="4">
+<li><p><strong><strong>资源饥饿</strong></strong>: 当一个线程一直无法得到自己的资源而一直无法进行后续的操作时，我们称这个线程会饥饿而死。</p>
+</li>
+<li><p><strong><strong>优先级反转</strong></strong>:<br>优先级反转是在高优级(假设为A)的任务要访问一个被低优先级任务(假设为C)占有的资源时被阻塞.<br>而此时又有优先级高于占有资源的任务(C)，而低于被阻塞的任务(A)的优先级的中间优先级任务(假设为B)进入时,这时候,占有资源的任务(C)就被挂起(占有的资源仍为它占有),因为占有资源的任务优先级很低,所以,它可能一直被另外的任务挂起.而它占有的资源也就一直不能释放,这样,引起任务A一直没办法执行.而比它优先低的任务却可以执行.</p>
+</li>
+</ol>
+<p>  </p>
+<p><strong><strong>解决方案</strong></strong>:</p>
+<ul>
+<li><strong><strong>优先级继承</strong></strong>:将低优先级任务的优先级提升到等待它所占有的资源的最高优先级任务的优先级.当高优先级任务由于等待资源而被阻塞时,此时资源的拥有者的优先级将会自动被提升.   </li>
+<li><strong><strong>优先级天花板</strong></strong>:将申请某资源的任务的优先级提升到可能访问该资源的所有任务中最高优先级任务的优先级<br>两者区别：<br>优先级继承,只有当占有资源的低优先级的任务被阻塞时,才会提高占有资源任务的优先级,而优先级天花板,不论是否发生阻塞都提升.</li>
+</ul>
+<ol start="6">
+<li><strong><strong>原子操作</strong></strong>: 一条不可打断的操作,在单处理器环境下，一条汇编指令是原子操作，但一句高级语言的代码却不是原子的，因为它最终是由多条汇编语言完成</li>
+<li><strong><strong>可重入</strong></strong>:当子程序正在运行时，执行线程可以再次进入并执行它，仍然获得符合设计时预期的结果。与多线程并发执行的线程安全不同，可重入强调对单个线程执行时重新进入同一个子程序仍然是安全的</li>
+<li><strong><strong>线程安全</strong></strong>:指某个函数、函数库在多线程环境中被调用时，能够正确地处理多个线程之间的共享变量，使程序功能正确完成。</li>
+</ol>
+<h5 id="3-iOS多线程开发中的常用锁"><a href="#3-iOS多线程开发中的常用锁" class="headerlink" title="3. iOS多线程开发中的常用锁:"></a><strong><strong>3. iOS多线程开发中的常用锁</strong></strong>:</h5><h6 id="3-1-互斥锁"><a href="#3-1-互斥锁" class="headerlink" title="3.1 互斥锁"></a><strong><strong>3.1 互斥锁</strong></strong></h6><p>互斥锁在出现锁的争夺时，未获得锁的线程会主动让出时间片，<strong><strong>阻塞线程并睡眠</strong></strong>，CPU会通过上下文切换，让其它线程继续运行。互斥锁用于保证某个资源只允许一个线程访问。</p>
+<h6 id="3-1-1-NSLock"><a href="#3-1-1-NSLock" class="headerlink" title="3.1.1 NSLock"></a><strong><strong>3.1.1 NSLock</strong></strong></h6><p>NSLock 内部封装了一个 pthread_mutex，属性为 PTHREAD_MUTEX_ERRORCHECK, 它比pthread_mutex多了错误提示，也正式这个原因它比pthread_mutex性能上要慢，但是由于它在内部使用了缓存机制，所以性能上不会相差很多。但是它使用的时候需要注意的是<strong><strong>加锁和解锁需要成对出现，并且在解锁之前不可以进行再次加锁。否则会造成死锁</strong></strong>。</p>
+<figure class="highlight cos"><table><tr><td class="code"><pre><span class="line">NSLock *<span class="keyword">lock</span> = [NSLock alloc] init]<span class="comment">;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 加锁</span></span><br><span class="line">[<span class="keyword">lock</span> <span class="keyword">lock</span>]<span class="comment">;</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 被加锁的代码区间,在这里可以访问需要锁保护的资源</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="comment">// 解锁</span></span><br><span class="line">[<span class="keyword">lock</span> unlock]<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>NSLock死锁的例子：</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">- (void)recursiveFunc:(NSInteger)value &#123;</span><br><span class="line">    <span class="selector-attr">[self.lock lock]</span>;</span><br><span class="line">    <span class="built_in">if</span>(value != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="attr">--value</span>;</span><br><span class="line">        <span class="selector-attr">[self recursiveFunc:value]</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="selector-attr">[self.lock unlock]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果不清楚的话展开就应该很容易明白了</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[self.lock lock]</span>;</span><br><span class="line"><span class="built_in">if</span>(value != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="attr">--value</span>;</span><br><span class="line">    <span class="selector-attr">[self.lock lock]</span>;<span class="comment">//其实这里就因为等待锁而阻塞了</span></span><br><span class="line">    <span class="built_in">if</span>(value != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="attr">--value</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//...........</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-attr">[self.lock unlock]</span>;</span><br></pre></td></tr></table></figure>
+
+<p>最后再强调下在使用NSLock的时候注意加解锁需要在统一线程中，并且在解锁之前不能重复加锁。</p>
+<h6 id="3-2-递归锁"><a href="#3-2-递归锁" class="headerlink" title="3.2 递归锁"></a><strong><strong>3.2 递归锁</strong></strong></h6><h6 id="3-2-1-NSRecursiveLock"><a href="#3-2-1-NSRecursiveLock" class="headerlink" title="3.2.1 NSRecursiveLock"></a><strong><strong>3.2.1 NSRecursiveLock</strong></strong></h6><p><strong><strong>递归锁在被同一线程重复获取时不会产生死锁</strong></strong>。它会记录上锁和解锁的次数，当二者平衡的时候，才会释放锁，其它线程才可以上锁成功</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSRecursiveLock</span> *recursiveLock;</span><br><span class="line">_recursiveLock = [[<span class="built_in">NSRecursiveLock</span> alloc] init];</span><br><span class="line"></span><br><span class="line">[_recursiveLock lock];</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 被加锁的代码区间,在这里可以访问需要锁保护的资源</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">[_recursiveLock unlock];</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h6 id="3-2-2-synchronized"><a href="#3-2-2-synchronized" class="headerlink" title="3.2.2 synchronized"></a><strong><strong>3.2.2 synchronized</strong></strong></h6><p>@synchronized 结构在工作时为传入的对象分配了一个<strong><strong>递归锁</strong></strong>。它需要使用一个唯一的标识用来区分保护锁。</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">@try</span> &#123;</span><br><span class="line">    <span class="built_in">objc_sync_enter</span>(obj);</span><br><span class="line">    <span class="comment">// do work</span></span><br><span class="line">&#125; <span class="keyword">@finally</span> &#123;</span><br><span class="line">    <span class="built_in">objc_sync_exit</span>(obj);    </span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>当调用 objc_sync_enter(obj) 时，它用 obj <strong><strong>内存地址的哈希值</strong></strong>查找合适的 SyncData(包含传入对象和一个递归锁的结构体)，然后将其上锁。当你调用 objc_sync_exit(obj) 时，它查找合适的 SyncData 并将其解锁。</p>
+<p>@synchronized(object)指令使用的 object 为该锁的唯一标识，只有当标识相同时，才满足互斥</p>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line">优点：使用起来十分简单不需要在代码中显式的创建锁对象，便可以实现锁的机制，并且不用担心忘记解锁的情况出现。同时<span class="keyword">synchronized</span>不需要像NSLock一样需要考虑在加解锁时需要在同一线程中的问题，也不需要考虑同一个线程中连续加锁的问题。</span><br><span class="line">缺点：性能较差，一般用在多线程情况下访问属性的情况</span><br></pre></td></tr></table></figure>
+
+<p>注意：如果在 @sychronized(object){} 内部object 被释放或被设为nil，没有问题，但如果 object 一开始就是nil，则失去了锁的功能。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)setIntegerValue:(<span class="built_in">NSInteger</span>)intValue &#123;</span><br><span class="line">    <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        _intValue = intValue;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h6 id="3-3-自旋锁："><a href="#3-3-自旋锁：" class="headerlink" title="3.3 自旋锁："></a><strong><strong>3.3 自旋锁：</strong></strong></h6><p>自旋锁与互斥锁有点类似，只是自旋锁被某线程占用时，其他线程<strong><strong>不会进入睡眠状态等待，而是一直轮询查询直到锁被释放</strong></strong>。<br>由于不涉及用户态与内核态之间的切换，它的效率远远高于互斥锁。<br>但是自旋锁也有很明显的不足：</p>
+<ul>
+<li>自旋锁一直占用CPU，在未获得锁的情况下会占用着CPU一直运行，如果不能在很短的时间内获得锁，这无疑会使CPU效率降低。</li>
+<li>自旋锁可能会引起优先级反转问题。如果一个低优先级的线程获得锁并访问共享资源，这时一个高优先级的线程也尝试获得这个锁，自旋锁会处于忙等状态从而占用大量 CPU。此时低优先级线程无法与高优先级线程争夺 CPU 时间，从而导致任务迟迟完不成、无法释放 lock。</li>
+</ul>
+<p>所以一般自旋锁只有在内核可抢占式比较适用，在<strong><strong>单CPU且不可抢占式的内核下自旋锁只适用于锁使用者保持锁时间比较短的情况</strong></strong>。</p>
+<h6 id="3-3-1-OSSpinLock"><a href="#3-3-1-OSSpinLock" class="headerlink" title="3.3.1 OSSpinLock"></a><strong><strong>3.3.1 OSSpinLock</strong></strong></h6><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 初始化</span></span><br><span class="line">spinLock = OS_SPINKLOCK_INIT;</span><br><span class="line"><span class="comment">// 加锁</span></span><br><span class="line"><span class="constructor">OSSpinLockLock(&amp;<span class="params">spinLock</span>)</span>;</span><br><span class="line"><span class="comment">// 解锁</span></span><br><span class="line"><span class="constructor">OSSpinLockUnlock(&amp;<span class="params">spinLock</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>目前OSSpinLock存在优先级反转的问题，在使用的时候需要十分注意。<br><a target="_blank" rel="noopener" href="https://blog.ibireme.com/2016/01/16/spinlock_is_unsafe_in_ios/?utm_source=tuicool&utm_medium=referral">不再安全的 OSSpinLock</a></p>
+<h6 id="3-3-2-os-unfair-lock"><a href="#3-3-2-os-unfair-lock" class="headerlink" title="3.3.2 os_unfair_lock"></a><strong><strong>3.3.2 os_unfair_lock</strong></strong></h6><p>os_unfair_lock是替代OSSpinLock的产物，iOS 10.+ 之后添加的，也是属于忙等锁。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">#import &lt;os/lock.h&gt;</span><br><span class="line"></span><br><span class="line">os_unfair_lock_t unfairlock = &amp;(OS_UNFAIR_LOCK_INIT);</span><br><span class="line"></span><br><span class="line">os<span class="constructor">_unfair_lock_lock(<span class="params">unfairlock</span>)</span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 被加锁的代码区间,在这里可以访问需要锁保护的资源</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">os<span class="constructor">_unfair_lock_unlock(<span class="params">unfairlock</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-4-信号量"><a href="#3-4-信号量" class="headerlink" title="3.4 信号量"></a><strong><strong>3.4 信号量</strong></strong></h6><p>加锁时会把信号量的值减一，并判断是否大于零。如果大于零，立刻执行。如果等于零的时候将会等待，在资源使用结束的时候释放信号量让信号量增加1。并唤醒等待的线程。<br>信号量可以有更多的取值空间，用来实现更加复杂的同步，而不单单是线程间互斥。</p>
+<h6 id="3-4-1-dispatch-semaphore"><a href="#3-4-1-dispatch-semaphore" class="headerlink" title="3.4.1 dispatch_semaphore"></a><strong><strong>3.4.1 dispatch_semaphore</strong></strong></h6><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">dispatch_semaphore_t signal = dispatch<span class="constructor">_semaphore_create(1)</span>;</span><br><span class="line">dispatch_time_t timeout = dispatch<span class="constructor">_time(DISPATCH_TIME_NOW, 3.0f <span class="operator">*</span> NSEC_PER_SEC)</span>;</span><br><span class="line">dispatch<span class="constructor">_async(<span class="params">dispatch_get_global_queue</span>(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)</span>, ^&#123;</span><br><span class="line">    dispatch<span class="constructor">_semaphore_wait(<span class="params">signal</span>, <span class="params">timeout</span>)</span>;   </span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    * 被加锁的代码区间,在这里可以访问需要锁保护的资源</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    dispatch<span class="constructor">_semaphore_signal(<span class="params">signal</span>)</span>;    </span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-5-条件锁"><a href="#3-5-条件锁" class="headerlink" title="3.5 条件锁"></a><strong><strong>3.5 条件锁</strong></strong></h6><p>条件锁一般常用于生产者–消费者模式</p>
+<h6 id="3-5-1-NSCondition"><a href="#3-5-1-NSCondition" class="headerlink" title="3.5.1 NSCondition"></a><strong><strong>3.5.1 NSCondition</strong></strong></h6><p>NSCondition同样实现了NSLocking协议,可以当做NSLock来使用解决线程同步问题，用法完全一样。但是性能相对更差点，除了lock 和 unlock，NSCondition提供了更高级的用法wait&#x2F;signal&#x2F;broadcast：wait 进入等待状态，当其它线程中的该锁执行signal 或者 broadcast方法时，线程被唤醒，继续运行之后的方法。其中 signal 和 broadcast 方法的区别在于，signal 只是一个信号量，只能唤醒一个等待的线程，想唤醒多个就得多次调用，而 broadcast 可以唤醒所有在等待的线程。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSCondition</span> *condition;</span><br><span class="line">_condition = [[<span class="built_in">NSCondition</span> alloc] init];</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)conditionLockTest &#123;</span><br><span class="line">    <span class="built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="string">&quot;com.idealist.locktest&quot;</span>, DISPATCH_QUEUE_CONCURRENT);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">NSInteger</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">dispatch_async</span>(queue, ^&#123;</span><br><span class="line">            [<span class="keyword">self</span> conditionAdd];</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">NSInteger</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">dispatch_async</span>(queue, ^&#123;</span><br><span class="line">            [<span class="keyword">self</span> conditionRemove];</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)conditionAdd &#123;</span><br><span class="line">    [_condition lock];</span><br><span class="line">    <span class="comment">// 生产数据</span></span><br><span class="line">    <span class="built_in">NSObject</span> *object = [<span class="built_in">NSObject</span> new];</span><br><span class="line">    [_ticketsArr addObject:object];</span><br><span class="line">    [_condition signal];</span><br><span class="line">    </span><br><span class="line">    [_condition unlock];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)conditionRemove &#123;</span><br><span class="line">    </span><br><span class="line">    [_condition lock];</span><br><span class="line">    <span class="keyword">if</span> (!_ticketsArr.count) &#123;</span><br><span class="line">        [_condition wait];</span><br><span class="line">    &#125;</span><br><span class="line">    [_ticketsArr removeObjectAtIndex:<span class="number">0</span>];</span><br><span class="line">    [_condition unlock];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h6 id="3-5-2-NSConditionLock"><a href="#3-5-2-NSConditionLock" class="headerlink" title="3.5.2 NSConditionLock"></a><strong><strong>3.5.2 NSConditionLock</strong></strong></h6><p>NSConditionLock 借助 NSCondition 来实现，内部持有一个 NSCondition 对象，以及 _condition_value 属性</p>
+<p>lockWhenCondition:方法是当condition参数与当前condition相等时才可加锁<br>unlockWithCondition:方法是解锁之后修改 Condition 的值</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置条件</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> IDL_NO_DATA   100</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> IDL_HAS_DATA  101</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化条件锁对象</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSConditionLock</span> *conditionLock;</span><br><span class="line"><span class="comment">// 实例化</span></span><br><span class="line">_conditionLock = [[<span class="built_in">NSConditionLock</span> alloc] initWithCondition:IDL_NO_DATA];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用测试方法</span></span><br><span class="line">- (<span class="type">void</span>)conditionLockTest &#123;</span><br><span class="line">    <span class="built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="string">&quot;com.idealist.conditionlocktest&quot;</span>, DISPATCH_QUEUE_CONCURRENT);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">NSInteger</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">dispatch_async</span>(queue, ^&#123;</span><br><span class="line">            [<span class="keyword">self</span> conditionLockAdd];</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">NSInteger</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">dispatch_async</span>(queue, ^&#123;</span><br><span class="line">            [<span class="keyword">self</span> conditionLockRemove];</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)conditionLockAdd &#123;</span><br><span class="line">    </span><br><span class="line">    [_conditionLock lockWhenCondition:IDL_NO_DATA];</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">NSObject</span> *object = [<span class="built_in">NSObject</span> new];</span><br><span class="line">    [_ticketsArr addObject:object];</span><br><span class="line">    [_condition signal];</span><br><span class="line">    </span><br><span class="line">    [_conditionLock unlockWithCondition:IDL_HAS_DATA];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)conditionLockRemove &#123;</span><br><span class="line">    </span><br><span class="line">    [_conditionLock lockWhenCondition:IDL_HAS_DATA];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (!_ticketsArr.count) &#123;</span><br><span class="line">        [_condition wait];</span><br><span class="line">    &#125;</span><br><span class="line">    [_ticketsArr removeObjectAtIndex:<span class="number">0</span>];</span><br><span class="line">    [_conditionLock unlockWithCondition:IDL_NO_DATA];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h6 id="3-6-读写锁"><a href="#3-6-读写锁" class="headerlink" title="3.6 读写锁"></a><strong><strong>3.6 读写锁</strong></strong></h6><p>读写锁把对共享资源的访问者划分成读和写，在多处理器系统中，它允许同时有多个读来访问共享资源，最大可能的读者数为实际的逻辑CPU数。但是写操作是排他性的。<br>所以如下情况可以并发进行：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>多个读，没有写操作</span><br><span class="line"><span class="bullet">* </span>一个写操作，多个读操作</span><br></pre></td></tr></table></figure>
+<h6 id="3-6-1-dispatch-barrier-async-x2F-dispatch-barrier-sync"><a href="#3-6-1-dispatch-barrier-async-x2F-dispatch-barrier-sync" class="headerlink" title="3.6.1 dispatch_barrier_async &#x2F; dispatch_barrier_sync"></a><strong><strong>3.6.1 dispatch_barrier_async &#x2F; dispatch_barrier_sync</strong></strong></h6><p>具体用法见iOS多线程总结 基本用法</p>
+<ul>
+<li>共同点：1、等待在它前面插入队列的任务先执行完；2、等待他们自己的任务执行完再执行后面的任务。</li>
+<li>不同点：1、dispatch_barrier_sync将自己的任务插入到队列的时候，需要等待自己的任务结束之后才会继续插入被写在它后面的任务，然后执行它们；2、dispatch_barrier_async将自己的任务插入到队列之后，不会等待自己的任务结束，它会继续把后面的任务插入队列，然后等待自己的任务结束后才执行后面的任务。</li>
+</ul>
+<h6 id="3-6-1-pthread-rwlock"><a href="#3-6-1-pthread-rwlock" class="headerlink" title="3.6.1 pthread_rwlock"></a><strong><strong>3.6.1 pthread_rwlock</strong></strong></h6><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">#import &lt;pthread.h&gt;</span><br><span class="line">__block pthread_rwlock_t rwlock;</span><br><span class="line">pthread<span class="constructor">_rwlock_init(&amp;<span class="params">rwlock</span>,NULL)</span>;</span><br><span class="line">pthread<span class="constructor">_rwlock_rdlock(&amp;<span class="params">rwlock</span>)</span>;</span><br><span class="line">pthread<span class="constructor">_rwlock_unlock(&amp;<span class="params">rwlock</span>)</span>;</span><br><span class="line">pthread<span class="constructor">_rwlock_wrlock(&amp;<span class="params">rwlock</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-7-atomic"><a href="#3-7-atomic" class="headerlink" title="3.7 atomic"></a><strong><strong>3.7 atomic</strong></strong></h6><p>atomic用于保证属性setter、getter的原子性操作，在getter和setter内部加了线程同步的锁，但是它并不能保证使用属性的过程是线程安全的</p>
+<h5 id="4-其它保证线程安全的方式"><a href="#4-其它保证线程安全的方式" class="headerlink" title="4. 其它保证线程安全的方式"></a><strong><strong>4. 其它保证线程安全的方式</strong></strong></h5><p>使用异步串行队列来将访问资源的操作串行化</p>
+<h5 id="5-pthread的各种同步机制"><a href="#5-pthread的各种同步机制" class="headerlink" title="5. pthread的各种同步机制"></a><strong><strong>5. <a target="_blank" rel="noopener" href="https://casatwy.com/pthreadde-ge-chong-tong-bu-ji-zhi.html">pthread的各种同步机制</a></strong></strong></h5><h5 id="6-性能对比"><a href="#6-性能对比" class="headerlink" title="6. 性能对比"></a><strong><strong>6. 性能对比</strong></strong></h5><p><img src="/2019/08/14/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%80%BB%E7%BB%93-%E9%94%81/000001.png"></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/">iOS 理论基础</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-理论基础/">iOS 理论基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/08/20/XCode-快捷键/" title="XCode 快捷键">
+  <span>
+  XCode 快捷键</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/08/12/iOS-多线程总结/"  title="iOS 多线程总结 - 基本概念 GCD NSOperation">
+ <span>iOS 多线程总结 - 基本概念 GCD NSOperation
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/08/14/iOS-多线程总结-锁/" data-title="iOS 多线程总结 - 线程安全" data-url="http://yoursite.com/2019/08/14/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%80%BB%E7%BB%93-%E9%94%81/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%97%B6%E9%97%B4%E5%88%86%E7%89%87%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">1. 多线程时间分片模式:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">2. 基础概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-iOS%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91%E4%B8%AD%E7%9A%84%E5%B8%B8%E7%94%A8%E9%94%81"><span class="toc-number">3.</span> <span class="toc-text">3. iOS多线程开发中的常用锁:</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#3-1-%E4%BA%92%E6%96%A5%E9%94%81"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 互斥锁</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-1-1-NSLock"><span class="toc-number">3.2.</span> <span class="toc-text">3.1.1 NSLock</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-2-%E9%80%92%E5%BD%92%E9%94%81"><span class="toc-number">3.3.</span> <span class="toc-text">3.2 递归锁</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-2-1-NSRecursiveLock"><span class="toc-number">3.4.</span> <span class="toc-text">3.2.1 NSRecursiveLock</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-2-2-synchronized"><span class="toc-number">3.5.</span> <span class="toc-text">3.2.2 synchronized</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-3-%E8%87%AA%E6%97%8B%E9%94%81%EF%BC%9A"><span class="toc-number">3.6.</span> <span class="toc-text">3.3 自旋锁：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-3-1-OSSpinLock"><span class="toc-number">3.7.</span> <span class="toc-text">3.3.1 OSSpinLock</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-3-2-os-unfair-lock"><span class="toc-number">3.8.</span> <span class="toc-text">3.3.2 os_unfair_lock</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-4-%E4%BF%A1%E5%8F%B7%E9%87%8F"><span class="toc-number">3.9.</span> <span class="toc-text">3.4 信号量</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-4-1-dispatch-semaphore"><span class="toc-number">3.10.</span> <span class="toc-text">3.4.1 dispatch_semaphore</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-5-%E6%9D%A1%E4%BB%B6%E9%94%81"><span class="toc-number">3.11.</span> <span class="toc-text">3.5 条件锁</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-5-1-NSCondition"><span class="toc-number">3.12.</span> <span class="toc-text">3.5.1 NSCondition</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-5-2-NSConditionLock"><span class="toc-number">3.13.</span> <span class="toc-text">3.5.2 NSConditionLock</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-6-%E8%AF%BB%E5%86%99%E9%94%81"><span class="toc-number">3.14.</span> <span class="toc-text">3.6 读写锁</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-6-1-dispatch-barrier-async-x2F-dispatch-barrier-sync"><span class="toc-number">3.15.</span> <span class="toc-text">3.6.1 dispatch_barrier_async &#x2F; dispatch_barrier_sync</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-6-1-pthread-rwlock"><span class="toc-number">3.16.</span> <span class="toc-text">3.6.1 pthread_rwlock</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-7-atomic"><span class="toc-number">3.17.</span> <span class="toc-text">3.7 atomic</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E5%85%B6%E5%AE%83%E4%BF%9D%E8%AF%81%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">4. 其它保证线程安全的方式</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-pthread%E7%9A%84%E5%90%84%E7%A7%8D%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">5. pthread的各种同步机制</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">6. 性能对比</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

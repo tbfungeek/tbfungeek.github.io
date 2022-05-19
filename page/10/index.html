@@ -1,0 +1,1745 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Android | 全栈工程师">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Edgar&#39;s Blog">
+<meta property="og:url" content="http://yoursite.com/page/10/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Android | 全栈工程师">
+<meta property="og:locale">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/08/iOS-分类与扩展与协议总结/" title="iOS 分类扩展与协议总结" itemprop="url">iOS 分类扩展与协议总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-08T07:12:30.000Z" itemprop="datePublished"> Published 2019-07-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h5 id="一-Category分类-Extension-扩展"><a href="#一-Category分类-Extension-扩展" class="headerlink" title="一 . Category分类 Extension 扩展"></a>一 . Category分类 Extension 扩展</h5><p>分类是Objective-C 2.0之后添加的语言特性</p>
+<h6 id="它有如下功能："><a href="#它有如下功能：" class="headerlink" title="它有如下功能："></a>它有如下功能：</h6><ul>
+<li>能够在不改变原来类内容的基础上，为类增加一些方法</li>
+<li>将类的实现分开写在几个分类里面<ul>
+<li>可以把不同的功能组织到不同的Category里，从而减少单个文件的体积</li>
+<li>可以由多个开发者共同完成一个类</li>
+<li>可以按需加载想要的category</li>
+<li>可以声明类的私有方法</li>
+<li>可以模拟多继承。</li>
+</ul>
+</li>
+</ul>
+<h6 id="分类使用过程中需要注意的点："><a href="#分类使用过程中需要注意的点：" class="headerlink" title="分类使用过程中需要注意的点："></a>分类使用过程中需要注意的点：</h6><ul>
+<li>分类只能增加方法，不能增加成员变量。</li>
+<li>分类方法实现中可以访问原来类中声明的成员变量。</li>
+<li>分类可以实现与原来类中相同的方法，但是这样做会覆盖掉原来的方法，实际上这里的覆盖和覆写类方法的覆盖是有区别的，这里的覆盖不是真正的替换，而是Category的方法被放到了新方法列表的前面，而原来类的方法被放到了新方法列表的后面，而运行时在查找方法的时候是顺着方法列表的顺序查找的，只要一找到对应名字的方法，就会停止查找，导致原来类中的方法不会被使用。</li>
+<li>当分类、原来类、原来类的父类中有相同方法时，方法调用的优先级：分类(最后参与编译的分类优先) –&gt; 原来类  –&gt; 父类</li>
+<li>Category是在runtime时候加载，而不是在编译的时候。</li>
+<li>Category不能添加成员变量因为在运行期，对象的内存布局已经确定，如果添加实例变量会破坏类的内部布局)，但是可以结合关联对象来为分类添加属性</li>
+<li>可以在类的+load方法调用category中声明的方法，因为添加category到类的工作会先于+load方法的执行，load执行循序是先主类，然后分类，分类的顺序取决于在Build Phases的顺序。</li>
+</ul>
+<p>总结来说类别可以添加实例方法，类方法，甚至可以实现协议，添加属性，但是不可以添加实例变量</p>
+<h6 id="Extension与Category区别"><a href="#Extension与Category区别" class="headerlink" title="Extension与Category区别"></a>Extension与Category区别</h6><p>刚刚开始接触Objective C的时候最容易搞混的就是扩展与分类，最初感觉扩展就是匿名的分类一样，但是后面才知道其实扩展和分类是两码事</p>
+<ul>
+<li><p>Extension 扩展<br>Extension是类的一部分，它和头文件的@interface和实现文件里的@implement一起形成了一个完整的类。伴随着类的产生而产生，也随着类的消失而消失。<br>Extension一般用来放置类的私有变量，必须有一个类的源码才能添加一个类的Extension</p>
+</li>
+<li><p>Category 分类<br> 是运行期决议的，类扩展可以添加实例变量，分类不能添加实例变量</p>
+</li>
+</ul>
+<h5 id="推荐文章"><a href="#推荐文章" class="headerlink" title="推荐文章"></a>推荐文章</h5><p><a target="_blank" rel="noopener" href="https://tech.meituan.com/2015/03/03/diveintocategory.html">深入理解Objective-C：Category</a><br><a target="_blank" rel="noopener" href="https://blog.sunnyxx.com/2014/03/05/objc_category_secret/">objc category的秘密</a><br><a target="_blank" rel="noopener" href="https://blog.sunnyxx.com/2014/03/05/objc_category_secret/">Objective-C封装技巧（一）：Category和继承的博弈</a><br><a target="_blank" rel="noopener" href="https://github.com/ibireme/YYCategories">YYCategories</a><br><a target="_blank" rel="noopener" href="https://github.com/silence0201/iOS-Category">iOS-Category</a></p>
+<h5 id="二-协议-Protocol"><a href="#二-协议-Protocol" class="headerlink" title="二. 协议 Protocol"></a>二. 协议 Protocol</h5><p>学过Java的同学都知道接口这个概念，在Objective C 中对应的被称为协议也就是Protocol，Protocol只能定义公用的一套接口，但不能提供具体的实现方法。也就是说，它只告诉你要做什么，但具体怎么做，它不关心。</p>
+<p>协议的作用很简单就是对某个或者某个系列的对象的行为起约束作用，就像给一个模版，后续只有满足这个模版的对象才能传入。</p>
+<h6 id="协议可用定义在单独-h文件中，也可用定义在某个类中："><a href="#协议可用定义在单独-h文件中，也可用定义在某个类中：" class="headerlink" title="协议可用定义在单独.h文件中，也可用定义在某个类中："></a>协议可用定义在单独.h文件中，也可用定义在某个类中：</h6><ul>
+<li>如果这个协议只用在某个类中，应该把协议定义在该类中</li>
+<li>如果这个协议用在很多类中，就应该定义在单独文件中</li>
+</ul>
+<h6 id="协议中方法声明的关键字"><a href="#协议中方法声明的关键字" class="headerlink" title="协议中方法声明的关键字"></a>协议中方法声明的关键字</h6><figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@required</span> (默认) 要求实现，如果没有实现，会发出警告，但不报错</span><br><span class="line"><span class="variable">@optional</span> 不要求实现，不实现也不会有警告</span><br></pre></td></tr></table></figure>
+
+<h6 id="导入协议"><a href="#导入协议" class="headerlink" title="导入协议"></a>导入协议</h6><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> 协议名称    告诉下面代码这是一个协议，但不知道协议里面有什么东西</span></span><br><span class="line"><span class="meta">#import “协议文件名.h” 需要知道协议里面的具体方法的时候需要通过这种方式导入</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="遵循协议"><a href="#遵循协议" class="headerlink" title="遵循协议"></a>遵循协议</h6><figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">类遵守协议(这里可以写在外部接口，也可以写在内部扩展部分)</span><br><span class="line">@<span class="keyword">interface</span> 类名 : 父类名 &lt;协议名称<span class="symbol">1</span>, 协议名称<span class="symbol">2</span>&gt;</span><br><span class="line"></span><br><span class="line">@<span class="symbol">end</span></span><br><span class="line"></span><br><span class="line">@<span class="symbol">interface</span> 类名()&lt;协议名称<span class="symbol">1</span>, 协议名称<span class="symbol">2</span>&gt;</span><br><span class="line"></span><br><span class="line">@<span class="symbol">end</span></span><br><span class="line"></span><br><span class="line">协议遵守协议</span><br><span class="line"></span><br><span class="line">@<span class="symbol">protocol</span> 协议名称 &lt;其他协议名称<span class="symbol">1</span>, 其他协议名称<span class="symbol">2</span>&gt;</span><br><span class="line"></span><br><span class="line">@<span class="symbol">end</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="使用协议约束属性或者变量"><a href="#使用协议约束属性或者变量" class="headerlink" title="使用协议约束属性或者变量"></a>使用协议约束属性或者变量</h6><figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@property</span>中声明的属性也可用做一个遵守协议的限制</span><br><span class="line"><span class="variable">@property</span> (nonatomic, strong) 类名&lt;协议名称&gt; *属性名;</span><br><span class="line"><span class="variable">@property</span> (nonatomic, strong) Dog&lt;MyProtocol&gt; *dog;</span><br><span class="line"><span class="variable">@property</span> (nonatomic, strong) id&lt;协议名称&gt; 属性名;</span><br><span class="line"><span class="variable">@property</span> (nonatomic, strong) id&lt;MyProtocol&gt; dog2;</span><br></pre></td></tr></table></figure>
+
+<h6 id="协议可以声明属性，但是不能添加实例变量"><a href="#协议可以声明属性，但是不能添加实例变量" class="headerlink" title="协议可以声明属性，但是不能添加实例变量"></a>协议可以声明属性，但是不能添加实例变量</h6><p>和分类一致的是协议也可以声明属性，但是一般很少这样做，一般协议中都是用于声明方法的，下面是协议声明属性的用法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">IDLTestProtocol</span> &lt;<span class="title">NSObject</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readwrite</span>) <span class="built_in">NSString</span> *test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">TestObject</span> : <span class="title">NSObject</span>&lt;<span class="title">IDLTestProtocol</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">TestObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@synthesize</span> test<span class="comment">/* 这个是供类外部使用的名称*/</span> = _helloWorld<span class="comment">/* 这个是供类内部使用的名称*/</span>;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">instancetype</span>)init &#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="variable language_">super</span> init];</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        _helloWorld = <span class="string">@&quot;linxiaohai&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line">测试代码</span><br><span class="line"></span><br><span class="line">TestObject *testObject = [[TestObject alloc] init];</span><br><span class="line">IDLLogError(<span class="string">@&quot;========&gt;%@&quot;</span>,testObject.test);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/08/iOS-分类与扩展与协议总结/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/08/iOS-分类与扩展与协议总结/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/08/iOS-Autorelease-Pool-总结/" title="iOS Autorelease Pool 总结" itemprop="url">iOS Autorelease Pool 总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-08T01:48:10.000Z" itemprop="datePublished"> Published 2019-07-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>原本打算将AutoreleasePool和内存管理，Runloop，线程，事件分发放在一块介绍的，因为这些都有着密切的联系，但是考虑到这样的话文章会很长，看得都累，所以还是分开了。</p>
+<h5 id="1-AutoReleasePool-是什么"><a href="#1-AutoReleasePool-是什么" class="headerlink" title="1. AutoReleasePool 是什么"></a>1. AutoReleasePool 是什么</h5><p>看过iOS内存管理的都知道，iOS内存管理使用的引用计数会在不使用某个对象的时候调用release 方法，将某个对象的引用计数减1，当某个对象当引用计数减到0的时候对象被释放，dealloc被调用。但是某些情况需要延迟释放，最常见的例子比如当你在一个方法中返回一个对象时就需要延迟释放，AutoreleasePool是一种内存自动回收机制，它可以延迟加入AutoreleasePool中的变量release的时机。在正常情况下，创建的变量会在超出其作用域的时候release，但是如果将变量加入AutoreleasePool，那么release将延迟执行。具体这些对象什么时候释放，在后续的介绍中将会介绍。这部分只要知道AutoReleasePool 是什么就可以了：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">Autorelase<span class="built_in"> Pool </span>提供了一种可以允许你向一个对象延迟发送release消息的机制。当你想放弃一个对象的所有权，同时又不希望这个对象立即被释放掉（例如在一个方法中返回一个对象时），Autorelease<span class="built_in"> Pool </span>的作用就显现出来了。</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-从宏观看AutoReleasePool位于哪个位置"><a href="#2-从宏观看AutoReleasePool位于哪个位置" class="headerlink" title="2.从宏观看AutoReleasePool位于哪个位置"></a>2.从宏观看AutoReleasePool位于哪个位置</h5><p>终于可以上图了：</p>
+<p><img src="/2019/07/08/iOS-Autorelease-Pool-%E6%80%BB%E7%BB%93/00001.png"></p>
+<p>在一个应用中有两种释放池局部释放池和RunLoop释放池，上图中展示的是RunLoop释放池，局部释放池比较简单，就是在autoreleasepool花括号结束的时候释放释放池里面的对象的，所以这里最关键的就是RunLoop释放池</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@autoreleasepool</span> &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>RunLoop释放池会在进入主线程Runloop的时候新建一个Autoreleasepool,在从睡眠被唤醒的时候，通过pop后再push清空并重建一个Autoreleasepool，在退出RunLoop的时候pop掉Autoreleasepool</p>
+<h5 id="3-AutoReleasePool的内部结构与机制"><a href="#3-AutoReleasePool的内部结构与机制" class="headerlink" title="3. AutoReleasePool的内部结构与机制"></a>3. AutoReleasePool的内部结构与机制</h5><p><img src="/2019/07/08/iOS-Autorelease-Pool-%E6%80%BB%E7%BB%93/00002.png"></p>
+<p>首先AutoReleasePool是由多个AutoreleasePoolPage构成的双向链表。<br>每个AutoreleasePoolPage大小为4096字节，被分成两大部分：<br>AutoreleasePoolPage描述部分，它是由如下字段构成，大小为56字节：</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">magic</span> 用来校验 AutoreleasePoolPage 的结构是否完整;</span><br><span class="line"><span class="attribute">next</span> 指向最新添加的 autoreleased 对象的下一个位置，初始化时指向 begin();</span><br><span class="line"><span class="attribute">thread</span> 指向当前线程;</span><br><span class="line"><span class="attribute">parent</span> 指向父结点，第一个结点的 parent 值为 nil;</span><br><span class="line"><span class="attribute">child</span> 指向子结点，最后一个结点的 child 值为 nil;</span><br><span class="line"><span class="attribute">depth</span> hiwat 不是我们的重点这里不介绍 </span><br></pre></td></tr></table></figure>
+<p>剩余的用来存储加入到自动释放池的对象，它们其实只是指向这些对象的指针，对象还是存储在堆上。<br>当前正在使用的AutoreleasePoolPage被称为hotPage.</p>
+<p>当我们在代码中使用</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@autoreleasepool</span> &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>的时候会转化为：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void<span class="operator"> * </span>atautoreleasepoolobj = objc<span class="constructor">_autoreleasePoolPush()</span>;</span><br><span class="line"><span class="comment">// do whatever you want</span></span><br><span class="line">objc<span class="constructor">_autoreleasePoolPop(<span class="params">atautoreleasepoolobj</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-1-objc-autoreleasePoolPush"><a href="#3-1-objc-autoreleasePoolPush" class="headerlink" title="3.1 objc_autoreleasePoolPush"></a>3.1 objc_autoreleasePoolPush</h6><p>objc_autoreleasePoolPush 内部很简单就是调用AutoreleasePoolPage类的push方法。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> *<span class="title function_">objc_autoreleasePoolPush</span>(<span class="params"><span class="keyword">void</span></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">AutoreleasePoolPage</span>::<span class="title function_">push</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>AutoreleasePoolPage::push会往当前使用的hotPage中添加一个POOL_BOUNDARY 自动释放池边界标记，这个标记作为返回值返回，作为pop的参数。</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">static inline void *<span class="built_in">push</span>() &#123;</span><br><span class="line">   return <span class="built_in">autoreleaseFast</span>(POOL_BOUNDARY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后的完自动释放池添加对象最终也是调用autoreleaseFast。</p>
+<figure class="highlight sas"><table><tr><td class="code"><pre><span class="line">static inline id <span class="comment">*autoreleaseFast(id obj) &#123;</span></span><br><span class="line"><span class="comment">   AutoreleasePoolPage *page = hotPage();</span></span><br><span class="line">   <span class="keyword">if</span> (<span class="keyword">page</span> <span class="variable">&amp;&amp;</span> !<span class="keyword">page</span>-&gt;full()) &#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">page</span>-&gt;<span class="keyword">add</span>(obj);</span><br><span class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">page</span>) &#123;</span><br><span class="line">       <span class="keyword">return</span> autoreleaseFullPage(obj, <span class="keyword">page</span>);</span><br><span class="line">   &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">       <span class="keyword">return</span> autoreleaseNoPage(obj);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>它分三种情况：</p>
+<ul>
+<li>hotPage 不存在:<br>比如刚开始的时候是没有hotPage的，它会创建一个然后调用setHotPage将新建的page设置为hotpage，如果没有POOL_BOUNDARY，先往AutoreleasePoolPage添加一个POOL_BOUNDARY，然后再将带加入释放池对象的指针添加到AutoreleasePoolPage。</li>
+</ul>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">static id *autorelease<span class="constructor">NoPage(<span class="params">id</span> <span class="params">obj</span>)</span> &#123;</span><br><span class="line">    AutoreleasePoolPage *page = <span class="keyword">new</span> <span class="constructor">AutoreleasePoolPage(<span class="params">nil</span>)</span>;</span><br><span class="line">    set<span class="constructor">HotPage(<span class="params">page</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (obj != POOL_BOUNDARY) &#123;</span><br><span class="line">        page-&gt;add(POOL_BOUNDARY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return page-&gt;add(obj);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>hotPage 存在并且还没满</li>
+</ul>
+<p>调用 page-&gt;add(obj) 方法将对象加入当前hotPage中，也就是将对象添加到next指向的位置，然后将next指向下一个空的位置。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="built_in">id</span> *add(<span class="built_in">id</span> obj) &#123;</span><br><span class="line">    <span class="built_in">id</span> *ret = <span class="built_in">next</span>;</span><br><span class="line">    *<span class="built_in">next</span> = obj;</span><br><span class="line">    <span class="built_in">next</span>++;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>hotPage 满了</li>
+</ul>
+<p>调用 autoreleaseFullPage(obj, page) 方法，该方法会先查找 hotPage 的 child，如果有则将 child page 设置为 hotPage，如果没有则将创建一个新的 hotPage，之后在这个新的 hotPage 上执行 page-&gt;add(obj) 操作</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">static id *autoreleaseFullPage(id obj, AutoreleasePoolPage *<span class="built_in">page</span>) &#123;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="function"><span class="title">if</span> (<span class="built_in">page</span>-&gt;</span><span class="function"><span class="title">child</span>) <span class="built_in">page</span> = <span class="built_in">page</span>-&gt;</span>child;</span><br><span class="line">        <span class="keyword">else</span> <span class="built_in">page</span> = new AutoreleasePoolPage(<span class="built_in">page</span>);</span><br><span class="line">    &#125; <span class="function"><span class="title">while</span> (<span class="built_in">page</span>-&gt;</span>full());</span><br><span class="line"></span><br><span class="line">    setHotPage(<span class="built_in">page</span>);</span><br><span class="line">    <span class="function"><span class="title">return</span> <span class="built_in">page</span>-&gt;</span>add(obj);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h6 id="3-2-objc-autoreleasePoolPop"><a href="#3-2-objc-autoreleasePoolPop" class="headerlink" title="3.2 objc_autoreleasePoolPop"></a>3.2 objc_autoreleasePoolPop</h6><p>objc_autoreleasePoolPop</p>
+<p>objc_autoreleasePoolPop 里面只是简单调用AutoreleasePoolPage::pop方法，传入的参数一般是一个POOL_BOUNDARY，</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">objc_autoreleasePoolPop</span><span class="params">(<span class="type">void</span> *ctxt)</span></span>&#123;</span><br><span class="line">    AutoreleasePoolPage::<span class="built_in">pop</span>(ctxt);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AutoreleasePoolPage::pop 首先会找到POOL_BOUNDARY所在的页面的地址，然后调用releaseUntil,releaseUntil会针对每页的每一项调用memset重置，然后调用objc_release将对应的对象release。最后将当前页面以及子页面全部删除</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">static inline void pop(void *token) </span><br><span class="line">&#123;</span><br><span class="line">    AutoreleasePoolPage  *<span class="built_in">page</span> = pageForPointer(token);</span><br><span class="line">    id *stop = (id *)token;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="title">page</span>-&gt;</span>releaseUntil(stop);</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="title">if</span> (<span class="built_in">page</span>-&gt;</span>child) &#123;</span><br><span class="line">        <span class="comment">// hysteresis: keep one empty child if page is more than half full</span></span><br><span class="line">        <span class="function"><span class="title">if</span> (<span class="built_in">page</span>-&gt;</span>lessThanHalfFull()) &#123;</span><br><span class="line">            <span class="function"><span class="title">page</span>-&gt;</span><span class="function"><span class="title">child</span>-&gt;</span>kill();</span><br><span class="line">        &#125; <span class="function"><span class="title">else</span> <span class="keyword">if</span> (<span class="built_in">page</span>-&gt;</span><span class="function"><span class="title">child</span>-&gt;</span>child) &#123;</span><br><span class="line">            <span class="function"><span class="title">page</span>-&gt;</span><span class="function"><span class="title">child</span>-&gt;</span><span class="function"><span class="title">child</span>-&gt;</span>kill();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-3-autorelease"><a href="#3-3-autorelease" class="headerlink" title="3.3 autorelease"></a>3.3 autorelease</h6><p>当某个对象调用autorelease的时候，最终会调用AutoreleasePoolPage::autorelease</p>
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="built_in">id</span> autorelease(<span class="built_in">id</span> obj) &#123;</span><br><span class="line">   <span class="built_in">id</span> <span class="operator">*</span>dest __unused <span class="operator">=</span> autoreleaseFast(obj);</span><br><span class="line">   <span class="keyword">return</span> obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终还是调用autoreleaseFast</p>
+<h6 id="3-4-AutoReleasePool-drain-和-release区别"><a href="#3-4-AutoReleasePool-drain-和-release区别" class="headerlink" title="3.4 AutoReleasePool drain 和 release区别"></a>3.4 AutoReleasePool drain 和 release区别</h6><p>当我们向自动释放池pool发送 release 消息时，它会向池中的每一个发送了 autorelease 消息的对象发送一条 release 消息，并且自身也会销毁。当向它发送 drain 消息时，只会释放里面的对象，而不会销毁自己。</p>
+<h6 id="3-5-什么情况下会将对象放到自动释放池："><a href="#3-5-什么情况下会将对象放到自动释放池：" class="headerlink" title="3.5 什么情况下会将对象放到自动释放池："></a>3.5 什么情况下会将对象放到自动释放池：</h6><ol>
+<li>对象作为方法返回值时候</li>
+<li>通过类方法创建对象的时候</li>
+<li>使用如下的便捷语法来建立对象的时候</li>
+</ol>
+<figure class="highlight autoit"><table><tr><td class="code"><pre><span class="line">NSArray *array = <span class="symbol">@[</span>@<span class="string">&quot;abc&quot;</span>,@<span class="string">&quot;def&quot;</span>]<span class="comment">;</span></span><br><span class="line">NSNumber *<span class="built_in">number</span> = <span class="symbol">@123</span><span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/08/iOS-Autorelease-Pool-总结/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/08/iOS-Autorelease-Pool-总结/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/06/iOS-内存管理总结/" title="iOS 内存管理总结" itemprop="url">iOS 内存管理总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-06T10:03:38.000Z" itemprop="datePublished"> Published 2019-07-06</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h5 id="1-内存区域分布"><a href="#1-内存区域分布" class="headerlink" title="1. 内存区域分布"></a>1. 内存区域分布</h5><p><img src="/2019/07/06/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%80%BB%E7%BB%93/00001.png"></p>
+<p>堆操作：<br>操作系统中有一个存放堆内空闲存储块地址和大小的链表，当程序员申请空间的时候，系统就会遍历整个链表，找到第一个比申请空间大的空闲块节点，系统会将该空闲块从空闲链表中删除，分配给程序，由于申请的空间不一定与找到的空闲块大小相同，多出来剩余的空闲区会被系统重新添加到空闲链表中。当我需要删除对象时，便会根据指针纪录的地址，将这一块区域重新加入到链表中</p>
+<p>栈操作：<br>栈区的内存是系统自动申请的而且是有序的。我们在申请栈空间时就只能在栈的顶部进行申请，当程序执行某个方法（或者函数）时，会从内存中栈（stack）的区域分配出一块内存空间，这个内存空间被称之为帧（frame）用来储存程序在这个方法内声明的变量的值。当应用启动并运行 main 函数时，它的帧会被存在栈的底部。当 main 继续调用另外一个方法时,这个方法的帧又会继续被压入栈的顶部。被调用的方法还可以再调用其他方法，以此类推，会有帧继续被压入栈顶，在被调用的方法结束后，程序会将其帧从栈顶释放。</p>
+<h5 id="2-iOS-引用计数内存管理策略"><a href="#2-iOS-引用计数内存管理策略" class="headerlink" title="2. iOS 引用计数内存管理策略"></a>2. iOS 引用计数内存管理策略</h5><p>引用计数是一种内存管理技术，是指将资源（可以是对象、内存或磁盘空间等等）的被引用次数保存起来，当被引用次数变为零时就将其释放的过程。从而实现资源自动管理的目的。它的做法是:当创建一个对象的实例并在堆上申请内存时，对象的引用计数就为1，在其他对象中需要持有这个对象时，就需要把该对象的引用计数加1，需要释放一个对象时，就将该对象的引用计数减1，对象的引用计数为0时对象的内存会被立刻释放。</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">*</span> 当程序调用方法名以alloc、new、copy、mutableCopy开头的方法来创建对象时，该对象的引用计数加1，这种情况我们将拥有所创建的这个对象。</span><br><span class="line"><span class="bullet">*</span> 当有一个新的指针指向这个对象时（或者调用retain方法时），我们将其引用计数加 1，接收到此调用的对象通常保证在他接收到retain所在的方法中保持有效。</span><br><span class="line"><span class="bullet">*</span> 除了以alloc、new、copy、mutableCopy 开头的方式创建对象外，其他方式创建的对象都是会被添加到AutoReleasePool，该对象的引用计数不会+1,这种情况下我们不用负责释放对象。</span><br><span class="line"><span class="bullet">*</span> 当某个指针不再指向这个对象时（或者调用release方法时），我们将其引用计数减 1 </span><br><span class="line"><span class="bullet">*</span> 当对象的引用计数变为 0 时，说明这个对象不再被任何指针指向了，这个时候我们就可以将对象销毁，回收内存。这时候会调用该对象的dealloc方法。</span><br><span class="line"></span><br><span class="line"><span class="bullet">*</span> 对于数组类型其引用计数是会自动的相应变化的：</span><br><span class="line"><span class="bullet">1.</span> 当一个对象被添加进数组时 ，对象的引用计数也会相应的增加。</span><br><span class="line"><span class="bullet">2.</span> 数组移除指定的对象或者时所有对象，其被移除的对象会 release</span><br><span class="line"><span class="bullet">3.</span> 当数组销毁时，所有对象均会 release。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="3-iOS开发中的内存管理四个黄金法则"><a href="#3-iOS开发中的内存管理四个黄金法则" class="headerlink" title="3. iOS开发中的内存管理四个黄金法则"></a>3. iOS开发中的内存管理四个黄金法则</h5><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>自己生成的对象，自己持有</span><br><span class="line"><span class="bullet">* </span>非自己生成的对象，自己也能持有</span><br><span class="line"><span class="bullet">* </span>不再需要自己持有的对象的时候，释放</span><br><span class="line"><span class="bullet">* </span>非自己持有的对象无法释放</span><br></pre></td></tr></table></figure>
+
+<h5 id="4-有关引用计数的方法："><a href="#4-有关引用计数的方法：" class="headerlink" title="4. 有关引用计数的方法："></a>4. 有关引用计数的方法：</h5><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>—retain：将该对象的引用计数器加1,从而持有该对象，但是并不拥有对象的释放权利。</span><br><span class="line"><span class="bullet">* </span>—release：将该对象的引用计数器减1,注意只有在计数为0的时候才会释放，而不是说一旦release就释放。</span><br><span class="line"><span class="bullet">* </span>—autorelease：调用 autorelease 后，对象不会被立即释放，而是注册到 autoreleasepool 中，经过一段时间后 pool结束，此时调用release方法，引用计数减1。</span><br><span class="line"><span class="bullet">* </span>—retainCount：返回该对象的引用计数的值。</span><br><span class="line"><span class="bullet">* </span>dealloc: 当一个对象一个拥有者都没有的话，dealloc就会被自动调用，dealloc方法的角色是释放对象自己的内存，并且销毁他所拥有的资源，包括所有对象变量的拥有权。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="5-iOS中的变量标识符-amp-属性标识符"><a href="#5-iOS中的变量标识符-amp-属性标识符" class="headerlink" title="5. iOS中的变量标识符 &amp; 属性标识符"></a>5. iOS中的变量标识符 &amp; 属性标识符</h5><p>变量标识符</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="variable">__strong</span>                持有强引用的变量在超出其作用域时被废弃，随着强引用的失效，引用的对象会随之释放，从另一个角度讲只要还有一个强指针指向某个对象，这个对象就会一直存活</span><br><span class="line"><span class="variable">__weak</span>                  弱引用虽然持有对象，但是并不增加引用计数，这样就避免了循环引用的产生，如果对象没有被其他对象强引用，弱引用会被置为 <span class="literal">nil</span>，弱引用的实现原理是这样：</span><br><span class="line">                        系统对于每一个有弱引用的对象，都维护一个表来记录它所有的弱引用的指针地址。这样，当一个对象的引用计数为 <span class="number">0</span> 时，系统就通过这张表，找到所有的弱引用指针，</span><br><span class="line">                        继而把它们都置成 <span class="literal">nil</span>。</span><br><span class="line"><span class="variable">__unsafe_unretained</span>     它和<span class="variable">__weak</span>有点类似，只不过在没有被其他对象强引用的时候它不会被置为 <span class="literal">nil</span>。如果它引用的对象被回收掉了，该指针就变成了野指针。</span><br><span class="line">                        <span class="variable">__unsafe_unretained</span>修饰符的变量不属于编译器的内存管理对象，赋值时即不获得强引用也不获得弱引用。</span><br><span class="line"></span><br><span class="line"><span class="variable">__autoreleasing</span>         替代autorelease方法</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>属性标识符</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span> (<span class="keyword">assign</span>/<span class="keyword">retain</span>/<span class="keyword">strong</span>/<span class="keyword">weak</span>/<span class="keyword">unsafe_unretained</span>/<span class="keyword">copy</span>) PropertyType* propertyType</span><br><span class="line"></span><br><span class="line">* <span class="keyword">assign</span> 表明 <span class="keyword">setter</span> 仅仅是一个简单的赋值操作，没有持有不持有这一说，通常用于基本的数值类型</span><br><span class="line">* <span class="keyword">strong</span> 表明属性定义一个持有者关系。当给属性设定一个新值的时候，首先对旧值进行 release ，对新值进行<span class="keyword">retain</span> 然后进行赋值操作。</span><br><span class="line">* <span class="keyword">weak</span> 表明属性定义了一个持有者关系。当给属性设定一个新值的时候，这个值不会进行 <span class="keyword">retain</span>，旧值也不会进行 release， 而是进行类似 <span class="keyword">assign</span> 的操作。</span><br><span class="line">  不过当属性指向的对象被销毁时，该属性会被置为<span class="literal">nil</span>。</span><br><span class="line">* <span class="keyword">unsafe_unretained</span> 的语义和 <span class="keyword">assign</span> 类似，不过是用于对象类型的，表示一个非拥有(unretained)的，同时也不会在对象被销毁时置为<span class="literal">nil</span>的(unsafe)关系。</span><br><span class="line">* <span class="keyword">copy</span> 类似于 <span class="keyword">strong</span>，不过在赋值时进行 <span class="keyword">copy</span> 操作而不是 <span class="keyword">retain</span> 操作。通常在需要保留某个不可变对象，并且防止它被意外改变时使用。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>概括得讲：<br>strong 和 copy都会持有对象，一个是持有对象的本身，一个是持有对象的副本。<br>weak，unsafe_unretained 更像一个旁观者，它们不会对数据的引用计数起到任何的改变，它看着对象被持有，被销毁却无能为力，只不过weak会在对象被销毁的时候会将其置为nil。而unsafe_unretained不会，unsafe_unretained 在开发中用得比较少， 如果对性能有极高的要求方可以考虑使用 unsafe_unretained 替换 weak，因为weak 其实对性能还是有影响的，只不过少量使用的时候是不会察觉到的，但是在类似YYModel这种序列化，反序列化库如果大量使用weak，肯定会对性能有较大的影响，weak的最主要作用就是解决循环引用的问题。这个会在后面做介绍，其实这个已经在Block总结的时候已经介绍过了。</p>
+<h5 id="6-ARC规则"><a href="#6-ARC规则" class="headerlink" title="6. ARC规则"></a>6. ARC规则</h5><p>与Java 中 GC 不同，ARC 是编译器特性，而不是基于运行时的，ARC 背后的原理是依赖编译器的静态分析能力，通过在编译时找出合理的插入引用计数管理代码，而不是实时监控与回收内存。</p>
+<p>需要注意的是ARC 所做的事情并不仅仅局限于在编译期找到合适的位置帮你插入合适的 release 等等这样的内存管理方法，其在运行时期也做了一些优化，比如：</p>
+<ul>
+<li>合并对称的引用计数操作。比如将 +1&#x2F;-1&#x2F;+1&#x2F;-1 直接置为 0.</li>
+<li>巧妙地跳过某些情况下 autorelease 机制的调用。<br>当返回值被返回之后，紧接着就需要被 retain 的时候，没有必要进行 autorelease + retain，直接什么都不要做就好了。</li>
+</ul>
+<p>ARC 打开的情况下有如下限制：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">* 不能使用<span class="keyword">retain</span>/release/retainCount/autorelease</span><br><span class="line">* 不能使用<span class="built_in">NSAllocateObject</span>/<span class="built_in">NSDeallocateObject</span></span><br><span class="line">* 须遵守内存管理的方法命名规则</span><br><span class="line">* 不要显式调用dealloc</span><br><span class="line">* 使用<span class="keyword">@autoreleasepool</span>块替代<span class="built_in">NSAutoreleasePool</span></span><br><span class="line">* 不能使用<span class="built_in">NSZone</span></span><br><span class="line">* 对象型变量不能作为C语言结构体（<span class="keyword">struct</span>、<span class="keyword">union</span>）的成员: 要把对象类型添加到结构体成员中，可以强制转换为<span class="type">void</span> *或是附加__<span class="keyword">unsafe_unretained</span>修饰符。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="7-内存相关常见问题"><a href="#7-内存相关常见问题" class="headerlink" title="7. 内存相关常见问题"></a>7. 内存相关常见问题</h5><p>内存问题有两种：</p>
+<ul>
+<li>释放得太早，还在使用中就释放：</li>
+</ul>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">如果某个对象有至少一个拥有者，那么就必须保留不能释放，否则的话其他对象或者方法仍然有指向这个对象的指针沦为野指针（空指针）。这称之为过早释放，这是十分危险的，因为当野指针指向的内存区域再次被某个新的对象使用时，野指针上的操作便会破坏这个新对象造成文件丢失或者崩溃。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>释放得太晚，已经不用了但是还没释放：</li>
+</ul>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">如果某个对象失去了拥有者（变成没有拥有者）那么应该将其释放掉，否则没有拥有者的对象会被孤立而程序找不到，并且始终占用着一块内存，导致内存泄漏</span><br></pre></td></tr></table></figure>
+
+<h6 id="7-1-内存泄漏"><a href="#7-1-内存泄漏" class="headerlink" title="7.1 内存泄漏"></a>7.1 内存泄漏</h6><p>ARC内存泄露常见场景:</p>
+<ul>
+<li>对象型变量作为C语言结构体，或者联合体（struct、union）的成员</li>
+</ul>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> Data &#123;</span><br><span class="line">    <span class="built_in">NSMutableArray</span> __<span class="keyword">unsafe_unretained</span> *array;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>__unsafe_unretained修饰符的变量不属于编译器的内存管理对象。如果管理时不注意赋值对象的所有者，便可能遭遇内存泄露或者程序崩溃。</p>
+<ul>
+<li>循环引用</li>
+</ul>
+<p>循环引用常见有如下几种情况：</p>
+<ol>
+<li>两个对象互相持有对象，这个可以设置弱引用解决，最常见的是block，但是需要注意并非所有的block都需要使用weak来打破循环引用，如果self没有持有block就不会造成循环引用。而有些地方之所以使用了__weak，是为了在[self dealloc]之后就不再执行了。</li>
+</ol>
+<p>解决方案 1：在block外部对弱化self，在block内部强化已经弱化的weakSelf</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Test</span>: <span class="title">NSObject</span> </span>&#123;</span><br><span class="line">    <span class="type">id</span> __<span class="keyword">weak</span> obj_;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)setObject:(<span class="type">id</span> __<span class="keyword">strong</span>)obj;</span><br><span class="line">block持有<span class="keyword">self</span>对象，这个要在block块外面和里面设置弱引用和强引用。</span><br><span class="line"></span><br><span class="line">__<span class="keyword">weak</span> __<span class="keyword">typeof</span>(<span class="keyword">self</span>) wself = <span class="keyword">self</span>;</span><br><span class="line">obj.block = ^&#123;</span><br><span class="line">    __<span class="keyword">strong</span> __<span class="keyword">typeof</span>(wself) sself = wself;</span><br><span class="line">    [sself updateSomeThing];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>解决方法 2: 通过将对象在block中设置为nil,但是这种需要注意的是block一定要被执行</p>
+<figure class="highlight nim"><table><tr><td class="code"><pre><span class="line">__block <span class="type">TestObject</span> *<span class="keyword">object</span> = [[<span class="type">TestObject</span> alloc] init…];</span><br><span class="line"><span class="keyword">object</span>.completionHandler =  ^(<span class="type">NSInteger</span> <span class="built_in">result</span>) &#123;</span><br><span class="line">    [<span class="keyword">object</span> testMethod];</span><br><span class="line">    <span class="keyword">object</span> = <span class="keyword">nil</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>NSTimer的target持有self</li>
+</ol>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">self</span>.timmer = [<span class="built_in">NSTimer</span> scheduledTimerWithTimeInterval:<span class="number">1.0</span> </span><br><span class="line">                                               target:<span class="keyword">self</span> </span><br><span class="line">                                              selector:<span class="keyword">@selector</span>(updateTime:) </span><br><span class="line">                                              userInfo:<span class="literal">nil</span> </span><br><span class="line">                                               repeats:<span class="literal">YES</span>];</span><br></pre></td></tr></table></figure>
+
+<p>NSTimer会造成循环引用，timer会强引用target即self，一般self又会持有timer作为属性，这样就造成了循环引用。<br>如果timer只作为局部变量，不把timer作为属性同样释放不了，因为在加入runloop的操作中，timer被强引用。而timer作为局部变量，是无法执行invalidate的，所以在timer被invalidate之前，self也就不会被释放。</p>
+<p>解决方案：在恰当时机调用[timer invalidate]即可,这个需要根据业务来自己决定，但是放在dealloc中调用是无效的，因为循环引用的情况下dealloc是不会被调用的，所以[timer invalidate]也就不会被调用。</p>
+<p>还有下面几种定时相关的情形也需要注意：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">__weak <span class="constructor">__typeof(<span class="params">self</span>)</span> wself = self;</span><br><span class="line">dispatch<span class="constructor">_after(<span class="params">dispatch_time</span>(DISPATCH_TIME_NOW, (<span class="params">int64_t</span>)</span>(<span class="number">5</span><span class="operator"> * </span>NSEC_PER_SEC)), dispatch<span class="constructor">_get_main_queue()</span>, ^&#123;</span><br><span class="line">    <span class="literal">[<span class="identifier">wself</span> <span class="identifier">commentAnimation</span>]</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">__weak __typeof(<span class="name">self</span>) wself = self<span class="comment">;</span></span><br><span class="line">timer = dispatch_source_create(<span class="name">DISPATCH_SOURCE_TYPE_TIMER</span>, <span class="number">0</span>, <span class="number">0</span>, dispatch_get_main_queue())<span class="comment">;</span></span><br><span class="line">dispatch_source_set_timer(<span class="name">timer</span>, DISPATCH_TIME_NOW, <span class="number">5</span> * NSEC_PER_SEC, 1 * NSEC_PER_SEC)<span class="comment">;</span></span><br><span class="line">dispatch_source_set_event_handler(<span class="name">timer</span>, ^&#123;</span><br><span class="line">    [wself commentAnimation]<span class="comment">;</span></span><br><span class="line">&#125;)<span class="comment">;</span></span><br><span class="line">dispatch_resume(<span class="name">timer</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>代理delegate</li>
+</ol>
+<p>代理在一般情况下，需要使用weak修饰，我们常见的delegate 一般会是VC的属性，被VC持有，同时我们会将VC相关的属性作为delegate从而导致循环引用。<br>解决方案：delegate属性使用weak修饰</p>
+<ol start="4">
+<li>NSNotification</li>
+</ol>
+<p>使用block的方式增加notification，引用了self，在删除notification之前，self不会被释放</p>
+<p>解决方案：在block内部使用弱引用解决</p>
+<ul>
+<li>对象被单例持有</li>
+</ul>
+<p>我们在单例里面设置一个对象的属性，因为单例是不会释放的，所以单例会有一直持有这个对象的引用。</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">[Instanse shared].obj <span class="operator">=</span> self<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>CF类型内存</li>
+</ul>
+<p>注意以creat,copy作为关键字的函数都是需要释放内存的.</p>
+<h5 id="8-内存泄漏的排查方法"><a href="#8-内存泄漏的排查方法" class="headerlink" title="8. 内存泄漏的排查方法"></a>8. 内存泄漏的排查方法</h5><ul>
+<li>静态分析方法（Analyze）</li>
+<li>动态分析方法（Instrument工具库里的Leaks,Allocations）</li>
+<li>在可疑对象的dealloc方法中添加log进行查看</li>
+<li>使用三方开源库：</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://wereadteam.github.io/2016/02/22/MLeaksFinder/">MLeaksFinder</a><br><a target="_blank" rel="noopener" href="http://mrpeak.cn/blog/leak/">PLeakSniffer</a><br><a target="_blank" rel="noopener" href="https://github.com/facebook/FBRetainCycleDetector">FBRetainCycleDetector</a><br><a target="_blank" rel="noopener" href="https://github.com/facebook/FBAllocationTracker">FBAllocationTracker</a><br><a target="_blank" rel="noopener" href="https://github.com/facebook/FBMemoryProfiler">FBMemoryProfiler</a><br><a target="_blank" rel="noopener" href="https://code.fb.com/ios/automatic-memory-leak-detection-on-ios/">介绍FBRetainCycleDetector，FBAllocationTracker，FBMemoryProfiler的文章</a></p>
+<h5 id="9-AutoreleasePool-与-RunLoop的关系"><a href="#9-AutoreleasePool-与-RunLoop的关系" class="headerlink" title="9. AutoreleasePool 与 RunLoop的关系"></a>9. AutoreleasePool 与 RunLoop的关系</h5><p>主线程的AutoreleasePool会在RunLoop进入的时候重新建立一个，在RunLoop退出休眠状态的时候也会进行释放后重新建立一个。在退出RunLoop的时候释放AutoreleasePool，具体见RunLoop总结</p>
+<h5 id="10-weak-strong-dance"><a href="#10-weak-strong-dance" class="headerlink" title="10. weak-strong dance"></a>10. weak-strong dance</h5><p>在7.1 介绍内存泄漏类型时候提到循环引用的一种解决方案是在block外部对弱化self，在block内部强化已经弱化的weakSelf，这也就是这里所说的 weak-strong dance，block外部对弱化self是为了避免循环引用，而在block内部强化已经弱化的weakSelf是为了避免外部_weak导致在运行block的时候self被释放。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/06/iOS-内存管理总结/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/06/iOS-内存管理总结/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/04/iOS中的宏用法简单总结/" title="iOS中的宏用法简单总结" itemprop="url">iOS中的宏用法简单总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-04T10:02:14.000Z" itemprop="datePublished"> Published 2019-07-04</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>原谅我的懒 !!!</p>
+<ol>
+<li><p>宏定义在 #define 那一行结束。如果你要书写多行，需要使用 \ 换行</p>
+</li>
+<li><p>只有在定义宏之后，宏才能生效</p>
+</li>
+<li><p>类函数宏 #define lang_init()  c_init()</p>
+</li>
+<li><p>宏参数 #define min(A, B)  ((A) &lt; (B) ? (A) : (B))</p>
+</li>
+<li><p>如果宏的内容中有字符串，那么不会被宏参数替换：#define foo(x) x, “x”   &#x3D;&#x3D;&#x3D;&gt;  foo(bar)   → bar, “x”</p>
+</li>
+<li><p>一定要为宏参数添加括号</p>
+</li>
+<li><p>若宏的结果为值，则为整个宏添加括号</p>
+</li>
+<li><p>若宏替换的是代码块，则要为这段代码添加 do{…}while(0)</p>
+</li>
+<li><p>可以在宏参数前添加 #，将参数转换为字符串,字符串化会将参数中的所有字符(包括引号)都字符串化，如果中间有很多空格，字符串化后将只有一个空格。如果想通过 # 来实现参数值的字符串化，就需要需要使用两层的宏：</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="selector-id">#define</span> <span class="built_in">IDL_NS_STR</span>(x) <span class="built_in">IDL_INNER_NS_STR</span>(x)</span><br><span class="line"><span class="selector-id">#define</span> <span class="built_in">IDL_INNER_NS_STR</span>(x) @<span class="selector-id">#x</span></span><br><span class="line"><span class="selector-id">#define</span> FOO <span class="number">4</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">IDL_INNER_NS_STR</span><span class="params">(FOO)</span></span></span><br><span class="line">→ <span class="string">&quot;FOO&quot;</span></span><br><span class="line"><span class="function"><span class="title">IDL_NS_STR</span><span class="params">(FOO)</span></span></span><br><span class="line">→ <span class="string">&quot;4&quot;</span></span><br></pre></td></tr></table></figure>
+<p>在使用 IDL_INNER_NS_STR 的时候，x 会立即被字符串化，而没有被宏展开。但是如果我们使用另外一个宏 IDL_NS_STR 嵌套着，那就会先展开，将值带入后，然后再字符串化。</p>
+</li>
+<li><p>使用”##”操作符可以实现宏中标记的连接。预处理器会将所有注释转为空格，## 会将左右的空格都忽略。</p>
+</li>
+<li><p>如果不确定有多少个宏参数，可以使用 … 代替，这在很多语言中都有类似的做法。相应的，使用 <strong>VA_ARGS</strong> 在具体的宏中，代替 … </p>
+<figure class="highlight clean"><table><tr><td class="code"><pre><span class="line">#define IDL_PRINTF(…) fprintf (stderr, ##__VA_ARGS__)</span><br></pre></td></tr></table></figure>
+<p>在加上 ## 之后，预处理器就会在传入空的时候，删掉前面的 , 了</p>
+</li>
+<li><p>C语言中预定义宏：</p>
+</li>
+</ol>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="emphasis">__FILE__</span> ：当前源代码的文件名（字符串）</span><br><span class="line"><span class="emphasis">__LINE__</span>：当前源代码中的行号（整型）</span><br><span class="line"><span class="emphasis">__DATE__</span>：进行预处理的日期（”Mmm dd yyyy”形式的字符串）</span><br><span class="line"><span class="emphasis">__TIME__</span>：源文件编译时间（格式“hh:mm:ss”）</span><br><span class="line"><span class="emphasis">__FUNCTION__</span>：同<span class="emphasis">__func__</span>（但IDE不支持），当前源代码的函数名</span><br><span class="line"><span class="emphasis">__PRETTY_FUNCTION__</span>：同<span class="emphasis">__FUNCITON__</span>，但在g++下会输类名、函数名及其他函数信息</span><br></pre></td></tr></table></figure>
+
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/04/iOS中的宏用法简单总结/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/04/iOS中的宏用法简单总结/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/02/Objective-C-代码规范/" title="Objective C 代码规范" itemprop="url">Objective C 代码规范</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-01T16:29:36.000Z" itemprop="datePublished"> Published 2019-07-02</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <blockquote>
+<p>该文档的目的在于规范整个项目的代码，使得代码更具可读性，在草拟该文档的时候常照了较多较好的代码规范文档，这些文档将会罗列在该文档参考文献部分。大家如果在使用该文档过程中发现有任何的遗漏或者有更好的规范或者异议都欢迎联系本人(文档末尾有本人的联系邮箱)。  </p>
+</blockquote>
+<h3 id="为什么需要有代码规范"><a href="#为什么需要有代码规范" class="headerlink" title="为什么需要有代码规范"></a>为什么需要有代码规范</h3><p>一般一个项目代码通常是由一个团队共同开发维护的产物，随着业务的不断扩展，功能的快速迭代，代码会变得越来越庞大，如果这个时候不同的开发者的code风格千差万别，那么阅读代码将会是一件十分痛苦的事情。代码规范除了一些必须遵守的规则外，大多是没有对错而言，它只是让整个项目的代码看起开风格更加统一，我们知道人对熟悉的东西接受起来会快，对于熟悉的代码风格同样也是这个道理，这就是为每个项目拟定代码规范的意义所在.  </p>
+<p>该规范整体分成三类：</p>
+<ul>
+<li>[命名规范]</li>
+<li>[编码规范]</li>
+</ul>
+<p>所有规范分成两个等级</p>
+<ul>
+<li>[必须]</li>
+<li>[建议]</li>
+</ul>
+<h3 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h3><ol>
+<li><p>命名规范</p>
+<ul>
+<li>通用命名规范</li>
+<li>文件命名规范</li>
+<li>类命名规范</li>
+<li>方法命名规范</li>
+<li>Getter&#x2F;Setter命名规范</li>
+<li>属性，参数命名规范</li>
+<li>Delegate 命名规范</li>
+<li>Protocol命名规范</li>
+<li>Catogries命名规范</li>
+<li>常量命名规范</li>
+<li>Exception命名规范</li>
+<li>Notification命名规范</li>
+</ul>
+</li>
+<li><p>编码规范</p>
+<ul>
+<li>Initialize 规范</li>
+<li>dealloc 规范</li>
+<li>Block规范</li>
+<li>Notification规范</li>
+<li>Collection规范</li>
+<li>控制语句规范</li>
+<li>对象判等规范</li>
+<li>懒加载规范</li>
+<li>内存管理规范</li>
+</ul>
+</li>
+<li><p>项目设计规范</p>
+<ul>
+<li>源码注释规范</li>
+<li>文件导入规范</li>
+<li>代码布局规范</li>
+<li>interface接口文件布局规范</li>
+<li>类设计规范</li>
+</ul>
+</li>
+</ol>
+<h4 id="命名规范"><a href="#命名规范" class="headerlink" title="命名规范"></a>命名规范</h4><h5 id="通用命名规范"><a href="#通用命名规范" class="headerlink" title="通用命名规范"></a>通用命名规范</h5><ul>
+<li>[必须] 命名必须具备见名知意的效果，禁止中文拼音，过度缩写，以及一切无意义的命名。</li>
+<li>[必须] 除了通知和掩码常量外命名禁止自我指涉(在变量的末尾增加类型后缀)</li>
+<li>[必须] 参数名、成员变量、局部变量、属性名都要采用小写字母开头的驼峰命名方式。如果方法名以一个众所周知的大写缩略词开始，可以不适用驼峰命名方式。比如FTP、WWW URL等。</li>
+<li>[建议] 不同文件中或者不同类中具有相同功能或相似功能的属性的命名应该是相同的或者相似的。比如：count同时定义在NSDictionary、NSArray、NSSet这三个集合类中。且这三个集合类中的count属性都代表同一个意思，即集合中对象的个数。</li>
+<li>[建议] 一般情况下，不要缩写或省略单词，建议拼写出来，即使它有点长。</li>
+</ul>
+<h5 id="文件命名规范"><a href="#文件命名规范" class="headerlink" title="文件命名规范"></a>文件命名规范</h5><p>我们在刚拿到代码的时候首先会先看项目的目录结构，其次就是文件的组织，而了解文件的组织就是从文件名开始，所以文件命名也是一个非常重要的工作。</p>
+<ul>
+<li>[必须] 分类文件必须使用分类所依附的主类名 + 分类名称的形式 比如:UIImage+NMAddition.h</li>
+<li>[必须] 一般建议一个文件中只定义一个类，但是如果定义多个的时候，使用最主要的那个类的名称作为文件名。</li>
+<li>[必须] 文件后缀选择：<figure class="highlight delphi"><table><tr><td class="code"><pre><span class="line">Extension    <span class="keyword">Type</span></span><br><span class="line">.h      C/C++/Objective-C header <span class="keyword">file</span></span><br><span class="line">.m      Objective-C <span class="keyword">implementation</span> <span class="keyword">file</span></span><br><span class="line">.mm     Objective-C++ <span class="keyword">implementation</span> <span class="keyword">file</span></span><br><span class="line">.cc     Pure C++ <span class="keyword">implementation</span> <span class="keyword">file</span></span><br><span class="line">.c      C <span class="keyword">implementation</span> <span class="keyword">file</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="类命名规范"><a href="#类命名规范" class="headerlink" title="类命名规范"></a>类命名规范</h5><ul>
+<li>[必须] 类的名称应该由两部分组成，前缀+名称，前缀用大写字符，名称用大写开头的驼峰规则命名。</li>
+<li>[建议] 前缀一般使用项目产品名的缩写，之所以不使用公司组织的缩写是因为一个公司有多个产品，使用公司名来作为前缀有可能导致重复。对于前缀一般使用多于两位的大写字符，因为苹果默认保留了两位字符的缩写前缀，但是这不是必须的。</li>
+</ul>
+<h5 id="方法命名规范"><a href="#方法命名规范" class="headerlink" title="方法命名规范"></a>方法命名规范</h5><ul>
+<li>[必须] 方法名必须使用小写开头的驼峰命名方式，如果方法名以一个中所周知的大写缩略词开头，该规则可以忽略。</li>
+<li>[必须] 一般类方法名不需要使用前缀，因为它们存在于特定类的命名空间中，私有方法可以使用统一的前缀来分组和辨识</li>
+<li>[必须] 禁止在方法前面加下划线“ _ ”。Apple官网团队经常在方法前面加下划线”_”。为了避免方法覆盖，导致不可预知的意外，禁止在方法前面加下划线。</li>
+<li>[必须] 如果一个方法代表某个名词执行的动作，则该方法应该以一个动词开头。但不要使用“do”或者”does”作为方法名称的一部分，因为这些助动词不能为方法名称增加太多的意义，反而让方法看起来更加臃肿。同时，也请不要在动词前面使用副词或者形容词。</li>
+<li>[建议] 方法实现时，如果参数过长，则令每个参数占用一行，以冒号对齐,在分行时，如果第一段名称过短，后续名称可以以Tab的长度（4个空格）为单位进行缩进，<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">-<span class="params">(id)</span>initWithModel:<span class="params">(IPCModle)</span>model</span><br><span class="line">       ConnectType:<span class="params">(IPCConnectType)</span>connectType</span><br><span class="line">        Resolution:<span class="params">(IPCResolution)</span>resolution</span><br><span class="line">          AuthName:<span class="params">(NSString *)</span>authName</span><br><span class="line">          Password:<span class="params">(NSString *)</span>password</span><br><span class="line">               MAC:<span class="params">(NSString *)</span>mac</span><br><span class="line">              AzIp:<span class="params">(NSString *)</span>az_ip</span><br><span class="line">             AzDns:<span class="params">(NSString *)</span>az_dns</span><br><span class="line">             Token:<span class="params">(NSString *)</span>token</span><br><span class="line">             Email:<span class="params">(NSString *)</span>email</span><br><span class="line">          Delegate:<span class="params">(id&lt;IPCConnectHandlerDelegate&gt;)</span>delegate;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- <span class="params">(void)</span>short:<span class="params">(GTMFoo *)</span>theFoo</span><br><span class="line">          longKeyword:<span class="params">(NSRect)</span>theRect</span><br><span class="line">    evenLongerKeyword:<span class="params">(float)</span>theInterval</span><br><span class="line">                error:<span class="params">(NSError **)</span>theError &#123;</span><br><span class="line">                ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 如果一个方法调用语句太长，需要对参数进行冒号对齐，如果只有一个冒号，但是还是太长了，可以换行，并且第二行与第一行的第二个字符对齐。</li>
+<li>[必须] 只有在访问某个属性的时候使用”点访问，其他的使用空格调用。</li>
+<li>[建议] 对输入参数的正确性和有效性进行检查，参数错误立即返回</li>
+<li>[建议] 对于有返回值的方法，每一个分支都必须有返回值。</li>
+<li>[必须] 禁止直接调用NSObject的类方法+new，也不要在子类中重载它。使用alloc和init方法<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">self.productsRequest</span> = [[SKProductsRequest alloc]   </span><br><span class="line">  initWithProductIdentifiers:productIdentifiers]<span class="comment">;</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] 在方法定义的时候需要在-&#x2F;+符号后面添加一个空格<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>invokeWithTarget:<span class="params">(id)</span>target;</span><br><span class="line">- <span class="params">(void)</span>selectTabViewItem:<span class="params">(NSTabViewItem *)</span>tabViewItem</span><br></pre></td></tr></table></figure></li>
+<li>[必须] 如果某个方法返回一个对象，那么名字应该使用返回对象的名字来命名</li>
+<li>[必须] 如果方法返回接收者的某个属性，那么请直接以属性名作为方法名。如果方法间接的返回一个或多个值，我们可以使用“getxxx”的方式来命名方法。相反，无需额外的在方法名前面添加”get”。<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">- (NSSize)cellSize<span class="comment">;     OK</span></span><br><span class="line">- (NSSize)calcCellSize<span class="comment">; 不OK</span></span><br><span class="line">- (NSSize)getCellSize<span class="comment">;  不OK</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] 所有参数前面都应该添加关键字</li>
+<li>[必须] 尽量使用”with”, “from”, and “to”,进行连接，请不要使用“and”连接接收者属性，但是如果方法描述了两个独立的动作，可以考虑使用“and”连接起来。</li>
+<li>[必须]  方法定义keyword 和参数之间不能有空格<figure class="highlight arcade"><table><tr><td class="code"><pre><span class="line">可以写成这样</span><br><span class="line">- (<span class="keyword">void</span>)setExample:(NSString *)<span class="built_in">text</span>;</span><br><span class="line">不能写成这样</span><br><span class="line">- (<span class="keyword">void</span>)setExample: (NSString *)<span class="built_in">text</span>;</span><br><span class="line">- (<span class="keyword">void</span>)setExample:(NSString *) <span class="built_in">text</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h6 id="Getter-x2F-Setter命名规范"><a href="#Getter-x2F-Setter命名规范" class="headerlink" title="Getter&#x2F;Setter命名规范"></a>Getter&#x2F;Setter命名规范</h6><ul>
+<li>[建议] 如果属性是名词，推荐格式如下：<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(type)</span>noun;</span><br><span class="line">- <span class="params">(void)</span>setNoun:<span class="params">(type)</span>aNoun;</span><br><span class="line">例如：</span><br><span class="line">- <span class="params">(NSString *)</span>title;</span><br><span class="line">- <span class="params">(void)</span>setTitle:<span class="params">(NSString *)</span>aTitle;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 如果某个属性或者变量的名称是一个形容词，可以省略is前缀，并在属性定义的时候使用getter来指定getter方法的名称。<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span> (<span class="keyword">assign</span>, <span class="keyword">getter</span>=isEditable) <span class="type">BOOL</span> editable;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 如果属性是一个动词，动词使用一般现在时。推荐格式如下：<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>verbObject;</span><br><span class="line">- <span class="params">(void)</span>setVerbObject:<span class="params">(BOOL)</span>flag;</span><br><span class="line">例如：</span><br><span class="line">- <span class="params">(BOOL)</span>showsAlpha;</span><br><span class="line">- <span class="params">(void)</span>setShowsAlpha:<span class="params">(BOOL)</span>flag;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] 不要把动词的过去分词形式当做形容词来使用。</li>
+<li>[建议] 可以使用情态动词（can、should、will等）明确方法意义，但不要使用do、does这类无意义的情态动词。</li>
+<li>[建议] 只有方法间接的返回一个数值，或者需要多个数值需要被返回的时候，才有必要在方法名称中使用“get”。像这种接收多个参数的方法应该能够传入nil，因为调用者未必对每个参数都感兴趣<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)getLineDash:(<span class="keyword">float</span> *)pattern <span class="keyword">count</span>:(<span class="keyword">int</span> *)<span class="keyword">count</span> phase:(<span class="keyword">float</span> *)phase;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="属性，参数命名规范"><a href="#属性，参数命名规范" class="headerlink" title="属性，参数命名规范"></a>属性，参数命名规范</h5><ul>
+<li>[建议] 每个属性命名都加上类型后缀,也就是说变量的名称必须同时包含功能与类型，如，按钮就加上Button后缀，模型就加上Model后缀</li>
+<li>[建议] 属性的关键字推荐按照 原子性，读写，内存管理的顺序排列。<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readwrite</span>, <span class="keyword">copy</span>) <span class="built_in">NSString</span> *name;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>, <span class="keyword">copy</span>) <span class="built_in">NSString</span> *gender;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readwrite</span>, <span class="keyword">strong</span>) <span class="built_in">UIView</span> *headerView;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] Block,NSString属性应该使用copy关键字</li>
+<li>[必须] delegate 应该使用weak关键字</li>
+<li>[必须] 禁止使用synthesize关键词</li>
+<li>[建议] 如果是静态常量，仅限本类内使用的，加上前缀s_，如果是整个工程共用，以sg_为前缀。如：<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">s_kMaxHeight<span class="comment">; </span></span><br><span class="line">sg_kMaxHeight<span class="comment">;</span></span><br></pre></td></tr></table></figure></li>
+<li>[建议] 对于本地变量，在最靠京它们使用的地方声明，并且在它们声明的同时对其进行初始化</li>
+<li>[建议] 由于32位和64位版本的大小不同，请避免使用long类型，NSInteger，NSUInteger和CGFloat，除非匹配系统接口。类型long，NSInteger，NSUInteger和CGFloat在32位和64位版本之间的大小不同。在处理由系统接口公开的值时，使用这些类型是合适的，但对于大多数其他计算应该避免使用它们。</li>
+<li>[必须] 在使用整形变量存储ID之类的值时，需要使用uint32 uint64这一类，长度不会随着平台版本不同而不同的变量类型。</li>
+<li>[必须] 在遇到遵循某个协议的对象定义的时候，不要在id和协议之间加空格</li>
+<li>[必须]  在定义NSArray和NSDictionary时使用泛型，可以保证程序的安全性：</li>
+<li>[必须] 当使用属性，对象实例变量，应该使用self.形式访问，这样可以确保调用的是具备Setter&#x2F;Getter方法修饰过的属性值。但是在init和dealloc内建议使用类似_variableName形式的访问方式避免Setter&#x2F;Getter 带来的副作用，更不要在Setter&#x2F;Getter 方法中使用self.这样会导致死循环。</li>
+<li>[必须] 在定义属性或者变量的时候指针应该归变量，也就是说建议使用:<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">NSString *<span class="built_in">text</span></span><br><span class="line"></span><br><span class="line">而不是</span><br><span class="line"></span><br><span class="line">NSString* <span class="built_in">text</span></span><br><span class="line">NSString * <span class="built_in">text</span></span><br></pre></td></tr></table></figure></li>
+<li>[建议] 私有属性强烈建议写在类的空扩展中<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> IDLCodeStylePrivateDemo ()</span><br><span class="line"></span><br><span class="line"><span class="variable">@property</span> (nonatomic, strong, readwrite) NSString *privateProperty;</span><br><span class="line"></span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] 对于对外只读属性仅在.h接口文件中定义并指定其读写属性为readonly，<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> IDLCodeStylePrivateDemo</span><br><span class="line"></span><br><span class="line"><span class="variable">@property</span> (nonatomic, strong, readonly) NSString *readonlyProperty;</span><br><span class="line"></span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] 如果在实现内部需要修改该属性需要在空扩展内部添加读写属性为readwrite的同名属性：<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> IDLCodeStylePrivateDemo ()</span><br><span class="line"></span><br><span class="line"><span class="variable">@property</span> (nonatomic, strong, readwrite) NSString *readonlyProperty;</span><br><span class="line"></span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] 当变量释放后，需要将变量置为nil,避免因为野指针引起的程序崩溃。</li>
+<li>[必须] 变量在使用前应初始化，防止未初始化的变量被引用。</li>
+</ul>
+<h5 id="Delegate-方法命名规范"><a href="#Delegate-方法命名规范" class="headerlink" title="Delegate 方法命名规范"></a>Delegate 方法命名规范</h5><ul>
+<li>[建议] 用delegate做后缀，如<UIScrollViewDelegate> 当你的委托的方法过多, 可以拆分数据部分和其他逻辑部分, 数据部分用dataSource做后缀. 如<UITableViewDataSource></UITableViewDataSource></UIScrollViewDelegate></li>
+<li>[建议] 名称以标示发送消息的对象的类名开头,省略类名的前缀并⼩小写第⼀个字⺟<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>tableView:<span class="params">(NSTableView *)</span>tableView shouldSelectRow:<span class="params">(int)</span>row;</span><br><span class="line">- <span class="params">(BOOL)</span>application:<span class="params">(NSApplication *)</span>sender openFile:<span class="params">(NSString *)</span>filename;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 除非delegate方法只有一个参数，即触发delegate方法调用的delegating对象，否则冒号是紧跟在类名后面的。<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>applicationOpenUntitledFile:<span class="params">(NSApplication *)</span>sender;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] ⽤于通知委托对象操作即将发生或已经发⽣的方法名中要使⽤did或will</li>
+<li>[建议] 用于询问委托对象可否执行某操作的⽅法名中可使⽤did或will,但最好使⽤should<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>windowShouldClose:<span class="params">(id)</span>sender;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="Protocol命名规范"><a href="#Protocol命名规范" class="headerlink" title="Protocol命名规范"></a>Protocol命名规范</h5><ul>
+<li>[建议] 有时候protocol只是声明了一堆相关方法，并不关联class。这种不关联class的protocol使用ing形式以和class区分开来。比如NSLocking而非NSLock。</li>
+<li>[建议] 如果proctocol不仅声明了一堆相关方法，还关联了某个class。这种关联class的protocol的命名取决于关联的class，然后再后面再加上protocol或delegate用于显示的声明这是一份协议。</li>
+<li>[必须] 用optional修饰可以不实现的方法，用required修饰必须实现的方法</li>
+</ul>
+<h5 id="Catogries命名规范"><a href="#Catogries命名规范" class="headerlink" title="Catogries命名规范"></a>Catogries命名规范</h5><ul>
+<li>[必须] category中不要声明属性和成员变量。</li>
+<li>[必须] 避免category中的方法覆盖系统方法。可以使用前缀来区分系统方法和category方法。但前缀不要仅仅使用下划线”_“。</li>
+<li>[必须] 如果一个类比较复杂，建议使用category的方式组织代码。具体可以参考UIView。</li>
+</ul>
+<h5 id="常量命名规范"><a href="#常量命名规范" class="headerlink" title="常量命名规范"></a>常量命名规范</h5><ul>
+<li>[必须] 在代码中的常量必须抽成宏或者静态常量，避免使用硬编码内容</li>
+</ul>
+<h5 id="枚举常量"><a href="#枚举常量" class="headerlink" title="枚举常量"></a>枚举常量</h5><ul>
+<li>[必须] 使用枚举类型来表示一组相关的整型常量。<figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">typedef <span class="type">NS_ENUM</span>(<span class="type">NSUInteger</span>, <span class="type">VPLeftMenuTopItemType</span>) &#123;</span><br><span class="line">    <span class="type">VPLeftMenuTopItemTypeMain</span> = 0,</span><br><span class="line">    <span class="type">VPLeftMenuTopItemTypeShows</span>,</span><br><span class="line">    <span class="type">VPLeftMenuTopItemTypeSchedule</span>,</span><br><span class="line">    <span class="type">VPLeftMenuTopItemTypeWatchLive</span>,</span><br><span class="line">    <span class="type">VPLeftMenuTopItemTypeMax</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">typedef <span class="type">NS_ENUM</span>(<span class="type">NSInteger</span>, <span class="type">RBKGlobalConstants</span>) &#123;</span><br><span class="line">    <span class="type">RBKPinSizeMin</span> = 1,</span><br><span class="line">    <span class="type">RBKPinSizeMax</span> = 5,</span><br><span class="line">    <span class="type">RBKPinCountMin</span> = 100,</span><br><span class="line">    <span class="type">RBKPinCountMax</span> = 500,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h6 id="const常量"><a href="#const常量" class="headerlink" title="const常量"></a>const常量</h6><ul>
+<li>[必须] 使用const关键字创建浮点型常量。如果一个整型常量和其他常量不相关，可以使用const来创建，否则，使用枚举类型表示一组相关的整型常量。<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="type">int</span> kFileCount = <span class="number">12</span>;</span><br><span class="line"><span class="keyword">static</span> <span class="built_in">NSString</span> *<span class="keyword">const</span> kUserKey = <span class="string">@&quot;kUserKey&quot;</span>;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] 通常情况下，不要使用#define预处理命令创建常量。</li>
+<li>[必须] 对于局限于某编译单元(实现文件)的常量，以字符k开头，例如kAnimationDuration，且需要以static const修饰<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">推荐这样写：</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="built_in">NSTimeInterval</span> kFadeOutAnimationDuration = <span class="number">0.4</span>;</span><br><span class="line">不推荐这样写：</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="built_in">NSTimeInterval</span> fadeOutTime = <span class="number">0.4</span>;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] 对于定义于类头文件的常量，外部可见，则以定义该常量所在类的类名开头，例如EOCViewClassAnimationDuration, 仿照苹果风格，在头文件中进行extern声明，在实现文件中定义其值<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">例如 在头文件中声明如下定义</span><br><span class="line"><span class="keyword">extern</span> <span class="type">const</span> <span class="type">float</span> EOCViewClassAnimationDuration;</span><br><span class="line">在实现文件中做如下声明</span><br><span class="line"><span class="type">const</span> <span class="type">float</span> EOCViewClassAnimationDuration = <span class="number">18.0</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h6 id="宏常量"><a href="#宏常量" class="headerlink" title="宏常量"></a>宏常量</h6><ul>
+<li>[必须] #define 预处理定义的常量全部大写，单词间用 _ 分隔</li>
+<li>[必须] 宏定义中如果包含表达式或变量，表达式或变量必须用小括号括起来。</li>
+</ul>
+<h5 id="Exception命名规范"><a href="#Exception命名规范" class="headerlink" title="Exception命名规范"></a>Exception命名规范</h5><ul>
+<li>[必须] 异常是用全局的NSString字符串进行标识。命名方式如下：<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[Prefix]</span> + <span class="selector-attr">[异常模块]</span> + <span class="selector-attr">[异常简要描述]</span> + Exception</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="Notification命名规范"><a href="#Notification命名规范" class="headerlink" title="Notification命名规范"></a>Notification命名规范</h5><ul>
+<li>[必须] notification的命名使用全局的NSString字符串进行标识。命名方式如下： <figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">[Name of associated <span class="keyword">class</span>] + [Did | Will] + [UniquePartOfName] + Notification</span><br><span class="line"></span><br><span class="line">例如：</span><br><span class="line"><span class="built_in">NSApplicationDidBecomeActiveNotification</span></span><br><span class="line"><span class="built_in">NSWindowDidMiniaturizeNotification</span></span><br><span class="line"><span class="built_in">NSTextViewDidChangeSelectionNotification</span></span><br><span class="line"><span class="built_in">NSColorPanelColorDidChangeNotification</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] object通常是指发出notification的对象，如果在发送notification的同时要传递一些额外的信息，请使用userInfo，而不是object。</li>
+<li>[必须] 如果某个通知是为了告知外界某个事件”即将”发生或者”已经”发生，则请在通知名称中使用“will”或者“did”这样的助动词。例<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">如：</span><br><span class="line">UIKeyboardWillChangeFrameNotification<span class="comment">;</span></span><br><span class="line">UIKeyboardDidChangeFrameNotification<span class="comment">;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="编码规范"><a href="#编码规范" class="headerlink" title="编码规范"></a>编码规范</h4><h5 id="Initialize-规范"><a href="#Initialize-规范" class="headerlink" title="Initialize 规范"></a>Initialize 规范</h5><p>initialize类方法先于其他的方法调用。且initialize方法给我们提供了一个让代码once、lazy执行的地方。initialize通常被用于设置class的版本号,initialize方法的调用遵循继承规则(所谓继承规则，简单来讲是指：子类方法中可以调用到父类的同名方法，即使没有调用[super xxx])。如果我们没有实现initialize方法，运行时初次调用这个类的时候，系统会沿着继承链(类继承体系)，先后给继承链上游中的每个超类发送一条initialize消息，直到某个超类实现了initlialize方法，才会停止向上调用。因此，在运行时,某个类的initialize方法可能会被调用多次</p>
+<ul>
+<li>[必须] 如果我们想要让initialize方法仅仅被调用一次，那么需要借助于GCD的dispatch_once()<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">+ (<span class="type">void</span>)initialize &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">        <span class="comment">// the initializing code</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 如果我们想在继承体系的某个指定的类的initialize方法中执行一些初始化代码，可以使用类型检查和而非dispatch_once()<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">self</span> == [<span class="built_in">NSFoo</span> <span class="keyword">class</span>]) &#123;</span><br><span class="line">    <span class="comment">// the initializing code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] initialize是由系统自动调用的方法，我们不应该显示或手动调用initialize方法</li>
+</ul>
+<h5 id="Init-规范"><a href="#Init-规范" class="headerlink" title="Init 规范"></a>Init 规范</h5><p>Objective-C有designated Initializers和secondary Initializers的概念:<br>指定初始化方法(designated initializer)是提供所有的（最多的）参数的初始化方法，间接初始化方法(secondary initializer)有一个或部分参数的初始化方法。一个类可以有一个或者多个designated Initializers。但是要保证所有的其他secondary initializers都要调用designated Initializers。即：只有designated Initializers才会存储对象的信息。这样的好处是：当这个类底层的某些数据存储机制发生变化时(可能是一些property的变更)，只需要修改这个designated Initializers内部的代码即可。无需改动其他secondary Initializers初始化方法的代码。</p>
+<ul>
+<li>[必须] 所有secondary 初始化方法都应该调用designated 初始化方法。</li>
+<li>[必须] 所有子类的designated初始化方法都要调用父类的designated初始化方法。使这种调用关系沿着类的继承体系形成一条链。</li>
+<li>[必须] 如果子类的designated初始化方法与超类的designated初始化方法不同，则子类应该覆写超类的designated初始化方法。（因为开发者很有可能直接调用超类的某个designated方法来初始化一个子类对象，这样也是合情合理的，但使用超类的方法初始化子类，可能会导致子类在初始化时缺失一些必要信息）。</li>
+<li>[必须] 如果超类的某个初始化方法不适用于子类，则子类应该覆写这个超类的方法，并在其中抛出异常。</li>
+<li>[必须] 禁止子类的designated初始化方法调用父类的secondary初始化方法。否则容易陷入方法调用死循环。<br>如果想在当前类自定义一个新的全能初始化方法，则需要如下几个步骤：</li>
+<li>定义新的指定初始化方法，并确保调用了直接父类的初始化方法。</li>
+<li>重载直接父类的初始化方法，在内部调用新定义的指定初始化方法。</li>
+<li>为新的指定初始化方法写文档。<br>重载父类的初始化方法并在内部调用新定义的指定初始化方法的原因是你不能确定调用者调用的就一定是你定义的这个新的指定初始化方法，而不是原来从父类继承来的指定初始化方法。假设你没有重载父类的指定初始化方法，而调用者却恰恰调用了父类的初始化方法。那么调用者可能永远都调用不到你自己定义的新指定初始化方法了。而如果你成功定义了一个新的指定初始化方法并能保证调用者一定能调用它，你最好要在文档中明确写出哪一个才是你定义的新初始化方法。或者你也可以使用编译器指令__attribute__((objc_designated_initializer))来标记它。<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 超类</span></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">ParentObject</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">ParentObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//designated initializer    </span></span><br><span class="line">- (<span class="keyword">instancetype</span>)initWithURL:(<span class="built_in">NSString</span>*)url title:(<span class="built_in">NSString</span>*)title &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span> = [<span class="variable language_">super</span> init]) &#123;</span><br><span class="line">        _url = [url <span class="keyword">copy</span>];</span><br><span class="line">        _title = [title <span class="keyword">copy</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//secondary initializer</span></span><br><span class="line">- (<span class="keyword">instancetype</span>)initWithURL:(<span class="built_in">NSString</span>*)url &#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="keyword">self</span> initWithURL:url title:<span class="literal">nil</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 子类</span></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">ChildObject</span> : <span class="title">ParentObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">ChildObject</span></span></span><br><span class="line"><span class="comment">//designated initializer</span></span><br><span class="line">- (<span class="keyword">instancetype</span>)initWithURL:(<span class="built_in">NSString</span>*)url title:(<span class="built_in">NSString</span>*)title &#123;</span><br><span class="line">    <span class="comment">//在designated intializer中调用 secondary initializer，错误的</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span> = [<span class="variable language_">super</span> initWithURL:url]) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">ViewController</span></span></span><br><span class="line">- (<span class="type">void</span>)viewDidLoad &#123;</span><br><span class="line">    [<span class="variable language_">super</span> viewDidLoad];</span><br><span class="line">    <span class="comment">// 这里会死循环</span></span><br><span class="line">    ChildObject* child = [[ChildObject alloc] initWithURL:<span class="string">@&quot;url&quot;</span> title:<span class="string">@&quot;title&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] 禁止在init方法中使用self.xxx的方式访问属性。如果存在继承的情况下，很有可能导致崩溃。原因见文章<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/3cf3f5007243">为什么不能在init和dealloc函数中使用accessor方法</a></li>
+<li>[必须] 校验父类designated初始化方法返回的对象是否为nil。如果初始化当前对象的时候发生了错误，应该给予对应的处理：释放对象，并返回nil。</li>
+</ul>
+<h5 id="dealloc-规范"><a href="#dealloc-规范" class="headerlink" title="dealloc 规范"></a>dealloc 规范</h5><ul>
+<li>[必须] 不要忘记在dealloc方法中移除通知和KVO。</li>
+<li>[建议] dealloc 方法应该放在实现文件的最上面，在任何类中，init 都应该直接放在 dealloc 方法的下面，如果有多个初始化方法，应该将指定初始化方法放在最前面，其他初始化方法放在其后。</li>
+<li>[必须] 在dealloc方法中，禁止将self作为参数传递出去，如果self被retain住，到下个runloop周期再释放，则会造成多次释放crash。如下：<figure class="highlight monkey"><table><tr><td class="code"><pre><span class="line">- (void)dealloc&#123;</span><br><span class="line">    [<span class="variable language_">self</span> unsafeMethod:<span class="variable language_">self</span>];</span><br><span class="line">    //因为当前已经在<span class="variable language_">self</span>这个指针所指向的对象的销毁阶段，销毁<span class="variable language_">self</span>所指向的对象已经在所难免。如果在unsafeMethod:中把<span class="variable language_">self</span>放到了autorelease poll中，那么<span class="variable language_">self</span>会被retain住，计划下个runloop周期在进行销毁。但是dealloc运行结束后，<span class="variable language_">self</span>所指向的对象的内存空间就直接被回收了，但是<span class="variable language_">self</span>这个指针还没有销毁(即没有被置为nil)，导致<span class="variable language_">self</span>变成了一个名副其实的野指针。</span><br><span class="line">    // 到了下一个runloop周期，因为<span class="variable language_">self</span>所指向的对象已经被销毁，会因为非法访问而造成crash问题。</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] 和init方法一样，禁止在dealloc方法中使用self.xxx的方式访问属性。如果存在继承的情况下，很有可能导致崩溃。</li>
+</ul>
+<h5 id="Block规范"><a href="#Block规范" class="headerlink" title="Block规范"></a>Block规范</h5><ul>
+<li>[必须] 调用block时需要对block判空。</li>
+<li>[必须] 注意block潜在的引用循环。</li>
+<li>[建议] 较短的block可以写在一行内。</li>
+<li>[建议] 如果分行显示的话，block的右括号}应该和调用block那行代码的第一个非空字符对齐。block内的代码采用4个空格的缩进。<br>如果block过于庞大，应该单独声明成一个变量来使用。^和(之间，^和{之间都没有空格，参数列表的右括号)和{之间有一个空格。<figure class="highlight wren"><table><tr><td class="code"><pre><span class="line"><span class="comment">//较短的block写在一行内</span></span><br><span class="line">[<span class="variable">operation</span> <span class="variable">setCompletionBlock</span>:<span class="operator">^</span>&#123; [<span class="variable">self</span> <span class="variable">onOperationDone</span>]; &#125;];</span><br><span class="line"></span><br><span class="line"><span class="comment">//分行书写的block，内部使用4空格缩进</span></span><br><span class="line">[<span class="variable">operation</span> <span class="variable">setCompletionBlock</span>:<span class="operator">^</span>&#123;</span><br><span class="line">    [<span class="variable">self</span>.<span class="property">delegate</span> <span class="variable">newDataAvailable</span>];</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line"><span class="comment">//使用C语言API调用的block遵循同样的书写规则</span></span><br><span class="line"><span class="title function_">dispatch_async</span>(_<span class="params">fileIOQueue</span>, ^&#123;</span><br><span class="line">    <span class="params">NSString</span>* <span class="params">path</span> = [<span class="params">self</span> <span class="params">sessionFilePath</span>];</span><br><span class="line">    <span class="params">if</span> (<span class="params">path</span>) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">//较长的block关键字可以缩进后在新行书写，注意block的右括号&#x27;&#125;&#x27;和调用block那行代码的第一个非空字符对齐</span></span><br><span class="line">[[<span class="title class_">SessionService</span> <span class="variable">sharedService</span>]</span><br><span class="line">    <span class="variable">loadWindowWithCompletionBlock</span>:<span class="title function_">^</span>(<span class="params">SessionWindow</span> *<span class="params">window</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable">window</span>) &#123;</span><br><span class="line">            [<span class="variable">self</span> <span class="variable">windowDidLoad</span>:<span class="variable">window</span>];</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            [<span class="variable">self</span> <span class="variable">errorLoadingWindow</span>];</span><br><span class="line">        &#125;</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line"><span class="comment">//较长的block参数列表同样可以缩进后在新行书写</span></span><br><span class="line">[[<span class="title class_">SessionService</span> <span class="variable">sharedService</span>]</span><br><span class="line">    <span class="variable">loadWindowWithCompletionBlock</span>:</span><br><span class="line">        <span class="title function_">^</span>(<span class="params">SessionWindow</span> *<span class="params">window</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="variable">window</span>) &#123;</span><br><span class="line">                [<span class="variable">self</span> <span class="variable">windowDidLoad</span>:<span class="variable">window</span>];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                [<span class="variable">self</span> <span class="variable">errorLoadingWindow</span>];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;];</span><br><span class="line"></span><br><span class="line"><span class="comment">//庞大的block应该单独定义成变量使用</span></span><br><span class="line"><span class="title function_">void</span> (<span class="operator">^</span><span class="variable">largeBlock</span>)(<span class="variable">void</span>) <span class="operator">=</span> <span class="operator">^</span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;;</span><br><span class="line">[<span class="variable">_operationQueue</span> <span class="variable">addOperationWithBlock</span>:<span class="variable">largeBlock</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">//在一个调用中使用多个block，注意到他们不是像方法那样通过&#x27;:&#x27;对齐的，而是同时进行了4个空格的缩进</span></span><br><span class="line">[<span class="variable">myObject</span> <span class="variable">doSomethingWith</span>:<span class="variable">arg1</span></span><br><span class="line">    <span class="variable">firstBlock</span>:<span class="title function_">^</span>(<span class="params">Foo</span> *<span class="params">a</span>) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">secondBlock</span>:<span class="title function_">^</span>(<span class="params">Bar</span> *<span class="params">b</span>) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;];</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="Notification规范"><a href="#Notification规范" class="headerlink" title="Notification规范"></a>Notification规范</h5><ul>
+<li>[必须] 当我们使用通知时，必须要思考，有没有更好的办法来代替这个通知。禁止遇到问题就想到通知，把通知作为备选项而非首选项。</li>
+<li>[必须] post通知时，object通常是指发出notification的对象，如果在发送notification的同时要传递一些额外的信息，请使用userInfo，而不是object。</li>
+<li>[必须] 在多线程应用中，Notification在哪个线程中post，就在哪个线程中被转发，而不一定是在注册观察者的那个线程中。如果post消息不在主线程，而接受消息的回调里做了UI操作，需要让其在主线程执行。<figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">说明：每个进程都会创建一个NotificationCenter，这个<span class="built_in">center</span>通过NSNotificationCenter defaultCenter获取，当然也可以自己创建一个<span class="built_in">center</span>。NoticiationCenter是以同步（非异步，当前线程，会等待，会阻塞）的方式发送请求。即，当post通知时，<span class="built_in">center</span>会一直等待所有的observer都收到并且处理了通知才会返回到poster。如果需要异步发送通知，请使用notificationQueue，在一个多线程的应用中，通知会发送到所有的线程中。</span><br></pre></td></tr></table></figure>
+<h5 id="Collection规范"><a href="#Collection规范" class="headerlink" title="Collection规范"></a>Collection规范</h5></li>
+<li>[必须] 不要用一个可能为nil的对象初始化集合对象，否则可能会导致crash。</li>
+<li>[必须] 对插入到集合对象里面的对象也要进行判空。</li>
+<li>[必须] 注意在多线程环境下访问可变集合对象的问题，必要时应该加锁保护。不可变集合(比如NSArray)类默认是线程安全的，而可变集合类(比如NSMutableArray)不是线程安全的。</li>
+<li>[必须] 禁止在多线程环境下直接访问可变集合对象中的元素。应该先对其进行copy，然后访问不可变集合对象内的元素。</li>
+<li>[必须] 注意使用enumerateObjectsUsingBlock遍历集合对象中的对象时，关键字return的作用域。block中的return代表的是使当前的block返回，而非使当前的整个函数体返回。</li>
+<li>[必须] 禁止返回mutable对象，禁止mutable对象作为入参传递。</li>
+<li>[必须] 在访问集合的时候需要做内存操作越界判断</li>
+<li>[建议] 应该使用可读性更好的字面量来构造NSArray，NSDictionary等数据结构，避免使用冗长的alloc,init方法。</li>
+<li>[建议] 如果构造代码写在一行，需要在括号两端留有一个空格，使得被构造的元素于与构造语法区分开来：<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">//正确，在字面量的&quot;[]&quot;或者&quot;&#123;&#125;&quot;两端留有空格</span></span><br><span class="line"><span class="built_in">NSArray</span> *array = @[ [foo description], <span class="string">@&quot;Another String&quot;</span>, [bar description] ];</span><br><span class="line"><span class="built_in">NSDictionary</span> *dict = @&#123; <span class="built_in">NSForegroundColorAttributeName</span> : [<span class="built_in">NSColor</span> redColor] &#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//不正确，不留有空格降低了可读性</span></span><br><span class="line"><span class="built_in">NSArray</span>* array = @[[foo description], [bar description]];</span><br><span class="line"><span class="built_in">NSDictionary</span>* dict = @&#123;<span class="built_in">NSForegroundColorAttributeName</span>: [<span class="built_in">NSColor</span> redColor]&#125;;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 如果使用NSMutableDictionary作为缓存，建议使用NSCache代替。<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSCache</span>优于<span class="built_in">NSDictionary</span>的几点：</span><br><span class="line">当系统资源将要耗尽时，<span class="built_in">NSCache</span>具备自动删减缓冲的功能。并且还会先删减“最久未使用”的对象。</span><br><span class="line"><span class="built_in">NSCache</span>不拷贝键，而是保留键。因为并不是所有的键都遵从拷贝协议（字典的键是必须要支持拷贝协议的，有局限性）。</span><br><span class="line"><span class="built_in">NSCache</span>是线程安全的：不编写加锁代码的前提下，多个线程可以同时访问<span class="built_in">NSCache</span>。</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 集合类使用泛型来指定对象的类型。</li>
+<li>[必须] 取下标的时候要判断是否越界。</li>
+<li>[建议] 取第一个元素或最后一个元素的时候使用firtstObject和lastObject</li>
+<li>[建议] 如果构造代码不写在一行内，构造元素需要使用 两个空格 来进行缩进，右括号]或者}写在新的一行，并且与调用字面量那行代码的第一个非空字符对齐，构造字典时，字典的Key和Value与中间的冒号:都要留有一个空格，多行书写时，也可以冒号对齐：<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSArray</span> *array = @[</span><br><span class="line">  <span class="string">@&quot;This&quot;</span>,</span><br><span class="line">  <span class="string">@&quot;is&quot;</span>,</span><br><span class="line">  <span class="string">@&quot;an&quot;</span>,</span><br><span class="line">  <span class="string">@&quot;array&quot;</span></span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="built_in">NSDictionary</span> *dictionary = @&#123;</span><br><span class="line">             <span class="built_in">NSFontAttributeName</span> : [<span class="built_in">NSFont</span> fontWithName:<span class="string">@&quot;Helvetica-Bold&quot;</span> size:<span class="number">12</span>],</span><br><span class="line">  <span class="built_in">NSForegroundColorAttributeName</span> : fontColor</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="控制语句规范"><a href="#控制语句规范" class="headerlink" title="控制语句规范"></a>控制语句规范</h5><ul>
+<li>[建议] 相关的赋值语句等号对齐<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">promotionsEntity.promotionImageStr</span>   = activityItemDict[@<span class="string">&quot;promotion_image&quot;</span>]<span class="comment">;</span></span><br><span class="line"><span class="attr">promotionsEntity.promotionIdNum</span>      = activityItemDict[@<span class="string">&quot;promotion_id&quot;</span>]<span class="comment">;</span></span><br><span class="line"><span class="attr">promotionsEntity.promotionNameStr</span>    = activityItemDict[@<span class="string">&quot;promotion_name&quot;</span>]<span class="comment">;</span></span><br><span class="line"><span class="attr">promotionsEntity.promotionColorStr</span>   = activityItemDict[@<span class="string">&quot;promotion_color&quot;</span>]<span class="comment">;</span></span><br></pre></td></tr></table></figure></li>
+<li>[建议] if条件判断语句后面必须要加大括号{}。不然随着业务的发展和代码迭代，极有可能引起逻辑问题。</li>
+<li>[必须] 条件过多，过长的时候应该换行。条件表达式如果很长，则需要将他们提取出来赋给一个BOOL值，或者抽取出一个方法</li>
+<li>[必须] 不要使用过多的分支，要善于使用return来提前返回错误的情况，把最正确的情况放到最后返回。</li>
+<li>[建议] 对于条件语句的真假，因为 nil 解析为 NO，所以没有必要在条件中与它进行比较。永远不要直接和 YES 和 NO进行比较，因为 YES 被定义为 1，而 BOOL 可以多达 8 位。</li>
+<li>[必须]使用switch…case…语句的时候，不要丢掉default:。除非switch枚举。</li>
+<li>[必须] switch…case…语句的每个case都要添加break关键字，避免出现fall-through。</li>
+<li>[必须] 不可在for循环内修改循环变量，防止for循环失去控制。<figure class="highlight axapta"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="built_in">int</span> <span class="keyword">index</span> = <span class="number">0</span>; <span class="keyword">index</span> &lt; <span class="number">10</span>; <span class="keyword">index</span>++)&#123;</span><br><span class="line">    ...</span><br><span class="line">    logicToChange(<span class="keyword">index</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 在使用?:的时候不要嵌套多重?: 这里顺便提一个?: 另外一个用得比较多的场景–为某个属性添加默认值：<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">dotImage</span> = [_delegate pageControl:self selectedImageForDotAtIndex:i] ?: _selectedDotImage<span class="comment">;</span></span><br></pre></td></tr></table></figure></li>
+<li>[必须] 在访问CGRect 的 x,y,width,height 属性的时候不要直接访问，建议使用CGRectGetxxxx方法。</li>
+<li>[必须] 如果某个方法的错误传递方式包括引用和返回两种方式的时候，建议使用返回的那个值：<br>建议：<figure class="highlight monkey"><table><tr><td class="code"><pre><span class="line">NSError *<span class="built_in">error</span>;</span><br><span class="line"><span class="keyword">if</span> (![<span class="variable language_">self</span> trySomethingWithError:&amp;<span class="built_in">error</span>]) &#123;</span><br><span class="line">    // Handle <span class="built_in">Error</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">不建议：</span><br><span class="line"></span><br><span class="line">NSError *<span class="built_in">error</span>;</span><br><span class="line">[<span class="variable language_">self</span> trySomethingWithError:&amp;<span class="built_in">error</span>];</span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">error</span>) &#123;</span><br><span class="line">    // Handle <span class="built_in">Error</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="对象判等规范"><a href="#对象判等规范" class="headerlink" title="对象判等规范"></a>对象判等规范</h5><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"> - (<span class="type">BOOL</span>)isEqual:(<span class="type">id</span>)object &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span> == object) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">YES</span>; <span class="comment">//判断内存地址</span></span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">if</span> (![object isKindOfClass:[ZOCPerson <span class="keyword">class</span>]]) &#123; </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NO</span>; <span class="comment">//是否为当前类或派生类 </span></span><br><span class="line">    &#125;                                                                       </span><br><span class="line">    <span class="keyword">return</span> [<span class="keyword">self</span> isEqualToPerson:(ZOCPerson *)object];</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//自定义的判断相等性的方法</span></span><br><span class="line">- (<span class="type">BOOL</span>)isEqualToPerson:(Person *)person &#123; </span><br><span class="line">   <span class="keyword">if</span> (!person) &#123;  </span><br><span class="line">       <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">   &#125; </span><br><span class="line">   <span class="type">BOOL</span> namesMatch = (!<span class="keyword">self</span>.name &amp;&amp; !person.name) || [<span class="keyword">self</span>.name isEqualToString:person.name]; </span><br><span class="line">   <span class="type">BOOL</span> birthdaysMatch = (!<span class="keyword">self</span>.birthday &amp;&amp; !person.birthday) </span><br><span class="line">                           || [<span class="keyword">self</span>.birthday isEqualToDate:person.birthday]; </span><br><span class="line">   <span class="keyword">return</span> haveEqualNames &amp;&amp; haveEqualBirthdays; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> </p>
+<h5 id="懒加载规范"><a href="#懒加载规范" class="headerlink" title="懒加载规范"></a>懒加载规范</h5><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">懒加载适合的场景：</span><br><span class="line">一个对象在整个<span class="keyword">app</span>过程中，可能被使用，也可能不被使用。</span><br><span class="line">一个对象的创建需要经过大量的计算或者比较消耗性能。除以上情形之外，请不要使用懒加载。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>[建议] 懒加载本质上就是延迟初始化某个对象，所以，懒加载仅仅是初始化一个对象，然后对这个对象的属性赋值。懒加载中不应该有其他的不必要的逻辑性的代码，如果有，请把那些逻辑性代码放到合适的地方。</li>
+<li>[必须] 不要滥用懒加载，只对那些真正需要懒加载的对象采用懒加载。</li>
+<li>[必须] 如果一个对象在懒加载后，某些场景下又被设置为nil。我们很难保证这个懒加载不被再次触发。<h5 id="内存管理规范"><a href="#内存管理规范" class="headerlink" title="内存管理规范"></a>内存管理规范</h5></li>
+<li>[必须] 函数体提前return时，要注意是否有对象没有被释放掉(常见于CF对象)，避免造成内存泄露。</li>
+<li>[建议] 请慎重使用单例，避免产生不必要的常驻内存。</li>
+<li>[建议] 除非你清除的知道自己在做什么。否则不建议将UIView类的对象加入到NSArray、NSDictionary、NSSet中。如有需要可以添加到NSMapTable 和 NSHashTable。因为NSArray、NSDictionary、NSSet会对加入的对象做strong引用（即使你把加入的对象进行了weak）。而NSMapTable、NSHashTable会对加入的对象做weak引用。说明：简单的说，NSHashTable相当于weak的NSMutableArray；NSMapTable相当于weak的NSMutableDictionary.</li>
+</ul>
+<h5 id="其他规范"><a href="#其他规范" class="headerlink" title="其他规范"></a>其他规范</h5><ul>
+<li>[必须] performSelector:withObject:afterDelay:要在有Runloop的线程里调用，否则调用无法生效。</li>
+</ul>
+<h4 id="项目设计规范"><a href="#项目设计规范" class="headerlink" title="项目设计规范"></a>项目设计规范</h4><h5 id="文件布局"><a href="#文件布局" class="headerlink" title="文件布局"></a>文件布局</h5><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">-.h</span><br><span class="line">-- 文件注释</span><br><span class="line">-- <span class="meta">#import            <span class="comment">// 导入类</span></span></span><br><span class="line">-- <span class="built_in">NS_ENUM</span>            <span class="comment">// 枚举类</span></span><br><span class="line">-- <span class="class"><span class="keyword">@protocol</span>            // 代理</span></span><br><span class="line">-- <span class="class"><span class="keyword">@interface</span>            // 文件入口</span></span><br><span class="line">-- <span class="keyword">@property</span>            <span class="comment">// 属性</span></span><br><span class="line">-- methods                <span class="comment">// 方法</span></span><br><span class="line"></span><br><span class="line">-.m</span><br><span class="line">-- 文件注释</span><br><span class="line">-- <span class="meta">#import            <span class="comment">// 导入类</span></span></span><br><span class="line">-- <span class="meta">#<span class="keyword">define</span>            <span class="comment">// 宏定义</span></span></span><br><span class="line">-- <span class="keyword">static</span>             <span class="comment">// 静态变量</span></span><br><span class="line">-- <span class="class"><span class="keyword">@interface</span>            // 文件入口</span></span><br><span class="line">-- <span class="keyword">@property</span>            <span class="comment">// 属性</span></span><br><span class="line">-- <span class="class"><span class="keyword">@implementation</span>        // 实现</span></span><br><span class="line">-- methods            <span class="comment">// 方法    </span></span><br></pre></td></tr></table></figure>
+
+<h5 id="源码注释规范"><a href="#源码注释规范" class="headerlink" title="源码注释规范"></a>源码注释规范</h5><p>优秀的代码大部分是可以自描述的，我们完全可以用代码本身来表达它到底在干什么，而不需要注释的辅助。<br>但并不是说一定不能写注释，有以下三种情况比较适合写注释：</p>
+<ul>
+<li><p>公共接口（注释要告诉阅读代码的人，当前类能实现什么功能）。</p>
+</li>
+<li><p>涉及到比较深层专业知识的代码（注释要体现出实现原理和思想）。</p>
+</li>
+<li><p>容易产生歧义的代码（但是严格来说，容易让人产生歧义的代码是不允许存在的）。<br>除了上述这三种情况，如果别人只能依靠注释才能读懂你的代码的时候，就要反思代码出现了什么问题。<br>最后，对于注释的内容，相对于“做了什么”，更应该说明“为什么这么做”。</p>
+</li>
+<li><p>[建议] 注释符与注释内容之间要用一个空格进行分割。</p>
+</li>
+</ul>
+<p>较好的注释例子</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&lt;Foundation/Foundation.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@class</span> <span class="title">Bar</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 接口，分类，和协议都必须添加块注释用于说明该模块的作用</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Foo</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** 属性定义注释 */</span></span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>) Bar *bar;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 方法说明</span></span><br><span class="line"><span class="comment">* See -initWithBar: for details about @c bar.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* @param bar The string for fooing.</span></span><br><span class="line"><span class="comment">* @return An instance of Foo.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">+ (<span class="keyword">instancetype</span>)fooWithBar:(Bar *)bar;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Initializes and returns a Foo object using the provided Bar instance.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* @param bar A string that represents a thing that does a thing.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">- (<span class="keyword">instancetype</span>)initWithBar:(Bar *)bar <span class="built_in">NS_DESIGNATED_INITIALIZER</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Does some work with @c blah.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* @param blah</span></span><br><span class="line"><span class="comment">* @return YES if the work was completed; NO otherwise.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">- (<span class="type">BOOL</span>)doWorkWithBlah:(<span class="built_in">NSString</span> *)blah;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>** 方法的注释使用Xcode自带注释快捷键:Commond+option+&#x2F; **</p>
+<h5 id="文件导入规范"><a href="#文件导入规范" class="headerlink" title="文件导入规范"></a>文件导入规范</h5><ul>
+<li>[建议] 在类的头文件中尽量少引用其他头文件，有时，类A需要将类B的实例变量作为它公共API的属性。这个时候，我们不应该引入类B的头文件，而应该使用向前声明（forward declaring）使用class关键字，并且在A的实现文件引用B的头文件。</li>
+<li>[必须] 使用import 导入Objective-C 和 Objective-C++ 头文件，使用include 来导入C&#x2F;C++ 头文件</li>
+<li>[建议] 优先导入框架的头文件，再导入自己的头文件，最后导入三方的头文件。每个类别之间使用一个空行隔开，每个类别的头文件导入中使用&#x2F;&#x2F;类别进行分类。</li>
+<li>[必须] 务必保持头文件导入没有多余的内容，不需要的头文件导入，切记删除。</li>
+<li>[建议] 共同的接口、结构体、常量和数据类型要定义在同一个头文件里</li>
+</ul>
+<h5 id="代码布局规范"><a href="#代码布局规范" class="headerlink" title="代码布局规范"></a>代码布局规范</h5><p>项目中的代码需要根据每个方法的具体功能使用#pragma mark - 进行分类，#pragma mark - 上空两行，下空一行</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> mark - Life cycle</span></span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)dealloc &#123;&#125;</span><br><span class="line">- (<span class="keyword">instancetype</span>)init &#123;&#125;</span><br><span class="line">- (<span class="type">void</span>)viewDidLoad &#123;&#125;</span><br><span class="line">- (<span class="type">void</span>)viewWillAppear:(<span class="type">BOOL</span>)animated &#123;&#125;</span><br><span class="line">- (<span class="type">void</span>)didReceiveMemoryWarning &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> mark - Public methods</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> mark - Override methods</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> mark - Getters / Setters</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> mark - Others(Delegate/DataSource等)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> mark - Private methods</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[建议] 方法和方法之间建议使用一行空行隔开</li>
+<li>[建议] 方法内部一类的代码之间不能有空行，一类代码之间需要添加空行来隔开，这样可以比较清晰<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)awakeFromNib &#123;</span><br><span class="line">    <span class="built_in">UIStoryboard</span> *signatureStoryboard = [<span class="built_in">UIStoryboard</span> storyboardWithName:<span class="string">@&quot;BBPopoverSignature&quot;</span> bundle:<span class="literal">nil</span>];</span><br><span class="line">    <span class="keyword">self</span>.signatureViewController = [signatureStoryboard instantiateViewControllerWithIdentifier:<span class="string">@&quot;BBPopoverSignature&quot;</span>];</span><br><span class="line">    <span class="keyword">self</span>.signatureViewController.modalPresentationStyle = <span class="built_in">UIModalPresentationPopover</span>;</span><br><span class="line">    <span class="keyword">self</span>.signatureViewController.preferredContentSize = <span class="built_in">CGSizeMake</span>(BBPopoverSignatureWidth, BBPopoverSignatureHeight);</span><br><span class="line">    <span class="keyword">self</span>.signatureViewController.signatureImageView = <span class="keyword">self</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">UITapGestureRecognizer</span> *tapRecognizer = [[<span class="built_in">UITapGestureRecognizer</span> alloc] initWithTarget:<span class="keyword">self</span> action:<span class="keyword">@selector</span>(initiateSignatureCapture)];</span><br><span class="line">    [<span class="keyword">self</span> addGestureRecognizer:tapRecognizer];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] 代码块换行，建议使用<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (user.isHappy) &#123;</span><br><span class="line">    <span class="regexp">//</span>Do something</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="regexp">//</span>Do something <span class="keyword">else</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">而不是</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (user.isHappy)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="regexp">//</span>Do something</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="regexp">//</span>Do something <span class="keyword">else</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>[必须] 代码块冒号对齐，使用<figure class="highlight wren"><table><tr><td class="code"><pre><span class="line">[<span class="title class_">UIView</span> <span class="variable">animateWithDuration</span>:<span class="number">1.0</span> <span class="variable">animations</span>:<span class="operator">^</span>&#123;</span><br><span class="line">    <span class="comment">// something</span></span><br><span class="line">&#125; <span class="variable">completion</span>:<span class="title function_">^</span>(<span class="params">BOOL</span> <span class="params">finished</span>) &#123;</span><br><span class="line">    <span class="comment">// something</span></span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line">而不是</span><br><span class="line"></span><br><span class="line">[<span class="title class_">UIView</span> <span class="variable">animateWithDuration</span>:<span class="number">1.0</span></span><br><span class="line">                 <span class="variable">animations</span>:<span class="operator">^</span>&#123;</span><br><span class="line">                    <span class="comment">// something</span></span><br><span class="line">                 &#125;</span><br><span class="line">                 <span class="variable">completion</span>:<span class="title function_">^</span>(<span class="params">BOOL</span> <span class="params">finished</span>) &#123;</span><br><span class="line">                    <span class="comment">// something</span></span><br><span class="line">                 &#125;];</span><br></pre></td></tr></table></figure></li>
+<li>[建议] 在类扩展和实现文件中保证一行的空行<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> MyClass ()</span><br><span class="line"></span><br><span class="line"><span class="comment">// Properties - 在这里保证前后行有一个空行</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@implementation</span> MyClass</span><br><span class="line"></span><br><span class="line"><span class="comment">// Body - 在这里保证前后行有一个空行</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"><span class="comment">//这里也要留个空行</span></span><br></pre></td></tr></table></figure></li>
+<li>[建议] 在类声明中包含多个protocal，每个protocal占用一行并对齐。<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">@<span class="keyword">interface</span> <span class="symbol">CustomBackButtonViewController</span> () &lt;<span class="symbol">UITextFieldDelegate</span>,</span><br><span class="line">                                              <span class="symbol">MyProtocalDelegate</span>,</span><br><span class="line">                                              <span class="symbol">UITabBarControllerDelegate</span>,</span><br><span class="line">                                              <span class="symbol">UITabBarDelegate</span>&gt;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="interface接口文件布局规范"><a href="#interface接口文件布局规范" class="headerlink" title="interface接口文件布局规范"></a>interface接口文件布局规范</h5><ul>
+<li>[建议] interface接口的排列顺序建议如下：属性, 类方法, 初始化方法, 实例方法.</li>
+</ul>
+<h5 id="类设计规范"><a href="#类设计规范" class="headerlink" title="类设计规范"></a>类设计规范</h5><ul>
+<li>[建议]  尽量减少继承，类的继承关系不要超过3层。可以考虑使用category、protocol来代替继承。</li>
+<li>[建议] 把一些稳定的、公共的变量或者方法抽取到父类中。子类尽量只维持父类所不具备的特性和功能。</li>
+<li>[建议] .h文件中的属性尽量声明为只读。</li>
+<li>[建议]  .h文件中只暴露出一些必要的类、公开的方法、只读属性；私有类、私有方法和私有属性以及成员变量，尽量写在.m文件中。</li>
+<li>[建议] 如果某个类的方法较多可以考虑把类的实现代码分散到便于管理的多个分类中</li>
+</ul>
+<p>[参考文档]<br><a target="_blank" rel="noopener" href="http://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html">The Objective-C Programming Language</a><br><a target="_blank" rel="noopener" href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/CocoaFundamentals/Introduction/Introduction.htmll">Cocoa Fundamentals Guide</a><br><a target="_blank" rel="noopener" href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/CodingGuidelines/CodingGuidelines.html">Coding Guidelines for Cocoa</a><br><a target="_blank" rel="noopener" href="http://developer.apple.com/library/ios/#documentation/iphone/conceptual/iphoneosprogrammingguide/Introduction/Introduction.html">iOS App Programming Guide</a><br><a target="_blank" rel="noopener" href="https://github.com/raywenderlich/objective-c-style-guide#languagel">Raywenderlich Objective C Style Guide</a><br><a target="_blank" rel="noopener" href="https://github.com/RobotsAndPencils/objective-c-style-guide">Robots &amp; Pencils</a><br><a target="_blank" rel="noopener" href="https://github.com/NYTimes/objective-c-style-guide">New York Times</a><br><a target="_blank" rel="noopener" href="https://google.github.io/styleguide/objcguide.xml">Google</a><br><a target="_blank" rel="noopener" href="https://github.com/github/objective-c-conventions">GitHub</a><br><a target="_blank" rel="noopener" href="https://trac.adium.im/wiki/CodingStyle">Adium</a><br><a target="_blank" rel="noopener" href="https://gist.github.com/soffes/812796">Sam Soffes</a><br><a target="_blank" rel="noopener" href="http://cocoadevcentral.com/articles/000082.php">CocoaDevCentral</a><br><a target="_blank" rel="noopener" href="http://lukeredpath.co.uk/blog/my-objective-c-style-guide.html">Luke Redpath</a><br><a target="_blank" rel="noopener" href="http://www.cimgf.com/zds-code-style-guide/">Marcus Zarra</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1143352">一份走心的iOS开发规范前言约定</a><br><a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/CodingGuidelines/CodingGuidelines.html#//apple_ref/doc/uid/10000146-SW1">Coding Guidelines for Cocoa</a></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/">代码规范</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/代码规范/">代码规范</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/02/Objective-C-代码规范/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/02/Objective-C-代码规范/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2018/12/05/后端技术栈-Django-1-使用Docker容器来部署Django之一Docker简介/" title="[后端技术栈-Django]-1-使用Docker容器来部署Django之一Docker简介" itemprop="url">[后端技术栈-Django]-1-使用Docker容器来部署Django之一Docker简介</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2018-12-05T12:15:21.000Z" itemprop="datePublished"> Published 2018-12-05</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/001.png"></p>
+<p>可能大家会比较奇怪明明讲的是Django为啥要介绍Docker，实不相瞒如果大家不知道Docker对Django的学习并无影响，但是个人之前很早就听说Docker了，借着这个机会也学习下，趁着有这个应用场景也事件下，其实个人对Docker也不是很熟悉，只是现学现卖。将整个过程贯通起来，个人接触新东西一般喜欢围绕着问题展开，遇到不明白的在网上找资料或者找书去了解。这篇博客也采用这种方式，下面就围绕着几个问题展开，这篇博客不会对Docker进行太深入了解，目标是够用就好。深入的知识在后续大家使用的时候遇到问题再在实践中解决，毕竟精力有限。</p>
+<h4 id="1-容器化-vs-虚拟化"><a href="#1-容器化-vs-虚拟化" class="headerlink" title="1. 容器化 vs 虚拟化"></a>1. 容器化 vs 虚拟化</h4><p>虚拟化是通过中间件将一台或者多台独立机器虚拟运行与物理硬件之上，用户并不能感知为他们服务的到底是哪台机器，事实上呈现在用户面前的就和使用一部机器是一样的感觉，只不过这部机器在物理范畴上可能不是单纯一台主机，可能有多台机器组成的一个集群。虚拟机是抽象硬件资源，每一个虚拟机实例占用指定数量的CPU、内存、硬盘等资源，这些资源每个虚拟机实例之间不会共享。</p>
+<p>而什么是容器化呢？容器化从应用出发，将应用分割成多个容器，而这些容器直接运行在操作系统内核上的用户空间，容器技术可以让多个独立用户空间运行在同一台宿主机上。也就是说容器技术是抽象软件资源，它和Linux上运行的一个应用程序没有太大区别。</p>
+<p>早期，大家都认为虚拟化方式可以最大程度上提供虚拟化管理的灵活性。但是随着时间推移，大家发现，虚拟化技术有个问题就是：每个虚拟机都需要运行一个完整的操作系统以及其中安装好的大量应用程序。但实际生产开发环境里，我们更关注的是自己部署的应用程序，如果每次部署发布我都得搞一个完整操作系统和附带的依赖环境，那么这让任务和性能变得很重和很低下。这时候，人们就在想，有没有其他什么方式能让人更加的关注应用程序本身，底层多余的操作系统和环境可以共享和复用？换句话来说，那就是我部署一个服务运行好后，我再想移植到另外一个地方，我可以不用再安装一套操作系统和依赖环境，这就是容器化提出的场景。</p>
+<h4 id="2-容器化的特点"><a href="#2-容器化的特点" class="headerlink" title="2. 容器化的特点"></a>2. 容器化的特点</h4><p>容器是自包含的，它打包了应用程序及其所有依赖，可以直接运行。<br>容器是可移植的，这就可以确保应用在开发环境、测试环境、生产环境等都有完全一样的运行环境。<br>容器是互相隔离的，同一主机上运行的多个容器，不会互相影响。<br>容器是轻量级的，体现在容器的秒级启动，并且占用资源很少。</p>
+<h4 id="3-什么是Docker，Docker的组成及镜像结构"><a href="#3-什么是Docker，Docker的组成及镜像结构" class="headerlink" title="3. 什么是Docker，Docker的组成及镜像结构"></a>3. 什么是Docker，Docker的组成及镜像结构</h4><p>Docker是一个能够把开发应用程序自动部署到容器的开源引擎，使用Docker开发人员只需要关心容器中运行的应用程序，运维人员只需要关心如何管理容器。<br>它能保证写代码的开发环境与应用程序要部署的生产环境一致性。这对经常出现开发环境是好的，等到部署上去各种问题，又得各种联调的程序员来说无疑是巨大的福音。</p>
+<p>Docker 目前大量用于：<br>持续集成和持续部署 (CI&#x2F;CD)， 加速应用管道自动化和应用部署，<br>以及结合微服务技术构建可伸缩扩展的服务框架，<br>服务器资源共享<br>创建隔离的运行环境<br>这些场景。</p>
+<p>那Docker又是由那些组件组成的呢？<br>Docker 主要由 </p>
+<ol>
+<li>Docker引擎：Docker引擎是由客户端服务器架构的程序，客户端通过docker命令行工具以及一套restful API向Docker服务器发出请求，Docker服务器或者称为守护进程完成所有工作并返回。Docker服务器和客户端可以在同一台宿主机器上运行，也可以从本地的Docker客户端连接到另一台宿主机上远程Docker服务器。</li>
+<li>Docker镜像：用户基于镜像运行自己的容器，可以把镜像当作容器的源代码，或者相当于我们安装系统的光盘，写Dockerfile就相当于刻录系统光盘。</li>
+<li>Docker容器：如果说Docker镜像相当于系统光盘，那么Docker容器就是由这个系统光盘制作出来的可以跑的系统。</li>
+<li>Registry： 和我们的github类型，github存储的是代码，而Registry存储的是Docker的镜像，换句话说它就是Docker镜像仓库。</li>
+</ol>
+<p>下面是整个Docker组件的组成图：<br><img src="/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/002.png"></p>
+<p>从 Docker 的使用角度来说最为关键的是镜像的制作，Docker 镜像的制作是通过Dockerfile来完成的，Dockerfile的编写我们会在下面进行介绍，这里我们先来看下Docker 镜像的组成：<br><img src="/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/004.png"></p>
+<p>容器基于镜像启动和运行。可以说Docker镜像是容器的基石，Docker的镜像是一个层叠的只读文件系统，它的最底端是一个引导文件系统及bootfs。 Docker用户几乎永远都不会和引导文件系统有交互，实际上当一个容器启动后，bootfs会被移到内存中，引导文件将被卸载。Docker镜像的第二层是rootfs（root文件系统），位于引导文件系统之上，可以有多种操作系统。 在传统的linux系统中root文件系统最先会以只读的方式加载，当引导和启动完成后他才会被切换成读写模式。 但是在Docker里，root文件系统永远只能是只读，并且Docker会用联合加载系统在rootfs之上加载更多的只读文件系统。 联合加载只得是一次加载多个文件系统。但是在外面看来只有一个文件系统。联合加载会将各层文件系统加载到一起， 这样最终的文件系统会包含所有的文件及目录。Docker将这样的文件系统称为镜像。 一个镜像可以放到另一个镜像顶部，位于下面的镜像称为父镜像。一个容器中可以运行用户的一个或多个进程。当一个容器启动时，Docker会在镜像的最顶层增加一个读写文件系统，我们在Docker中运行的程序就是在这个层运行并执行的。第一次启动Docker时，读写层是空的，当文件发生变化后都会应用到这一层。比如修改一个文件，先将该文件从只读层复制到读写层，然后隐藏只读层，这就是Docker的写时复制。</p>
+<h4 id="4-Docker的常用操作命令"><a href="#4-Docker的常用操作命令" class="headerlink" title="4. Docker的常用操作命令"></a>4. Docker的常用操作命令</h4><p>镜像操作：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line">将镜像拉到本地             [docker pull ubuntu]</span><br><span class="line">查看当前已经有的镜像        [docker images]</span><br><span class="line">查找镜像                  [docker search xxx]</span><br><span class="line">删除镜像                  [docker rmi d5a6e75613ea]</span><br><span class="line"></span><br><span class="line">登录注销docker hub [docker login/logout]</span><br><span class="line">上传镜像：在docker hub 上创建一个docker地址。 标准格式为 用户名/docker镜像名 比如我这边创建的docker镜像名 为testdocker 构建命令如下：</span><br><span class="line">docker build -t <span class="string">&quot;tbfungeek/testdocker:0.0.1&quot;</span> .</span><br><span class="line">使用下面命令就可以进行push到dockerhub了</span><br><span class="line">docker push tbfungeek/testdocker:<span class="number">0.0</span><span class="number">.1</span></span><br></pre></td></tr></table></figure>
+
+<p>容器操作：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">查看docker info      [docker info]</span><br><span class="line">查看当前正在运行的容器  [docker ps -a]</span><br><span class="line">创建容器              [docker run -dit -p <span class="number">8888</span>:<span class="number">80</span> --name test ubuntu <span class="regexp">/bin/</span>bash]</span><br><span class="line">删除容器              [docker rm 容器id]</span><br><span class="line">启动容器  [docker start xxxx]</span><br><span class="line">重启容器  [docker restart xxxx]</span><br><span class="line">附加到容器中 [docker attach xxxx]</span><br><span class="line">退出容器    [<span class="keyword">exit</span>]</span><br><span class="line">停止容器    [docker stop]</span><br><span class="line">查看日志  [docker logs -f xxxx]</span><br><span class="line">查看端口  [docker port <span class="number">4</span>d17d19e34e2]</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="5-DockerFile的常用指令"><a href="#5-DockerFile的常用指令" class="headerlink" title="5. DockerFile的常用指令"></a>5. DockerFile的常用指令</h4><p>构建会在Docker后台守护进程（daemon）中执行，而不是CLI中。构建前，构建进程会将全部内容（递归）发送到守护进程。<br>在创建一个Docker 镜像的时候推荐重新新建一个空的目录作为构建Docker的上下文，并且将Dockerfile放在上下文目录下的顶层目录（虽然可以通过-f参数来指定构建Docker的目录但是推荐还是放在上下文目录的顶层），在这个上下文文件夹中只存放用于构建当前 Docker镜像所必须的文件，对于不需要的文件通过dockerignore文件进行忽略。</p>
+<p>Docker 守护进程会一条一条的执行Dockerfile中的指令，而且会在每一步提交并生成一个新镜像，最后会输出最终镜像的ID。生成完成后，Docker 守护进程会自动清理你发送的上下文。<br>Dockerfile文件中的每条指令会被独立执行，并会创建一个新镜像，RUN cd &#x2F;tmp等命令不会对下条指令产生影响。<br>Docker 会重用已生成的中间镜像，以加速docker build的构建速度。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">1. 创建目录</span><br><span class="line">2. 创建Dockerfile</span><br><span class="line">3. 编写Dockerfile</span><br><span class="line"><span class="comment"># Version: 0.0.1</span></span><br><span class="line"><span class="keyword">FROM</span> ubuntu:latest</span><br><span class="line">MAINTAINER linxiaohai  <span class="string">&quot;tbfungeek@163.com&quot;</span></span><br><span class="line"><span class="built_in">RUN</span> apt-<span class="built_in">get</span> update &amp;&amp; apt-<span class="built_in">get</span> install vim</span><br><span class="line">EXPOSE 80</span><br><span class="line">4. 编译 Dockerfile生成镜像</span><br><span class="line">docker build -f web_container/Dockerfile .</span><br><span class="line">docker build --no-cache -t <span class="string">&quot;标签linxiaohai/web:v1&quot;</span> .</span><br><span class="line">docker build --no-cache -t <span class="string">&quot;标签linxiaohai/web:v1&quot;</span> git@github.com:xxx/web_container</span><br></pre></td></tr></table></figure>
+
+<h5 id="FROM"><a href="#FROM" class="headerlink" title="FROM"></a>FROM</h5><figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> &lt;<span class="built_in">image</span>&gt;</span><br><span class="line"><span class="keyword">FROM</span> &lt;<span class="built_in">image</span>&gt;:&lt;tag&gt;</span><br><span class="line"><span class="keyword">FROM</span> &lt;<span class="built_in">image</span>&gt;@&lt;digest&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在Dockerfile中第一条非注释指令一定是FROM，它指定了以哪一个镜像作为基准镜像，<image>首先会先判断本地是否存在，如果不存在则会从仓库下载，这里推荐使用官方镜像</image></p>
+<h5 id="LABEL"><a href="#LABEL" class="headerlink" title="LABEL"></a>LABEL</h5><p>给构建的镜像打标签。<br>如果base image中也有标签，则继承，如果是同名标签，则覆盖。为了减少layer数量，尽量将标签写在一个LABEL指令中去，如：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">LABEL</span> author=<span class="string">&quot;lin xiaohai&quot;</span> \</span><br><span class="line">      <span class="keyword">version</span>=<span class="string">&quot;0.0.1&quot;</span></span><br><span class="line">指定后可以通过docker <span class="keyword">inspect</span>查看：</span><br><span class="line"><span class="string">&quot;Labels&quot;</span>: &#123;</span><br><span class="line">             <span class="string">&quot;author&quot;</span>: <span class="string">&quot;lin xiaohai&quot;</span>,</span><br><span class="line">             <span class="string">&quot;version&quot;</span>: <span class="string">&quot;0.0.1&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="VOLUME"><a href="#VOLUME" class="headerlink" title="VOLUME"></a>VOLUME</h5><p>VOLUME用于创建挂载点，即向基于所构建镜像创始的容器添加卷</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">VOLUME [<span class="string">&quot;/var/log&quot;</span>]</span><br><span class="line">VOLUME <span class="regexp">/var/</span>log <span class="regexp">/var/</span>db</span><br></pre></td></tr></table></figure>
+
+<p>如，通过VOLUME创建一个挂载点：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">ENV</span> volum <span class="string">&quot;/home/mydata&quot;</span></span><br><span class="line"><span class="keyword">VOLUME</span><span class="language-bash"> <span class="variable">$&#123;volum&#125;</span></span></span><br></pre></td></tr></table></figure>
+<p>构建的镜像，并指定镜像名为docker_file。构建镜像后，使用新构建的运行一个容器。运行容器时，需-v参将能本地目录绑定到容器的卷（挂载点）上，以使容器可以访问宿主机的数据。</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">docker run -dit -v ~<span class="regexp">/test:/</span>home<span class="regexp">/mydata/</span> --name <span class="string">&quot;volumetests&quot;</span> docker_file</span><br></pre></td></tr></table></figure>
+<h5 id="USER"><a href="#USER" class="headerlink" title="USER"></a>USER</h5><p>USER用于指定运行镜像所使用的用户：</p>
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">USER</span> <span class="title">daemon</span></span><br></pre></td></tr></table></figure>
+
+<p>使用USER指定用户时，可以使用用户名、UID或GID，或是两者的组合。以下都是合法的指定试：</p>
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">USER</span> <span class="title">user</span></span><br><span class="line"><span class="keyword">USER</span> <span class="title">user</span>:<span class="keyword">group</span></span><br><span class="line"><span class="title">USER</span> uid</span><br><span class="line"><span class="keyword">USER</span> <span class="title">uid</span>:gid</span><br><span class="line"><span class="keyword">USER</span> <span class="title">user</span>:gid</span><br><span class="line"><span class="keyword">USER</span> <span class="title">uid</span>:group</span><br></pre></td></tr></table></figure>
+
+<p>使用USER指定用户后，Dockerfile中其后的命令RUN、CMD、ENTRYPOINT都将使用该用户。镜像构建完成后，通过docker run运行容器时，可以通过-u参数来覆盖所指定的用户。</p>
+<h5 id="WORKDIR"><a href="#WORKDIR" class="headerlink" title="WORKDIR"></a>WORKDIR</h5><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">WORKDIR <span class="regexp">/path/</span>to/workdir</span><br></pre></td></tr></table></figure>
+
+<p>WORKDIR指令用于设置Dockerfile中的RUN、CMD和ENTRYPOINT指令执行命令的工作目录(默认为&#x2F;目录)，该指令在Dockerfile文件中可以出现多次，如果使用相对路径则为相对于WORKDIR上一次的值</p>
+<h5 id="ARG"><a href="#ARG" class="headerlink" title="ARG"></a>ARG</h5><p>ARG用于指定传递给构建运行时的变量：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">ARG <span class="tag">&lt;<span class="name">name</span>&gt;</span>[=<span class="tag">&lt;<span class="name">default</span> <span class="attr">value</span>&gt;</span>]</span><br></pre></td></tr></table></figure>
+<p>在使用docker build构建镜像时，可以通过–build-arg <varname>&#x3D;<value>参数来指定或重设置这些变量的值。<br>docker内置了一批构建参数，可以不用在Dockerfile中声明：HTTP_PROXY、http_proxy、HTTPS_PROXY、https_proxy、FTP_PROXY、ftp_proxy、NO_PROXY、no_proxy</value></varname></p>
+<h5 id="RUN"><a href="#RUN" class="headerlink" title="RUN"></a>RUN</h5><p>RUN指令会在当前镜像的顶层执行任何命令，并commit成新的（中间）镜像，提交的镜像会在后面继续用到。<br>上面看到RUN后的格式有两种写法。</p>
+<p>shell格式，相当于执行&#x2F;bin&#x2F;sh -c “<command>“：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="built_in">RUN</span> apt-<span class="built_in">get</span> install vim -y</span><br></pre></td></tr></table></figure>
+<p>exec格式，不会触发shell，所以$HOME这样的环境变量无法使用，但它可以在没有bash的镜像中执行，而且可以避免错误的解析命令字符串：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="built_in">RUN</span> [<span class="string">&quot;apt-get&quot;</span>, <span class="string">&quot;install&quot;</span>, <span class="string">&quot;vim&quot;</span>, <span class="string">&quot;-y&quot;</span>]</span><br><span class="line">或</span><br><span class="line"><span class="built_in">RUN</span> [<span class="string">&quot;/bin/bash&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;apt-get install vim -y&quot;</span>]  与shell风格相同</span><br></pre></td></tr></table></figure>
+<p>RUN可以执行任何命令，然后在当前镜像上创建一个新层并提交。提交后的结果镜像将会用在Dockerfile文件的下一步。<br>通过RUN执行多条命令时，可以通过\换行执行,也可以在同一行中，通过分号分隔命令：</p>
+<h5 id="CMD"><a href="#CMD" class="headerlink" title="CMD"></a>CMD</h5><p>一个Dockerfile里只能有一个CMD，如果有多个，只有最后一个生效。CMD指令的主要功能是在build完成后，为了给docker run启动到容器时提供默认命令或参数，这些默认值可以包含可执行的命令，也可以只是参数（此时可执行命令就必须提前在ENTRYPOINT中指定）。<br>它与ENTRYPOINT的功能极为相似，区别在于如果docker run后面出现与CMD指定的相同命令，那么CMD会被覆盖；而ENTRYPOINT会把容器名后面的所有内容都当成参数传递给其指定的命令（不会对命令覆盖）。另外CMD还可以单独作为ENTRYPOINT的所接命令的可选参数。<br>CMD与RUN的区别在于，RUN是在build成镜像时就运行的，先于CMD和ENTRYPOINT的，CMD会在每次启动容器的时候运行，而RUN只在创建镜像时执行一次，固化在image中。</p>
+<h5 id="ENTRYPOINT"><a href="#ENTRYPOINT" class="headerlink" title="ENTRYPOINT"></a>ENTRYPOINT</h5><p>ENTRYPOINT命令设置在容器启动时执行命令，如果有多个ENTRYPOINT指令，那只有最后一个生效。<br>使用exec格式，在docker run <image>的所有参数，都会追加到ENTRYPOINT之后，并且会覆盖CMD所指定的参数（如果有的话）。当然可以在run时使用–entrypoint来覆盖ENTRYPOINT指令。<br>以推荐使用的exec格式为例：<br>我们可以使用ENTRYPOINT来设置基本不会变化的命令，用CMD来设置其它的可能改变的默认启动命令或选项（docker run会覆盖的）。</image></p>
+<h5 id="ENV"><a href="#ENV" class="headerlink" title="ENV"></a>ENV</h5><p>用于设置环境变量：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">ENV <span class="tag">&lt;<span class="name">key</span>&gt;</span> <span class="tag">&lt;<span class="name">value</span>&gt;</span></span><br><span class="line">设置了后，后续的RUN命令都可以使用，当运行生成的镜像时这些环境变量依然有效，如果需要在运行时更改这些环境变量可以在运行docker run时添加-env <span class="tag">&lt;<span class="name">key</span>&gt;</span>=<span class="tag">&lt;<span class="name">value</span>&gt;</span>参数来修改</span><br></pre></td></tr></table></figure>
+
+<h5 id="ADD"><a href="#ADD" class="headerlink" title="ADD"></a>ADD</h5><p>在构建镜像时，复制上下文中的文件到镜像内，格式：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ADD</span> &lt;src&gt;<span class="built_in">..</span>. &lt;dest&gt;</span><br><span class="line"><span class="built_in">ADD</span> [<span class="string">&quot;&lt;src&gt;&quot;</span>,<span class="built_in">..</span>. <span class="string">&quot;&lt;dest&gt;&quot;</span>]</span><br></pre></td></tr></table></figure>
+<p><src>可以是文件、目录，也可以是文件URL。可以使用模糊匹配(wildcards，类似shell的匹配)，可以指定多个<src>，必须是在上下文目录和子目录中，无法添加..&#x2F;a.txt这样的文件。如果<src>是个目录，则复制的是目录下的所有内容，但不包括该目录。如果<src>是个可被docker识别的压缩包，docker会以tar -x的方式解压后将内容复制到<desct>。<br><dest>可以是绝对路径，也可以是相对WORKDIR目录的相对路径。如果路径不存在则会自动级联创建，根据你的需要是<dest>里是否需要反斜杠&#x2F;，习惯使用&#x2F;结尾从而避免被当成文件。</dest></dest></desct></src></src></src></src></p>
+<h5 id="COPY"><a href="#COPY" class="headerlink" title="COPY"></a>COPY</h5><p>COPY的语法与功能与ADD相同，只是不支持上面讲到的<src>是远程URL、自动解压这两个特性，但是Best Practices for Writing Dockerfiles建议尽量使用COPY，并使用RUN与COPY的组合来代替ADD，这是因为虽然COPY只支持本地文件拷贝到container，但它的处理比ADD更加透明，建议只在复制tar文件时使用ADD，如ADD trusty-core-amd64.tar.gz &#x2F;。</src></p>
+<h5 id="EXPOSE"><a href="#EXPOSE" class="headerlink" title="EXPOSE"></a>EXPOSE</h5><p>EXPOSE指令告诉容器在运行时要监听的端口，但是这个端口是用于多个容器之间通信用的（links），外面的host是访问不到的。要把端口暴露给外面的主机，在启动容器时使用-p选项。</p>
+<h5 id="ONBUILD"><a href="#ONBUILD" class="headerlink" title="ONBUILD"></a>ONBUILD</h5><p>向镜像中添加一个触发器，当以该镜像为base image再次构建新的镜像时，会触发执行其中的指令。格式：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ONBUILD</span><span class="meta"> [INSTRUCTION]</span></span><br></pre></td></tr></table></figure>
+
+<p>比如我们生成的镜像是用来部署Python代码的，但是因为有多个项目可能会复用该镜像。所以一个合适的方式是：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">[...]</span><br><span class="line"><span class="comment"># 在下一次以此镜像为base image的构建中，执行ADD . /app/src，将项目代目添加到新镜像中去</span></span><br><span class="line">ONBUILD ADD . <span class="regexp">/app/</span>src</span><br><span class="line"><span class="comment"># 并且build Python代码</span></span><br><span class="line">ONBUILD RUN <span class="regexp">/usr/</span>local<span class="regexp">/bin/</span>python-build --dir <span class="regexp">/app/</span>src</span><br><span class="line">[...]</span><br></pre></td></tr></table></figure>
+
+<p>注意<br>ONBUILD只会继承给子节点的镜像，不会再继承给孙子节点。<br>ONBUILD ONBUILD或者ONBUILD FROM或者ONBUILD MAINTAINER是不允许的。</p>
+<h5 id="STOPSIGNAL"><a href="#STOPSIGNAL" class="headerlink" title="STOPSIGNAL"></a>STOPSIGNAL</h5><p>STOPSIGNAL用于设置停止容器所要发送的系统调用信号：</p>
+<h5 id="STOPSIGNAL-signal"><a href="#STOPSIGNAL-signal" class="headerlink" title="STOPSIGNAL signal"></a>STOPSIGNAL signal</h5><p>所使用的信号必须是内核系统调用表中的合法的值，如：9、SIGKILL</p>
+<p>可以通过如下材料进行进一步学习：</p>
+<p><a target="_blank" rel="noopener" href="http://www.cnblogs.com/qcloud1001/p/9273549.html">http://www.cnblogs.com/qcloud1001/p/9273549.html</a><br><a target="_blank" rel="noopener" href="https://legacy.gitbook.com/book/yeasy/docker_practice/details">https://legacy.gitbook.com/book/yeasy/docker_practice/details</a><br><a target="_blank" rel="noopener" href="http://product.dangdang.com/23941643.html">http://product.dangdang.com/23941643.html</a><br><a target="_blank" rel="noopener" href="https://github.com/qianlei90/Blog/issues/35">https://github.com/qianlei90/Blog/issues/35</a><br><a target="_blank" rel="noopener" href="https://github.com/qianlei90/Blog/issues/36">https://github.com/qianlei90/Blog/issues/36</a><br><a target="_blank" rel="noopener" href="http://seanlook.com/2014/11/17/dockerfile-introduction/">http://seanlook.com/2014/11/17/dockerfile-introduction/</a><br><a target="_blank" rel="noopener" href="https://docs.docker.com/get-started/#docker-concepts">https://docs.docker.com/get-started/#docker-concepts</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/22969309">https://www.zhihu.com/question/22969309</a><br><a target="_blank" rel="noopener" href="https://juejin.im/post/5b4615b0f265da0f6d72c130">https://juejin.im/post/5b4615b0f265da0f6d72c130</a></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2018/12/05/后端技术栈-Django-1-使用Docker容器来部署Django之一Docker简介/#comments" class="ds-thread-count comments-count-link" data-thread-key="2018/12/05/后端技术栈-Django-1-使用Docker容器来部署Django之一Docker简介/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2018/12/03/后端技术栈-Django-0-Django的简要介绍及安装/" title="[后端技术栈-Django]-0-Django的简要介绍" itemprop="url">[后端技术栈-Django]-0-Django的简要介绍</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2018-12-03T14:13:06.000Z" itemprop="datePublished"> Published 2018-12-03</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="1-为什么选用Django"><a href="#1-为什么选用Django" class="headerlink" title="1.为什么选用Django"></a>1.为什么选用Django</h4><p>为什么选用Django,从个人角度来看就是因为它简单，上手容易，等到用熟后再切换到其他的框架比如Nodejs,Spring Boot,无非就是换个语言，思想是可以共同的，这就是我选用Django的原因，那它的简单体现在哪里？</p>
+<ol>
+<li>开发语言为Python简单,在IT界有句名言“人生苦短，我用python”，python简单吗？只能说上手容易，能够做的覆盖面广，一门语言到深入的时候都是困难的。</li>
+<li>切换框架组件十分容易，换个数据库就只要修改个setting配置</li>
+<li>集成的组件大而全，对我而言最为诱人的是它集成的Admin后台。</li>
+</ol>
+<h4 id="2-Django架构总览"><a href="#2-Django架构总览" class="headerlink" title="2.Django架构总览"></a>2.Django架构总览</h4><p>说到Django的架构不得不提到MTV，大家可能听说过MVC MVVM MVP这些，其实MTV也可以看成MVC,那MTV分别代表什么呢？<br>M - Model 也就是 Django中的数据模型<br>T - Template 等同MVC中的V 也就是Django中的视图层<br>V - View  等同于MVC中的C 也就是Django中的控制层</p>
+<p>我们就依靠下面的图来讲下整个请求处理流程：<br><img src="/2018/12/03/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-0-Django%E7%9A%84%E7%AE%80%E8%A6%81%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E8%A3%85/001.png"></p>
+<ol>
+<li>请求源发起网络请求，这里以常见的GET&#x2F;POST为例子，这里的请求源有很多，比如常见的浏览器，手机app</li>
+<li>请求到达框架后首先会经过请求中间件的处理</li>
+<li>经过中间件处理后的请求会发送到路由上进行路由分配，路由分配是将这些请求分配到各个View中。这些请求作为View的参数传递进去。</li>
+<li>到达view后，在view中会从数据库中将数据取出来，封装成一个一个Model对象，使用这些对象来完成我们的任务，在这个过程中可能会返回文件系统，比如图片，音视频资源，然后将这些资源整合在一起，传递给Template</li>
+<li>在Template层中会将从view层中传递过来的数据整合到界面上，渲染出来，形成一个response。</li>
+<li>生成response后在送达到用户浏览器之前可能还会经过response 中间件处理后送达到用户浏览器。</li>
+</ol>
+<h4 id="3-WSGI-uWSGI-ngix"><a href="#3-WSGI-uWSGI-ngix" class="headerlink" title="3.WSGI uWSGI ngix"></a>3.WSGI uWSGI ngix</h4><p>这里我们不涉及到部署方面的知识，这些会在后面专门章节进行介绍，这里只不过介绍下这些概念，让大家对整个服务端结构有个大体的认识，我们前面讲的是从一个web app角度来看的一个流程，下面我们介绍的是从一台服务器的角度来看这个问题，区别在哪里呢？一个服务器可以包含一个或者多个应用。那就多出了服务器与web app的一个交互过程。</p>
+<p>首先我们简要介绍下用户通过浏览器访问网页，具体经过了哪些环节。</p>
+<ol>
+<li>用户输入需要访问网站的url,浏览器将这些封装成符合http格式的Request请求，这个请求中可以包含请求首行、请求头和请求体这些内容。</li>
+<li>上面的Request请求是应用层数据，要通过网络请求发送出去需要再由操作系统完成TCP、IP、MAC层封装，最终送到网卡以比特流形式传递出去。</li>
+<li>经过网络传输，比特流到达服务器端，被服务器接收，服务器操作系统依次剥离MAC、IP、TCP层封装，取出应用层数据，也就是浏览器发送出的Request请求，并交给应用层的Web应用。</li>
+<li>Web 应用解析Request请求内容，并生成Respond响应，交给服务器</li>
+<li>Respond响应也是应用层数据，由服务器OS完成TCP、IP、MAC层封装，送到网卡处以比特流形式送出。</li>
+<li>经过网络传输，包含resonse的比特流到达服务器端，被用户机器接收。</li>
+<li>用户机器逐一去掉 MAC、IP、TCP层封装，取出应用层数据，也就是Respond响应，并交给应用层的浏览器。浏览器根据Response响应内容，显示在用户面前。</li>
+</ol>
+<p>我们再看下下面这张图：<br><img src="/2018/12/03/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-0-Django%E7%9A%84%E7%AE%80%E8%A6%81%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E8%A3%85/002.png"><br>我们上面讲的内容是django 那个框，这个框的输入是一个request输出是一个response，我们必须注意到一点服务器操作系统和web app也是有交互的：服务器操作系统将Request请求传给Web APP,Web APP处理后，将Respond响应传给服务器操作系统，那么，服务器操作系统怎么把Request请求传给Web APP？这就涉及到了WSGI接口。WSGI接口其实是一个协议，一个规范是抽象的东西。这个接口连接了服务器操作系统和和Web APP。</p>
+<p>一般我们讲到一个东西的必要性就会做出如下假设？如果没有这个东西情况会怎样？如果没有wsgi,那么服务器OS来了个请求后首先需要判断这个请求是发送给哪个web app，必须根据不同的web app类型调用不同的接口，通过不同的接口将request传递过去。这显然不合常规，那正常的做法是怎样呢？正常应该有个公共的协议，我们不关心具体的web framework的类型是啥，你是Django 也好，是Flask也要，只要你是符合wsgi接口的web框架，我都能保证调用同一个接口将request从服务器操作系统传递给web app。也就是保证了不同web框架对外的一致性。</p>
+<p>那么ngix的作用是什么呢？nginx的功能十分强大，我们只关心它的请求分发的功能。谈到它需要将它与web app的路由进行对比，web app的路由是将到达app的请求，细分到各个响应函数进行处理，而nginx的作用是决定某个请求分发到哪个web app，也就是说，首先某个请求从一个端口进来，通过ngix将其分配到该台服务器上的某个web app上面，web app路由再将这些请求，细分到函数进行处理。大致是这样一个区别。不知道大家理解了没有。记住一个服务器有不止一个web app，这里的web app用的web框架不止有一种，假设来了个请求你要怎么在这些不同的web框架之间进行分配。理顺了这些问题就ok了。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2018/12/03/后端技术栈-Django-0-Django的简要介绍及安装/#comments" class="ds-thread-count comments-count-link" data-thread-key="2018/12/03/后端技术栈-Django-0-Django的简要介绍及安装/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/12/26/iOS-直播技术总结-七-第一阶段总图/" title="iOS 直播技术总结 七 第一阶段总图" itemprop="url">iOS 直播技术总结 七 第一阶段总图</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2017-12-26T07:58:57.000Z" itemprop="datePublished"> Published 2017-12-26</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2017/12/26/iOS-%E7%9B%B4%E6%92%AD%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93-%E4%B8%83-%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%E6%80%BB%E5%9B%BE/001.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E7%9B%B4%E6%92%AD/">直播</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/直播/">直播</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/12/26/iOS-直播技术总结-七-第一阶段总图/#comments" class="ds-thread-count comments-count-link" data-thread-key="2017/12/26/iOS-直播技术总结-七-第一阶段总图/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/12/25/iOS-直播技术总结-五-音视频数据处理-使用GPUImage2/" title="iOS 直播技术总结 六 音视频数据处理 [使用GPUImage2]" itemprop="url">iOS 直播技术总结 六 音视频数据处理 [使用GPUImage2]</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2017-12-25T03:50:28.000Z" itemprop="datePublished"> Published 2017-12-25</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><a target="_blank" rel="noopener" href="https://github.com/BradLarson/GPUImage2">GPUImage2 github地址</a><br><a target="_blank" rel="noopener" href="https://cocoapods.org/pods/EVGPUImage2">EVGPUImage2 CocoaPods地址</a></p>
+<p><img src="/2017/12/25/iOS-%E7%9B%B4%E6%92%AD%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93-%E4%BA%94-%E9%9F%B3%E8%A7%86%E9%A2%91%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86-%E4%BD%BF%E7%94%A8GPUImage2/001.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E7%9B%B4%E6%92%AD/">直播</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/直播/">直播</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/12/25/iOS-直播技术总结-五-音视频数据处理-使用GPUImage2/#comments" class="ds-thread-count comments-count-link" data-thread-key="2017/12/25/iOS-直播技术总结-五-音视频数据处理-使用GPUImage2/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/12/25/iOS-直播技术总结-五-音视频数据处理/" title="iOS 直播技术总结 五 音视频数据处理 [使用Core Image]" itemprop="url">iOS 直播技术总结 五 音视频数据处理 [使用Core Image]</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2017-12-25T02:35:12.000Z" itemprop="datePublished"> Published 2017-12-25</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2017/12/25/iOS-%E7%9B%B4%E6%92%AD%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93-%E4%BA%94-%E9%9F%B3%E8%A7%86%E9%A2%91%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86/001.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E7%9B%B4%E6%92%AD/">直播</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/直播/">直播</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/12/25/iOS-直播技术总结-五-音视频数据处理/#comments" class="ds-thread-count comments-count-link" data-thread-key="2017/12/25/iOS-直播技术总结-五-音视频数据处理/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/9/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="extend next" rel="next" href="/page/11/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

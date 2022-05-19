@@ -1,0 +1,801 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS 内存管理之对象创建，销毁，持有，弱引用源码剖析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="iOS 这部分代码位于 objc-runtime&#x2F;runtime&#x2F;NSObject.mm: 1 对象的创建 alloc&#x2F;init：调用栈 --- alloc     --- _objc_rootAlloc        --- callAlloc            --- allocWithZone                --- class_createI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 内存管理之对象创建，销毁，持有，弱引用源码剖析">
+<meta property="og:url" content="http://yoursite.com/2020/01/04/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B9%8B%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E9%94%80%E6%AF%81%EF%BC%8C%E6%8C%81%E6%9C%89%EF%BC%8C%E5%BC%B1%E5%BC%95%E7%94%A8%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="iOS 这部分代码位于 objc-runtime&#x2F;runtime&#x2F;NSObject.mm: 1 对象的创建 alloc&#x2F;init：调用栈 --- alloc     --- _objc_rootAlloc        --- callAlloc            --- allocWithZone                --- class_createI">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2020/01/04/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B9%8B%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E9%94%80%E6%AF%81%EF%BC%8C%E6%8C%81%E6%9C%89%EF%BC%8C%E5%BC%B1%E5%BC%95%E7%94%A8%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/00001.png">
+<meta property="article:published_time" content="2020-01-04T07:56:07.000Z">
+<meta property="article:modified_time" content="2020-01-05T03:18:15.000Z">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/01/04/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B9%8B%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E9%94%80%E6%AF%81%EF%BC%8C%E6%8C%81%E6%9C%89%EF%BC%8C%E5%BC%B1%E5%BC%95%E7%94%A8%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2020/01/04/iOS-内存管理之对象创建，销毁，持有，弱引用源码剖析/" title="iOS 内存管理之对象创建，销毁，持有，弱引用源码剖析" itemprop="url">iOS 内存管理之对象创建，销毁，持有，弱引用源码剖析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2020-01-04T07:56:07.000Z" itemprop="datePublished"> Published 2020-01-04</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>iOS 这部分代码位于 <strong><strong>objc-runtime&#x2F;runtime&#x2F;NSObject.mm</strong></strong>:</p>
+<h5 id="1-对象的创建-alloc-x2F-init："><a href="#1-对象的创建-alloc-x2F-init：" class="headerlink" title="1 对象的创建 alloc&#x2F;init："></a>1 对象的创建 alloc&#x2F;init：</h5><p><em><strong>调用栈</strong></em></p>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line"><span class="comment">--- alloc </span></span><br><span class="line">    <span class="comment">--- _objc_rootAlloc</span></span><br><span class="line">        <span class="comment">--- callAlloc</span></span><br><span class="line">            <span class="comment">--- allocWithZone</span></span><br><span class="line">                <span class="comment">--- class_createInstance</span></span><br><span class="line">                    <span class="comment">--- _class_createInstanceFromZone</span></span><br><span class="line">                        <span class="comment">--- calloc</span></span><br><span class="line">                        <span class="comment">--- initIsa</span></span><br><span class="line"></span><br><span class="line"><span class="comment">--- init</span></span><br><span class="line">    <span class="comment">--- _objc_rootInit</span></span><br></pre></td></tr></table></figure>
+
+
+<p>我们在创建对象的时候会调用 alloc 方法为要创建的对象分配内存空间：</p>
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="operator">+</span> (<span class="built_in">id</span>)<span class="keyword">alloc</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> _objc_rootAlloc(self);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在alloc中会调用_objc_rootAlloc</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">id</span><br><span class="line"><span class="constructor">_objc_rootAlloc(Class <span class="params">cls</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    return call<span class="constructor">Alloc(<span class="params">cls</span>, <span class="params">false</span><span class="operator">/</span><span class="operator">*</span><span class="params">checkNil</span><span class="operator">*</span><span class="operator">/</span>, <span class="params">true</span><span class="operator">/</span><span class="operator">*</span><span class="params">allocWithZone</span><span class="operator">*</span><span class="operator">/</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在_objc_rootAlloc中会调用callAlloc，它有两个参数第一个参数表示是否检查cls参数是否为空，第二个参数表示是否在zone中分配这个内存。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">static ALWAYS_INLINE id</span><br><span class="line">call<span class="constructor">Alloc(Class <span class="params">cls</span>, <span class="params">bool</span> <span class="params">checkNil</span><span class="operator">/</span><span class="operator">*</span><span class="params">false</span><span class="operator">*</span><span class="operator">/</span>, <span class="params">bool</span> <span class="params">allocWithZone</span>=<span class="params">false</span><span class="operator">/</span><span class="operator">*</span><span class="params">true</span><span class="operator">*</span><span class="operator">/</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (slowpath(checkNil<span class="operator"> &amp;&amp; </span>!cls)) return nil;</span><br><span class="line"></span><br><span class="line">#<span class="keyword">if</span> __OBJC2__</span><br><span class="line">    <span class="comment">//hasCustomAWZ( )方法是用来判断当前class是否有自定义的allocWithZone。</span></span><br><span class="line">    <span class="keyword">if</span> (fastpath(!cls-&gt;<span class="constructor">ISA()</span>-&gt;has<span class="constructor">CustomAWZ()</span>)) &#123;</span><br><span class="line">        <span class="comment">// 没有自定义的alloc/allocWithZone实现的时候</span></span><br><span class="line">        <span class="comment">// No alloc/allocWithZone implementation. Go straight to the allocator.</span></span><br><span class="line">        <span class="comment">// fixme store hasCustomAWZ in the non-meta class and </span></span><br><span class="line">        <span class="comment">// add it to canAllocFast&#x27;s summary</span></span><br><span class="line">        <span class="keyword">if</span> (fastpath(cls-&gt;can<span class="constructor">AllocFast()</span>)) &#123;</span><br><span class="line">            <span class="comment">// No ctors, raw isa, etc. Go straight to the metal.</span></span><br><span class="line">            <span class="built_in">bool</span> dtor = cls-&gt;has<span class="constructor">CxxDtor()</span>;</span><br><span class="line">            id obj = (id)calloc(<span class="number">1</span>, cls-&gt;bits.fast<span class="constructor">InstanceSize()</span>);</span><br><span class="line">            <span class="keyword">if</span> (slowpath(!obj)) return call<span class="constructor">BadAllocHandler(<span class="params">cls</span>)</span>;</span><br><span class="line">            obj-&gt;init<span class="constructor">InstanceIsa(<span class="params">cls</span>, <span class="params">dtor</span>)</span>;</span><br><span class="line">            return obj;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// Has ctor or raw isa or something. Use the slower path.</span></span><br><span class="line">            id obj = <span class="keyword">class</span><span class="constructor">_createInstance(<span class="params">cls</span>, 0)</span>;</span><br><span class="line">            <span class="keyword">if</span> (slowpath(!obj)) return call<span class="constructor">BadAllocHandler(<span class="params">cls</span>)</span>;</span><br><span class="line">            return obj;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">    <span class="comment">// No shortcuts available.</span></span><br><span class="line">    <span class="keyword">if</span> (allocWithZone) return <span class="literal">[<span class="identifier">cls</span> <span class="identifier">allocWithZone</span>:<span class="identifier">nil</span>]</span>;</span><br><span class="line">    return <span class="literal">[<span class="identifier">cls</span> <span class="identifier">alloc</span>]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先看下hasCustomAWZ</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="built_in">bool</span> <span class="title">hasCustomAWZ</span>()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> ! bits.hasDefaultAWZ();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">bool</span> <span class="title">hasDefaultAWZ</span>(<span class="params"> </span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> data()-&gt;flags &amp; RW_HAS_DEFAULT_AWZ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RW_HAS_DEFAULT_AWZ    (1&lt;&lt;16)</span></span><br></pre></td></tr></table></figure>
+
+<p>它实际上是查看metaclass 中的对应标识位flags的RW_HAS_DEFAULT_AWZ来查看当前的class或者是superclass是否有默认的alloc&#x2F;allocWithZone:如果这个标志位被标记了那么hasCustomAWZ就为NO.</p>
+<p>cls-&gt;canAllocFast() 这个一般情况下会返回false. 代码中有注解<strong><strong>No ctors, raw isa, etc</strong></strong>的情况下cls-&gt;canAllocFast() 返回YES.具体还不是很清楚这是什么意思。待弄明白后补上，这里记得返回false就好。</p>
+<p>我们以最常见的：没有自定义alloc&#x2F;allocWithZone:的情况作为简化后的分析对象：<br>这时候代码可以简化为：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> ALWAYS_INLINE id</span></span><br><span class="line"><span class="function"><span class="title">callAlloc</span><span class="params">(Class cls, <span class="type">bool</span> checkNil<span class="comment">/*false*/</span>, <span class="type">bool</span> allocWithZone=<span class="literal">false</span><span class="comment">/*true*/</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// No shortcuts available.</span></span><br><span class="line">    <span class="keyword">if</span> (allocWithZone) <span class="keyword">return</span> [cls allocWithZone:nil];</span><br><span class="line">    <span class="keyword">return</span> [cls alloc];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们继续往下看：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">+ (id)allocWithZone:(<span class="keyword">struct</span> _NSZone *)zone &#123;</span><br><span class="line">    return <span class="constructor">_objc_rootAllocWithZone(<span class="params">self</span>, (<span class="params">malloc_zone_t</span> <span class="operator">*</span>)</span>zone);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">id</span><br><span class="line"><span class="constructor">_objc_rootAllocWithZone(Class <span class="params">cls</span>, <span class="params">malloc_zone_t</span> <span class="operator">*</span><span class="params">zone</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    id obj;</span><br><span class="line"></span><br><span class="line">#<span class="keyword">if</span> __OBJC2__</span><br><span class="line">    <span class="comment">// allocWithZone under __OBJC2__ ignores the zone parameter</span></span><br><span class="line">    (void)zone;</span><br><span class="line">    obj = <span class="keyword">class</span><span class="constructor">_createInstance(<span class="params">cls</span>, 0)</span>;</span><br><span class="line">#<span class="keyword">else</span></span><br><span class="line">    <span class="keyword">if</span> (!zone) &#123;</span><br><span class="line">        obj = <span class="keyword">class</span><span class="constructor">_createInstance(<span class="params">cls</span>, 0)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        obj = <span class="keyword">class</span><span class="constructor">_createInstanceFromZone(<span class="params">cls</span>, 0, <span class="params">zone</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(!obj)) obj = call<span class="constructor">BadAllocHandler(<span class="params">cls</span>)</span>;</span><br><span class="line">    return obj;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们记住这里zone传进去的是nil，所以_objc_rootAllocWithZone代码简化后如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">id</span><br><span class="line"><span class="constructor">_objc_rootAllocWithZone(Class <span class="params">cls</span>, <span class="params">malloc_zone_t</span> <span class="operator">*</span><span class="params">zone</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    id obj;</span><br><span class="line"></span><br><span class="line">    (void)zone;</span><br><span class="line">    obj = <span class="keyword">class</span><span class="constructor">_createInstance(<span class="params">cls</span>, 0)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(!obj)) obj = call<span class="constructor">BadAllocHandler(<span class="params">cls</span>)</span>;</span><br><span class="line">    return obj;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">id </span><br><span class="line"><span class="keyword">class</span><span class="constructor">_createInstance(Class <span class="params">cls</span>, <span class="params">size_t</span> <span class="params">extraBytes</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    return <span class="constructor">_class_createInstanceFromZone(<span class="params">cls</span>, <span class="params">extraBytes</span>, <span class="params">nil</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> __attribute__((always_inline)) </span><br><span class="line">id</span><br><span class="line">_class_createInstanceFromZone(Class cls, <span class="type">size_t</span> extraBytes, <span class="type">void</span> *zone, </span><br><span class="line">                              <span class="type">bool</span> cxxConstruct = <span class="literal">true</span>, </span><br><span class="line">                              <span class="type">size_t</span> *outAllocatedSize = nil)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Read class&#x27;s info bits all at once for performance</span></span><br><span class="line">    <span class="comment">// 当前class或者superclass 是否有构造方法的实现</span></span><br><span class="line">    <span class="type">bool</span> hasCxxCtor = cls-&gt;<span class="built_in">hasCxxCtor</span>();</span><br><span class="line">    <span class="comment">// 判断当前class或者superclass 是否有析构方法的实现。</span></span><br><span class="line">    <span class="type">bool</span> hasCxxDtor = cls-&gt;<span class="built_in">hasCxxDtor</span>();</span><br><span class="line">    <span class="comment">// 获取对象的大小</span></span><br><span class="line">    <span class="type">size_t</span> size = cls-&gt;<span class="built_in">instanceSize</span>(extraBytes);</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    <span class="comment">//分配size内存空间</span></span><br><span class="line">    obj = (id)<span class="built_in">calloc</span>(<span class="number">1</span>, size);</span><br><span class="line">    <span class="comment">//初始化isa</span></span><br><span class="line">    obj-&gt;<span class="built_in">initIsa</span>(cls);</span><br><span class="line">    <span class="comment">//是否有构造函数</span></span><br><span class="line">    <span class="keyword">if</span> (cxxConstruct &amp;&amp; hasCxxCtor) &#123;</span><br><span class="line">        obj = _objc_constructOrFree(obj, cls);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>_class_createInstanceFromZone 方法中首先判断当前class或者superclass 是否有构造方法和析构方法。然后从类对象中获取要创建当前对象所需要的空间大小，紧接着就调用calloc分配内存，然后初始化Isa结构体。如果有构造函数的情况下还需要调用_objc_constructOrFree。_objc_constructOrFree最终会找到该类的C++构造方法，向它发送消息。</p>
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="built_in">id</span>)<span class="keyword">init</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> _objc_rootInit(self);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">id</span></span><br><span class="line">_objc_rootInit(<span class="built_in">id</span> obj)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// In practice, it will be hard to rely on this function.</span></span><br><span class="line">    <span class="comment">// Many classes do not properly chain -init calls.</span></span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-对象的持有-retain"><a href="#2-对象的持有-retain" class="headerlink" title="2 对象的持有 retain"></a>2 对象的持有 retain</h5><p><strong><strong>调用栈</strong></strong></p>
+<p>对象的持有实际上是在对应的SideTable散列表中通过当前对象的地址作为散列值，找到存储当前对象引用计数的哈希表将引用计数增加1.我们下面看下整个调用过程：</p>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line"><span class="comment">--- retain</span></span><br><span class="line">    <span class="comment">--- rootRetain</span></span><br><span class="line">        <span class="comment">--- sidetable_retain</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">- (id)retain &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="params">((id)self)</span>-&gt;</span>rootRetain();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable constant_">ALWAYS_INLINE</span> id </span><br><span class="line"><span class="attr">objc_object</span>::<span class="title function_">rootRetain</span>(<span class="params"></span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">rootRetain</span>(<span class="literal">false</span>, <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">ALWAYS_INLINE id </span><br><span class="line">objc_object::root<span class="constructor">Retain(<span class="params">bool</span> <span class="params">tryRetain</span>, <span class="params">bool</span> <span class="params">handleOverflow</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (is<span class="constructor">TaggedPointer()</span>) return (id)this;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">bool</span> sideTableLocked = <span class="literal">false</span>;</span><br><span class="line">    <span class="built_in">bool</span> transcribeToSideTable = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    isa_t oldisa;</span><br><span class="line">    isa_t newisa;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        transcribeToSideTable = <span class="literal">false</span>;</span><br><span class="line">        oldisa = <span class="constructor">LoadExclusive(&amp;<span class="params">isa</span>.<span class="params">bits</span>)</span>;</span><br><span class="line">        newisa = oldisa;</span><br><span class="line">        <span class="keyword">if</span> (slowpath(!newisa.nonpointer)) &#123;</span><br><span class="line">            <span class="constructor">ClearExclusive(&amp;<span class="params">isa</span>.<span class="params">bits</span>)</span>;</span><br><span class="line">            <span class="keyword">if</span> (!tryRetain<span class="operator"> &amp;&amp; </span>sideTableLocked) sidetable<span class="constructor">_unlock()</span>;</span><br><span class="line">            <span class="keyword">if</span> (tryRetain) return sidetable<span class="constructor">_tryRetain()</span> ? (id)this : nil;</span><br><span class="line">            <span class="keyword">else</span> return sidetable<span class="constructor">_retain()</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// don&#x27;t check newisa.fast_rr; we already called any RR overrides</span></span><br><span class="line">        <span class="keyword">if</span> (slowpath(tryRetain<span class="operator"> &amp;&amp; </span>newisa.deallocating)) &#123;</span><br><span class="line">            <span class="constructor">ClearExclusive(&amp;<span class="params">isa</span>.<span class="params">bits</span>)</span>;</span><br><span class="line">            <span class="keyword">if</span> (!tryRetain<span class="operator"> &amp;&amp; </span>sideTableLocked) sidetable<span class="constructor">_unlock()</span>;</span><br><span class="line">            return nil;</span><br><span class="line">        &#125;</span><br><span class="line">        uintptr_t carry;</span><br><span class="line">        newisa.bits = addc(newisa.bits, RC_ONE, <span class="number">0</span>, &amp;carry);  <span class="comment">// extra_rc++</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (slowpath(carry)) &#123;</span><br><span class="line">            <span class="comment">// newisa.extra_rc++ overflowed</span></span><br><span class="line">            <span class="keyword">if</span> (!handleOverflow) &#123;</span><br><span class="line">                <span class="constructor">ClearExclusive(&amp;<span class="params">isa</span>.<span class="params">bits</span>)</span>;</span><br><span class="line">                return root<span class="constructor">Retain_overflow(<span class="params">tryRetain</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// Leave half of the retain counts inline and </span></span><br><span class="line">            <span class="comment">// prepare to copy the other half to the side table.</span></span><br><span class="line">            <span class="keyword">if</span> (!tryRetain<span class="operator"> &amp;&amp; </span>!sideTableLocked) sidetable<span class="constructor">_lock()</span>;</span><br><span class="line">            sideTableLocked = <span class="literal">true</span>;</span><br><span class="line">            transcribeToSideTable = <span class="literal">true</span>;</span><br><span class="line">            newisa.extra_rc = RC_HALF;</span><br><span class="line">            newisa.has_sidetable_rc = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">while</span> (slowpath(!<span class="constructor">StoreExclusive(&amp;<span class="params">isa</span>.<span class="params">bits</span>, <span class="params">oldisa</span>.<span class="params">bits</span>, <span class="params">newisa</span>.<span class="params">bits</span>)</span>));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(transcribeToSideTable)) &#123;</span><br><span class="line">        <span class="comment">// Copy the other half of the retain counts to the side table.</span></span><br><span class="line">        sidetable<span class="constructor">_addExtraRC_nolock(RC_HALF)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(!tryRetain<span class="operator"> &amp;&amp; </span>sideTableLocked)) sidetable<span class="constructor">_unlock()</span>;</span><br><span class="line">    return (id)this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里最关键的是sidetable_retain，至于什么是SiteTable,以及对象引用计数的存储介绍可以查看 我准备的一个面试题：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/tbfungeek/iOS-Daily-Interview/issues/2">谈谈iOS的内存管理方式的理解</a>来理解如何查找散列表的过程。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">id</span></span><br><span class="line"><span class="function"><span class="title">objc_object::sidetable_retain</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> SUPPORT_NONPOINTER_ISA</span></span><br><span class="line">    <span class="built_in">assert</span>(!isa.nonpointer);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    SideTable&amp; table = <span class="built_in">SideTables</span>()[<span class="keyword">this</span>];</span><br><span class="line">    </span><br><span class="line">    table.<span class="built_in">lock</span>();</span><br><span class="line">    <span class="type">size_t</span>&amp; refcntStorage = table.refcnts[<span class="keyword">this</span>];</span><br><span class="line">    <span class="keyword">if</span> (! (refcntStorage &amp; SIDE_TABLE_RC_PINNED)) &#123;</span><br><span class="line">        refcntStorage += SIDE_TABLE_RC_ONE;</span><br><span class="line">    &#125;</span><br><span class="line">    table.<span class="built_in">unlock</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (id)<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-对象的释放-release"><a href="#3-对象的释放-release" class="headerlink" title="3 对象的释放 release"></a>3 对象的释放 release</h5><p><strong><strong>调用栈</strong></strong></p>
+<p>对象的释放实际上是在对应的SideTable散列表中通过当前对象的地址作为散列值，找到存储当前对象引用计数的哈希表将引用计数减1.如果减去1后为0 那么就会调用dealloc释放对象：</p>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line"><span class="comment">--- release</span></span><br><span class="line">    <span class="comment">--- rootRelease</span></span><br><span class="line">        <span class="comment">--- sidetable_release</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">- (oneway <span class="literal">void</span>)release &#123;</span><br><span class="line">    <span class="function"><span class="params">((id)self)</span>-&gt;</span>rootRelease();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="attr">objc_object</span>::<span class="title function_">rootRelease</span>(<span class="params"></span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">rootRelease</span>(<span class="literal">true</span>, <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line">ALWAYS_INLINE bool </span><br><span class="line">objc_object:<span class="type"></span>:rootRelease(bool performDealloc, bool handleUnderflow)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (isTaggedPointer()) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    bool sideTableLocked = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    isa_t oldisa;</span><br><span class="line">    isa_t <span class="keyword">new</span><span class="type">isa</span>;</span><br><span class="line"></span><br><span class="line"> retry:<span class="type"></span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        oldisa = LoadExclusive(&amp;isa.bits);</span><br><span class="line">        <span class="keyword">new</span><span class="type">isa</span> = oldisa;</span><br><span class="line">        <span class="keyword">if</span> (slowpath(!<span class="keyword">new</span><span class="type">isa</span>.nonpointer)) &#123;</span><br><span class="line">            ClearExclusive(&amp;isa.bits);</span><br><span class="line">            <span class="keyword">if</span> (sideTableLocked) sidetable_unlock();</span><br><span class="line">            <span class="keyword">return</span> sidetable_release(performDealloc);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// don&#x27;t check newisa.fast_rr; we already called any RR overrides</span></span><br><span class="line">        uintptr_t carry;</span><br><span class="line">        <span class="keyword">new</span><span class="type">isa</span>.bits = subc(<span class="keyword">new</span><span class="type">isa</span>.bits, RC_ONE, <span class="number">0</span>, &amp;carry);  <span class="comment">// extra_rc--</span></span><br><span class="line">        <span class="keyword">if</span> (slowpath(carry)) &#123;</span><br><span class="line">            <span class="comment">// don&#x27;t ClearExclusive()</span></span><br><span class="line">            goto underflow;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">while</span> (slowpath(!StoreReleaseExclusive(&amp;isa.bits, </span><br><span class="line">                                             oldisa.bits, <span class="keyword">new</span><span class="type">isa</span>.bits)));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(sideTableLocked)) sidetable_unlock();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"> underflow:<span class="type"></span></span><br><span class="line">    <span class="comment">// newisa.extra_rc-- underflowed: borrow from side table or deallocate</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// abandon newisa to undo the decrement</span></span><br><span class="line">    <span class="keyword">new</span><span class="type">isa</span> = oldisa;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(<span class="keyword">new</span><span class="type">isa</span>.has_sidetable_rc)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!handleUnderflow) &#123;</span><br><span class="line">            ClearExclusive(&amp;isa.bits);</span><br><span class="line">            <span class="keyword">return</span> rootRelease_underflow(performDealloc);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Transfer retain count from side table to inline storage.</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!sideTableLocked) &#123;</span><br><span class="line">            ClearExclusive(&amp;isa.bits);</span><br><span class="line">            sidetable_lock();</span><br><span class="line">            sideTableLocked = <span class="literal">true</span>;</span><br><span class="line">            <span class="comment">// Need to start over to avoid a race against </span></span><br><span class="line">            <span class="comment">// the nonpointer -&gt; raw pointer transition.</span></span><br><span class="line">            goto retry;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Try to remove some retain counts from the side table.        </span></span><br><span class="line">        size_t borrowed = sidetable_subExtraRC_nolock(RC_HALF);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// To avoid races, has_sidetable_rc must remain set </span></span><br><span class="line">        <span class="comment">// even if the side table count is now zero.</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (borrowed &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// Side table retain count decreased.</span></span><br><span class="line">            <span class="comment">// Try to add them to the inline count.</span></span><br><span class="line">            <span class="keyword">new</span><span class="type">isa</span>.extra_rc = borrowed - <span class="number">1</span>;  <span class="comment">// redo the original decrement too</span></span><br><span class="line">            bool stored = StoreReleaseExclusive(&amp;isa.bits, </span><br><span class="line">                                                oldisa.bits, <span class="keyword">new</span><span class="type">isa</span>.bits);</span><br><span class="line">            <span class="keyword">if</span> (!stored) &#123;</span><br><span class="line">                <span class="comment">// Inline update failed. </span></span><br><span class="line">                <span class="comment">// Try it again right now. This prevents livelock on LL/SC </span></span><br><span class="line">                <span class="comment">// architectures where the side table access itself may have </span></span><br><span class="line">                <span class="comment">// dropped the reservation.</span></span><br><span class="line">                isa_t oldisa2 = LoadExclusive(&amp;isa.bits);</span><br><span class="line">                isa_t <span class="keyword">new</span><span class="type">isa2</span> = oldisa2;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">new</span><span class="type">isa2</span>.nonpointer) &#123;</span><br><span class="line">                    uintptr_t overflow;</span><br><span class="line">                    <span class="keyword">new</span><span class="type">isa2</span>.bits = </span><br><span class="line">                        addc(<span class="keyword">new</span><span class="type">isa2</span>.bits, RC_ONE * (borrowed<span class="number">-1</span>), <span class="number">0</span>, &amp;overflow);</span><br><span class="line">                    <span class="keyword">if</span> (!overflow) &#123;</span><br><span class="line">                        stored = StoreReleaseExclusive(&amp;isa.bits, oldisa2.bits, </span><br><span class="line">                                                       <span class="keyword">new</span><span class="type">isa2</span>.bits);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!stored) &#123;</span><br><span class="line">                <span class="comment">// Inline update failed.</span></span><br><span class="line">                <span class="comment">// Put the retains back in the side table.</span></span><br><span class="line">                sidetable_addExtraRC_nolock(borrowed);</span><br><span class="line">                goto retry;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Decrement successful after borrowing from side table.</span></span><br><span class="line">            <span class="comment">// This decrement cannot be the deallocating decrement - the side </span></span><br><span class="line">            <span class="comment">// table lock and has_sidetable_rc bit ensure that if everyone </span></span><br><span class="line">            <span class="comment">// else tried to -release while we worked, the last one would block.</span></span><br><span class="line">            sidetable_unlock();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// Side table is empty after all. Fall-through to the dealloc path.</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Really deallocate.</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(<span class="keyword">new</span><span class="type">isa</span>.deallocating)) &#123;</span><br><span class="line">        ClearExclusive(&amp;isa.bits);</span><br><span class="line">        <span class="keyword">if</span> (sideTableLocked) sidetable_unlock();</span><br><span class="line">        <span class="keyword">return</span> overrelease_error();</span><br><span class="line">        <span class="comment">// does not actually return</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">new</span><span class="type">isa</span>.deallocating = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (!StoreExclusive(&amp;isa.bits, oldisa.bits, <span class="keyword">new</span><span class="type">isa</span>.bits)) goto retry;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (slowpath(sideTableLocked)) sidetable_unlock();</span><br><span class="line"></span><br><span class="line">    __sync_synchronize();</span><br><span class="line">    <span class="keyword">if</span> (performDealloc) &#123;</span><br><span class="line">        ((void(*)(objc_object *, SEL))objc_msgSend)(<span class="built_in">this</span>, SEL_dealloc);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">uintptr_t</span></span></span><br><span class="line"><span class="function"><span class="title">objc_object::sidetable_release</span><span class="params">(<span class="type">bool</span> performDealloc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> SUPPORT_NONPOINTER_ISA</span></span><br><span class="line">    <span class="built_in">assert</span>(!isa.nonpointer);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    SideTable&amp; table = <span class="built_in">SideTables</span>()[<span class="keyword">this</span>];</span><br><span class="line"></span><br><span class="line">    <span class="type">bool</span> do_dealloc = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    table.<span class="built_in">lock</span>();</span><br><span class="line">    <span class="comment">//在散列表中找到当前对象对应的引用计数</span></span><br><span class="line">    RefcountMap::iterator it = table.refcnts.<span class="built_in">find</span>(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">if</span> (it == table.refcnts.<span class="built_in">end</span>()) &#123;</span><br><span class="line">        <span class="comment">//没找到，标记为已经销毁</span></span><br><span class="line">        do_dealloc = <span class="literal">true</span>;</span><br><span class="line">        table.refcnts[<span class="keyword">this</span>] = SIDE_TABLE_DEALLOCATING;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (it-&gt;second &lt; SIDE_TABLE_DEALLOCATING) &#123;</span><br><span class="line">        <span class="comment">// SIDE_TABLE_WEAKLY_REFERENCED may be set. Don&#x27;t change it.</span></span><br><span class="line">        do_dealloc = <span class="literal">true</span>;</span><br><span class="line">        it-&gt;second |= SIDE_TABLE_DEALLOCATING;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (! (it-&gt;second &amp; SIDE_TABLE_RC_PINNED)) &#123;</span><br><span class="line">        <span class="comment">//引用计数减去1</span></span><br><span class="line">        it-&gt;second -= SIDE_TABLE_RC_ONE;</span><br><span class="line">    &#125;</span><br><span class="line">    table.<span class="built_in">unlock</span>();</span><br><span class="line">    <span class="comment">//释放已经释放</span></span><br><span class="line">    <span class="keyword">if</span> (do_dealloc  &amp;&amp;  performDealloc) &#123;</span><br><span class="line">        <span class="comment">//调用dealloc</span></span><br><span class="line">        ((<span class="built_in">void</span>(*)(objc_object *, SEL))objc_msgSend)(<span class="keyword">this</span>, SEL_dealloc);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> do_dealloc;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="4-对象的销毁-dealloc"><a href="#4-对象的销毁-dealloc" class="headerlink" title="4 对象的销毁 dealloc"></a>4 对象的销毁 dealloc</h5><p>在介绍对象释放的最后有提到在某个对象的引用计数减为0的时候会调用对象的dealloc. 下面是相关的方法调用：</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">- (void)dealloc &#123;</span><br><span class="line">    <span class="built_in">_objc_rootDealloc</span>(self);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">void</span><br><span class="line"><span class="built_in">_objc_rootDealloc</span>(id obj)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">assert</span>(obj);</span><br><span class="line"></span><br><span class="line">    obj-&gt;<span class="built_in">rootDealloc</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">inline void</span><br><span class="line">objc_object::rootDealloc()</span><br><span class="line">&#123;</span><br><span class="line">    if (isTaggedPointer()) return;  <span class="comment">// fixme necessary?</span></span><br><span class="line"></span><br><span class="line">    if (fastpath(isa.nonpointer  &amp;&amp;  </span><br><span class="line">                 !isa.weakly_referenced  &amp;&amp;  </span><br><span class="line">                 !isa.has_assoc  &amp;&amp;  </span><br><span class="line">                 !isa.has_cxx_dtor  &amp;&amp;  </span><br><span class="line">                 !isa.has_sidetable_rc))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">assert</span>(!sidetable_present());</span><br><span class="line">        <span class="built_in">free</span>(this);</span><br><span class="line">    &#125; </span><br><span class="line">    else &#123;</span><br><span class="line">        <span class="built_in">object_dispose</span>((id)this);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">id </span><br><span class="line"><span class="built_in">object_dispose</span>(id obj)</span><br><span class="line">&#123;</span><br><span class="line">    if (!obj) return nil;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">objc_destructInstance</span>(obj);    </span><br><span class="line">    <span class="built_in">free</span>(obj);</span><br><span class="line"></span><br><span class="line">    return nil;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">void *objc<span class="constructor">_destructInstance(<span class="params">id</span> <span class="params">obj</span>)</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (obj) &#123;</span><br><span class="line">        <span class="comment">// Read all of the flags at once for performance.</span></span><br><span class="line">        <span class="built_in">bool</span> cxx = obj-&gt;has<span class="constructor">CxxDtor()</span>;</span><br><span class="line">        <span class="built_in">bool</span> assoc = obj-&gt;has<span class="constructor">AssociatedObjects()</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// This order is important.</span></span><br><span class="line">        <span class="keyword">if</span> (cxx) <span class="keyword">object</span><span class="constructor">_cxxDestruct(<span class="params">obj</span>)</span>;</span><br><span class="line">        <span class="keyword">if</span> (assoc) <span class="constructor">_object_remove_assocations(<span class="params">obj</span>)</span>;</span><br><span class="line">        obj-&gt;clear<span class="constructor">Deallocating()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要注意的是rootDealloc方法，它会先判断是否是taggpointer，如果是的话就直接返回，因为这种对象不需要释放内存，它的值就存放在指针中，这部分相关的内容可以查看<br><a target="_blank" rel="noopener" href="https://github.com/tbfungeek/iOS-Daily-Interview/issues/2">谈谈iOS的内存管理方式的理解</a>，紧接会判断当前对象的具体情况，如果当前对象是Nonpointer_ISA类型，那么要看相应的标识位，判断是否是弱引用，是否有关联对象，是否有C++析构函数，是否用到了散列表？如果都没有的话就直接free对象。否则通过object_dispose进行后续处理：</p>
+<p>相关的具体处理最终在objc_destructInstance中实现。大家可以看下该方法的注释：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line">/<span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span>*</span><br><span class="line"><span class="bullet">* </span>objc_destructInstance</span><br><span class="line"><span class="bullet">* </span>Destroys an instance without freeing memory. </span><br><span class="line"><span class="bullet">* </span>Calls C++ destructors.</span><br><span class="line"><span class="bullet">* </span>Calls ARC ivar cleanup.</span><br><span class="line"><span class="bullet">* </span>Removes associative references.</span><br><span class="line"><span class="bullet">* </span>Returns <span class="code">`obj`</span>. Does nothing if <span class="code">`obj`</span> is nil.</span><br><span class="line"><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span>/</span><br></pre></td></tr></table></figure>
+
+<p>这里面重点针对是否有C++析构函数，是否有关联对象，是否有弱引用进行了对应的处理，我们接下来重点对这部分进行介绍：</p>
+<p><strong><strong>调用析构函数是否对象</strong></strong></p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void <span class="keyword">object</span><span class="constructor">_cxxDestruct(<span class="params">id</span> <span class="params">obj</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (!obj) return;</span><br><span class="line">    <span class="keyword">if</span> (obj-&gt;is<span class="constructor">TaggedPointer()</span>) return;</span><br><span class="line">    <span class="keyword">object</span><span class="constructor">_cxxDestructFromClass(<span class="params">obj</span>, <span class="params">obj</span>-&gt;ISA()</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">static</span> void object_cxxDestructFromClass(id obj, <span class="class"><span class="keyword">Class</span> <span class="title">cls</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    void (*dtor)(id);</span><br><span class="line"></span><br><span class="line">    // Call <span class="built_in">cls</span><span class="string">&#x27;s dtor first, then superclasses&#x27;</span>s dtors.</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> ( ; <span class="built_in">cls</span>; <span class="built_in">cls</span> = <span class="built_in">cls</span>-&gt;superclass) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">cls</span>-&gt;hasCxxDtor()) <span class="keyword">return</span>; </span><br><span class="line">        dtor = (void(*)(id))</span><br><span class="line">            lookupMethodInClassAndLoadCache(<span class="built_in">cls</span>, SEL_cxx_destruct);</span><br><span class="line">        <span class="keyword">if</span> (dtor != (void(*)(id))_objc_msgForward_impcache) &#123;</span><br><span class="line">            <span class="keyword">if</span> (PrintCxxCtors) &#123;</span><br><span class="line">                _objc_inform(<span class="string">&quot;CXX: calling C++ destructors for class %s&quot;</span>, </span><br><span class="line">                             <span class="built_in">cls</span>-&gt;nameForLogging());</span><br><span class="line">            &#125;</span><br><span class="line">            (*dtor)(obj);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>实际上就是在类的方法列表中查找对应的析构函数，然后对其进行调用。如果针对这部分想要细致了解大家可以查看<a target="_blank" rel="noopener" href="http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/">ARC下dealloc过程及.cxx_destruct的探究</a>这篇博客。</p>
+<p>ARC下在编译器插入的.cxx_desctruct方法中会完成成员变量的自动释放。而对象的实例变量的销毁发生在根类[NSObject dealloc]方法中。</p>
+<p><strong><strong>关联属性移除</strong></strong></p>
+<p>关于关联对象大家可以查看对应的博客，它其实是由全局AssociationsManager进行管理的，在这里会找到对应的关联对象，然后添加到elements，然后对elements里面的对象调用ReleaseValue进行移除。这样和这个对象相关的关联对象就从AssociationsManager中移除了。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void <span class="constructor">_object_remove_assocations(<span class="params">id</span> <span class="params">object</span>)</span> &#123;</span><br><span class="line">    vector&lt; ObjcAssociation,ObjcAllocator&lt;ObjcAssociation&gt; &gt; elements;</span><br><span class="line">    &#123;</span><br><span class="line">        AssociationsManager manager;</span><br><span class="line">        AssociationsHashMap &amp;associations(manager.associations<span class="literal">()</span>);</span><br><span class="line">        <span class="keyword">if</span> (associations.size<span class="literal">()</span><span class="operator"> == </span><span class="number">0</span>) return;</span><br><span class="line">        disguised_ptr_t disguised_object = <span class="constructor">DISGUISE(<span class="params">object</span>)</span>;</span><br><span class="line">        AssociationsHashMap::iterator i = associations.find(disguised_object);</span><br><span class="line">        <span class="keyword">if</span> (i != associations.<span class="keyword">end</span><span class="literal">()</span>) &#123;</span><br><span class="line">            <span class="comment">// copy all of the associations that need to be removed.</span></span><br><span class="line">            ObjectAssociationMap *refs = i-&gt;second;</span><br><span class="line">            <span class="keyword">for</span> (ObjectAssociationMap::iterator j = refs-&gt;<span class="keyword">begin</span><span class="literal">()</span>, <span class="keyword">end</span> = refs-&gt;<span class="keyword">end</span><span class="literal">()</span>; j != <span class="keyword">end</span>; ++j) &#123;</span><br><span class="line">                elements.push<span class="constructor">_back(<span class="params">j</span>-&gt;<span class="params">second</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// remove the secondary table.</span></span><br><span class="line">            delete refs;</span><br><span class="line">            associations.erase(i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// the calls to releaseValue() happen outside of the lock.</span></span><br><span class="line">    <span class="keyword">for</span><span class="constructor">_each(<span class="params">elements</span>.<span class="params">begin</span>()</span>, elements.<span class="keyword">end</span><span class="literal">()</span>, <span class="constructor">ReleaseValue()</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>清除剩余标识位</strong></strong></p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">inline void </span><br><span class="line">objc_object::clearDeallocating()</span><br><span class="line">&#123;</span><br><span class="line">    if (slowpath(!isa.nonpointer)) &#123;</span><br><span class="line">        <span class="comment">// Slow path for raw pointer isa.</span></span><br><span class="line">        <span class="comment">// 普通类型的指针指向的对象</span></span><br><span class="line">        <span class="built_in">sidetable_clearDeallocating</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    else if (slowpath(isa.weakly_referenced  ||  isa.has_sidetable_rc)) &#123;</span><br><span class="line">        <span class="comment">// Slow path for non-pointer isa with weak refs and/or side table data.</span></span><br><span class="line">        <span class="comment">// non-pointer isa 类型的对象。这种对象之所以要和普通对象区分开是因为它的弱引用标记以及是否使用散列表信息都存在“指针”中，所以要分开处理，但是处理的流程都是一样的，都是查看是否被弱引用指针指向，如果有则将这些设置为nil。紧接着从散列表中清除引用计数。最后将弱引用项从弱引用表中移除。</span></span><br><span class="line">        <span class="built_in">clearDeallocating_slow</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">assert</span>(!sidetable_present());</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>clearDeallocating 中实际上是用于处理剩余的标识位，这里分成是否是non-pointer isa：<br>non-pointer isa 对象之所以要和普通对象区分开是因为它的弱引用标记以及是否使用散列表信息都存在“指针”中，所以要分开处理，但是处理的流程都是一样的，都是查看是否被弱引用指针指向，如果有则将这些设置为nil。紧接着从散列表中清除引用计数。最后将弱引用项从弱引用表中移除。</p>
+<figure class="highlight verilog"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> </span><br><span class="line">objc_object::sidetable_clearDeallocating()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//找到对应的散列表</span></span><br><span class="line">    SideTable&amp; <span class="keyword">table</span> = SideTables()[<span class="keyword">this</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// clear any weak table items</span></span><br><span class="line">    <span class="comment">// clear extra retain count and deallocating bit</span></span><br><span class="line">    <span class="comment">// (fixme warn or abort if extra retain count == 0 ?)</span></span><br><span class="line">    <span class="keyword">table</span><span class="variable">.lock</span>();</span><br><span class="line">    RefcountMap::iterator it = <span class="keyword">table</span><span class="variable">.refcnts</span><span class="variable">.find</span>(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">if</span> (it != <span class="keyword">table</span><span class="variable">.refcnts</span><span class="variable">.end</span>()) &#123;</span><br><span class="line">        <span class="comment">//当前对象是否是弱引用对象</span></span><br><span class="line">        <span class="keyword">if</span> (it-&gt;second &amp; SIDE_TABLE_WEAKLY_REFERENCED) &#123;</span><br><span class="line">            <span class="comment">//如果是的话则将对应对象对它的引用设置为nil</span></span><br><span class="line">            weak_clear_no_lock(&amp;<span class="keyword">table</span><span class="variable">.weak_table</span>, (id)<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//清除引用计数</span></span><br><span class="line">        <span class="keyword">table</span><span class="variable">.refcnts</span><span class="variable">.erase</span>(it);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">table</span><span class="variable">.unlock</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>sidetable_clearDeallocating 就做了三件事情：</p>
+<ol>
+<li>找到对应的散列表</li>
+<li>查看弱引用标记，是否是弱引用，如果是的话则将其他对象对它的引用置为nil，并将弱引用标志从SideTable的弱引用表中移除。</li>
+<li>将该对象对应的引用计数表从SideTables中移除</li>
+</ol>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">void</span> </span><br><span class="line">weak_clear_no_lock(weak_table_t *weak_table, id <span class="built_in">ref</span>erent_id) </span><br><span class="line">&#123;</span><br><span class="line">    objc_object *<span class="built_in">ref</span>erent = (objc_object *)<span class="built_in">ref</span>erent_id;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//找到对应的弱引用项入口</span></span><br><span class="line">    weak_entry_t *entry = weak_entry_for_referent(weak_table, <span class="built_in">ref</span>erent);</span><br><span class="line">    <span class="keyword">if</span> (entry == nil) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// zero out references</span></span><br><span class="line">    weak_referrer_t *<span class="built_in">ref</span>errers;</span><br><span class="line">    size_t count;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (entry-&gt;out_of_line()) &#123;</span><br><span class="line">        <span class="built_in">ref</span>errers = entry-&gt;<span class="built_in">ref</span>errers;</span><br><span class="line">        count = TABLE_SIZE(entry);</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">ref</span>errers = entry-&gt;inline_referrers;</span><br><span class="line">        count = WEAK_INLINE_COUNT;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (size_t i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">        objc_object **<span class="built_in">ref</span>errer = <span class="built_in">ref</span>errers[i];</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">ref</span>errer) &#123;</span><br><span class="line">            <span class="keyword">if</span> (*<span class="built_in">ref</span>errer == <span class="built_in">ref</span>erent) &#123;</span><br><span class="line">                <span class="comment">//将其他对象对他的引用设置为nil</span></span><br><span class="line">                *<span class="built_in">ref</span>errer = nil;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (*<span class="built_in">ref</span>errer) &#123;</span><br><span class="line">                _objc_inform(<span class="string">&quot;__weak variable at %p holds %p instead of %p. &quot;</span></span><br><span class="line">                             <span class="string">&quot;This is probably incorrect use of &quot;</span></span><br><span class="line">                             <span class="string">&quot;objc_storeWeak() and objc_loadWeak(). &quot;</span></span><br><span class="line">                             <span class="string">&quot;Break on objc_weak_error to debug.\n&quot;</span>, </span><br><span class="line">                             <span class="built_in">ref</span>errer, (<span class="built_in">void</span>*)*<span class="built_in">ref</span>errer, (<span class="built_in">void</span>*)<span class="built_in">ref</span>erent);</span><br><span class="line">                objc_weak_error();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//移除该项</span></span><br><span class="line">    weak_entry_remove(weak_table, entry);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="5-Weak指针原理"><a href="#5-Weak指针原理" class="headerlink" title="5 Weak指针原理"></a>5 Weak指针原理</h5><p>__weak 修饰的变量有两大特点：</p>
+<ul>
+<li>不会增加指向对象的引用计数 （规避循环引用）</li>
+<li>指向对象释放后，变量会自动置 nil （规避野指针访问错误）</li>
+</ul>
+<p>大体的实现思路如下：</p>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line">使用__weak 修饰的变量时，runtime 会生成对应的 weak_entry 结构放入 weak_table 中，以赋值对象地址生成的 hash 值为 key，以包装 __weak 修饰的指针变量地址的 <span class="keyword">entry</span> 为 value，当赋值对象释放时，runtime 会在目标对象的 dealloc 处理过程中，以对象地址（self）为 key 去 weak_table 查找 <span class="keyword">entry</span> ，置空 <span class="keyword">entry</span> 指向的的所有对象指针。weak_entry 使用数组保存指针变量地址，当地址数量小于<span class="number">4</span>的时候，这个数组就是个普通的内置数组，在地址数量大于<span class="number">4</span>的时候，这个数组就会扩充成一个 hash table。</span><br></pre></td></tr></table></figure>
+
+<p>我们接下来看下这部分源码：</p>
+<p>当我们声明一个指针变量的时候就会调用<strong><strong>objc_initWeak</strong></strong>方法：</p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line">id</span><br><span class="line">objc_initWeak(id *location, id <span class="keyword">new</span><span class="type">Obj</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">new</span><span class="type">Obj</span>) &#123;</span><br><span class="line">        *location = nil;</span><br><span class="line">        <span class="keyword">return</span> nil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> storeWeak&lt;DontHaveOld, DoHaveNew, DoCrashIfDeallocating&gt;</span><br><span class="line">        (location, (objc_object*)<span class="keyword">new</span><span class="type">Obj</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>weak 对象的存储是通过storeWeak完成的，在看storeWeak代码之前我们先来看下<strong><strong>weak_table_t</strong></strong></p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">struct weak_table_t &#123;</span><br><span class="line">    weak_entry_t *weak_entries<span class="comment">;</span></span><br><span class="line">    size_t    num_entries<span class="comment">;</span></span><br><span class="line">    uintptr_t mask<span class="comment">;</span></span><br><span class="line">    uintptr_t max_hash_displacement<span class="comment">;</span></span><br><span class="line">&#125;<span class="comment">;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>weak_table_t 中存储的每个weak_entry_t是以被引用对象地址为hash Code 进行存储的，这个没啥好说的，我们来看下weak_entry_t。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">weak_entry_t</span> &#123;</span><br><span class="line">    DisguisedPtr&lt;objc_object&gt; referent;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="keyword">struct</span> &#123;</span><br><span class="line">            <span class="type">weak_referrer_t</span> *referrers;</span><br><span class="line">            <span class="type">uintptr_t</span>        out_of_line_ness : <span class="number">2</span>;</span><br><span class="line">            <span class="type">uintptr_t</span>        num_refs : PTR_MINUS_2;</span><br><span class="line">            <span class="type">uintptr_t</span>        mask;</span><br><span class="line">            <span class="type">uintptr_t</span>        max_hash_displacement;</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="keyword">struct</span> &#123;</span><br><span class="line">            <span class="comment">// out_of_line_ness field is low bits of inline_referrers[1]</span></span><br><span class="line">            <span class="type">weak_referrer_t</span>  inline_referrers[WEAK_INLINE_COUNT];</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">out_of_line</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (out_of_line_ness == REFERRERS_OUT_OF_LINE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">weak_entry_t</span>&amp; <span class="keyword">operator</span>=(<span class="type">const</span> <span class="type">weak_entry_t</span>&amp; other) &#123;</span><br><span class="line">        <span class="built_in">memcpy</span>(<span class="keyword">this</span>, &amp;other, <span class="built_in">sizeof</span>(other));</span><br><span class="line">        <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">weak_entry_t</span>(objc_object *newReferent, objc_object **newReferrer)</span><br><span class="line">        : <span class="built_in">referent</span>(newReferent)</span><br><span class="line">    &#123;</span><br><span class="line">        inline_referrers[<span class="number">0</span>] = newReferrer;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; WEAK_INLINE_COUNT; i++) &#123;</span><br><span class="line">            inline_referrers[i] = nil;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>weak_entry_t 里面包含了一个union，里面有两个结构体，其中 WEAK_INLINE_COUNT 宏为 4 ，也就是说在初始状态下，这个 union 的空间有 weak_referrer_t inline_referrers[4] 这么大，当 entry 保存指针变量地址的个数不大于 4 个时，我们就可以直接使用 inline_referrers 数组，这样写的话，访问更加快速便捷。但是如果超过4个的话则使用哈希表来存储，这样会加速查找的速度。</p>
+<p>下面是weak相关数据结构的大体示意图：</p>
+<p><img src="/2020/01/04/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B9%8B%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E9%94%80%E6%AF%81%EF%BC%8C%E6%8C%81%E6%9C%89%EF%BC%8C%E5%BC%B1%E5%BC%95%E7%94%A8%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/00001.png"></p>
+<p>referent: 是内存上的weak对象<br>referrers: 是指向weak对象的所有变量</p>
+<p>有了上面的存储结构的介绍对storeWeak会有更清晰的理解</p>
+<p>在设置新的关联前，如果 __weak 修饰的指针变量已经关联了其他对象，那么此函数会先解除旧关联，再设置新的。如果 newObjc 是 nil，那么只会进行解除关联以及指针置 nil 操作，objc_destroyWeak 就以这种方式调用 storeWeak 来执行销毁动作，这个后面会介绍。</p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line">template &lt;HaveOld haveOld, HaveNew haveNew,</span><br><span class="line">          CrashIfDeallocating crashIfDeallocating&gt;</span><br><span class="line"><span class="keyword">static</span> id </span><br><span class="line">storeWeak(id *location, objc_object *<span class="keyword">new</span><span class="type">Obj</span>)</span><br><span class="line">&#123;</span><br><span class="line">    assert(haveOld  ||  haveNew);</span><br><span class="line">    <span class="keyword">if</span> (!haveNew) assert(<span class="keyword">new</span><span class="type">Obj</span> == nil);</span><br><span class="line"></span><br><span class="line">    Class previouslyInitializedClass = nil;</span><br><span class="line">    id oldObj;</span><br><span class="line">    SideTable *oldTable;</span><br><span class="line">    SideTable *<span class="keyword">new</span><span class="type">Table</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//..........</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Clean up old value, if any.</span></span><br><span class="line">    <span class="keyword">if</span> (haveOld) &#123;</span><br><span class="line">        <span class="comment">//__weak 修饰的指针变量已经指向过某对象</span></span><br><span class="line">        <span class="comment">// 需要把这个对象和此指针变量的关联断开</span></span><br><span class="line">        weak_unregister_no_lock(&amp;oldTable-&gt;weak_table, oldObj, location);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Assign new value, if any.</span></span><br><span class="line">    <span class="keyword">if</span> (haveNew) &#123;</span><br><span class="line">        <span class="comment">// 关联新对象和 __weak 修饰的指针变量</span></span><br><span class="line">        <span class="keyword">new</span><span class="type">Obj</span> = (objc_object *)</span><br><span class="line">            weak_register_no_lock(&amp;<span class="keyword">new</span><span class="type">Table</span>-&gt;weak_table, (id)<span class="keyword">new</span><span class="type">Obj</span>, location, </span><br><span class="line">                                  crashIfDeallocating);</span><br><span class="line">        <span class="comment">// weak_register_no_lock returns nil if weak store should be rejected</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Set is-weakly-referenced bit in refcount table.</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">new</span><span class="type">Obj</span>  &amp;&amp;  !<span class="keyword">new</span><span class="type">Obj</span>-&gt;isTaggedPointer()) &#123;</span><br><span class="line">            <span class="comment">// 设置 isa 指针的 weakly_referenced 位 / sidetable 中的 SIDE_TABLE_WEAKLY_REFERENCED 位</span></span><br><span class="line">            <span class="comment">// 标记此对象被 __weak 修饰的指针变量指向了，dealloc 时可以加速置 nil 处理</span></span><br><span class="line">            <span class="keyword">new</span><span class="type">Obj</span>-&gt;setWeaklyReferenced_nolock();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 设置 __weak 修饰的指针变量的值为 newObj</span></span><br><span class="line">        <span class="comment">// Do not set *location anywhere else. That would introduce a race.</span></span><br><span class="line">        *location = (id)<span class="keyword">new</span><span class="type">Obj</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// No new value. The storage is not changed.</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    SideTable:<span class="type"></span>:unlockTwo&lt;haveOld, haveNew&gt;(oldTable, <span class="keyword">new</span><span class="type">Table</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (id)<span class="keyword">new</span><span class="type">Obj</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">id </span><br><span class="line">weak_register_no_lock(weak_table_t *weak_table, id <span class="built_in">ref</span>erent_id, </span><br><span class="line">                      id *<span class="built_in">ref</span>errer_id, <span class="built_in">bool</span> crashIfDeallocating)</span><br><span class="line">&#123;</span><br><span class="line">    objc_object *<span class="built_in">ref</span>erent = (objc_object *)<span class="built_in">ref</span>erent_id;</span><br><span class="line">    objc_object **<span class="built_in">ref</span>errer = (objc_object **)<span class="built_in">ref</span>errer_id;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">ref</span>erent  ||  <span class="built_in">ref</span>erent-&gt;isTaggedPointer()) <span class="keyword">return</span> <span class="built_in">ref</span>erent_id;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ensure that the referenced object is viable</span></span><br><span class="line">    <span class="built_in">bool</span> deallocating;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">ref</span>erent-&gt;ISA()-&gt;hasCustomRR()) &#123;</span><br><span class="line">        deallocating = <span class="built_in">ref</span>erent-&gt;rootIsDeallocating();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        BOOL (*allowsWeakReference)(objc_object *, SEL) = </span><br><span class="line">            (BOOL(*)(objc_object *, SEL))</span><br><span class="line">            object_getMethodImplementation((id)<span class="built_in">ref</span>erent, </span><br><span class="line">                                           SEL_allowsWeakReference);</span><br><span class="line">        <span class="keyword">if</span> ((IMP)allowsWeakReference == _objc_msgForward) &#123;</span><br><span class="line">            <span class="keyword">return</span> nil;</span><br><span class="line">        &#125;</span><br><span class="line">        deallocating =</span><br><span class="line">            ! (*allowsWeakReference)(<span class="built_in">ref</span>erent, SEL_allowsWeakReference);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (deallocating) &#123;</span><br><span class="line">        <span class="keyword">if</span> (crashIfDeallocating) &#123;</span><br><span class="line">            _objc_fatal(<span class="string">&quot;Cannot form weak reference to instance (%p) of &quot;</span></span><br><span class="line">                        <span class="string">&quot;class %s. It is possible that this object was &quot;</span></span><br><span class="line">                        <span class="string">&quot;over-released, or is in the process of deallocation.&quot;</span>,</span><br><span class="line">                        (<span class="built_in">void</span>*)<span class="built_in">ref</span>erent, object_getClassName((id)<span class="built_in">ref</span>erent));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> nil;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// now remember it and where it is being stored</span></span><br><span class="line">    weak_entry_t *entry;</span><br><span class="line">    <span class="keyword">if</span> ((entry = weak_entry_for_referent(weak_table, <span class="built_in">ref</span>erent))) &#123;</span><br><span class="line">        append_referrer(entry, <span class="built_in">ref</span>errer);</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        weak_entry_t new_entry(<span class="built_in">ref</span>erent, <span class="built_in">ref</span>errer);</span><br><span class="line">        weak_grow_maybe(weak_table);</span><br><span class="line">        weak_entry_insert(weak_table, &amp;new_entry);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Do not set *referrer. objc_storeWeak() requires that the </span></span><br><span class="line">    <span class="comment">// value not change.</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">ref</span>erent_id;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>最关键的代码在<strong><strong>weak_register_no_lock</strong></strong> 中，它会判断某个referent的weak_entry是否存在，如果存在则直接在这个weak_entry中添加referrer，否则新建一个weak_entry，加到weak_table中。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">weak_entry_t *entry;</span><br><span class="line"><span class="keyword">if</span> ((entry = weak<span class="constructor">_entry_for_referent(<span class="params">weak_table</span>, <span class="params">referent</span>)</span>)) &#123;</span><br><span class="line">    append<span class="constructor">_referrer(<span class="params">entry</span>, <span class="params">referrer</span>)</span>;</span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    weak_entry_t <span class="keyword">new</span><span class="constructor">_entry(<span class="params">referent</span>, <span class="params">referrer</span>)</span>;</span><br><span class="line">    weak<span class="constructor">_grow_maybe(<span class="params">weak_table</span>)</span>;</span><br><span class="line">    weak<span class="constructor">_entry_insert(<span class="params">weak_table</span>, &amp;<span class="params">new_entry</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p><strong><strong>销毁弱引用对象</strong></strong></p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span></span><br><span class="line">objc_destroyWeak(id *<span class="keyword">location</span>)</span><br><span class="line">&#123;</span><br><span class="line">    (<span class="type">void</span>)storeWeak&lt;DoHaveOld, DontHaveNew, DontCrashIfDeallocating&gt;</span><br><span class="line">        (<span class="keyword">location</span>, nil);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>销毁弱引用对象和创建弱引用对象入口实际上是一样的，都是storeWeak，只不过这里传入的值为nil。由于传入的是非 nil 新值，storeWeak会删除而不会新建关联信息。</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">void</span> weak_unregister_no_lock(weak_table_t *weak_table, id <span class="built_in">ref</span>erent_id, </span><br><span class="line">                        id *<span class="built_in">ref</span>errer_id)</span><br><span class="line">&#123;</span><br><span class="line">    objc_object *<span class="built_in">ref</span>erent = (objc_object *)<span class="built_in">ref</span>erent_id;</span><br><span class="line">    objc_object **<span class="built_in">ref</span>errer = (objc_object **)<span class="built_in">ref</span>errer_id;</span><br><span class="line"></span><br><span class="line">    weak_entry_t *entry;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">ref</span>erent) <span class="keyword">return</span>;</span><br><span class="line">    <span class="comment">// 根据对象地址获取 entry</span></span><br><span class="line">    <span class="keyword">if</span> ((entry = weak_entry_for_referent(weak_table, <span class="built_in">ref</span>erent))) &#123;</span><br><span class="line">        <span class="comment">// 移除 entry 中值为 referrer 的指针变量地址</span></span><br><span class="line">        remove_referrer(entry, <span class="built_in">ref</span>errer);</span><br><span class="line">        <span class="built_in">bool</span> empty = <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">// entry 中是否有关联的指针变量地址</span></span><br><span class="line">        <span class="keyword">if</span> (entry-&gt;out_of_line()  &amp;&amp;  entry-&gt;num_refs != <span class="number">0</span>) &#123;</span><br><span class="line">            empty = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">for</span> (size_t i = <span class="number">0</span>; i &lt; WEAK_INLINE_COUNT; i++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (entry-&gt;inline_referrers[i]) &#123;</span><br><span class="line">                    empty = <span class="literal">false</span>; </span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (empty) &#123;</span><br><span class="line">            <span class="comment">// 如果 entry 是空的话，就从 weak_table 中移除掉</span></span><br><span class="line">            weak_entry_remove(weak_table, entry);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2020/01/06/iOS-Category-源码解析/" title="iOS Category 源码解析">
+  <span>
+  iOS Category 源码解析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/12/24/iOS开源库源码分析之coobjc/"  title="iOS开源库之coobjc使用">
+ <span>iOS开源库之coobjc使用
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2020/01/04/iOS-内存管理之对象创建，销毁，持有，弱引用源码剖析/" data-title="iOS 内存管理之对象创建，销毁，持有，弱引用源码剖析" data-url="http://yoursite.com/2020/01/04/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B9%8B%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E9%94%80%E6%AF%81%EF%BC%8C%E6%8C%81%E6%9C%89%EF%BC%8C%E5%BC%B1%E5%BC%95%E7%94%A8%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA-alloc-x2F-init%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">1 对象的创建 alloc&#x2F;init：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%8C%81%E6%9C%89-retain"><span class="toc-number">2.</span> <span class="toc-text">2 对象的持有 retain</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E5%AF%B9%E8%B1%A1%E7%9A%84%E9%87%8A%E6%94%BE-release"><span class="toc-number">3.</span> <span class="toc-text">3 对象的释放 release</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E5%AF%B9%E8%B1%A1%E7%9A%84%E9%94%80%E6%AF%81-dealloc"><span class="toc-number">4.</span> <span class="toc-text">4 对象的销毁 dealloc</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-Weak%E6%8C%87%E9%92%88%E5%8E%9F%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">5 Weak指针原理</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

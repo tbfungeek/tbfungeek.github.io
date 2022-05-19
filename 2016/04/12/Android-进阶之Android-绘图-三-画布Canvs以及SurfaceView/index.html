@@ -1,0 +1,702 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之Android 绘图 三 画布Canvs以及SurfaceView | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="画布 Canvuscanvas.drawARGB(255,0,0,255);canvas.drawRGB(123,34,45);canvas.drawColor(Color.parseColor(“#343434”));canvas.drawCircle(400,800,200,mPaint); public void drawArc(float left, float top, float ri">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之Android 绘图 三 画布Canvs以及SurfaceView">
+<meta property="og:url" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="画布 Canvuscanvas.drawARGB(255,0,0,255);canvas.drawRGB(123,34,45);canvas.drawColor(Color.parseColor(“#343434”));canvas.drawCircle(400,800,200,mPaint); public void drawArc(float left, float top, float ri">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/5.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/6.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/7.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/8.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/9.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/10.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/11.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/12.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/13.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/14.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/canvus.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/surfaceview.png">
+<meta property="article:published_time" content="2016-04-12T03:31:39.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:41:12.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android 绘图进阶">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/12/Android-进阶之Android-绘图-三-画布Canvs以及SurfaceView/" title="Android 进阶之Android 绘图 三 画布Canvs以及SurfaceView" itemprop="url">Android 进阶之Android 绘图 三 画布Canvs以及SurfaceView</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-12T03:31:39.000Z" itemprop="datePublished"> Published 2016-04-12</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h3 id="画布-Canvus"><a href="#画布-Canvus" class="headerlink" title="画布 Canvus"></a>画布 Canvus</h3><p>canvas.drawARGB(255,0,0,255);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/1.png"><br>canvas.drawRGB(123,34,45);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/2.png"><br>canvas.drawColor(Color.parseColor(“#343434”));<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/3.png"><br>canvas.drawCircle(400,800,200,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/4.png"></p>
+<p>public void drawArc(float left, float top, float right, float bottom, float startAngle,<br>            float sweepAngle, boolean useCenter, @NonNull Paint paint)<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/5.png"><br>canvas.drawArc(200,200,1000,1000,-90,90,false,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/6.png"><br>canvas.drawArc(200,200,1000,1000,-90,90,true,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/7.png"></p>
+<p>canvas.drawPoint(100,100,mPaint);<br>canvas.drawPoints(new float[]{100,100,300,300,400,400},mPaint);<br>canvas.drawLine(100,100,400,400,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/8.png"><br>canvas.drawLines(new float[]{100,100,400,600,500,100,200,200},mPaint);<br>&#x2F;&#x2F;这里需要注意的是点坐标数，必须是4的倍数<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/9.png"><br>canvas.drawOval(200,400,800,800,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/10.png"></p>
+<p>canvas.drawRect(100,100,600,600,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/11.png"><br>canvas.drawRoundRect(100,100,400,400,100,60,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/12.png"></p>
+<p>mPaint.setTextSize(100);<br>canvas.drawText(“Hello Android”,300,400,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/13.png"><br>Path path &#x3D; new Path();<br>path.moveTo(200,200);<br>path.addRect(200,200,400,400, Path.Direction.CW);<br>path.addArc(200,200,800,800,100,300);<br>canvas.drawPath(path,mPaint);<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/14.png"></p>
+<p>canvaus 画布操作：</p>
+<p>Android 使用Layer堆栈来管理画布的，画布有多个图层，整个结构如下所示，下面就针对图层操作做将要介绍：<br><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/canvus.png"></p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Canvas</span><span class="selector-class">.save</span>()  用来保存当前的matrix和<span class="attribute">clip</span>到私有的栈中。save之后，可以调用<span class="selector-tag">Canvas</span>的平移、放缩、旋转、错切、裁剪等操作。</span><br><span class="line">任何matrix变换和<span class="attribute">clip</span>操作都会在调用restore的时候还原,它有一个整形返回值可以传入到<span class="built_in">restoreToCount</span>()方法，以返回到某个save状态之前。也可以直接调用restore返回到前一个状态。</span><br><span class="line"><span class="selector-tag">Canvas</span><span class="selector-class">.restore</span>()  将save之前的所有操作和save之后的所有操作合并，它只回到上一个save调用之前的状态。</span><br><span class="line">save和restore要配对使用（restore可以比save少，但不能多），如果restore调用次数比save多，会引发Error。</span><br><span class="line"><span class="built_in">restoreToCount</span>()   回到任何一个<span class="built_in">save</span>()方法调用之前的状态</span><br><span class="line"><span class="selector-tag">Canvas</span><span class="selector-class">.getSaveCount</span>();    返回栈中保存的状态，值等于<span class="built_in">save</span>()调用次数<span class="built_in">-restore</span>()调用次数</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">Canvas</span><span class="selector-class">.translate</span>() 平移画布</span><br><span class="line"><span class="selector-tag">Canvas</span><span class="selector-class">.rotate</span>()    旋转画布</span><br><span class="line"><span class="selector-tag">Canvas</span><span class="selector-class">.saveLayer</span>(),<span class="built_in">saveLayerAlpha</span>() 将图层入栈</span><br><span class="line">本身和save方法差不多，但是它单独分配了一个画布用于绘制图层。它定义了一个画布区域（saveLayerAlpha可设置透明度），此方法之后的所有绘制都在此区域中绘制，直到调用<span class="selector-tag">canvas</span><span class="selector-class">.restore</span>()方法。</span><br><span class="line">Layer入栈时，后续的操作都发生在这个Layer上，而Layer退栈时，就会把本层绘制的图像“绘制”到上层.在绘制到上层或是<span class="selector-tag">Canvas</span>上时，可以指定Layer的透明度</span><br></pre></td></tr></table></figure>
+
+<h3 id="Canvas-amp-amp-SurfaceView"><a href="#Canvas-amp-amp-SurfaceView" class="headerlink" title="Canvas &amp;&amp; SurfaceView"></a>Canvas &amp;&amp; SurfaceView</h3><p>在使用上面介绍的方式在View上绘图的时候，它是在GUI线程中绘制的，在GUI线程中同时也用来处理用户的交互事件，这是不大合理的，单绘制的元素太多时候，会阻塞线程，轻者影响用户体验，重则倒置ANR。<br>也许大家会想到将onDraw方法移到后台，但是这种方式是可行的，从后台线程修改GUI元素是不允许的。<br>并且我们知道View是通过系统发出VSYNC信号进行屏幕重绘的，一般刷新时间间隔为16ms，如果在16ms内可以完成所有的操作，那么将不会带来卡顿感觉，而如果超过这个时间还不能完成绘制任务，就会导致GUI线程的阻塞。<br>当需要快速更新View的UI，或者当前绘制阻塞GUI线程时间过长的时候，应该使用Surfaceview而不是View。SurfaceView封装的是Surface而不是Canvas。这一切原因是由于Surface使用后台线程进行绘制，而Canvase不能。<br>但是大家有时候会感到奇怪，为什么我们看到自定义View很多都是继承View而不是SurfaceView，这是因为SurfaceView使用的是后台线程进行绘制的，这回增加内存的消耗。所以一般能在16ms内完成绘制的话就直接继承View</p>
+<p>所以最好在绘制高速图像，或者绘制工作不能在规定时间完成，又或者需要绘制3D图形的情况下才需要使用SurfaceView。</p>
+<p>下面我们就来介绍下SurfaceView的用法：<br>在介绍SurfaceView的用法之前我们先了解下Surface、SurfaceView、SurfaceHolder及SurfaceHolder.Callback。</p>
+<p>如上面所述SurfaceView提供了一个专门用于绘制的surface。它允许在后台线程中进行绘制，你可以通过SurfaceHolder控制这个Surface的格式和尺寸。Surfaceview控制让这个Surface显示在屏幕的正确绘制位置。<br>Surface是Z-ordered（Z轴排序），这表明它总在自己所在窗口的后面。surfaceview在显示窗口处为Surface提供了一个可见区域，通过这个区域，才能看到Surface里面的内容。<br>由于这个特性我们可以放置一些覆盖图层（overlays）在Surface上面，如Button、Textview之类的。但是，需要注意的是，如果Surface上面有全透明的控件，那么随着Surface的每一次变化，这些全透明的控件就会重新渲染，这样有可能会增加系统的负担。</p>
+<p>可以通过SurfaceHolder这个接口去访问Surface，而执行getHolder()方法可以得到SurfaceHolder接口。<br>SurfaceHolder是控制surface的一个抽象接口，它是一个句柄得到了这个句柄就可以得到其中的Canvas、原生缓冲器以及其它方面的内容。你可以通过SurfaceHolder来控制surface的尺寸和格式，或者修改surface的像素，监视surface的变化等等。<br>与直接控制SurfaceView来修改surface不同，使用SurfaceHolder来修改surface时，需要注意lockCanvas()和Callback.surfaceCreated()这两个方法。<br>SurfaceView有如下重要方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">addCallback</span><span class="params">(SurfaceHolder.Callback callback)</span> 给SurfaceHolder添加一个一个回调对象。用于监视SurfaceView的某些状态，可以在这些回调方法中对某个特定事件发生的时候进行必要的处理</span><br><span class="line">SurfaceHolder.Callback将会在后面进行介绍</span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">removeCallback</span><span class="params">(SurfaceHolder.Callback callback)</span>  移除回调对象</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> Canvas <span class="title function_">lockCanvas</span><span class="params">(Rect dirty)</span></span><br><span class="line">锁定画布中的某一个区域，返回的画布对象Canvas（当更新的内容只有一个区域时，同时要追求高效，可以只更新一部分的区域，而不必更新全部画布区域）</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> Canvas <span class="title function_">lockCanvas</span><span class="params">()</span> 锁定画布，返回的画布对象Canvas，和上面不同的是这里锁定的是整个画布</span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">unlockCanvasAndPost</span><span class="params">(Canvas canvas)</span>  结束锁定画布，并提交改变。</span><br></pre></td></tr></table></figure>
+
+<p>SurfaceHolder.Callback是监听surface改变的一个接口</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">surfaceChanged</span><span class="params">(SurfaceHolder holder, <span class="type">int</span> format, <span class="type">int</span> width, <span class="type">int</span> height)</span></span><br><span class="line">surface发生改变时被调用,传入的是新Surface的新尺寸</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">surfaceCreated</span><span class="params">(SurfaceHolder holder)</span></span><br><span class="line"></span><br><span class="line">在surface创建时被调用，一般在这个方法里面开启渲染屏幕的线程。</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="title function_">voidsurfaceDestroyed</span><span class="params">(SurfaceHolder holder)</span></span><br><span class="line">销毁时被调用，一般在这个方法里将渲染的线程停止。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>所有SurfaceView 和 SurfaceHolder.Callback的方法都应该在主线程（UI线程）里面调用。必须确保只有当Surface有效的时候，（也就是当Surface的生命周期在SurfaceHolder.Callback.surfaceCreated() 和SurfaceHolder.Callback.surfaceDestroyed()之间）才能让渲染进程访问。</p>
+<h5 id="下面是这几个对象的关系图"><a href="#下面是这几个对象的关系图" class="headerlink" title="下面是这几个对象的关系图"></a>下面是这几个对象的关系图</h5><p><img src="/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/surfaceview.png"></p>
+<p>SurfaceView 绘图的模板：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">surfaceView</span> <span class="keyword">extends</span> <span class="title class_">SurfaceView</span> <span class="keyword">implements</span> <span class="title class_">SurfaceHolder</span>.Callback, Runnable &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">Context</span> <span class="variable">mContext</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">SurfaceHolder</span> <span class="variable">mHolder</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Canvas</span> <span class="variable">mCanvas</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">surfaceViewStatus</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Thread</span> <span class="variable">mDrawThread</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(Context context)</span> &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">        mHolder = getHolder();</span><br><span class="line">        mHolder.addCallback(<span class="built_in">this</span>);</span><br><span class="line">        setFocusable(<span class="literal">true</span>);</span><br><span class="line">        setFocusableInTouchMode(<span class="literal">true</span>);</span><br><span class="line">        setKeepScreenOn(<span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">surfaceView</span><span class="params">(Context context)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(context);</span><br><span class="line">        init(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">surfaceView</span><span class="params">(Context context, AttributeSet attrs)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(context, attrs);</span><br><span class="line">        init(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">surfaceView</span><span class="params">(Context context, AttributeSet attrs, <span class="type">int</span> defStyleAttr)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(context, attrs, defStyleAttr);</span><br><span class="line">        init(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">surfaceCreated</span><span class="params">(SurfaceHolder holder)</span> &#123;</span><br><span class="line">        surfaceViewStatus = <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">if</span>(mDrawThread == <span class="literal">null</span>) &#123;</span><br><span class="line">            mDrawThread = <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="built_in">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        mDrawThread.start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">surfaceChanged</span><span class="params">(SurfaceHolder holder, <span class="type">int</span> format, <span class="type">int</span> width, <span class="type">int</span> height)</span> &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">surfaceDestroyed</span><span class="params">(SurfaceHolder holder)</span> &#123;</span><br><span class="line">        surfaceViewStatus = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(mDrawThread != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                mDrawThread.join();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">            mDrawThread = <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (surfaceViewStatus) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                mCanvas = mHolder.lockCanvas();</span><br><span class="line">                <span class="comment">//在这里画图</span></span><br><span class="line">            &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="keyword">if</span>(mCanvas != <span class="literal">null</span>) &#123;</span><br><span class="line">                    mHolder.unlockCanvasAndPost(mCanvas);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-绘图进阶/">Android 绘图进阶</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/04/13/Android-进阶之Android-绘图-四-图像容器Bitmap-Drawable以及图像变换/" title="Android 进阶之Android 绘图 四 图像容器Bitmap Drawable以及图像变换">
+  <span>
+  Android 进阶之Android 绘图 四 图像容器Bitmap Drawable以及图像变换</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/04/11/Android-进阶之Android-绘图-二-画笔Paint/"  title="Android 进阶之Android 绘图 二 画笔Paint">
+ <span>Android 进阶之Android 绘图 二 画笔Paint
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/04/12/Android-进阶之Android-绘图-三-画布Canvs以及SurfaceView/" data-title="Android 进阶之Android 绘图 三 画布Canvs以及SurfaceView" data-url="http://yoursite.com/2016/04/12/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%B8%89-%E7%94%BB%E5%B8%83Canvs%E4%BB%A5%E5%8F%8ASurfaceView/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%BB%E5%B8%83-Canvus"><span class="toc-number">1.</span> <span class="toc-text">画布 Canvus</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Canvas-amp-amp-SurfaceView"><span class="toc-number">2.</span> <span class="toc-text">Canvas &amp;&amp; SurfaceView</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%8B%E9%9D%A2%E6%98%AF%E8%BF%99%E5%87%A0%E4%B8%AA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%85%B3%E7%B3%BB%E5%9B%BE"><span class="toc-number">2.0.1.</span> <span class="toc-text">下面是这几个对象的关系图</span></a></li></ol></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,695 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之重要的控件 RecycleView | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="RecycleView 是2014年Google IO 引入的新的控件，它是以 v7 support libraries的形式存在的，可以用在之前的Android系统版本。它的引入主要是用于增强ListView的功能。与其它的View不一样的地方是RecyclerView不负责子view的展现和布局工作，它关注的是子view的回收与复用。而子view的布局、装饰、动画都交给了其内部类来负责。 Vi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之重要的控件 RecycleView">
+<meta property="og:url" content="http://yoursite.com/2016/05/30/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E9%87%8D%E8%A6%81%E7%9A%84%E6%8E%A7%E4%BB%B6-RecycleView/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="RecycleView 是2014年Google IO 引入的新的控件，它是以 v7 support libraries的形式存在的，可以用在之前的Android系统版本。它的引入主要是用于增强ListView的功能。与其它的View不一样的地方是RecyclerView不负责子view的展现和布局工作，它关注的是子view的回收与复用。而子view的布局、装饰、动画都交给了其内部类来负责。 Vi">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-05-30T12:16:26.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:54:40.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="重要控件">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/30/Android-进阶之重要的控件-RecycleView/" title="Android 进阶之重要的控件 RecycleView" itemprop="url">Android 进阶之重要的控件 RecycleView</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-30T12:16:26.000Z" itemprop="datePublished"> Published 2016-05-30</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>RecycleView 是2014年Google IO 引入的新的控件，它是以 v7 support libraries的形式存在的，可以用在之前的Android系统版本。它的引入主要是用于增强ListView的功能。与其它的View不一样的地方是RecyclerView不负责子view的展现和布局工作，它关注的是子view的回收与复用。而子view的布局、装饰、动画都交给了其内部类来负责。</p>
+<p>ViewHolder		：用来放置每个item所包含子view的容器。在Adapter中负责创建和填充ViewHolder<br>Adapter   		   ：用于绑定数据和ViewHolder<br>LayoutManager		：布局管理器，负责子View的位置安排<br>ItemDecoration 		：用来装饰子view<br>ItemAnimator 		：用于添加子View，增加删除的动画</p>
+<h4 id="RecycleView的简单使用"><a href="#RecycleView的简单使用" class="headerlink" title="RecycleView的简单使用"></a>RecycleView的简单使用</h4><p>下面就由简单到复杂一步一步介绍它的使用。</p>
+<p>1.在项目中引入recycleview的依赖关系。</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">compile</span> &#x27;com.android.support:recyclerview-v7:<span class="number">23</span>.<span class="number">4</span>.<span class="number">0</span>&#x27;</span><br></pre></td></tr></table></figure>
+<p>如果大家不是很清楚recycleview的版本号的话，可以使用project structrue -&gt; dependencies 输入recycleview，这时候会自动帮你查找对应的版本。</p>
+<ol start="2">
+<li>Adapter 负责生成出绑定数据后的ViewHolder，它继承自RecyclerView.Adapter，一般而言它有一个构造方法用于用于传入两个参数，一个是上下文内容，一个是数据列表，还可以有另外一个参数用于传入布局id。<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">MyRecycleViewAdapter</span> <span class="keyword">extends</span> <span class="title">RecyclerView</span>.<span class="title">Adapter&lt;MyRecycleViewAdapter</span>.<span class="title">ViewHolder&gt;</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">Context</span> mContext;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">ArrayList</span>&lt;<span class="type">String</span>&gt; mList;</span><br><span class="line">    <span class="type">MyRecycleViewAdapter</span>(<span class="type">Context</span> context, <span class="type">List</span>&lt;<span class="type">String</span>&gt; list) &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">        mList = (<span class="type">ArrayList</span>&lt;<span class="type">String</span>&gt;) list;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+由于它继承自RecyclerView.Adapter所以必须覆写：<br>onCreateViewHolder<br>onBindViewHolder<br>getItemCount<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> ViewHolder <span class="title function_">onCreateViewHolder</span><span class="params">(ViewGroup parent, <span class="type">int</span> viewType)</span> &#123;</span><br><span class="line">    <span class="type">LayoutInflater</span> <span class="variable">mInflater</span> <span class="operator">=</span> LayoutInflater.from(parent.getContext());</span><br><span class="line">    <span class="type">View</span> <span class="variable">itemView</span> <span class="operator">=</span> mInflater.inflate(R.layout.recycleview_item, parent, <span class="literal">false</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ViewHolder</span>(itemView);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onBindViewHolder</span><span class="params">(ViewHolder holder, <span class="type">int</span> position)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">content</span> <span class="operator">=</span> mList.get(position);</span><br><span class="line">    holder.mContentView.setText(content);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getItemCount</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> mList.size();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+onCreateViewHolder 负责使用item layout 初始化出一个ItemView，再将ItemView传入ViewHoder，在ViewHolder中创建出构成ItemView的每个子View然后作为参数传递给onBindViewHolder，onBindViewHolder有两个参数，一个是onCreateViewHolder创建的ViewHolder，另一个是数据对应的位置，可以通过第二个参数重数据源中取出数据，然后和ViewHoder中的控件绑定。</li>
+</ol>
+<p>下面是ViewHolder的实现：</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ViewHolder</span> <span class="keyword">extends</span> <span class="title">RecyclerView</span>.<span class="title">ViewHolder</span> </span>&#123;</span><br><span class="line">    public <span class="type">TextView</span> mContentView;</span><br><span class="line">    public <span class="type">ViewHolder</span>(<span class="type">View</span> itemView) &#123;</span><br><span class="line">        <span class="keyword">super</span>(itemView);</span><br><span class="line">        mContentView = (<span class="type">TextView</span>) itemView.findViewById(<span class="type">R</span>.id.listview_item);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后初始化整个RecycleView：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> MainActivity extends AppCompatActivity &#123;</span><br><span class="line">    <span class="keyword">private</span> RecyclerView mRecycleView = null;</span><br><span class="line">    @Override</span><br><span class="line">    protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">        set<span class="constructor">ContentView(R.<span class="params">layout</span>.<span class="params">activity_main</span>)</span>;</span><br><span class="line">        mRecycleView = (RecyclerView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">recycle_view</span>)</span>;</span><br><span class="line">        mRecycleView.set<span class="constructor">LayoutManager(<span class="params">new</span> GridLayoutManager(<span class="params">this</span>,2)</span>);</span><br><span class="line">        List&lt;String&gt; stringlist = <span class="keyword">new</span> ArrayList&lt;&gt;<span class="literal">()</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="built_in">int</span> i =<span class="number">0</span>;i&lt;<span class="number">100</span>;i++) &#123;</span><br><span class="line">            stringlist.add(<span class="string">&quot;Item &quot;</span> + i);</span><br><span class="line">        &#125;</span><br><span class="line">        mRecycleView.set<span class="constructor">Adapter(<span class="params">new</span> MyRecycleViewAdapter(<span class="params">this</span>,<span class="params">stringlist</span>)</span>);</span><br><span class="line">        mRecycleView.set<span class="constructor">ItemAnimator(<span class="params">new</span> DefaultItemAnimator()</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="RecycleView组成"><a href="#RecycleView组成" class="headerlink" title="RecycleView组成"></a>RecycleView组成</h4><p>RecyclerView.LayoutManager<br>RecyclerView.ItemDecoration<br>RecyclerView.ItemAnimator<br>ItemAnimator 用于在往RecycleView中添加删除或者移动Item的时候添加动画。默认情况下使用的是DefaultItemAnimator，在实际项目的时候会需要实现这个部分，如果大家有这种需求可以参考：<br><a target="_blank" rel="noopener" href="https://github.com/wasabeef/recyclerview-animators">https://github.com/wasabeef/recyclerview-animators</a></p>
+<h4 id="多类型Item布局"><a href="#多类型Item布局" class="headerlink" title="多类型Item布局"></a>多类型Item布局</h4><p>在RecyclerView.Adopter中要实现多类型Item布局需要覆写如下方法：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="type">int</span> <span class="title">getItemViewType</span><span class="params">(<span class="type">int</span> position)</span>  </span></span><br></pre></td></tr></table></figure>
+<p>并按照如下方法重新修改Adapter：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> MyRecycleViewAdapter extends</span><br><span class="line"><span class="comment">/*这里改为RecyclerView.ViewHolder 因为这时候需要两个ViewHoder*/</span></span><br><span class="line">RecyclerView.Adapter&lt;RecyclerView.ViewHolder&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> Context mContext;</span><br><span class="line">    <span class="keyword">private</span> ArrayList&lt;String&gt; mList;</span><br><span class="line">    <span class="comment">/*定义一个枚举类型用于指定item的类型*/</span></span><br><span class="line">    <span class="keyword">private</span> enum ITEM_TYPE &#123;</span><br><span class="line">        TYPE_ONE,</span><br><span class="line">        TYPE_TWO</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="comment">/*根据对应的position返回当前的item类型*/</span></span><br><span class="line">    @Override</span><br><span class="line">    public <span class="built_in">int</span> get<span class="constructor">ItemViewType(<span class="params">int</span> <span class="params">position</span>)</span> &#123;</span><br><span class="line">        return (position % <span class="number">2</span><span class="operator"> == </span><span class="number">0</span>) ? <span class="module-access"><span class="module"><span class="identifier">ITEM_TYPE</span>.</span><span class="module"><span class="identifier">TYPE_ONE</span>.</span></span>ordinal<span class="literal">()</span>:<span class="module-access"><span class="module"><span class="identifier">ITEM_TYPE</span>.</span><span class="module"><span class="identifier">TYPE_TWO</span>.</span></span>ordinal<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="constructor">MyRecycleViewAdapter(Context <span class="params">context</span>, List&lt;String&gt; <span class="params">list</span>)</span> &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">        mList = (ArrayList&lt;String&gt;) <span class="built_in">list</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*根据对应的viewType创建并返回对应的ViewHolder*/</span></span><br><span class="line">    @Override</span><br><span class="line">    public RecyclerView.ViewHolder on<span class="constructor">CreateViewHolder(ViewGroup <span class="params">parent</span>, <span class="params">int</span> <span class="params">viewType</span>)</span> &#123;</span><br><span class="line">        LayoutInflater mInflater = <span class="module-access"><span class="module"><span class="identifier">LayoutInflater</span>.</span></span>from(parent.get<span class="constructor">Context()</span>);</span><br><span class="line">        View itemView = null;</span><br><span class="line">        <span class="keyword">if</span>(viewType<span class="operator"> == </span><span class="module-access"><span class="module"><span class="identifier">ITEM_TYPE</span>.</span><span class="module"><span class="identifier">TYPE_ONE</span>.</span></span>ordinal<span class="literal">()</span>) &#123;</span><br><span class="line">            itemView = mInflater.inflate(<span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>layout.recycleview_item, parent, <span class="literal">false</span>);</span><br><span class="line">            return <span class="keyword">new</span> <span class="constructor">ViewHolder(<span class="params">itemView</span>)</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            itemView = mInflater.inflate(<span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>layout.recycleview_two, parent, <span class="literal">false</span>);</span><br><span class="line">            return <span class="keyword">new</span> <span class="constructor">ViewHolderTwo(<span class="params">itemView</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">BindViewHolder(RecyclerView.ViewHolder <span class="params">holder</span>, <span class="params">int</span> <span class="params">position</span>)</span> &#123;</span><br><span class="line">        String content = mList.get(position);</span><br><span class="line">        <span class="keyword">if</span>(holder instanceof MyRecycleViewAdapter.ViewHolder) &#123;</span><br><span class="line">            ((ViewHolder) holder).mContentView.set<span class="constructor">Text(<span class="params">content</span>)</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(holder instanceof MyRecycleViewAdapter.ViewHolderTwo) &#123;</span><br><span class="line">            ((ViewHolderTwo) holder).mImageView.set<span class="constructor">ImageResource(R.<span class="params">mipmap</span>.<span class="params">ic_launcher</span>)</span>;</span><br><span class="line">            ((ViewHolderTwo) holder).mContentView.set<span class="constructor">Text(<span class="params">content</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public <span class="built_in">int</span> get<span class="constructor">ItemCount()</span> &#123;</span><br><span class="line">        return mList.size<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="keyword">class</span> ViewHolder extends RecyclerView.ViewHolder &#123;</span><br><span class="line">        public TextView mContentView;</span><br><span class="line">        public <span class="constructor">ViewHolder(View <span class="params">itemView</span>)</span> &#123;</span><br><span class="line">            super(itemView);</span><br><span class="line">            mContentView = (TextView) itemView.find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">listview_item</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public <span class="keyword">class</span> ViewHolderTwo extends RecyclerView.ViewHolder &#123;</span><br><span class="line">        public TextView mContentView;</span><br><span class="line">        <span class="keyword">private</span> ImageView mImageView;</span><br><span class="line">        public <span class="constructor">ViewHolderTwo(View <span class="params">itemView</span>)</span> &#123;</span><br><span class="line">            super(itemView);</span><br><span class="line">            mImageView = (ImageView) itemView.find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">imageicon</span>)</span>;</span><br><span class="line">            mContentView = (TextView) itemView.find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">itemtext</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="添加ItemDecoration"><a href="#添加ItemDecoration" class="headerlink" title="添加ItemDecoration"></a>添加ItemDecoration</h4><p>首先创建一个新的类继承自RecyclerView.ItemDecoration。<br><a target="_blank" rel="noopener" href="https://gist.github.com/alexfu/0f464fc3742f134ccd1e/">https://gist.github.com/alexfu/0f464fc3742f134ccd1e/</a></p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> ItemDecortion extends RecyclerView.ItemDecoration &#123;</span><br><span class="line">    <span class="keyword">private</span> static final <span class="built_in">int</span><span class="literal">[]</span> ATTRS = <span class="keyword">new</span> <span class="built_in">int</span><span class="literal">[]</span>&#123;</span><br><span class="line">            android.<span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>attr.listDivider</span><br><span class="line">    &#125;;</span><br><span class="line">    public static final <span class="built_in">int</span> HORIZONTAL_LIST = LinearLayoutManager.HORIZONTAL;</span><br><span class="line">    public static final <span class="built_in">int</span> VERTICAL_LIST = LinearLayoutManager.VERTICAL;</span><br><span class="line">    <span class="keyword">private</span> Drawable mDivider;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> mOrientation;</span><br><span class="line">    public <span class="constructor">ItemDecortion(Context <span class="params">context</span>, <span class="params">int</span> <span class="params">orientation</span>)</span> &#123;</span><br><span class="line">        final TypedArray a = context.obtain<span class="constructor">StyledAttributes(ATTRS)</span>;</span><br><span class="line">        mDivider = a.get<span class="constructor">Drawable(0)</span>;</span><br><span class="line">        a.recycle<span class="literal">()</span>;</span><br><span class="line">        set<span class="constructor">Orientation(<span class="params">orientation</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void set<span class="constructor">Orientation(<span class="params">int</span> <span class="params">orientation</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (orientation != HORIZONTAL_LIST<span class="operator"> &amp;&amp; </span>orientation != VERTICAL_LIST) &#123;</span><br><span class="line">            throw <span class="keyword">new</span> <span class="constructor">IllegalArgumentException(<span class="string">&quot;invalid orientation&quot;</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        mOrientation = orientation;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">DrawOver(Canvas <span class="params">c</span>, RecyclerView <span class="params">parent</span>, RecyclerView.State <span class="params">state</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (mOrientation<span class="operator"> == </span>VERTICAL_LIST) &#123;</span><br><span class="line">            draw<span class="constructor">Vertical(<span class="params">c</span>, <span class="params">parent</span>)</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            draw<span class="constructor">Horizontal(<span class="params">c</span>, <span class="params">parent</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void draw<span class="constructor">Vertical(Canvas <span class="params">c</span>, RecyclerView <span class="params">parent</span>)</span> &#123;</span><br><span class="line">        final <span class="built_in">int</span> left = parent.get<span class="constructor">PaddingLeft()</span>;</span><br><span class="line">        final <span class="built_in">int</span> right = parent.get<span class="constructor">Width()</span> - parent.get<span class="constructor">PaddingRight()</span>;</span><br><span class="line">        final <span class="built_in">int</span> childCount = parent.get<span class="constructor">ChildCount()</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; childCount; i++) &#123;</span><br><span class="line">            final View child = parent.get<span class="constructor">ChildAt(<span class="params">i</span>)</span>;</span><br><span class="line">            final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.get<span class="constructor">LayoutParams()</span>;</span><br><span class="line">            final <span class="built_in">int</span> top = child.get<span class="constructor">Bottom()</span> + params.bottomMargin;</span><br><span class="line">            final <span class="built_in">int</span> bottom = top + mDivider.get<span class="constructor">IntrinsicHeight()</span>;</span><br><span class="line">            mDivider.set<span class="constructor">Bounds(<span class="params">left</span>, <span class="params">top</span>, <span class="params">right</span>, <span class="params">bottom</span>)</span>;</span><br><span class="line">            mDivider.draw(c);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public void draw<span class="constructor">Horizontal(Canvas <span class="params">c</span>, RecyclerView <span class="params">parent</span>)</span> &#123;</span><br><span class="line">        final <span class="built_in">int</span> top = parent.get<span class="constructor">PaddingTop()</span>;</span><br><span class="line">        final <span class="built_in">int</span> bottom = parent.get<span class="constructor">Height()</span> - parent.get<span class="constructor">PaddingBottom()</span>;</span><br><span class="line">        final <span class="built_in">int</span> childCount = parent.get<span class="constructor">ChildCount()</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; childCount; i++) &#123;</span><br><span class="line">            final View child = parent.get<span class="constructor">ChildAt(<span class="params">i</span>)</span>;</span><br><span class="line">            final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.get<span class="constructor">LayoutParams()</span>;</span><br><span class="line">            final <span class="built_in">int</span> left = child.get<span class="constructor">Right()</span> + params.rightMargin;</span><br><span class="line">            final <span class="built_in">int</span> right = left + mDivider.get<span class="constructor">IntrinsicHeight()</span>;</span><br><span class="line">            mDivider.set<span class="constructor">Bounds(<span class="params">left</span>, <span class="params">top</span>, <span class="params">right</span>, <span class="params">bottom</span>)</span>;</span><br><span class="line">            mDivider.draw(c);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public void get<span class="constructor">ItemOffsets(Rect <span class="params">outRect</span>, View <span class="params">view</span>, RecyclerView <span class="params">parent</span>, RecyclerView.State <span class="params">state</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (mOrientation<span class="operator"> == </span>VERTICAL_LIST) &#123;</span><br><span class="line">            outRect.set(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, mDivider.get<span class="constructor">IntrinsicHeight()</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            outRect.set(<span class="number">0</span>, <span class="number">0</span>, mDivider.get<span class="constructor">IntrinsicWidth()</span>, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后在设置adapter之前，使用addItemDecoration()方法添加分割线.</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">mRecycleView.add<span class="constructor">ItemDecoration(<span class="params">new</span> ItemDecortion(<span class="params">this</span>,ItemDecortion.VERTICAL_LIST)</span>);</span><br><span class="line">        mRecycleView.set<span class="constructor">Adapter(<span class="params">new</span> MyRecycleViewAdapter(<span class="params">this</span>,<span class="params">stringlist</span>)</span>);</span><br></pre></td></tr></table></figure>
+<h5 id="添加点击事件："><a href="#添加点击事件：" class="headerlink" title="添加点击事件："></a>添加点击事件：</h5><p>ListView 和RecycleView最大的不同就是没有OnItemClickListener来识别item的点击，我们必须自己通过扩展RecyclerView.OnItemTouchListener类来实现这个功能。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> interface onClickListener &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">onClick</span><span class="params">(View view, <span class="type">int</span> position)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">onLongClick</span><span class="params">(View view,<span class="type">int</span> position)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public static <span class="keyword">class</span> RecyclerTouchListener implements RecyclerView.OnItemTouchListener &#123;</span><br><span class="line">    <span class="keyword">private</span> GestureDetector gestureDetector;</span><br><span class="line">    <span class="keyword">private</span> <span class="module-access"><span class="module"><span class="identifier">MainActivity</span>.</span></span>onClickListener clickListener;</span><br><span class="line">    public <span class="constructor">RecyclerTouchListener(Context <span class="params">context</span>, <span class="params">final</span> RecyclerView <span class="params">recyclerView</span>, <span class="params">final</span> MainActivity.<span class="params">onClickListener</span> <span class="params">clickListener</span>)</span> &#123;</span><br><span class="line">        this.clickListener = clickListener;</span><br><span class="line">        gestureDetector = <span class="keyword">new</span> <span class="constructor">GestureDetector(<span class="params">context</span>, <span class="params">new</span> GestureDetector.SimpleOnGestureListener()</span> &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public boolean on<span class="constructor">SingleTapUp(MotionEvent <span class="params">e</span>)</span> &#123;</span><br><span class="line">                return <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            public void on<span class="constructor">LongPress(MotionEvent <span class="params">e</span>)</span> &#123;</span><br><span class="line">                View child = recyclerView.find<span class="constructor">ChildViewUnder(<span class="params">e</span>.<span class="params">getX</span>()</span>, e.get<span class="constructor">Y()</span>);</span><br><span class="line">                <span class="keyword">if</span> (child != null<span class="operator"> &amp;&amp; </span>clickListener != null) &#123;</span><br><span class="line">                    clickListener.on<span class="constructor">LongClick(<span class="params">child</span>, <span class="params">recyclerView</span>.<span class="params">getChildPosition</span>(<span class="params">child</span>)</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    public boolean on<span class="constructor">InterceptTouchEvent(RecyclerView <span class="params">rv</span>, MotionEvent <span class="params">e</span>)</span> &#123;</span><br><span class="line">        View child = rv.find<span class="constructor">ChildViewUnder(<span class="params">e</span>.<span class="params">getX</span>()</span>, e.get<span class="constructor">Y()</span>);</span><br><span class="line">        <span class="keyword">if</span> (child != null<span class="operator"> &amp;&amp; </span>clickListener != null<span class="operator"> &amp;&amp; </span>gestureDetector.on<span class="constructor">TouchEvent(<span class="params">e</span>)</span>) &#123;</span><br><span class="line">            clickListener.on<span class="constructor">Click(<span class="params">child</span>, <span class="params">rv</span>.<span class="params">getChildPosition</span>(<span class="params">child</span>)</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        return <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    public void on<span class="constructor">TouchEvent(RecyclerView <span class="params">rv</span>, MotionEvent <span class="params">e</span>)</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void on<span class="constructor">RequestDisallowInterceptTouchEvent(<span class="params">boolean</span> <span class="params">disallowIntercept</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">recyclerView.add<span class="constructor">OnItemTouchListener(<span class="params">new</span> RecyclerTouchListener(<span class="params">getApplicationContext</span>()</span>, recyclerView, <span class="keyword">new</span> <span class="constructor">ClickListener()</span> &#123;</span><br><span class="line">    public void on<span class="constructor">Click(View <span class="params">view</span>, <span class="params">int</span> <span class="params">position</span>)</span> &#123;</span><br><span class="line">        Movie movie = movieList.get(position);</span><br><span class="line">        <span class="module-access"><span class="module"><span class="identifier">Toast</span>.</span></span>make<span class="constructor">Text(<span class="params">getApplicationContext</span>()</span>, movie.get<span class="constructor">Title()</span> + <span class="string">&quot; is selected!&quot;</span>, Toast.LENGTH_SHORT).show<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    public void on<span class="constructor">LongClick(View <span class="params">view</span>, <span class="params">int</span> <span class="params">position</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;));</span><br></pre></td></tr></table></figure>
+<h4 id="增删改Item项"><a href="#增删改Item项" class="headerlink" title="增删改Item项"></a>增删改Item项</h4><p>在ListView中每当Adapter数据项改变的时候一般执行notifyDataSetChanged()来通知数据集的改变，但是RecyclerView.Adapter 提供了 notifyItemInserted(), notifyItemChanged() 和 notifyItemRemoved()三个方法来通知数据集的修改。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/重要控件/">重要控件</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/05/31/Android-进阶之重要的控件-Toolbar/" title="Android 进阶之重要的控件 Toolbar">
+  <span>
+  Android 进阶之重要的控件 Toolbar</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/05/29/Android-进阶之重要的控件-CardView/"  title="Android 进阶之重要的控件 CardView">
+ <span>Android 进阶之重要的控件 CardView
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/05/30/Android-进阶之重要的控件-RecycleView/" data-title="Android 进阶之重要的控件 RecycleView" data-url="http://yoursite.com/2016/05/30/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E9%87%8D%E8%A6%81%E7%9A%84%E6%8E%A7%E4%BB%B6-RecycleView/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#RecycleView%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8"><span class="toc-number">1.</span> <span class="toc-text">RecycleView的简单使用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RecycleView%E7%BB%84%E6%88%90"><span class="toc-number">2.</span> <span class="toc-text">RecycleView组成</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E7%B1%BB%E5%9E%8BItem%E5%B8%83%E5%B1%80"><span class="toc-number">3.</span> <span class="toc-text">多类型Item布局</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0ItemDecoration"><span class="toc-number">4.</span> <span class="toc-text">添加ItemDecoration</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E7%82%B9%E5%87%BB%E4%BA%8B%E4%BB%B6%EF%BC%9A"><span class="toc-number">4.1.</span> <span class="toc-text">添加点击事件：</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A2%9E%E5%88%A0%E6%94%B9Item%E9%A1%B9"><span class="toc-number">5.</span> <span class="toc-text">增删改Item项</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

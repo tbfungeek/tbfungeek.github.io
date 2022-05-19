@@ -1,0 +1,702 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS开源库之fishhook 概述 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="源码信息源码地址 fishhook是真正意义上精炼的代码，不管是接口还是总体代码量都十分简单，但是背后的原理以及它所具备的功能却是十分强大的。最早听说fishhook的时候，只知道它是用于hook的一个开源库，以为和Aspect同种类型所以没把它列到开源代码解析的列表中，后面出于好奇看了下它居然是用于hook C函数，所以赶紧把它补上了,由于涉及底层的内容比较多，如果不是很清楚大家可以看后面推荐的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS开源库之fishhook 概述">
+<meta property="og:url" content="http://yoursite.com/2019/12/20/fishhook-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="源码信息源码地址 fishhook是真正意义上精炼的代码，不管是接口还是总体代码量都十分简单，但是背后的原理以及它所具备的功能却是十分强大的。最早听说fishhook的时候，只知道它是用于hook的一个开源库，以为和Aspect同种类型所以没把它列到开源代码解析的列表中，后面出于好奇看了下它居然是用于hook C函数，所以赶紧把它补上了,由于涉及底层的内容比较多，如果不是很清楚大家可以看后面推荐的">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-12-20T09:00:21.000Z">
+<meta property="article:modified_time" content="2019-12-19T14:44:22.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/12/20/fishhook-源码解析/" title="iOS开源库之fishhook 概述" itemprop="url">iOS开源库之fishhook 概述</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-12-20T09:00:21.000Z" itemprop="datePublished"> Published 2019-12-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="源码信息"><a href="#源码信息" class="headerlink" title="源码信息"></a>源码信息</h4><p><a target="_blank" rel="noopener" href="https://github.com/facebook/fishhook">源码地址</a></p>
+<p>fishhook是真正意义上精炼的代码，不管是接口还是总体代码量都十分简单，但是背后的原理以及它所具备的功能却是十分强大的。最早听说fishhook的时候，只知道它是用于hook的一个开源库，以为和Aspect同种类型所以没把它列到开源代码解析的列表中，<br>后面出于好奇看了下它居然是用于hook C函数，所以赶紧把它补上了,由于涉及底层的内容比较多，如果不是很清楚大家可以看后面推荐的文章，这里只做简单介绍。</p>
+<p>那么上面叨叨了那么多，到底什么是fishhook呢,我们看下官方的解释：</p>
+<blockquote>
+<p>fishhook is a very simple library that enables dynamically rebinding symbols in Mach-O binaries running on iOS in the simulator and on device. </p>
+</blockquote>
+<p>上面的意思就是fishhook是一个用于动态修改 Mach-O 二进制文件里面symbols的一个开源库。fishhook 的强大之处在于它可以 hook 系统的静态 C 函数。我们接下来看下它是怎么做到的：</p>
+<h4 id="原理介绍"><a href="#原理介绍" class="headerlink" title="原理介绍"></a>原理介绍</h4><p><strong><strong>使用情景</strong></strong></p>
+<p>我们先来看下fishhook对外暴露的内容，就两大类：一个rebinding结构体，用于封装对应的绑定信息，两个接口进行对C函数进行hook：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">rebinding</span> &#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">char</span> *name;  <span class="comment">// 目标符号名</span></span><br><span class="line">  <span class="type">void</span> *replacement; <span class="comment">// 用于替换的函数地址</span></span><br><span class="line">  <span class="type">void</span> **replaced;   <span class="comment">// 用来存放原来的地址值</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">FISHHOOK_VISIBILITY</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">rebind_symbols</span><span class="params">(<span class="keyword">struct</span> rebinding rebindings[], <span class="type">size_t</span> rebindings_nel)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">FISHHOOK_VISIBILITY</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">rebind_symbols_image</span><span class="params">(<span class="type">void</span> *header,</span></span></span><br><span class="line"><span class="params"><span class="function">                         <span class="type">intptr_t</span> slide,</span></span></span><br><span class="line"><span class="params"><span class="function">                         <span class="keyword">struct</span> rebinding rebindings[],</span></span></span><br><span class="line"><span class="params"><span class="function">                         <span class="type">size_t</span> rebindings_nel)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>rebind_symbols和rebind_symbols_image都用于符号重绑定，区别在于前者操作的对象是所有镜像，后者操作的对象是某个指定的镜像</p>
+<p>我们先来看一个官方的例子：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">#import &lt;dlfcn.h&gt;</span><br><span class="line"></span><br><span class="line">#import &lt;UIKit/<span class="module-access"><span class="module"><span class="identifier">UIKit</span>.</span></span>h&gt;</span><br><span class="line"></span><br><span class="line">#import <span class="string">&quot;AppDelegate.h&quot;</span></span><br><span class="line"><span class="comment">//1. 引入 fishhook.h</span></span><br><span class="line">#import <span class="string">&quot;fishhook.h&quot;</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">//2. 声明与原函数签名相同的函数指针：</span></span><br><span class="line">static <span class="built_in">int</span> (*orig_close)(<span class="built_in">int</span>);</span><br><span class="line">static <span class="built_in">int</span> (*orig_open)(const <span class="built_in">char</span> *, <span class="built_in">int</span>, ...);</span><br><span class="line"> </span><br><span class="line"><span class="comment">//3. 实现用于替换的方法</span></span><br><span class="line"><span class="built_in">int</span> my<span class="constructor">_close(<span class="params">int</span> <span class="params">fd</span>)</span> &#123;</span><br><span class="line">  printf(<span class="string">&quot;Calling real close(%d)\n&quot;</span>, fd);</span><br><span class="line">  <span class="comment">//4.执行被hook的方法</span></span><br><span class="line">  return orig<span class="constructor">_close(<span class="params">fd</span>)</span>;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment">//3. 实现用于替换的方法</span></span><br><span class="line"><span class="built_in">int</span> my<span class="constructor">_open(<span class="params">const</span> <span class="params">char</span> <span class="operator">*</span><span class="params">path</span>, <span class="params">int</span> <span class="params">oflag</span>, <span class="operator">...</span>)</span> &#123;</span><br><span class="line">  va_list ap = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">  mode_t mode = <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">  <span class="keyword">if</span> ((oflag &amp; O_CREAT) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// mode only applies to O_CREAT</span></span><br><span class="line">    va<span class="constructor">_start(<span class="params">ap</span>, <span class="params">oflag</span>)</span>;</span><br><span class="line">    mode = va<span class="constructor">_arg(<span class="params">ap</span>, <span class="params">int</span>)</span>;</span><br><span class="line">    va<span class="constructor">_end(<span class="params">ap</span>)</span>;</span><br><span class="line">    printf(<span class="string">&quot;Calling real open(&#x27;%s&#x27;, %d, %d)\n&quot;</span>, path, oflag, mode);</span><br><span class="line">    <span class="comment">//4.执行被hook的方法</span></span><br><span class="line">    return orig<span class="constructor">_open(<span class="params">path</span>, <span class="params">oflag</span>, <span class="params">mode</span>)</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    printf(<span class="string">&quot;Calling real open(&#x27;%s&#x27;, %d)\n&quot;</span>, path, oflag);</span><br><span class="line">    <span class="comment">//4.执行被hook的方法</span></span><br><span class="line">    return orig<span class="constructor">_open(<span class="params">path</span>, <span class="params">oflag</span>, <span class="params">mode</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="built_in">int</span> main(<span class="built_in">int</span> argc, <span class="built_in">char</span><span class="operator"> * </span>argv<span class="literal">[]</span>)</span><br><span class="line">&#123;</span><br><span class="line">  @autoreleasepool &#123;</span><br><span class="line">    </span><br><span class="line">    rebind<span class="constructor">_symbols((<span class="params">struct</span> <span class="params">rebinding</span>[2])</span>&#123;&#123;<span class="string">&quot;close&quot;</span>, my_close, (void *)&amp;orig_close&#125;<span class="comment">/*初始化rebinding 结构体*/</span>, &#123;<span class="string">&quot;open&quot;</span>, my_open, (void *)&amp;orig_open<span class="comment">/*初始化rebinding 结构体*/</span>&#125;&#125;, <span class="number">2</span> <span class="comment">/*rebind个数*/</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Open our own binary and print out first 4 bytes (which is the same</span></span><br><span class="line">    <span class="comment">// for all Mach-O binaries on a given architecture)</span></span><br><span class="line">    <span class="built_in">int</span> fd = <span class="keyword">open</span>(argv<span class="literal">[<span class="number">0</span>]</span>, O_RDONLY);</span><br><span class="line">    uint32_t magic_number = <span class="number">0</span>;</span><br><span class="line">    read(fd, &amp;magic_number, <span class="number">4</span>);</span><br><span class="line">    printf(<span class="string">&quot;Mach-O Magic Number: %x \n&quot;</span>, magic_number);</span><br><span class="line">    close(fd);</span><br><span class="line">    return <span class="constructor">UIApplicationMain(<span class="params">argc</span>, <span class="params">argv</span>, <span class="params">nil</span>, NSStringFromClass([AppDelegate <span class="params">class</span>])</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>经过上面替换后代码中的open，close都会替换为my_open，my_close。所以运行这段代码会输出：</p>
+<figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">Calling <span class="built_in">real</span> open(&#x27;/<span class="built_in">var</span>/mobile/Applications/161DA598-<span class="number">5B83</span>-41F5-8A44-675491AF6A2C/Test.app/Test&#x27;, <span class="number">0</span>)</span><br><span class="line">Mach-O Magic Number: feedface </span><br><span class="line">Calling <span class="built_in">real</span> <span class="built_in">close</span>(<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>原理介绍</strong></strong></p>
+<p>要完全弄懂fishhook需要知道Mach-O，dyld，编译过程，动态链接，静态链接的过程，这里如果展开讲的话会涉及很大的一块内容，所以这个阶段先不展开细讲，后面会开一个底层系列到时候再回过头来详细得看下fishhood的源码。</p>
+<p>我们这里只简单介绍下fishhook的大致原理：</p>
+<p>我们知道现在很多代码都是由多个模块构成的（比如我们的一个项目都是由多个.m&#x2F;.h文件对构成，这里的每个.m&#x2F;.h文件都相当于一个编译模块）这样有利于复用，并且由于这些模块是可以单独编译的，所以如果只是单个模块发生改变，只要单独编译改变的模块，然后在与其他模块进行链接就可以了。而从源代码到可执行文件需要通过对每个模块的源代码进行编译，生成一个个目标文件，然后再通过<br>链接器将这些中间文件链接起来，形成一个最终的可行性文件Mach O,在单个模块中C函数在编译时就确定了函数指针的地址偏移量（Offset），这个偏移量在编译好的可执行文件中是固定的，而可执行文件每次被重新装载到内存中时被系统分配的起始地址是不断变化的。运行中的静态函数指针地址其实就等于上述 Offset + Mach0 文件在内存中的首地址.<br>而在链接阶段主要负责符号决议和重定位。之所以需要链接阶段是由于存在模块间依赖，不论是依赖方法还是依赖变量，本质上都是模块间的符号引用。</p>
+<p>但是C函数的指针地址是相对固定且不可修改的。所以内部非动态链接库中的C函数fishhook是hook不了的，它只能用于Mach-O外部的函数。对于这些动态链接库是不会被编译到Mach O 文件的，而是在动态链接时才去重新绑定。</p>
+<p>苹果采用了PIC（Position-independent code）技术来完成代码的动态加载特性：<br>编译时在 Mach-O 文件 _DATA 段的符号表中为每一个被引用的系统 C 函数建立一个指针（8字节的数据，放的全是0），这个指针用于动态绑定时重定位到共享库中的函数实现。在运行时当系统 C 函数被第一次调用时会动态绑定一次，然后将 Mach-O 中的 _DATA 段符号表中对应的指针，指向其在共享库中的实际内存地址，也就是会将我们需要替换的C函数在这个共享库中实际的内存地址保存到 Mach-O 中的 _DATA 段符号表中。<br>经过上面的一串操作我们在调用这个方法的时候都会读取_DATA中的这个地址。我们上面提到内部非动态链接库中的代码fishhook不能hook是因为这些地址值是存放在TEXT session中，而这部分数据是只读的。而动态链接库里面的最终符号地址存在可读写的 __DATA segment 的某个 section 中，fishhook 的实现原理就是通过修改这些 section 内容，进而实现符号的 rebind。</p>
+<p>嗯，大致就是这样，讲得太细节容易把自己都陷进去，这样刚好能够理解。最近正好正在看底层的原理，打算放在后面整体梳理清楚后，再补一篇。赶紧逃。^ V ^</p>
+<h4 id="较好的文章"><a href="#较好的文章" class="headerlink" title="较好的文章"></a>较好的文章</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://draveness.me/fishhook">动态修改 C 语言函数的实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5c810294f265da2db91297f1">fishhook使用场景&amp;源码分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5c7b43976fb9a04a05406312">fishhook的实现原理浅析</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5c727262e51d457139116208">dyld背后的故事&amp;源码分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5c616552f265da2dd53fa4e7#heading-3">非越狱下 iOS代码注入&amp;HOOK微信登录</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/entry/5a1fceddf265da43310d9985">iOS 界的毒瘤：Method Swizzle</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5c67e7efe51d45164c75993b">MachO 文件结构详解</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.googleplus.party/2017/10/26/fishhook%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/">fishhook的基本使用，fishhook可以勾住系统函数</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhangbuhuai.com/post/macho-structure.html">Mach-O 简单分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhangbuhuai.com/post/macho-static-link.html">Mach-O 与静态链接</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhangbuhuai.com/post/macho-dynamic-link.html">Mach-O 与动态链接</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhangbuhuai.com/post/fishhook.html">分析 fishhook</a></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/12/24/iOS开源库源码分析之coobjc/" title="iOS开源库之coobjc使用">
+  <span>
+  iOS开源库之coobjc使用</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/12/18/objection-源码解析/"  title="iOS开源库之objection 源码解析">
+ <span>iOS开源库之objection 源码解析
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/12/20/fishhook-源码解析/" data-title="iOS开源库之fishhook 概述" data-url="http://yoursite.com/2019/12/20/fishhook-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E4%BF%A1%E6%81%AF"><span class="toc-number">1.</span> <span class="toc-text">源码信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.</span> <span class="toc-text">原理介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BE%83%E5%A5%BD%E7%9A%84%E6%96%87%E7%AB%A0"><span class="toc-number">3.</span> <span class="toc-text">较好的文章</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

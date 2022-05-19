@@ -1,0 +1,716 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Java 进阶系列之注解 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="本章知识点  JDK内置系统注解 元注释以及自定义注释 注解解析器实现 Android中的专用注解  JDK内置系统注解Java提供了三种内建注解。 @Override这个估计开发中是最常见的一个注解了，它用于表示所注解的方法是一个用于覆盖父类的一个方法，一旦存在任何的拼写错误导致方法签名对不上被覆盖的方法，编译器就会发出错误提示。@Deprecated这个一般用于标记某个方法不在使用了，通过这个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 进阶系列之注解">
+<meta property="og:url" content="http://yoursite.com/2017/02/06/Java-%E8%BF%9B%E9%98%B6%E7%B3%BB%E5%88%97%E4%B9%8B%E6%B3%A8%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="本章知识点  JDK内置系统注解 元注释以及自定义注释 注解解析器实现 Android中的专用注解  JDK内置系统注解Java提供了三种内建注解。 @Override这个估计开发中是最常见的一个注解了，它用于表示所注解的方法是一个用于覆盖父类的一个方法，一旦存在任何的拼写错误导致方法签名对不上被覆盖的方法，编译器就会发出错误提示。@Deprecated这个一般用于标记某个方法不在使用了，通过这个">
+<meta property="og:locale">
+<meta property="article:published_time" content="2017-02-06T13:06:32.000Z">
+<meta property="article:modified_time" content="2017-02-15T16:28:30.000Z">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/02/06/Java-进阶系列之注解/" title="Java 进阶系列之注解" itemprop="url">Java 进阶系列之注解</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2017-02-06T13:06:32.000Z" itemprop="datePublished"> Published 2017-02-06</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>本章知识点</p>
+<ul>
+<li>JDK内置系统注解</li>
+<li>元注释以及自定义注释</li>
+<li>注解解析器实现</li>
+<li>Android中的专用注解</li>
+</ul>
+<h4 id="JDK内置系统注解"><a href="#JDK内置系统注解" class="headerlink" title="JDK内置系统注解"></a>JDK内置系统注解</h4><p>Java提供了三种内建注解。</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@Override</span></span><br><span class="line">这个估计开发中是最常见的一个注解了，它用于表示所注解的方法是一个用于覆盖父类的一个方法，一旦存在任何的拼写错误导致方法签名对不上被覆盖的方法，编译器就会发出错误提示。</span><br><span class="line"><span class="variable">@Deprecated</span></span><br><span class="line">这个一般用于标记某个方法不在使用了，通过这个注释，开发者可以了解到哪些接口是处于遗弃状态的。</span><br><span class="line"><span class="variable">@SuppressWarnings</span></span><br><span class="line">这个注释用于忽视某个警告信息。</span><br></pre></td></tr></table></figure>
+
+<h4 id="元注释以及自定义注释"><a href="#元注释以及自定义注释" class="headerlink" title="元注释以及自定义注释"></a>元注释以及自定义注释</h4><p>Java中提供了四种元注释用于定义自定义注释，如下所示：</p>
+<p>@Target	表示该注解可以用在什么地方，由ElementType枚举定义 ,当注解未指定Target值时,该注解可以使用任何元素之上</p>
+<figure class="highlight oxygene"><table><tr><td class="code"><pre><span class="line">PACKAGE：包声明</span><br><span class="line"><span class="keyword">TYPE</span>：类、接口 注解类型,<span class="keyword">enum</span>声明 </span><br><span class="line">ANNOTATION_TYPE：注解声明（应用于另一个注解上）</span><br><span class="line">FIELD：域声明（包括<span class="keyword">enum</span>实例） </span><br><span class="line"><span class="keyword">CONSTRUCTOR</span>：构造器的声明 </span><br><span class="line"><span class="title function_">METHOD</span>：方法声明 </span><br><span class="line"><span class="title function_">LOCAL_VARIABLE</span>：局部变量声明 </span><br><span class="line"><span class="title function_">PARAMETER</span>：参数声明</span><br><span class="line"><span class="title function_">TYPE_PARAMETER</span>：类型参数声明（1.8新加入） </span><br><span class="line"><span class="title function_">TYPE_USE</span>：类型使用声明（1.8新加入）</span><br></pre></td></tr></table></figure>
+
+<p>@Retention	表示需要在什么级别保存该注解信息，由RetentionPolicy枚举定义,当注解未定义Retention值时，默认值是CLASS</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">SOURCE：注解将被编译器丢弃（该类型的注解信息只会保留在源码里，源码经过编译后，注解信息会被丢弃，不会保留在编译好的<span class="keyword">class</span>文件里）</span><br><span class="line"><span class="symbol">CLASS</span>：注解在<span class="symbol">class</span>文件中可用，但会被<span class="symbol">VM</span>丢弃（该类型的注解信息会保留在源码里和<span class="symbol">class</span>文件里，在执行的时候，不会加载到虚拟机（<span class="symbol">JVM</span>）中）</span><br><span class="line"><span class="symbol">RUNTIME</span>：<span class="symbol">VM</span>将在运行期也保留注解信息，因此可以通过反射机制读取注解的信息（源码、<span class="symbol">class</span>文件和执行的时候都有注解的信息）</span><br></pre></td></tr></table></figure>
+<p>@Documented	表示注解会被包含在javaApi文档中<br>@Inherited	允许子类继承父类的注解，表示注解类型能被自动继承。 如果一个类使用了 @Inherited 类型的注解，则此类的子类也将含有该注解。</p>
+<h4 id="自定义注解语法："><a href="#自定义注解语法：" class="headerlink" title="自定义注解语法："></a>自定义注解语法：</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.annotation.*;</span><br><span class="line"><span class="meta">@Target(&#123;ElementType.TYPE, ElementType.METHOD&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.SOURCE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> AnatationTest &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>需要注意的是注解也将会编译成class文件,我们通过javac将上述的注解编译为字节码，然后使用javap对其进行反编译，将会得到如下的代码：</p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">AnatationTest</span> <span class="keyword"><span class="keyword">extends</span> <span class="type">java</span></span>.<span class="title">lang</span>.<span class="title">annotation</span>.<span class="title">Annotation</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也就是说使用@interface 关键字声明一个注解，它会自动继承 java.lang.annotation.Annotaion 接口。</p>
+<p>自定义注解的时候需要注意如下几点：</p>
+<ul>
+<li>参数成员访问修饰符只能使用 public 或者 default 这个和枚举是一样的</li>
+<li>注解方法不能有参数。</li>
+<li>@interface 里面的每一个方法表示声明了一个可配置的参数，方法名即位参数名。返回值类型就是参数的类型，下面是能够允许的类型：<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">所有基本类型（<span class="type">int</span>,<span class="type">float</span>,<span class="type">boolean</span>,<span class="type">byte</span>,<span class="type">double</span>,<span class="type">char</span>,<span class="type">long</span>,<span class="type">short</span>）</span><br><span class="line"><span class="type">String</span></span><br><span class="line">Class</span><br><span class="line"><span class="keyword">enum</span></span><br><span class="line"><span class="title class_">Annotation</span></span><br><span class="line">以及上述类型所组成的 数组</span><br></pre></td></tr></table></figure></li>
+<li>如果需要声明默认值可以使用default 关键字。</li>
+<li>注解元素必须有确定的值，要么在定义注解元素时默认值指定，要么使用此注解时指定。非基本类型注解元素的值不可为 null</li>
+</ul>
+<h4 id="注解解析器实现"><a href="#注解解析器实现" class="headerlink" title="注解解析器实现"></a>注解解析器实现</h4><p>注释的解析有两种方式：</p>
+<ul>
+<li>运行时解析<br>运行时注解指的是@Retention的值为RUNTIME的注解。java.lang.reflect包中有一个AnnotatedElement接口，这个接口定义了用于获取注解信息的几个方法：<br>getAnnotation(Class annotationClass)	                            当存在该元素的指定类型注解，则返回相应注释，否则返回null<br>getAnnotations()	                                                返回此元素上存在的所有注解<br>getDeclaredAnnotations()	                                        返回直接存在于此元素上的所有注解。<br>isAnnotationPresent(Class&lt;? extends Annotation&gt; annotationClass)	当存在该元素的指定类型注解，则返回true，否则返回false<br>使用这些接口就可以在运行时解析对应的注释。</li>
+</ul>
+<p>下面是运行时解析的例子：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Target(ElementType.PACKAGE)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> PackageAnnotation &#123;</span><br><span class="line">    String <span class="title function_">desc</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Target(ElementType.TYPE)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> TypeAnnotation &#123;</span><br><span class="line">    String <span class="title function_">desc</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Target(ElementType.CONSTRUCTOR)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ConstructAnnotaion &#123;</span><br><span class="line">    String <span class="title function_">desc</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Target(ElementType.FIELD)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> FieldAnnotation &#123;</span><br><span class="line">    String <span class="title function_">desc</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Target(ElementType.METHOD)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> MethodAnnotation &#123;</span><br><span class="line">    String <span class="title function_">desc</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Target(ElementType.PARAMETER)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ParamAnnotation &#123;</span><br><span class="line">    String <span class="title function_">desc</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@TypeAnnotation</span>(desc = <span class="string">&quot;This is TypeAnnotation&quot;</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestClass</span> &#123;</span><br><span class="line">    <span class="meta">@FieldAnnotation</span>(desc = <span class="string">&quot;This is FieldAnnotation&quot;</span>)</span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">String</span> mTestField = <span class="string">&quot;mTestField&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ConstructAnnotaion</span>(desc = <span class="string">&quot;This is ConstructAnnotaion&quot;</span>)</span><br><span class="line">    <span class="keyword">public</span> <span class="title class_">TestClass</span>() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@MethodAnnotation</span>(desc = <span class="string">&quot;This is MethodAnnotation&quot;</span>)</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">method</span>(<span class="params"><span class="meta">@ParamAnnotation</span>(desc = <span class="string">&quot;This is ParamAnnotation&quot;</span>)<span class="built_in">String</span> param</span>) &#123;</span><br><span class="line">        <span class="title class_">String</span> localvalue = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="title class_">System</span>.<span class="property">out</span>.<span class="title function_">println</span>(<span class="string">&quot;method!!!!!&quot;</span>+param);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>package-info.java</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PackageAnnotation(desc = <span class="string">&quot;This is a package annotation!&quot;</span>)</span></span><br><span class="line"><span class="keyword">package</span> com.javabase.annotationbase.testclass;</span><br><span class="line"><span class="keyword">import</span> com.javabase.annotationbase.annotations.PackageAnnotation;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> RuntimeAnnotationProcessor &#123;</span><br><span class="line"></span><br><span class="line">    public void test<span class="constructor">PackageAnnotation(Class&lt;?&gt; <span class="params">clzz</span>)</span> &#123;</span><br><span class="line">        Package packageName = clzz.get<span class="constructor">Package()</span>;</span><br><span class="line">        <span class="keyword">if</span>(packageName.is<span class="constructor">AnnotationPresent(PackageAnnotation.<span class="params">class</span>)</span>) &#123;</span><br><span class="line">            PackageAnnotation packageAnnotation = packageName.get<span class="constructor">Annotation(PackageAnnotation.<span class="params">class</span>)</span>;</span><br><span class="line">            <span class="module-access"><span class="module"><span class="identifier">System</span>.</span></span>out.println(packageAnnotation.desc<span class="literal">()</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void test<span class="constructor">ClassAnnotation(Class&lt;?&gt; <span class="params">clz</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (clz.is<span class="constructor">AnnotationPresent(TypeAnnotation.<span class="params">class</span>)</span>) &#123;</span><br><span class="line">            TypeAnnotation typeAnnotation = clz.get<span class="constructor">Annotation(TypeAnnotation.<span class="params">class</span>)</span>;</span><br><span class="line">            <span class="module-access"><span class="module"><span class="identifier">System</span>.</span></span>out.println(typeAnnotation.desc<span class="literal">()</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void test<span class="constructor">ConstructureAnnotation(Class&lt;?&gt; <span class="params">clz</span>)</span>  &#123;</span><br><span class="line">        Constructor<span class="literal">[]</span> constructors = clz.get<span class="constructor">Constructors()</span>;</span><br><span class="line">        <span class="keyword">for</span>(Constructor constructor : constructors) &#123;</span><br><span class="line">            <span class="keyword">if</span>(constructor.is<span class="constructor">AnnotationPresent(ConstructAnnotaion.<span class="params">class</span>)</span>) &#123;</span><br><span class="line">                ConstructAnnotaion annotation = (ConstructAnnotaion) constructor.get<span class="constructor">Annotation(ConstructAnnotaion.<span class="params">class</span>)</span>;</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">System</span>.</span></span>out.println(annotation.desc<span class="literal">()</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void test<span class="constructor">FieldAnnotation(Class&lt;?&gt; <span class="params">clz</span>)</span> &#123;</span><br><span class="line">        Field<span class="literal">[]</span> fields = clz.get<span class="constructor">Fields()</span>;</span><br><span class="line">        <span class="keyword">if</span>(fields != null<span class="operator"> &amp;&amp; </span>fields.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (Field field: fields) &#123;</span><br><span class="line">                <span class="keyword">if</span>(field.is<span class="constructor">AnnotationPresent(FieldAnnotation.<span class="params">class</span>)</span>) &#123;</span><br><span class="line">                    FieldAnnotation fieldAnnotation = field.get<span class="constructor">Annotation(FieldAnnotation.<span class="params">class</span>)</span>;</span><br><span class="line">                    <span class="module-access"><span class="module"><span class="identifier">System</span>.</span></span>out.println(fieldAnnotation.desc<span class="literal">()</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void test<span class="constructor">MethodAnnotation(Class&lt;?&gt; <span class="params">clz</span>)</span> &#123;</span><br><span class="line">        Method<span class="literal">[]</span> methods = clz.get<span class="constructor">Methods()</span>;</span><br><span class="line">        <span class="keyword">if</span> (methods != null<span class="operator"> &amp;&amp; </span>methods.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (Method <span class="keyword">method</span> : methods) &#123;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">method</span>.is<span class="constructor">AnnotationPresent(MethodAnnotation.<span class="params">class</span>)</span>) &#123;</span><br><span class="line">                    MethodAnnotation methodAnnotation = <span class="keyword">method</span>.get<span class="constructor">Annotation(MethodAnnotation.<span class="params">class</span>)</span>;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        <span class="keyword">method</span>.invoke(clz.<span class="keyword">new</span><span class="constructor">Instance()</span>, <span class="string">&quot;&quot;</span>);</span><br><span class="line">                    &#125; catch (IllegalAccessException <span class="pattern-match">| <span class="constructor">InvocationTargetException</span></span></span><br><span class="line"><span class="pattern-match">                            | <span class="constructor">InstantiationException</span> e) &#123;</span></span><br><span class="line"><span class="pattern-match">                        e.print<span class="constructor">StackTrace()</span>;</span></span><br><span class="line"><span class="pattern-match">                    &#125;</span></span><br><span class="line"><span class="pattern-match">                    <span class="constructor">System</span>.out.println(<span class="keyword">method</span><span class="constructor">Annotation</span>.desc());</span></span><br><span class="line"><span class="pattern-match">                &#125;</span></span><br><span class="line"><span class="pattern-match">            &#125;</span></span><br><span class="line"><span class="pattern-match">        &#125;</span></span><br><span class="line"><span class="pattern-match">    &#125;</span></span><br><span class="line"><span class="pattern-match"></span></span><br><span class="line"><span class="pattern-match">    public void test<span class="constructor">ParamAnnotation(Class&lt;?&gt; <span class="params">clz</span>)</span> &#123;</span></span><br><span class="line"><span class="pattern-match">        <span class="constructor">Method</span>[] methods = clz.get<span class="constructor">Methods()</span>;</span></span><br><span class="line"><span class="pattern-match">        <span class="keyword">if</span> (methods != null <span class="operator">&amp;&amp;</span> methods.length &gt; 0) &#123;</span></span><br><span class="line"><span class="pattern-match">            <span class="keyword">for</span> (<span class="constructor">Method</span> <span class="keyword">method</span> : methods) &#123;</span></span><br><span class="line"><span class="pattern-match">                <span class="keyword">if</span> (<span class="keyword">method</span>.is<span class="constructor">AnnotationPresent(MethodAnnotation.<span class="params">class</span>)</span>) &#123;</span></span><br><span class="line"><span class="pattern-match">                    <span class="constructor">Parameter</span>[] parameters = <span class="keyword">method</span>.get<span class="constructor">Parameters()</span>;</span></span><br><span class="line"><span class="pattern-match">                    <span class="keyword">if</span> (parameters != null <span class="operator">&amp;&amp;</span> parameters.length &gt; 0) &#123;</span></span><br><span class="line"><span class="pattern-match">                        <span class="keyword">for</span> (<span class="constructor">Parameter</span> parameter : parameters) &#123;</span></span><br><span class="line"><span class="pattern-match">                            <span class="keyword">if</span>(parameter.is<span class="constructor">AnnotationPresent(ParamAnnotation.<span class="params">class</span>)</span>) &#123;</span></span><br><span class="line"><span class="pattern-match">                                <span class="constructor">ParamAnnotation</span> param<span class="constructor">Annotation</span> = parameter.get<span class="constructor">Annotation(ParamAnnotation.<span class="params">class</span>)</span>;</span></span><br><span class="line"><span class="pattern-match">                                <span class="constructor">System</span>.out.println(param<span class="constructor">Annotation</span>.desc());</span></span><br><span class="line"><span class="pattern-match">                            &#125;</span></span><br><span class="line"><span class="pattern-match">                        &#125;</span></span><br><span class="line"><span class="pattern-match">                    &#125;</span></span><br><span class="line"><span class="pattern-match">                &#125;</span></span><br><span class="line"><span class="pattern-match">            &#125;</span></span><br><span class="line"><span class="pattern-match">        &#125;</span></span><br><span class="line"><span class="pattern-match">    &#125;</span></span><br><span class="line"><span class="pattern-match"></span></span><br><span class="line"><span class="pattern-match">&#125;</span></span><br><span class="line"><span class="pattern-match"></span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>编译时解析<br>编译时注解指的是@Retention的值为CLASS的注解。对于这类注解的解析，我们需要自定义一个派生自 AbstractProcessor的“注解处理类”并重写process 函数。</p>
+</li>
+<li><p>APT(Annotation Processing Tool)是一种处理注释的工具<br>Annotation处理器在处理注释时可以根据源文件中的Annotation生成额外的源文件和其它的文件,APT还会编译生成的源文件和原来的源文件，将它们一起生成class文件。</p>
+</li>
+<li><p>整个注解处理器的可以由如下几个部分构成：<br>注解处理器（AbstractProcess）+代码处理（JavaPoet）+处理器注册（AutoService）+apt</p>
+</li>
+<li><p>整个过程分成如下几个部分：<br>1.定义注解（如@automain）<br>2.定义注解处理器<br>3.在处理器里面完成处理方式，通常是生成java代码，这个就需要用到代码处理。<br>4.注册处理器，这里就需要用到处理器注册。<br>5.利用APT进一步处理。</p>
+</li>
+</ul>
+<p>建立一个APT 项目，并添加apt依赖：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">buildscript</span> &#123;</span><br><span class="line">    <span class="keyword">repositories</span> &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">dependencies</span> &#123;</span><br><span class="line">        <span class="keyword">classpath</span> <span class="string">&#x27;com.android.tools.build:gradle:2.2.3&#x27;</span></span><br><span class="line">        <span class="keyword">classpath</span> <span class="string">&#x27;com.neenbedankt.gradle.plugins:android-apt:1.8&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">allprojects</span> &#123;</span><br><span class="line">    <span class="keyword">repositories</span> &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">task</span> clean(type: <span class="keyword">Delete</span>) &#123;</span><br><span class="line">    <span class="keyword">delete</span> rootProject.buildDir</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>添加apt 插件</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">//</span>添加APT plugin</span><br><span class="line">apply plugin: <span class="string">&#x27;com.neenbedankt.android-apt&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>新建一个model 命名为compiler 用于存放注解处理器：<br>并添加autoservice 和javapoet依赖：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">apply plugin: <span class="string">&#x27;java&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">dependencies</span> &#123;</span><br><span class="line">    <span class="keyword">compile</span> <span class="keyword">fileTree</span>(dir: <span class="string">&#x27;libs&#x27;</span>, <span class="keyword">include</span>: [<span class="string">&#x27;*.jar&#x27;</span>])</span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.squareup:javapoet:1.8.0&#x27;</span></span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.google.auto.service:auto-service:1.0-rc2&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">sourceCompatibility</span> = <span class="string">&quot;1.7&quot;</span></span><br><span class="line"><span class="keyword">targetCompatibility</span> = <span class="string">&quot;1.7&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>创建AnnotationProcessor</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.google.auto.service.AutoService;</span><br><span class="line"><span class="keyword">import</span> com.squareup.javapoet.JavaFile;</span><br><span class="line"><span class="keyword">import</span> com.squareup.javapoet.MethodSpec;</span><br><span class="line"><span class="keyword">import</span> com.squareup.javapoet.TypeSpec;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.Collections;</span><br><span class="line"><span class="keyword">import</span> java.util.Set;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.annotation.processing.AbstractProcessor;</span><br><span class="line"><span class="keyword">import</span> javax.annotation.processing.Processor;</span><br><span class="line"><span class="keyword">import</span> javax.annotation.processing.RoundEnvironment;</span><br><span class="line"><span class="keyword">import</span> javax.lang.model.element.Modifier;</span><br><span class="line"><span class="keyword">import</span> javax.lang.model.element.TypeElement;</span><br><span class="line"></span><br><span class="line"><span class="meta">@AutoService(Processor.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AnnotationProcessor</span> <span class="keyword">extends</span> <span class="title class_">AbstractProcessor</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Set&lt;String&gt; <span class="title function_">getSupportedAnnotationTypes</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Collections.singleton(TestAnnotation.class.getCanonicalName());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span> &#123;</span><br><span class="line">        <span class="type">MethodSpec</span> <span class="variable">main</span> <span class="operator">=</span> MethodSpec.methodBuilder(<span class="string">&quot;main&quot;</span>)</span><br><span class="line">                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)</span><br><span class="line">                .returns(<span class="keyword">void</span>.class)</span><br><span class="line">                .addParameter(String[].class, <span class="string">&quot;args&quot;</span>)</span><br><span class="line">                .addStatement(<span class="string">&quot;$T.out.println($S)&quot;</span>, System.class, <span class="string">&quot;Hello, JavaPoet!&quot;</span>)</span><br><span class="line">                .build();</span><br><span class="line">        <span class="type">TypeSpec</span> <span class="variable">helloWorld</span> <span class="operator">=</span> TypeSpec.classBuilder(<span class="string">&quot;HelloWorld&quot;</span>)</span><br><span class="line">                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)</span><br><span class="line">                .addMethod(main)</span><br><span class="line">                .build();</span><br><span class="line">        <span class="type">JavaFile</span> <span class="variable">javaFile</span> <span class="operator">=</span> JavaFile.builder(<span class="string">&quot;com.example.helloworld&quot;</span>, helloWorld)</span><br><span class="line">                .build();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            javaFile.writeTo(processingEnv.getFiler());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这时候编译后会在&#x2F;app&#x2F;build&#x2F;generated&#x2F;source&#x2F;apt&#x2F;debug&#x2F;目录下生成HelloWorld.java文件</p>
+<p>参考材料<br><a target="_blank" rel="noopener" href="http://www.race604.com/annotation-processing/">http://www.race604.com/annotation-processing/</a><br><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/1942ad208927">http://www.jianshu.com/p/1942ad208927</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/lmj623565791/article/details/43452969">http://blog.csdn.net/lmj623565791/article/details/43452969</a><br><a target="_blank" rel="noopener" href="https://github.com/taoweiji/DemoAPT?utm_source=tuicool&amp;utm_medium=referral">https://github.com/taoweiji/DemoAPT?utm_source=tuicool&amp;utm_medium=referral</a><br><a target="_blank" rel="noopener" href="http://www.cnblogs.com/lbangel/p/3523741.html">http://www.cnblogs.com/lbangel/p/3523741.html</a><br><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/94979c056b20">http://www.jianshu.com/p/94979c056b20</a><br><a target="_blank" rel="noopener" href="http://alighters.com/blog/2016/05/10/apt-code-generate/">http://alighters.com/blog/2016/05/10/apt-code-generate/</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/02/06/Java-进阶系列之多线程/" title="Java 进阶系列之多线程">
+  <span>
+  Java 进阶系列之多线程</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/02/06/Java-进阶系列之反射/"  title="Java 进阶系列之反射">
+ <span>Java 进阶系列之反射
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2017/02/06/Java-进阶系列之注解/" data-title="Java 进阶系列之注解" data-url="http://yoursite.com/2017/02/06/Java-%E8%BF%9B%E9%98%B6%E7%B3%BB%E5%88%97%E4%B9%8B%E6%B3%A8%E8%A7%A3/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#JDK%E5%86%85%E7%BD%AE%E7%B3%BB%E7%BB%9F%E6%B3%A8%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">JDK内置系统注解</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%83%E6%B3%A8%E9%87%8A%E4%BB%A5%E5%8F%8A%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E9%87%8A"><span class="toc-number">2.</span> <span class="toc-text">元注释以及自定义注释</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E8%AF%AD%E6%B3%95%EF%BC%9A"><span class="toc-number">3.</span> <span class="toc-text">自定义注解语法：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%A8%E8%A7%A3%E8%A7%A3%E6%9E%90%E5%99%A8%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">注解解析器实现</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

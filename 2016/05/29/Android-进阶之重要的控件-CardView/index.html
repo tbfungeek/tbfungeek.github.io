@@ -1,0 +1,727 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之重要的控件 CardView | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Android working with Card View and Recycler View 翻译：林晓海文章地址：http:&#x2F;&#x2F;www.androidhive.info&#x2F;2016&#x2F;05&#x2F;android-working-with-card-view-and-recycler-view&#x2F;  CardView 是 Material Design 引入的又一个重要的新控件，使用CardView可以用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之重要的控件 CardView">
+<meta property="og:url" content="http://yoursite.com/2016/05/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E9%87%8D%E8%A6%81%E7%9A%84%E6%8E%A7%E4%BB%B6-CardView/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Android working with Card View and Recycler View 翻译：林晓海文章地址：http:&#x2F;&#x2F;www.androidhive.info&#x2F;2016&#x2F;05&#x2F;android-working-with-card-view-and-recycler-view&#x2F;  CardView 是 Material Design 引入的又一个重要的新控件，使用CardView可以用">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/05/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E9%87%8D%E8%A6%81%E7%9A%84%E6%8E%A7%E4%BB%B6-CardView/result.png">
+<meta property="article:published_time" content="2016-05-29T12:07:35.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:54:40.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="重要控件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/05/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E9%87%8D%E8%A6%81%E7%9A%84%E6%8E%A7%E4%BB%B6-CardView/result.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/29/Android-进阶之重要的控件-CardView/" title="Android 进阶之重要的控件 CardView" itemprop="url">Android 进阶之重要的控件 CardView</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-05-29T12:07:35.000Z" itemprop="datePublished"> Published 2016-05-29</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h3 id="Android-working-with-Card-View-and-Recycler-View"><a href="#Android-working-with-Card-View-and-Recycler-View" class="headerlink" title="Android working with Card View and Recycler View"></a>Android working with Card View and Recycler View</h3><blockquote>
+<p>翻译：林晓海<br>文章地址：<a target="_blank" rel="noopener" href="http://www.androidhive.info/2016/05/android-working-with-card-view-and-recycler-view/">http://www.androidhive.info/2016/05/android-working-with-card-view-and-recycler-view/</a></p>
+</blockquote>
+<p>CardView 是 Material Design 引入的又一个重要的新控件，使用CardView可以用一个带有阴影和圆弧的卡片来展示信息，CardView继承自FragmentLayout，可以通过兼容包的形式向后兼容到Androd 2.x版本。</p>
+<p>可以将CardView和RecycleView结合实现漂亮的UI效果，通过这篇文章我们可以通过创建一个漂亮的Music app 来学习如何结合CardView和RecycleView。</p>
+<p>怎样添加CardView？<br>为了在你的app中使用CardView，添加CardView依赖到build.gradle，然后同步下项目：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">dependencies</span> &#123;</span><br><span class="line">    <span class="comment">// CardView</span></span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.android.support:cardview-v7:23.3.+&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要使用CardView就要在布局文件中添加&lt;android.support.v7.widget.CardView&gt; 然后在节点里面添加其他的UI控件。下面的布局中CardView只有一个简单的TextView。</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">&lt;LinearLayout xmlns:android=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    xmlns:tools=<span class="string">&quot;http://schemas.android.com/tools&quot;</span></span><br><span class="line">    xmlns:card_view=<span class="string">&quot;http://schemas.android.com/apk/res-auto&quot;</span>&gt;</span><br><span class="line"> </span><br><span class="line">    &lt;android<span class="selector-class">.support</span><span class="selector-class">.v7</span><span class="selector-class">.widget</span><span class="selector-class">.CardView</span></span><br><span class="line">        xmlns:card_view=<span class="string">&quot;http://schemas.android.com/apk/res-auto&quot;</span></span><br><span class="line">        android:id=<span class="string">&quot;@+id/card_view&quot;</span></span><br><span class="line">        android:layout_gravity=<span class="string">&quot;center&quot;</span></span><br><span class="line">        android:layout_width=<span class="string">&quot;250dp&quot;</span></span><br><span class="line">        android:layout_height=<span class="string">&quot;250dp&quot;</span></span><br><span class="line">        card_view:cardCornerRadius=<span class="string">&quot;4dp&quot;</span>&gt;</span><br><span class="line"> </span><br><span class="line">        &lt;TextView</span><br><span class="line">            android:text=<span class="string">&quot;Hello Card&quot;</span></span><br><span class="line">            android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">            android:layout_height=<span class="string">&quot;match_parent&quot;</span> /&gt;</span><br><span class="line"> </span><br><span class="line">    &lt;/android<span class="selector-class">.support</span><span class="selector-class">.v7</span><span class="selector-class">.widget</span>.CardView&gt;</span><br><span class="line"> </span><br><span class="line">&lt;/LinearLayout&gt;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>创建新项目<br>通过 File ⇒ New Project 的方式在Android Studio中创建一个新项目，然后在弹出选择Activity的模板页中选择Empty Activity。</p>
+</li>
+<li><p>下载 <a target="_blank" rel="noopener" href="http://api.androidhive.info/cardview/res.zip">res.zip</a> 然后将其添加到你刚刚创建项目的资源文件夹上，这个资源文件夹中包含了专辑封面以及其他需要的图标。</p>
+</li>
+<li><p>将下面的字符串，颜色和尺寸资源添加到strings.xml, colors.xml and dimens.xml文件中.</p>
+</li>
+</ol>
+<p>strings.xml</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span> <span class="attr">name</span>=<span class="string">&quot;app_name&quot;</span>&gt;</span>Card View<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span> <span class="attr">name</span>=<span class="string">&quot;action_settings&quot;</span>&gt;</span>Settings<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span> <span class="attr">name</span>=<span class="string">&quot;action_add_favourite&quot;</span>&gt;</span>Add to Favourites<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span> <span class="attr">name</span>=<span class="string">&quot;action_play_next&quot;</span>&gt;</span>Play Next<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span> <span class="attr">name</span>=<span class="string">&quot;backdrop_title&quot;</span>&gt;</span>LOVE MUSIC<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span> <span class="attr">name</span>=<span class="string">&quot;backdrop_subtitle&quot;</span>&gt;</span>This season top 20 albums<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>colors.xml</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;colorPrimary&quot;</span>&gt;</span>#F50057<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;colorPrimaryDark&quot;</span>&gt;</span>#F50057<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;colorAccent&quot;</span>&gt;</span>#FF4081<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;viewBg&quot;</span>&gt;</span>#f1f5f8<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;album_title&quot;</span>&gt;</span>#4c4c4c<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>dimens.xml</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Default screen margins, per the Android Design guidelines. --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;activity_horizontal_margin&quot;</span>&gt;</span>16dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;activity_vertical_margin&quot;</span>&gt;</span>16dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;fab_margin&quot;</span>&gt;</span>16dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;item_offset&quot;</span>&gt;</span>10dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;detail_backdrop_height&quot;</span>&gt;</span>250dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;backdrop_title&quot;</span>&gt;</span>30dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;backdrop_subtitle&quot;</span>&gt;</span>18dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;card_margin&quot;</span>&gt;</span>5dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;card_album_radius&quot;</span>&gt;</span>0dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;album_cover_height&quot;</span>&gt;</span>160dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;album_title_padding&quot;</span>&gt;</span>10dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;album_title&quot;</span>&gt;</span>15dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;songs_count_padding_bottom&quot;</span>&gt;</span>5dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;songs_count&quot;</span>&gt;</span>12dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;ic_album_overflow_width&quot;</span>&gt;</span>20dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;ic_album_overflow_height&quot;</span>&gt;</span>30dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;ic_album_overflow_margin_top&quot;</span>&gt;</span>10dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>打开 build.gradle 往上面添加CardView, RecyclerView 和 Glide 的依赖. RecyclerView 用于以网格的方式显示专辑信息，CardView 用于现实单个专辑信息，Glide用于显示专辑封面图片。</li>
+</ol>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">build.gradle</span><br><span class="line"><span class="keyword">dependencies</span> &#123;</span><br><span class="line">    <span class="keyword">compile</span> <span class="keyword">fileTree</span>(dir: <span class="string">&#x27;libs&#x27;</span>, <span class="keyword">include</span>: [<span class="string">&#x27;*.jar&#x27;</span>])</span><br><span class="line">    testCompile <span class="string">&#x27;junit:junit:4.12&#x27;</span></span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.android.support:appcompat-v7:23.3.0&#x27;</span></span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.android.support:design:23.3.0&#x27;</span></span><br><span class="line">    <span class="comment">// RecyclerView</span></span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.android.support:recyclerview-v7:23.3.+&#x27;</span></span><br><span class="line">    <span class="comment">// CardView</span></span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.android.support:cardview-v7:23.3.+&#x27;</span></span><br><span class="line">    <span class="comment">// Glide</span></span><br><span class="line">    <span class="keyword">compile</span> <span class="string">&#x27;com.github.bumptech.glide:glide:3.7.0&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>为了创建单个专辑的实例，我们使用一个单独的model类来存放专辑姓名，歌曲数目和封面图片，下面是这个类的源码：<br>Abum.java<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">package info.androidhive.cardview;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Album</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">String</span> name;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> numOfSongs;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> thumbnail; </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Album</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Album</span><span class="params">(<span class="type">String</span> name, <span class="type">int</span> numOfSongs, <span class="type">int</span> thumbnail)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.numOfSongs = numOfSongs;</span><br><span class="line">        <span class="keyword">this</span>.thumbnail = thumbnail;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">String</span> <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">setName</span><span class="params">(<span class="type">String</span> name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">int</span> <span class="title">getNumOfSongs</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> numOfSongs;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">setNumOfSongs</span><span class="params">(<span class="type">int</span> numOfSongs)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.numOfSongs = numOfSongs;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">int</span> <span class="title">getThumbnail</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> thumbnail;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">setThumbnail</span><span class="params">(<span class="type">int</span> thumbnail)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.thumbnail = thumbnail;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>我们还需要一个xml布局文件用于现实专辑卡片，这里我们新建一个album_card.xml 布局文件，这里我们增加了&lt;android.support.v7.widget.CardView&gt; 并且添加了专辑姓名，歌曲数目，和专辑封面等信息。并且我们还添加了三个点的按钮，在我们按下它的时候会弹出Popup 菜单。</li>
+</ol>
+<p>album_card.xml</p>
+<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line">&lt;LinearLayout xmlns:android=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    xmlns:card_view=<span class="string">&quot;http://schemas.android.com/apk/res-auto&quot;</span></span><br><span class="line">    android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">    android:layout_height=<span class="string">&quot;wrap_content&quot;</span>&gt;</span><br><span class="line">    &lt;android.support.v7.widget.CardView</span><br><span class="line">        android:id=<span class="string">&quot;@+id/card_view&quot;</span></span><br><span class="line">        android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">        android:layout_height=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">        android:layout_gravity=<span class="string">&quot;center&quot;</span></span><br><span class="line">        android:layout_margin=<span class="string">&quot;@dimen/card_margin&quot;</span></span><br><span class="line">        android:elevation=<span class="string">&quot;3dp&quot;</span></span><br><span class="line">        card_view:cardCornerRadius=<span class="string">&quot;@dimen/card_album_radius&quot;</span>&gt;</span><br><span class="line">        &lt;RelativeLayout</span><br><span class="line">            android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">            android:layout_height=<span class="string">&quot;match_parent&quot;</span>&gt;</span><br><span class="line">            &lt;ImageView</span><br><span class="line">                android:id=<span class="string">&quot;@+id/thumbnail&quot;</span></span><br><span class="line">                android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">                android:layout_height=<span class="string">&quot;@dimen/album_cover_height&quot;</span></span><br><span class="line">                android:background=<span class="string">&quot;?attr/selectableItemBackgroundBorderless&quot;</span></span><br><span class="line">                android:clickable=<span class="string">&quot;true&quot;</span></span><br><span class="line">                android:scaleType=<span class="string">&quot;fitXY&quot;</span> /&gt;</span><br><span class="line">            &lt;TextView</span><br><span class="line">                android:id=<span class="string">&quot;@+id/title&quot;</span></span><br><span class="line">                android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">                android:layout_height=<span class="string">&quot;wrap_content&quot;</span></span><br><span class="line">                android:layout_below=<span class="string">&quot;@id/thumbnail&quot;</span></span><br><span class="line">                android:paddingLeft=<span class="string">&quot;@dimen/album_title_padding&quot;</span></span><br><span class="line">                android:paddingRight=<span class="string">&quot;@dimen/album_title_padding&quot;</span></span><br><span class="line">                android:paddingTop=<span class="string">&quot;@dimen/album_title_padding&quot;</span></span><br><span class="line">                android:textColor=<span class="string">&quot;@color/album_title&quot;</span></span><br><span class="line">                android:textSize=<span class="string">&quot;@dimen/album_title&quot;</span> /&gt;</span><br><span class="line">            &lt;TextView</span><br><span class="line">                android:id=<span class="string">&quot;@+id/count&quot;</span></span><br><span class="line">                android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">                android:layout_height=<span class="string">&quot;wrap_content&quot;</span></span><br><span class="line">                android:layout_below=<span class="string">&quot;@id/title&quot;</span></span><br><span class="line">                android:paddingBottom=<span class="string">&quot;@dimen/songs_count_padding_bottom&quot;</span></span><br><span class="line">                android:paddingLeft=<span class="string">&quot;@dimen/album_title_padding&quot;</span></span><br><span class="line">                android:paddingRight=<span class="string">&quot;@dimen/album_title_padding&quot;</span></span><br><span class="line">                android:textSize=<span class="string">&quot;@dimen/songs_count&quot;</span> /&gt;</span><br><span class="line">            &lt;ImageView</span><br><span class="line">                android:id=<span class="string">&quot;@+id/overflow&quot;</span></span><br><span class="line">                android:layout_width=<span class="string">&quot;@dimen/ic_album_overflow_width&quot;</span></span><br><span class="line">                android:layout_height=<span class="string">&quot;@dimen/ic_album_overflow_height&quot;</span></span><br><span class="line">                android:layout_alignParentRight=<span class="string">&quot;true&quot;</span></span><br><span class="line">                android:layout_below=<span class="string">&quot;@id/thumbnail&quot;</span></span><br><span class="line">                android:layout_marginTop=<span class="string">&quot;@dimen/ic_album_overflow_margin_top&quot;</span></span><br><span class="line">                android:scaleType=<span class="string">&quot;centerCrop&quot;</span></span><br><span class="line">                android:src=<span class="string">&quot;@drawable/ic_dots&quot;</span> /&gt;</span><br><span class="line">        &lt;<span class="regexp">/RelativeLayout&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/andr</span>oid.support.v7.widget.CardView&gt;</span><br><span class="line">&lt;/LinearLayout&gt;</span><br></pre></td></tr></table></figure>
+<ol start="7">
+<li><p>创建一个menu文件，这个menu将会在用户点击弹出菜单的按钮的时候作为菜单显现出来的。</p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">menu_album.xml</span><br><span class="line">&lt;<span class="keyword">menu</span> xmln<span class="variable">s:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    xmln<span class="variable">s:app</span>=<span class="string">&quot;http://schemas.android.com/apk/res-auto&quot;</span></span><br><span class="line">    xmln<span class="variable">s:tools</span>=<span class="string">&quot;http://schemas.android.com/tools&quot;</span>&gt;</span><br><span class="line">    &lt;item</span><br><span class="line">        android:id=<span class="string">&quot;@+id/action_add_favourite&quot;</span></span><br><span class="line">        android:orderInCategory=<span class="string">&quot;100&quot;</span></span><br><span class="line">        android:title=<span class="string">&quot;@string/action_add_favourite&quot;</span> /&gt;</span><br><span class="line">    &lt;item</span><br><span class="line">        android:id=<span class="string">&quot;@+id/action_play_next&quot;</span></span><br><span class="line">        android:orderInCategory=<span class="string">&quot;101&quot;</span></span><br><span class="line">        android:title=<span class="string">&quot;@string/action_play_next&quot;</span> /&gt;</span><br><span class="line">&lt;/<span class="keyword">menu</span>&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>为了使用RectycleView我们需要一个Adapter类它通过将有用的数据inflates album_card.xml 布局.因此我们需要创建一个AlbumsAdapter.java的类然后添加如下的内容：</p>
+</li>
+</ol>
+<p>AlbumsAdapter.java</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">package info.androidhive.cardview;</span><br><span class="line">import android.content.Context;</span><br><span class="line">import android.support.v7.widget.PopupMenu;</span><br><span class="line">import android.support.v7.widget.RecyclerView;</span><br><span class="line">import android.view.LayoutInflater;</span><br><span class="line">import android.view.MenuInflater;</span><br><span class="line">import android.view.MenuItem;</span><br><span class="line">import android.view.View;</span><br><span class="line">import android.view.ViewGroup;</span><br><span class="line">import android.widget.ImageView;</span><br><span class="line">import android.widget.TextView;</span><br><span class="line">import android.widget.Toast;</span><br><span class="line">import com.bumptech.glide.Glide;</span><br><span class="line">import java.util.List;</span><br><span class="line">public <span class="keyword">class</span> AlbumsAdapter extends RecyclerView.Adapter&lt;AlbumsAdapter.MyViewHolder&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> Context mContext;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Album&gt; albumList;</span><br><span class="line">    public <span class="keyword">class</span> MyViewHolder extends RecyclerView.ViewHolder &#123;</span><br><span class="line">        public TextView title, count;</span><br><span class="line">        public ImageView thumbnail, overflow;</span><br><span class="line">        public <span class="constructor">MyViewHolder(View <span class="params">view</span>)</span> &#123;</span><br><span class="line">            super(view);</span><br><span class="line">            title = (TextView) view.find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">title</span>)</span>;</span><br><span class="line">            count = (TextView) view.find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">count</span>)</span>;</span><br><span class="line">            thumbnail = (ImageView) view.find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">thumbnail</span>)</span>;</span><br><span class="line">            overflow = (ImageView) view.find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">overflow</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public <span class="constructor">AlbumsAdapter(Context <span class="params">mContext</span>, List&lt;Album&gt; <span class="params">albumList</span>)</span> &#123;</span><br><span class="line">        this.mContext = mContext;</span><br><span class="line">        this.albumList = albumList;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public MyViewHolder on<span class="constructor">CreateViewHolder(ViewGroup <span class="params">parent</span>, <span class="params">int</span> <span class="params">viewType</span>)</span> &#123;</span><br><span class="line">        View itemView = <span class="module-access"><span class="module"><span class="identifier">LayoutInflater</span>.</span></span>from(parent.get<span class="constructor">Context()</span>)</span><br><span class="line">                .inflate(<span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>layout.album_card, parent, <span class="literal">false</span>);</span><br><span class="line">        return <span class="keyword">new</span> <span class="constructor">MyViewHolder(<span class="params">itemView</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">BindViewHolder(<span class="params">final</span> MyViewHolder <span class="params">holder</span>, <span class="params">int</span> <span class="params">position</span>)</span> &#123;</span><br><span class="line">        Album album = albumList.get(position);</span><br><span class="line">        holder.title.set<span class="constructor">Text(<span class="params">album</span>.<span class="params">getName</span>()</span>);</span><br><span class="line">        holder.count.set<span class="constructor">Text(<span class="params">album</span>.<span class="params">getNumOfSongs</span>()</span> + <span class="string">&quot; songs&quot;</span>);</span><br><span class="line">        <span class="comment">// loading album cover using Glide library</span></span><br><span class="line">        <span class="module-access"><span class="module"><span class="identifier">Glide</span>.</span></span><span class="keyword">with</span>(mContext).load(album.get<span class="constructor">Thumbnail()</span>).into(holder.thumbnail);</span><br><span class="line">        holder.overflow.set<span class="constructor">OnClickListener(<span class="params">new</span> View.OnClickListener()</span> &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void on<span class="constructor">Click(View <span class="params">view</span>)</span> &#123;</span><br><span class="line">                show<span class="constructor">PopupMenu(<span class="params">holder</span>.<span class="params">overflow</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Showing popup menu when tapping on 3 dots</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> void show<span class="constructor">PopupMenu(View <span class="params">view</span>)</span> &#123;</span><br><span class="line">        <span class="comment">// inflate menu</span></span><br><span class="line">        PopupMenu popup = <span class="keyword">new</span> <span class="constructor">PopupMenu(<span class="params">mContext</span>, <span class="params">view</span>)</span>;</span><br><span class="line">        MenuInflater inflater = popup.get<span class="constructor">MenuInflater()</span>;</span><br><span class="line">        inflater.inflate(<span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>menu.menu_album, popup.get<span class="constructor">Menu()</span>);</span><br><span class="line">        popup.set<span class="constructor">OnMenuItemClickListener(<span class="params">new</span> MyMenuItemClickListener()</span>);</span><br><span class="line">        popup.show<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Click listener for popup menu items</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">class</span> MyMenuItemClickListener implements PopupMenu.OnMenuItemClickListener &#123;</span><br><span class="line">        public <span class="constructor">MyMenuItemClickListener()</span> &#123;</span><br><span class="line">        &#125;</span><br><span class="line">        @Override</span><br><span class="line">        public boolean on<span class="constructor">MenuItemClick(MenuItem <span class="params">menuItem</span>)</span> &#123;</span><br><span class="line">            switch (menuItem.get<span class="constructor">ItemId()</span>) &#123;</span><br><span class="line">                case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.action_add_favourite:</span><br><span class="line">                    <span class="module-access"><span class="module"><span class="identifier">Toast</span>.</span></span>make<span class="constructor">Text(<span class="params">mContext</span>, <span class="string">&quot;Add to favourite&quot;</span>, Toast.LENGTH_SHORT)</span>.show<span class="literal">()</span>;</span><br><span class="line">                    return <span class="literal">true</span>;</span><br><span class="line">                case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.action_play_next:</span><br><span class="line">                    <span class="module-access"><span class="module"><span class="identifier">Toast</span>.</span></span>make<span class="constructor">Text(<span class="params">mContext</span>, <span class="string">&quot;Play next&quot;</span>, Toast.LENGTH_SHORT)</span>.show<span class="literal">()</span>;</span><br><span class="line">                    return <span class="literal">true</span>;</span><br><span class="line">                default:</span><br><span class="line">            &#125;</span><br><span class="line">            return <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public <span class="built_in">int</span> get<span class="constructor">ItemCount()</span> &#123;</span><br><span class="line">        return albumList.size<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="9">
+<li>打卡main Activity 的布局文件activity_main.xml和content_main 添加AppBarLayout, CollapsingToolbarLayout, Toolbar and RecyclerView.</li>
+</ol>
+<p>activity_main.xml</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">android.support.design.widget.CoordinatorLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:app</span>=<span class="string">&quot;http://schemas.android.com/apk/res-auto&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">&quot;@+id/main_content&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:background</span>=<span class="string">&quot;@android:color/white&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:fitsSystemWindows</span>=<span class="string">&quot;true&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">android.support.design.widget.AppBarLayout</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/appbar&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;@dimen/detail_backdrop_height&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:fitsSystemWindows</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:theme</span>=<span class="string">&quot;@style/ThemeOverlay.AppCompat.Dark.ActionBar&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">android.support.design.widget.CollapsingToolbarLayout</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:id</span>=<span class="string">&quot;@+id/collapsing_toolbar&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:fitsSystemWindows</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">app:contentScrim</span>=<span class="string">&quot;?attr/colorPrimary&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">app:expandedTitleMarginEnd</span>=<span class="string">&quot;64dp&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">app:expandedTitleMarginStart</span>=<span class="string">&quot;48dp&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">app:expandedTitleTextAppearance</span>=<span class="string">&quot;@android:color/transparent&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">app:layout_scrollFlags</span>=<span class="string">&quot;scroll|exitUntilCollapsed&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">RelativeLayout</span></span></span><br><span class="line"><span class="tag">                <span class="attr">android:layout_width</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">ImageView</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:id</span>=<span class="string">&quot;@+id/backdrop&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:fitsSystemWindows</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:scaleType</span>=<span class="string">&quot;centerCrop&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">app:layout_collapseMode</span>=<span class="string">&quot;parallax&quot;</span> /&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">LinearLayout</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:layout_width</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:layout_centerInParent</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:gravity</span>=<span class="string">&quot;center_horizontal&quot;</span></span></span><br><span class="line"><span class="tag">                    <span class="attr">android:orientation</span>=<span class="string">&quot;vertical&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">TextView</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:id</span>=<span class="string">&quot;@+id/love_music&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:layout_width</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:text</span>=<span class="string">&quot;@string/backdrop_title&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:textColor</span>=<span class="string">&quot;@android:color/white&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:textSize</span>=<span class="string">&quot;@dimen/backdrop_title&quot;</span> /&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">TextView</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:layout_width</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:text</span>=<span class="string">&quot;@string/backdrop_subtitle&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:textColor</span>=<span class="string">&quot;@android:color/white&quot;</span></span></span><br><span class="line"><span class="tag">                        <span class="attr">android:textSize</span>=<span class="string">&quot;@dimen/backdrop_subtitle&quot;</span> /&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">RelativeLayout</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">android.support.v7.widget.Toolbar</span></span></span><br><span class="line"><span class="tag">                <span class="attr">android:id</span>=<span class="string">&quot;@+id/toolbar&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">android:layout_height</span>=<span class="string">&quot;?attr/actionBarSize&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">app:layout_collapseMode</span>=<span class="string">&quot;pin&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">app:popupTheme</span>=<span class="string">&quot;@style/ThemeOverlay.AppCompat.Light&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">android.support.design.widget.CollapsingToolbarLayout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">android.support.design.widget.AppBarLayout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">layout</span>=<span class="string">&quot;@layout/content_main&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">android.support.design.widget.CoordinatorLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>content_main.xml</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">RelativeLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:app</span>=<span class="string">&quot;http://schemas.android.com/apk/res-auto&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">&quot;http://schemas.android.com/tools&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:background</span>=<span class="string">&quot;@color/viewBg&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">app:layout_behavior</span>=<span class="string">&quot;@string/appbar_scrolling_view_behavior&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">&quot;info.androidhive.cardview.MainActivity&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">tools:showIn</span>=<span class="string">&quot;@layout/activity_main&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">android.support.v7.widget.RecyclerView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/recycler_view&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:clipToPadding</span>=<span class="string">&quot;false&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:scrollbars</span>=<span class="string">&quot;vertical&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">RelativeLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>10.最后打开MainActivity.java 做一些必要的修改.</p>
+<ul>
+<li>initCollapsingToolbar() 在toolbar展开或者合上的时候显示或者隐藏toolbar。</li>
+<li>prepareAlbums()  添加RecycleView所需要的样本专辑数据。</li>
+<li>GridLayoutManager 用于将RecyclerView 以网格的方式显示出来。</li>
+<li>GridSpacingItemDecoration 用于添加RecycleView网格item的空白边界。</li>
+<li>AlbumsAdapter 创建后将分配给RecycleViewm,RecycleView通过网格的形式将其显示出来。MainActivity.java<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">package info.androidhive.cardview;</span><br><span class="line">import android.content.res.Resources;</span><br><span class="line">import android.graphics.Rect;</span><br><span class="line">import android.os.Bundle;</span><br><span class="line">import android.support.design.widget.AppBarLayout;</span><br><span class="line">import android.support.design.widget.CollapsingToolbarLayout;</span><br><span class="line">import android.support.v7.app.AppCompatActivity;</span><br><span class="line">import android.support.v7.widget.DefaultItemAnimator;</span><br><span class="line">import android.support.v7.widget.GridLayoutManager;</span><br><span class="line">import android.support.v7.widget.RecyclerView;</span><br><span class="line">import android.support.v7.widget.Toolbar;</span><br><span class="line">import android.util.TypedValue;</span><br><span class="line">import android.view.View;</span><br><span class="line">import android.widget.ImageView;</span><br><span class="line">import com.bumptech.glide.Glide;</span><br><span class="line">import java.util.ArrayList;</span><br><span class="line">import java.util.List;</span><br><span class="line">public <span class="keyword">class</span> MainActivity extends AppCompatActivity &#123;</span><br><span class="line">    <span class="keyword">private</span> RecyclerView recyclerView;</span><br><span class="line">    <span class="keyword">private</span> AlbumsAdapter adapter;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Album&gt; albumList;</span><br><span class="line">    @Override</span><br><span class="line">    protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">        set<span class="constructor">ContentView(R.<span class="params">layout</span>.<span class="params">activity_main</span>)</span>;</span><br><span class="line">        Toolbar toolbar = (Toolbar) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">toolbar</span>)</span>;</span><br><span class="line">        set<span class="constructor">SupportActionBar(<span class="params">toolbar</span>)</span>;</span><br><span class="line">        init<span class="constructor">CollapsingToolbar()</span>;</span><br><span class="line">        recyclerView = (RecyclerView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">recycler_view</span>)</span>;</span><br><span class="line">        albumList = <span class="keyword">new</span> ArrayList&lt;&gt;<span class="literal">()</span>;</span><br><span class="line">        adapter = <span class="keyword">new</span> <span class="constructor">AlbumsAdapter(<span class="params">this</span>, <span class="params">albumList</span>)</span>;</span><br><span class="line">        RecyclerView.LayoutManager mLayoutManager = <span class="keyword">new</span> <span class="constructor">GridLayoutManager(<span class="params">this</span>, 2)</span>;</span><br><span class="line">        recyclerView.set<span class="constructor">LayoutManager(<span class="params">mLayoutManager</span>)</span>;</span><br><span class="line">        recyclerView.add<span class="constructor">ItemDecoration(<span class="params">new</span> GridSpacingItemDecoration(2, <span class="params">dpToPx</span>(10)</span>, <span class="literal">true</span>));</span><br><span class="line">        recyclerView.set<span class="constructor">ItemAnimator(<span class="params">new</span> DefaultItemAnimator()</span>);</span><br><span class="line">        recyclerView.set<span class="constructor">Adapter(<span class="params">adapter</span>)</span>;</span><br><span class="line">        prepare<span class="constructor">Albums()</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="module-access"><span class="module"><span class="identifier">Glide</span>.</span></span><span class="keyword">with</span>(this).load(<span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.cover).into((ImageView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">backdrop</span>)</span>);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.print<span class="constructor">StackTrace()</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Initializing collapsing toolbar</span></span><br><span class="line"><span class="comment">     * Will show and hide the toolbar title on scroll</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> void init<span class="constructor">CollapsingToolbar()</span> &#123;</span><br><span class="line">        final CollapsingToolbarLayout collapsingToolbar =</span><br><span class="line">        (CollapsingToolbarLayout) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">collapsing_toolbar</span>)</span>;</span><br><span class="line">        collapsingToolbar.set<span class="constructor">Title(<span class="string">&quot; &quot;</span>)</span>;</span><br><span class="line">        AppBarLayout appBarLayout = (AppBarLayout) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">appbar</span>)</span>;</span><br><span class="line">        appBarLayout.set<span class="constructor">Expanded(<span class="params">true</span>)</span>;</span><br><span class="line">        appBarLayout.add<span class="constructor">OnOffsetChangedListener(<span class="params">new</span> AppBarLayout.OnOffsetChangedListener()</span> &#123;</span><br><span class="line">            boolean isShow = <span class="literal">false</span>;</span><br><span class="line">            <span class="built_in">int</span> scrollRange = -<span class="number">1</span>;</span><br><span class="line">            @Override</span><br><span class="line">            public void on<span class="constructor">OffsetChanged(AppBarLayout <span class="params">appBarLayout</span>, <span class="params">int</span> <span class="params">verticalOffset</span>)</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (scrollRange<span class="operator"> == </span>-<span class="number">1</span>) &#123;</span><br><span class="line">                    scrollRange = appBarLayout.get<span class="constructor">TotalScrollRange()</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (scrollRange + verticalOffset<span class="operator"> == </span><span class="number">0</span>) &#123;</span><br><span class="line">                    collapsingToolbar.set<span class="constructor">Title(<span class="params">getString</span>(R.<span class="params">string</span>.<span class="params">app_name</span>)</span>);</span><br><span class="line">                    isShow = <span class="literal">true</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isShow) &#123;</span><br><span class="line">                    collapsingToolbar.set<span class="constructor">Title(<span class="string">&quot; &quot;</span>)</span>;</span><br><span class="line">                    isShow = <span class="literal">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Adding few albums for testing</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> void prepare<span class="constructor">Albums()</span> &#123;</span><br><span class="line">        <span class="built_in">int</span><span class="literal">[]</span> covers = <span class="keyword">new</span> <span class="built_in">int</span><span class="literal">[]</span>&#123;</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album1,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album2,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album3,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album4,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album5,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album6,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album7,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album8,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album9,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album10,</span><br><span class="line">                <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.album11&#125;;</span><br><span class="line">        Album a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;True Romance&quot;</span>, 13, <span class="params">covers</span>[0])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Xscpae&quot;</span>, 8, <span class="params">covers</span>[1])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Maroon 5&quot;</span>, 11, <span class="params">covers</span>[2])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Born to Die&quot;</span>, 12, <span class="params">covers</span>[3])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Honeymoon&quot;</span>, 14, <span class="params">covers</span>[4])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;I Need a Doctor&quot;</span>, 1, <span class="params">covers</span>[5])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Loud&quot;</span>, 11, <span class="params">covers</span>[6])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Legend&quot;</span>, 14, <span class="params">covers</span>[7])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Hello&quot;</span>, 11, <span class="params">covers</span>[8])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        a = <span class="keyword">new</span> <span class="constructor">Album(<span class="string">&quot;Greatest Hits&quot;</span>, 17, <span class="params">covers</span>[9])</span>;</span><br><span class="line">        albumList.add(a);</span><br><span class="line">        adapter.notify<span class="constructor">DataSetChanged()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * RecyclerView item decoration - give equal margin around grid item</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    public <span class="keyword">class</span> GridSpacingItemDecoration extends RecyclerView.ItemDecoration &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="built_in">int</span> spanCount;</span><br><span class="line">        <span class="keyword">private</span> <span class="built_in">int</span> spacing;</span><br><span class="line">        <span class="keyword">private</span> boolean includeEdge;</span><br><span class="line">        public <span class="constructor">GridSpacingItemDecoration(<span class="params">int</span> <span class="params">spanCount</span>, <span class="params">int</span> <span class="params">spacing</span>, <span class="params">boolean</span> <span class="params">includeEdge</span>)</span> &#123;</span><br><span class="line">            this.spanCount = spanCount;</span><br><span class="line">            this.spacing = spacing;</span><br><span class="line">            this.includeEdge = includeEdge;</span><br><span class="line">        &#125;</span><br><span class="line">        @Override</span><br><span class="line">        public void get<span class="constructor">ItemOffsets(Rect <span class="params">outRect</span>, View <span class="params">view</span>, RecyclerView <span class="params">parent</span>, RecyclerView.State <span class="params">state</span>)</span> &#123;</span><br><span class="line">            <span class="built_in">int</span> position = parent.get<span class="constructor">ChildAdapterPosition(<span class="params">view</span>)</span>; <span class="comment">// item position</span></span><br><span class="line">            <span class="built_in">int</span> column = position % spanCount; <span class="comment">// item column</span></span><br><span class="line">            <span class="keyword">if</span> (includeEdge) &#123;</span><br><span class="line">                outRect.left = spacing - column<span class="operator"> * </span>spacing<span class="operator"> / </span>spanCount; <span class="comment">// spacing - column * ((1f / spanCount) * spacing)</span></span><br><span class="line">                outRect.right = (column + <span class="number">1</span>)<span class="operator"> * </span>spacing<span class="operator"> / </span>spanCount; <span class="comment">// (column + 1) * ((1f / spanCount) * spacing)</span></span><br><span class="line">                <span class="keyword">if</span> (position &lt; spanCount) &#123; <span class="comment">// top edge</span></span><br><span class="line">                    outRect.top = spacing;</span><br><span class="line">                &#125;</span><br><span class="line">                outRect.bottom = spacing; <span class="comment">// item bottom</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                outRect.left = column<span class="operator"> * </span>spacing<span class="operator"> / </span>spanCount; <span class="comment">// column * ((1f / spanCount) * spacing)</span></span><br><span class="line">                outRect.right = spacing - (column + <span class="number">1</span>)<span class="operator"> * </span>spacing<span class="operator"> / </span>spanCount; <span class="comment">// spacing - (column + 1) * ((1f /    spanCount) * spacing)</span></span><br><span class="line">                <span class="keyword">if</span> (position &gt;= spanCount) &#123;</span><br><span class="line">                    outRect.top = spacing; <span class="comment">// item top</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Converting dp to pixel</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> dp<span class="constructor">ToPx(<span class="params">int</span> <span class="params">dp</span>)</span> &#123;</span><br><span class="line">        Resources r = get<span class="constructor">Resources()</span>;</span><br><span class="line">        return <span class="module-access"><span class="module"><span class="identifier">Math</span>.</span></span>round(<span class="module-access"><span class="module"><span class="identifier">TypedValue</span>.</span></span>apply<span class="constructor">Dimension(TypedValue.COMPLEX_UNIT_DIP, <span class="params">dp</span>, <span class="params">r</span>.<span class="params">getDisplayMetrics</span>()</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+  <img src="/2016/05/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E9%87%8D%E8%A6%81%E7%9A%84%E6%8E%A7%E4%BB%B6-CardView/result.png"></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/重要控件/">重要控件</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/05/30/Android-进阶之重要的控件-RecycleView/" title="Android 进阶之重要的控件 RecycleView">
+  <span>
+  Android 进阶之重要的控件 RecycleView</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/05/28/Android-进阶之设计模式-适配器模式/"  title="Android 进阶之设计模式 适配器模式">
+ <span>Android 进阶之设计模式 适配器模式
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/05/29/Android-进阶之重要的控件-CardView/" data-title="Android 进阶之重要的控件 CardView" data-url="http://yoursite.com/2016/05/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E9%87%8D%E8%A6%81%E7%9A%84%E6%8E%A7%E4%BB%B6-CardView/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Android-working-with-Card-View-and-Recycler-View"><span class="toc-number">1.</span> <span class="toc-text">Android working with Card View and Recycler View</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

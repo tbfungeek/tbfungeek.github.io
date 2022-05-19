@@ -1,0 +1,759 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS Runtime应用之Runtime API分类 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="本打算这个系列结束的，但是由于疫情影响在家的这几天有空闲时间，想着把这块也整理下，今天这篇文章打算带大家熟悉下Runtime API.其这部分和Runtime重要的数据结构紧密相关，通过objc&#x2F;runtime.h无非就是获得类，对象，Method,SEL,IMP,Ivar,Property,Protocal相关类以及对应的属性。这块还是蛮有规律的，最早接触Runtime还是蛮抗拒的，后">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS Runtime应用之Runtime API分类">
+<meta property="og:url" content="http://yoursite.com/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="本打算这个系列结束的，但是由于疫情影响在家的这几天有空闲时间，想着把这块也整理下，今天这篇文章打算带大家熟悉下Runtime API.其这部分和Runtime重要的数据结构紧密相关，通过objc&#x2F;runtime.h无非就是获得类，对象，Method,SEL,IMP,Ivar,Property,Protocal相关类以及对应的属性。这块还是蛮有规律的，最早接触Runtime还是蛮抗拒的，后">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/00001.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/00002.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/00003.png">
+<meta property="article:published_time" content="2020-02-06T03:44:53.000Z">
+<meta property="article:modified_time" content="2020-02-16T13:16:17.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Objective C 相关">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2020/02/06/iOS-Runtime应用之带大家熟悉Runtime-API/" title="iOS Runtime应用之Runtime API分类" itemprop="url">iOS Runtime应用之Runtime API分类</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2020-02-06T03:44:53.000Z" itemprop="datePublished"> Published 2020-02-06</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>本打算这个系列结束的，但是由于疫情影响在家的这几天有空闲时间，想着把这块也整理下，今天这篇文章打算带大家熟悉下Runtime API.其这部分和Runtime重要的数据结构紧密相关，通过<strong><strong>objc&#x2F;runtime.h</strong></strong>无非就是获得类，对象，Method,SEL,IMP,Ivar,Property,Protocal相关类以及对应的属性。这块还是蛮有规律的，最早接触Runtime还是蛮抗拒的，后面才慢慢觉得它的强大。废话不多说这篇博客主要分两大部分，一部分介绍上面提到的这些数据结构相关的数据，另一部分介绍十分重要的类型编码和属性编码。搞定这两部分估计大家在使用上就会游刃有余了，但是还是建立在理解Runtime各个环节的基础上。</p>
+<p>这里推荐大家用<strong><strong>Cooci</strong></strong>可编译苹果官方源码objc来写demo这样可以比较方便得调试整个过程，这也是最近才发现的一个很棒的开源库，之前研究底层代码的时候要是早点发现这个就不会那么纠结了。好东西不私藏。<a target="_blank" rel="noopener" href="https://github.com/LGCooci/objc4_debug">https://github.com/LGCooci/objc4_debug</a>:</p>
+<p>在开始之前建议大家通读下我的《iOS Runtime源码分析系列》的博客，当然在这篇博客介绍的时候还会简要提一下相关内容。好了我们开始我们的API之旅：</p>
+<p>首先是类相关的，这些都以****class_****开头：</p>
+<h6 id="类相关："><a href="#类相关：" class="headerlink" title="类相关："></a><strong><strong>类相关：</strong></strong></h6><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//获取类名</span></span><br><span class="line">OBJC_EXPORT const <span class="built_in">char</span><span class="operator"> * </span>_Nonnull <span class="keyword">class</span><span class="constructor">_getName(Class <span class="params">_Nullable</span> <span class="params">cls</span>)</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//获取isa</span></span><br><span class="line">OBJC_EXPORT Class _Nullable <span class="keyword">object</span><span class="constructor">_getClass(<span class="params">id</span> <span class="params">_Nullable</span> <span class="params">obj</span>)</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//获取父类</span></span><br><span class="line">OBJC_EXPORT Class _Nullable <span class="keyword">class</span><span class="constructor">_getSuperclass(Class <span class="params">_Nullable</span> <span class="params">cls</span>)</span> </span><br><span class="line"></span><br><span class="line">获取实例变量的信息</span><br><span class="line"><span class="number">1.</span>实例变量是指变量不是属性.每个属性都有对应的实例变量，比如下面例子中包含属性name,那么它对应的实例变量为_name</span><br><span class="line"><span class="number">2.</span>这个方法可以获取属性的变量,也可以获取私有变量</span><br><span class="line"><span class="number">3.</span>如果没有找到对应的实例变量，就会返回nil</span><br><span class="line"><span class="number">4.</span>返回的列表不包含父类的实例变量</span><br><span class="line">Ivar <span class="keyword">class</span><span class="constructor">_getClassVariable(Class <span class="params">cls</span>, <span class="params">const</span> <span class="params">char</span> <span class="operator">*</span><span class="params">name</span>)</span></span><br><span class="line"></span><br><span class="line">获取属性:</span><br><span class="line">这个方法只能获得属性，不能获得变量</span><br><span class="line">objc_property_t <span class="keyword">class</span><span class="constructor">_getProperty(Class <span class="params">cls</span>, <span class="params">const</span> <span class="params">char</span> <span class="operator">*</span><span class="params">name</span>)</span></span><br><span class="line"></span><br><span class="line">获取实例方法信息</span><br><span class="line">OBJC_EXPORT Method _Nullable <span class="keyword">class</span><span class="constructor">_getInstanceMethod(Class <span class="params">_Nullable</span> <span class="params">cls</span>, SEL <span class="params">_Nonnull</span> <span class="params">name</span>)</span>;</span><br><span class="line"></span><br><span class="line">获取类方法信息</span><br><span class="line">OBJC_EXPORT Method _Nullable <span class="keyword">class</span><span class="constructor">_getClassMethod(Class <span class="params">_Nullable</span> <span class="params">cls</span>, SEL <span class="params">_Nonnull</span> <span class="params">name</span>)</span></span><br><span class="line"></span><br><span class="line">获取SEL对应的实现体，也就是IMP</span><br><span class="line">IMP <span class="keyword">class</span><span class="constructor">_getMethodImplementation(Class <span class="params">cls</span>, SEL <span class="params">name</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>通过这部分接口可以获得类名，父类，实例变量，属性，实例方法，类方法和IMP,注意这里只是获取单个的并不是全部的数据。如果要获得全部的就需要class_copyXXXX了。</p>
+<p>获取数据列表类：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="comment">//获取实例变量列表</span></span><br><span class="line"><span class="comment">//1.获取所有[==私有变量==]和属性对应的变量</span></span><br><span class="line"><span class="comment">//2.获取的私有变量的名和定义的名一样</span></span><br><span class="line"><span class="comment">//3.获取的属性的名前面都添加了[下划线]</span></span><br><span class="line"><span class="comment">//4.注意这里[不包括父类的实例变量]</span></span><br><span class="line">OBJC_EXPORT Ivar _Nonnull<span class="operator"> * </span>_Nullable <span class="keyword">class</span><span class="constructor">_copyIvarList(Class <span class="params">_Nullable</span> <span class="params">cls</span>, <span class="params">unsigned</span> <span class="params">int</span> <span class="operator">*</span> <span class="params">_Nullable</span> <span class="params">outCount</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取方法列表</span></span><br><span class="line"><span class="comment">//1.获取所有实例方法,[==不包含静态方法==]</span></span><br><span class="line"><span class="comment">//2.不获取[父类的方法]</span></span><br><span class="line"><span class="comment">//3.[隐式的get set 方法也能获取到]</span></span><br><span class="line"><span class="comment">//4.[==可以获取分类和动态添加的方法==]。</span></span><br><span class="line">OBJC_EXPORT Method _Nonnull<span class="operator"> * </span>_Nullable <span class="keyword">class</span><span class="constructor">_copyMethodList(Class <span class="params">_Nullable</span> <span class="params">cls</span>, <span class="params">unsigned</span> <span class="params">int</span> <span class="operator">*</span> <span class="params">_Nullable</span> <span class="params">outCount</span>)</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//获取协议列表</span></span><br><span class="line"><span class="comment">//不能获取分类实现的协议</span></span><br><span class="line">OBJC_EXPORT Protocol<span class="operator"> * </span>__unsafe_unretained _Nonnull<span class="operator"> * </span>_Nullable </span><br><span class="line"><span class="keyword">class</span><span class="constructor">_copyProtocolList(Class <span class="params">_Nullable</span> <span class="params">cls</span>, <span class="params">unsigned</span> <span class="params">int</span> <span class="operator">*</span> <span class="params">_Nullable</span> <span class="params">outCount</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//获取属性列表</span></span><br><span class="line"><span class="comment">//1.获取的属性名不自动添加下划线</span></span><br><span class="line"><span class="comment">//2.[不能获取Category添加的属性]。</span></span><br><span class="line">OBJC_EXPORT objc_property_t _Nonnull<span class="operator"> * </span>_Nullable</span><br><span class="line"><span class="keyword">class</span><span class="constructor">_copyPropertyList(Class <span class="params">_Nullable</span> <span class="params">cls</span>, <span class="params">unsigned</span> <span class="params">int</span> <span class="operator">*</span> <span class="params">_Nullable</span> <span class="params">outCount</span>)</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这些方法都需要注意最后调用free释放掉存放copy来的空间</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">添加方法</span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line">class_addMethod(Class <span class="variable">_Nullable</span> cls, SEL <span class="variable">_Nonnull</span> <span class="built_in">name</span>, IMP <span class="variable">_Nonnull</span> imp, </span><br><span class="line">                const char * <span class="variable">_Nullable</span> types) </span><br><span class="line"></span><br><span class="line">添加实例变量</span><br><span class="line"><span class="comment">//1.只能给动态创建的类添加变量也就是用 objc_allocateClassPair 创建的类</span></span><br><span class="line"><span class="comment">//2.添加变量只能在函数 objc_allocateClassPair 和 class_getInstanceVariable 之间添加才有效</span></span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line">class_addIvar(Class <span class="variable">_Nullable</span> cls, const char * <span class="variable">_Nonnull</span> <span class="built_in">name</span>, size_t <span class="built_in">size</span>, </span><br><span class="line">              uint8_t alignment, const char * <span class="variable">_Nullable</span> types) </span><br><span class="line"></span><br><span class="line">添加协议</span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line">class_addProtocol(Class <span class="variable">_Nullable</span> cls, Protocol * <span class="variable">_Nonnull</span> protocol) </span><br><span class="line"></span><br><span class="line"><span class="comment">//添加属性</span></span><br><span class="line"><span class="comment">//1. 添加属性不用在objc_registerClassPair之前,因为添加属性其实就是添加变量的set 和 get方法而已</span></span><br><span class="line"><span class="comment">//2. 添加的属性和变量不能用kvc设置值和取值</span></span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line">class_addProperty(Class <span class="variable">_Nullable</span> cls, const char * <span class="variable">_Nonnull</span> <span class="built_in">name</span>,</span><br><span class="line">                  const objc_property_attribute_t * <span class="variable">_Nullable</span> attributes,</span><br><span class="line">                  unsigned int attributeCount)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">替换方法</span><br><span class="line">OBJC_EXPORT IMP <span class="variable">_Nullable</span></span><br><span class="line">class_replaceMethod(Class <span class="variable">_Nullable</span> cls, SEL <span class="variable">_Nonnull</span> <span class="built_in">name</span>, IMP <span class="variable">_Nonnull</span> imp, const char * <span class="variable">_Nullable</span> types) </span><br><span class="line"></span><br><span class="line">替换属性</span><br><span class="line">OBJC_EXPORT void</span><br><span class="line">class_replaceProperty(Class <span class="variable">_Nullable</span> cls, const char * <span class="variable">_Nonnull</span> <span class="built_in">name</span>,</span><br><span class="line">                      const objc_property_attribute_t * <span class="variable">_Nullable</span> attributes,</span><br><span class="line">                      unsigned int attributeCount)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">创建实例</span><br><span class="line">OBJC_EXPORT id _Nullable</span><br><span class="line"><span class="keyword">class</span><span class="constructor">_createInstance(Class <span class="params">_Nullable</span> <span class="params">cls</span>, <span class="params">size_t</span> <span class="params">extraBytes</span>)</span></span><br><span class="line"></span><br><span class="line">遵循协议</span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line"><span class="keyword">class</span><span class="constructor">_conformsToProtocol(Class <span class="params">_Nullable</span> <span class="params">cls</span>, Protocol <span class="operator">*</span> <span class="params">_Nullable</span> <span class="params">protocol</span>)</span> </span><br><span class="line"></span><br><span class="line">判断是否响应某个SEL</span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line"><span class="keyword">class</span><span class="constructor">_respondsToSelector(Class <span class="params">_Nullable</span> <span class="params">cls</span>, SEL <span class="params">_Nonnull</span> <span class="params">sel</span>)</span> </span><br></pre></td></tr></table></figure>
+
+<p>下面是简要的实例：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&lt;Foundation/Foundation.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="built_in">NS_ASSUME_NONNULL_BEGIN</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">IDLTestObject</span> : <span class="title">NSObject</span> </span>&#123;</span><br><span class="line">    <span class="built_in">NSString</span> *privateInstanceVar;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readwrite</span>) <span class="built_in">NSString</span> *name;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>, <span class="keyword">assign</span>, <span class="keyword">readwrite</span>) <span class="built_in">NSInteger</span> age;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)testInstanceMethod;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">NS_ASSUME_NONNULL_END</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&quot;IDLTestObject.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">IDLTestObject</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)testInstanceMethod &#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;run testInstanceMethod&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="type">void</span>)testClassMethod &#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;testclassMethod&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">//获取类名</span></span><br><span class="line"><span class="keyword">const</span> <span class="type">char</span> *className = class_getName([IDLTestObject <span class="keyword">class</span>]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;className : %@&quot;</span>,[<span class="built_in">NSString</span> stringWithUTF8String:className]);</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取父类</span></span><br><span class="line">Class superClass = class_getSuperclass([IDLTestObject <span class="keyword">class</span>]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;superClass : %@&quot;</span>, <span class="built_in">NSStringFromClass</span>(superClass));</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取实例对象的大小</span></span><br><span class="line">size_t instanceSize = class_getInstanceSize([IDLTestObject <span class="keyword">class</span>]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;instanceSize = %zu&quot;</span>,instanceSize);</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取实例变量信息 如果没有找到会返回nil</span></span><br><span class="line">Ivar nameVar = class_getInstanceVariable([IDLTestObject <span class="keyword">class</span>], [<span class="string">@&quot;_name&quot;</span> UTF8String]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;InstanceVariable :%@&quot;</span>,[<span class="built_in">NSString</span> stringWithUTF8String:ivar_getName(nameVar)]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;Instance Variable TypeEncoding:%@&quot;</span>,[<span class="built_in">NSString</span> stringWithUTF8String:ivar_getTypeEncoding(nameVar)]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;Instance Variable Offset:%td&quot;</span>,ivar_getOffset(nameVar));</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取实例变量列表</span></span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> outCount = <span class="number">0</span>;</span><br><span class="line">Ivar *varList = class_copyIvarList([IDLTestObject <span class="keyword">class</span>], &amp;outCount);</span><br><span class="line"><span class="keyword">for</span> (<span class="type">unsigned</span> <span class="type">int</span> index = <span class="number">0</span> ;index &lt; outCount; index++) &#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;var %u = %@&quot;</span>,index,[<span class="built_in">NSString</span> stringWithUTF8String:ivar_getName(varList[index])]);</span><br><span class="line">&#125;</span><br><span class="line">free(varList);</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取对象属性</span></span><br><span class="line">objc_property_t property = class_getProperty([IDLTestObject <span class="keyword">class</span>], [<span class="string">@&quot;age&quot;</span> UTF8String]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;Instance Property Name :%@&quot;</span>,[<span class="built_in">NSString</span> stringWithUTF8String:property_getName(property)]);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;Instance Property Attribute:%@&quot;</span>,[<span class="built_in">NSString</span> stringWithUTF8String:property_getAttributes(property)]);</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取实例方法</span></span><br><span class="line">Method method = class_getInstanceMethod([IDLTestObject <span class="keyword">class</span>], <span class="keyword">@selector</span>(testInstanceMethod));</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;get InstanceMethod %@&quot;</span>,<span class="built_in">NSStringFromSelector</span>(method_getName(method)));</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取方法列表</span></span><br><span class="line">Method *methodList = class_copyMethodList([IDLTestObject <span class="keyword">class</span>], &amp;outCount);</span><br><span class="line"><span class="keyword">for</span> (<span class="type">unsigned</span> <span class="type">int</span> index = <span class="number">0</span>; index &lt; outCount; index++) &#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;method %u = %@&quot;</span>,index,<span class="built_in">NSStringFromSelector</span>(method_getName(methodList[index])));</span><br><span class="line">&#125;</span><br><span class="line">free(methodList);</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取类方法</span></span><br><span class="line">Method classMethod = class_getClassMethod([IDLTestObject <span class="keyword">class</span>], <span class="keyword">@selector</span>(testClassMethod));</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;get classMethod %@&quot;</span>,<span class="built_in">NSStringFromSelector</span>(method_getName(classMethod)));</span><br><span class="line"></span><br><span class="line">IMP testMethod = class_getMethodImplementation([IDLTestObject <span class="keyword">class</span>], <span class="keyword">@selector</span>(testInstanceMethod));</span><br><span class="line">testMethod();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//给某个类添加方法</span></span><br><span class="line">class_addMethod([IDLTestObject <span class="keyword">class</span>],</span><br><span class="line">                <span class="keyword">@selector</span>(addedMethod),</span><br><span class="line">                (IMP)addedMethodIMP,</span><br><span class="line">                <span class="string">&quot;v@:&quot;</span>);</span><br><span class="line"></span><br><span class="line">[[IDLTestObject new] performSelector:<span class="keyword">@selector</span>(addedMethod)];</span><br><span class="line"></span><br><span class="line">objc_property_attribute_t type = &#123; <span class="string">&quot;T&quot;</span>, <span class="string">&quot;@\&quot;NSString\&quot;&quot;</span> &#125;;  <span class="comment">//T：类型</span></span><br><span class="line">objc_property_attribute_t ownership = &#123; <span class="string">&quot;C&quot;</span>, <span class="string">&quot;&quot;</span> &#125;;          <span class="comment">// C：copy</span></span><br><span class="line">objc_property_attribute_t <span class="keyword">nonatomic</span> = &#123; <span class="string">&quot;N&quot;</span>, <span class="string">&quot;&quot;</span> &#125;;          <span class="comment">// N：nonatomic</span></span><br><span class="line">objc_property_attribute_t ivar  = &#123; <span class="string">&quot;V&quot;</span>, <span class="string">&quot;_addedMethod&quot;</span> &#125;;  <span class="comment">//V： 实例变量变量名</span></span><br><span class="line">objc_property_attribute_t attributs[] = &#123; type, ownership,<span class="keyword">nonatomic</span>, ivar &#125;;</span><br><span class="line">class_addProperty([IDLTestObject <span class="keyword">class</span>], <span class="string">&quot;addedMethod&quot;</span>, attributs, <span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//输出添加的成员变量</span></span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> count;</span><br><span class="line">objc_property_t *propertyList = class_copyPropertyList([IDLTestObject <span class="keyword">class</span>], &amp;count);</span><br><span class="line"><span class="keyword">for</span> (<span class="type">unsigned</span> <span class="type">int</span> i = <span class="number">0</span>; i&lt; count; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="type">char</span> *name = property_getName(propertyList[i]);</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;属性%@ 属性信息%@&quot;</span>,[<span class="built_in">NSString</span> stringWithUTF8String:name],</span><br><span class="line">            [<span class="built_in">NSString</span> stringWithUTF8String:property_getAttributes(propertyList[i])]);</span><br><span class="line">&#125;</span><br><span class="line">free(propertyList);</span><br><span class="line"></span><br><span class="line"><span class="comment">//替换方法</span></span><br><span class="line">class_replaceMethod([IDLTestObject <span class="keyword">class</span>],</span><br><span class="line">                    <span class="keyword">@selector</span>(testInstanceMethod),</span><br><span class="line">                    (IMP)addedMethodIMP,</span><br><span class="line">                    <span class="string">&quot;v@:&quot;</span>);</span><br><span class="line">[[[IDLTestObject alloc] init] testInstanceMethod];</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建实例</span></span><br><span class="line">IDLTestObject *testClass = class_createInstance([IDLTestObject <span class="keyword">class</span>], <span class="number">0</span>);</span><br><span class="line">[testClass performSelector:<span class="keyword">@selector</span>(testInstanceMethod)];</span><br><span class="line"></span><br><span class="line">Class DynamicClass = objc_allocateClassPair([<span class="built_in">NSObject</span> <span class="keyword">class</span>], <span class="string">&quot;DynamicClass&quot;</span>, <span class="number">0</span>);</span><br><span class="line">class_addIvar(DynamicClass, <span class="string">&quot;_attribute0&quot;</span>, <span class="keyword">sizeof</span>(<span class="built_in">NSString</span> *), log(<span class="keyword">sizeof</span>(<span class="built_in">NSString</span> *)), <span class="string">&quot;i&quot;</span>);</span><br><span class="line">Ivar ivar = class_getInstanceVariable(DynamicClass, <span class="string">&quot;_attribute0&quot;</span>);</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;DynamicClass var:%@&quot;</span>,[<span class="built_in">NSString</span> stringWithUTF8String:ivar_getName(ivar)]);</span><br><span class="line">objc_registerClassPair(DynamicClass);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">294372</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] className : IDLTestObject</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">296220</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] superClass : NSObject</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">297028</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] instanceSize = <span class="number">32</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">299444</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] InstanceVariable :_name</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">306411</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] Instance Variable TypeEncoding:@<span class="string">&quot;NSString&quot;</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">306766</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] Instance Variable Offset:<span class="number">16</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">307020</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] var <span class="number">0</span> = privateInstanceVar</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">307322</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] var <span class="number">1</span> = _name</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">307559</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] var <span class="number">2</span> = _age</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">308250</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] Instance Property Name :age</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">308553</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] Instance Property Attribute:Tq,N,V_age</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">308878</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] get InstanceMethod testInstanceMethod</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">309351</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] method <span class="number">0</span> = testInstanceMethod</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">309624</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] method <span class="number">1</span> = .cxx_destruct</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">334783</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] method <span class="number">2</span> = name</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">335325</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] method <span class="number">3</span> = setName:</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">335856</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] method <span class="number">4</span> = age</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">336313</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] method <span class="number">5</span> = setAge:</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">336745</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] get classMethod testClassMethod</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">336909</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] run testInstanceMethod</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">340473</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] run addedMethodIMP</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">351977</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] 属性addedMethod 属性信息T@<span class="string">&quot;NSString&quot;</span>,C,N,V_addedMethod</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">352879</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] 属性name 属性信息T@<span class="string">&quot;NSString&quot;</span>,&amp;,N,V_name</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">353429</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] 属性age 属性信息Tq,N,V_age</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">353906</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] run addedMethodIMP</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">354370</span>+<span class="number">0800</span> objc-debug[<span class="number">43702</span>:<span class="number">387877</span>] run addedMethodIMP</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">08</span> <span class="number">19</span>:<span class="number">05</span>:<span class="number">51</span>.<span class="number">354378</span>+<span class="number">0800</span> objc-debug[<span class="number">71958</span>:<span class="number">585781</span>] DynamicClass var:_attribute0</span><br></pre></td></tr></table></figure>
+
+<h6 id="Ivar实例变量相关："><a href="#Ivar实例变量相关：" class="headerlink" title="Ivar实例变量相关："></a><strong><strong>Ivar实例变量相关：</strong></strong></h6><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="comment">//获取变量名</span></span><br><span class="line">OBJC_EXPORT const <span class="built_in">char</span><span class="operator"> * </span>_Nullable</span><br><span class="line">ivar<span class="constructor">_getName(Ivar <span class="params">_Nonnull</span> <span class="params">v</span>)</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//获取变量类型描述</span></span><br><span class="line">OBJC_EXPORT const <span class="built_in">char</span><span class="operator"> * </span>_Nullable</span><br><span class="line">ivar<span class="constructor">_getTypeEncoding(Ivar <span class="params">_Nonnull</span> <span class="params">v</span>)</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//获取变量基地址偏移量</span></span><br><span class="line">OBJC_EXPORT ptrdiff_t</span><br><span class="line">ivar<span class="constructor">_getOffset(Ivar <span class="params">_Nonnull</span> <span class="params">v</span>)</span> </span><br></pre></td></tr></table></figure>
+
+<p>上面的三个方法基本上对应于IVar的数据结构的各个字段，后面会单独介绍TypeEncoding和属性编码。</p>
+<h6 id="Property属性相关："><a href="#Property属性相关：" class="headerlink" title="Property属性相关："></a><strong><strong>Property属性相关：</strong></strong></h6><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//获取属性名</span></span><br><span class="line"><span class="function">OBJC_EXPORT <span class="type">const</span> <span class="type">char</span> * _Nonnull</span></span><br><span class="line"><span class="function"><span class="title">property_getName</span><span class="params">(<span class="type">objc_property_t</span> _Nonnull property)</span> </span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">//获取属性编码</span></span></span><br><span class="line"><span class="function">OBJC_EXPORT <span class="type">const</span> <span class="type">char</span> * _Nullable</span></span><br><span class="line"><span class="function"><span class="title">property_getAttributes</span><span class="params">(<span class="type">objc_property_t</span> _Nonnull property)</span> </span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">//获取属性列表返回的objc_property_attribute_t的结构如下：</span></span></span><br><span class="line"><span class="function"><span class="comment">//typedef struct &#123;</span></span></span><br><span class="line"><span class="function"><span class="comment">//        const char *name;</span></span></span><br><span class="line"><span class="function"><span class="comment">//        const char *value;</span></span></span><br><span class="line"><span class="function"><span class="comment">//&#125; objc_property_attribute_t;</span></span></span><br><span class="line"><span class="function">OBJC_EXPORT <span class="type">objc_property_attribute_t</span> * _Nullable</span></span><br><span class="line"><span class="function"><span class="title">property_copyAttributeList</span><span class="params">(<span class="type">objc_property_t</span> _Nonnull property,</span></span></span><br><span class="line"><span class="params"><span class="function">                           <span class="type">unsigned</span> <span class="type">int</span> * _Nullable outCount)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">//获取属性的属性值</span></span></span><br><span class="line"><span class="function">OBJC_EXPORT <span class="type">char</span> * _Nullable</span></span><br><span class="line"><span class="function"><span class="title">property_copyAttributeValue</span><span class="params">(<span class="type">objc_property_t</span> _Nonnull property,</span></span></span><br><span class="line"><span class="params"><span class="function">                            <span class="type">const</span> <span class="type">char</span> * _Nonnull attributeName)</span></span></span><br></pre></td></tr></table></figure>
+
+<h6 id="Method方法相关："><a href="#Method方法相关：" class="headerlink" title="Method方法相关："></a><strong><strong>Method方法相关：</strong></strong></h6><figure class="highlight oxygene"><table><tr><td class="code"><pre><span class="line"><span class="comment">//获得方法名</span></span><br><span class="line">OBJC_EXPORT SEL _Nonnull</span><br><span class="line">method_getName(<span class="keyword">Method</span> _<span class="title function_">Nonnull</span> <span class="title function_">m</span>)</span><br><span class="line"></span><br><span class="line">//获得方法的实现</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">IMP</span> _<span class="title function_">Nonnull</span></span><br><span class="line"><span class="title function_">method_getImplementation</span><span class="params">(<span class="keyword">Method</span> _Nonnull m)</span> </span><br><span class="line">    <span class="title function_">OBJC_AVAILABLE</span><span class="params">(10.5, 2.0, 9.0, 1.0, 2.0)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//获得参数和返回值的类型编码</span></span><br><span class="line">OBJC_EXPORT <span class="keyword">const</span> char * _Nullable</span><br><span class="line">method_getTypeEncoding(<span class="keyword">Method</span> _<span class="title function_">Nonnull</span> <span class="title function_">m</span>) </span><br><span class="line"></span><br><span class="line">//获得参数数量</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">unsigned</span> <span class="title function_">int</span></span><br><span class="line"><span class="title function_">method_getNumberOfArguments</span><span class="params">(<span class="keyword">Method</span> _Nonnull m)</span></span><br><span class="line"></span><br><span class="line">//获得返回类型</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">char</span> * _<span class="title function_">Nonnull</span></span><br><span class="line"><span class="title function_">method_copyReturnType</span><span class="params">(<span class="keyword">Method</span> _Nonnull m)</span> </span><br><span class="line"></span><br><span class="line">//获得参数类型</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">char</span> * _<span class="title function_">Nullable</span></span><br><span class="line"><span class="title function_">method_copyArgumentType</span><span class="params">(<span class="keyword">Method</span> _Nonnull m, unsigned int <span class="keyword">index</span>)</span> </span><br><span class="line"></span><br><span class="line">//获得返回类型，指定存储空间</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">void</span></span><br><span class="line"><span class="title function_">method_getReturnType</span><span class="params">(<span class="keyword">Method</span> _Nonnull m, char * _Nonnull dst, size_t dst_len)</span> </span><br><span class="line"></span><br><span class="line">//获得参数类型，指定存储空间</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">void</span></span><br><span class="line"><span class="title function_">method_getArgumentType</span><span class="params">(<span class="keyword">Method</span> _Nonnull m, unsigned int <span class="keyword">index</span>, </span></span><br><span class="line"><span class="params">                       char * _Nullable dst, size_t dst_len)</span> </span><br><span class="line"></span><br><span class="line">//获得方法描述</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">struct</span> <span class="title function_">objc_method_description</span> * _<span class="title function_">Nonnull</span></span><br><span class="line"><span class="title function_">method_getDescription</span><span class="params">(<span class="keyword">Method</span> _Nonnull m)</span> </span><br><span class="line"></span><br><span class="line">设置方法实现</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">IMP</span> _<span class="title function_">Nonnull</span></span><br><span class="line"><span class="title function_">method_setImplementation</span><span class="params">(<span class="keyword">Method</span> _Nonnull m, IMP _Nonnull imp)</span> </span><br><span class="line"></span><br><span class="line">//交换两个方法的实现</span><br><span class="line"><span class="title function_">OBJC_EXPORT</span> <span class="title function_">void</span></span><br><span class="line"><span class="title function_">method_exchangeImplementations</span><span class="params">(<span class="keyword">Method</span> _Nonnull m1, <span class="keyword">Method</span> _Nonnull m2)</span> </span><br></pre></td></tr></table></figure>
+<p>之前博客已经介绍过，方法主要有方法名SEL,包含方法参数，返回值类型的编码，以及实现体IMP.这里最重要的是类型编码在后面统一介绍。这里还增加了可以分开获取方法参数和返回值类型编码的方法，以及方法参数数量。</p>
+<h6 id="SEL相关："><a href="#SEL相关：" class="headerlink" title="SEL相关："></a><strong><strong>SEL相关：</strong></strong></h6><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="comment">//返回SEL名字</span></span><br><span class="line">OBJC_EXPORT const <span class="built_in">char</span><span class="operator"> * </span>_Nonnull sel<span class="constructor">_getName(SEL <span class="params">_Nonnull</span> <span class="params">sel</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//在系统中注册一个方法，将方法名映射到一个选择器，并返回这个选择器</span></span><br><span class="line">OBJC_EXPORT SEL _Nonnull sel<span class="constructor">_registerName(<span class="params">const</span> <span class="params">char</span> <span class="operator">*</span> <span class="params">_Nonnull</span> <span class="params">str</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//对比方法选择器</span></span><br><span class="line">OBJC_EXPORT BOOL sel<span class="constructor">_isEqual(SEL <span class="params">_Nonnull</span> <span class="params">lhs</span>, SEL <span class="params">_Nonnull</span> <span class="params">rhs</span>)</span> </span><br></pre></td></tr></table></figure>
+
+<h6 id="协议Protocal相关："><a href="#协议Protocal相关：" class="headerlink" title="协议Protocal相关："></a><strong><strong>协议Protocal相关：</strong></strong></h6><figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="comment">//返回一个指定的协议</span></span><br><span class="line">OBJC_EXPORT Protocol * <span class="variable">_Nullable</span> objc_getProtocol(const char * <span class="variable">_Nonnull</span> <span class="built_in">name</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回运行时所有的协议</span></span><br><span class="line">OBJC_EXPORT Protocol * <span class="variable">__unsafe_unretained</span> <span class="variable">_Nonnull</span> * <span class="variable">_Nullable</span></span><br><span class="line">objc_copyProtocolList(unsigned int * <span class="variable">_Nullable</span> outCount);</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回某个协议是否遵循另一个协议</span></span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line">protocol_conformsToProtocol(Protocol * <span class="variable">_Nullable</span> proto,</span><br><span class="line">                            Protocol * <span class="variable">_Nullable</span> other)</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回协议是否相等</span></span><br><span class="line">OBJC_EXPORT BOOL</span><br><span class="line">protocol_isEqual(Protocol * <span class="variable">_Nullable</span> proto, Protocol * <span class="variable">_Nullable</span> other)</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回协议名</span></span><br><span class="line">OBJC_EXPORT const char * <span class="variable">_Nonnull</span></span><br><span class="line">protocol_getName(Protocol * <span class="variable">_Nonnull</span> proto)</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回协议的某个方法描述</span></span><br><span class="line">OBJC_EXPORT struct objc_method_description</span><br><span class="line">protocol_getMethodDescription(Protocol * <span class="variable">_Nonnull</span> proto, SEL <span class="variable">_Nonnull</span> aSel,</span><br><span class="line">                              BOOL isRequiredMethod, BOOL isInstanceMethod)</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回协议的所有方法描述</span></span><br><span class="line">OBJC_EXPORT struct objc_method_description * <span class="variable">_Nullable</span></span><br><span class="line">protocol_copyMethodDescriptionList(Protocol * <span class="variable">_Nonnull</span> proto,</span><br><span class="line">                                   BOOL isRequiredMethod,</span><br><span class="line">                                   BOOL isInstanceMethod,</span><br><span class="line">                                   unsigned int * <span class="variable">_Nullable</span> outCount)</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回协议指定的属性</span></span><br><span class="line">OBJC_EXPORT objc_property_t <span class="variable">_Nullable</span></span><br><span class="line">protocol_getProperty(Protocol * <span class="variable">_Nonnull</span> proto,</span><br><span class="line">                     const char * <span class="variable">_Nonnull</span> <span class="built_in">name</span>,</span><br><span class="line">                     BOOL isRequiredProperty, BOOL isInstanceProperty)</span><br><span class="line"></span><br><span class="line"><span class="comment">//返回协议的所有属性</span></span><br><span class="line">OBJC_EXPORT objc_property_t <span class="variable">_Nonnull</span> * <span class="variable">_Nullable</span></span><br><span class="line">protocol_copyPropertyList(Protocol * <span class="variable">_Nonnull</span> proto,</span><br><span class="line">                          unsigned int * <span class="variable">_Nullable</span> outCount)</span><br><span class="line"></span><br><span class="line">OBJC_EXPORT objc_property_t <span class="variable">_Nonnull</span> * <span class="variable">_Nullable</span></span><br><span class="line">protocol_copyPropertyList2(Protocol * <span class="variable">_Nonnull</span> proto,</span><br><span class="line">                           unsigned int * <span class="variable">_Nullable</span> outCount,</span><br><span class="line">                           BOOL isRequiredProperty, BOOL isInstanceProperty)</span><br><span class="line"><span class="comment">//返回某个协议遵循的协议列表</span></span><br><span class="line">OBJC_EXPORT Protocol * <span class="variable">__unsafe_unretained</span> <span class="variable">_Nonnull</span> * <span class="variable">_Nullable</span></span><br><span class="line">protocol_copyProtocolList(Protocol * <span class="variable">_Nonnull</span> proto,</span><br><span class="line">                          unsigned int * <span class="variable">_Nullable</span> outCount)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>动态创建协议</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">//创建协议</span></span><br><span class="line">OBJC_EXPORT Protocol * _Nullable</span><br><span class="line">objc_allocateProtocol(<span class="keyword">const</span> <span class="type">char</span> * _Nonnull name) </span><br><span class="line"></span><br><span class="line"><span class="comment">//向Runtime注册协议</span></span><br><span class="line">OBJC_EXPORT <span class="type">void</span></span><br><span class="line">objc_registerProtocol(Protocol * _Nonnull proto) </span><br><span class="line">    OBJC_AVAILABLE(<span class="number">10.7</span>, <span class="number">4.3</span>, <span class="number">9.0</span>, <span class="number">1.0</span>, <span class="number">2.0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//向协议添加方法描述</span></span><br><span class="line">OBJC_EXPORT <span class="type">void</span></span><br><span class="line">protocol_addMethodDescription(Protocol * _Nonnull proto, SEL _Nonnull name,</span><br><span class="line">                              <span class="keyword">const</span> <span class="type">char</span> * _Nullable types,</span><br><span class="line">                              <span class="type">BOOL</span> isRequiredMethod, <span class="type">BOOL</span> isInstanceMethod) </span><br><span class="line"></span><br><span class="line"><span class="comment">//添加协议</span></span><br><span class="line">OBJC_EXPORT <span class="type">void</span></span><br><span class="line">protocol_addProtocol(Protocol * _Nonnull proto, Protocol * _Nonnull addition) </span><br><span class="line">    OBJC_AVAILABLE(<span class="number">10.7</span>, <span class="number">4.3</span>, <span class="number">9.0</span>, <span class="number">1.0</span>, <span class="number">2.0</span>);</span><br><span class="line"></span><br><span class="line">给协议添加属性</span><br><span class="line">OBJC_EXPORT <span class="type">void</span></span><br><span class="line">protocol_addProperty(Protocol * _Nonnull proto, <span class="keyword">const</span> <span class="type">char</span> * _Nonnull name,</span><br><span class="line">                     <span class="keyword">const</span> objc_property_attribute_t * _Nullable attributes,</span><br><span class="line">                     <span class="type">unsigned</span> <span class="type">int</span> attributeCount,</span><br><span class="line">                     <span class="type">BOOL</span> isRequiredProperty, <span class="type">BOOL</span> isInstanceProperty)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h6 id="类型编码与属性编码"><a href="#类型编码与属性编码" class="headerlink" title="**** 类型编码与属性编码 ****"></a>**** 类型编码与属性编码 ****</h6><p>编译器将每个方法的返回值和参数类型编码为一个字符串，并将其与方法的selector关联在一起。同时每个属性的类型也进行了编码，下面是这两部分的官方文档，供大家查阅使用。</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html">Type Encodings</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html">Property Type and Functions</a></p>
+</li>
+<li><p><strong><strong>类型编码</strong></strong>：</p>
+</li>
+</ul>
+<p>我们给出一个例子,下面的例子会将方法的返回值以及参数编码打印出来：</p>
+<p>这个方法如下所示：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">+ (IDLReturnType *)testTypeEncoding:(NSString *)strValue <span class="built_in">int</span>Value:(NSInteger)<span class="built_in">int</span>Value &#123;</span><br><span class="line">    <span class="keyword">return</span> [IDLReturnType new];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Method testMethods = <span class="keyword">class</span><span class="constructor">_getClassMethod([IDLTestObject <span class="params">class</span>], @<span class="params">selector</span>(<span class="params">testTypeEncoding</span>:<span class="params">intValue</span>:)</span>);</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;Type Encoding : %@&quot;</span>,[NSString <span class="params">stringWithUTF8String</span>:<span class="params">method_getTypeEncoding</span>(<span class="params">testMethods</span>)</span>]);</span><br><span class="line"><span class="built_in">char</span> *returnType = <span class="keyword">method</span><span class="constructor">_copyReturnType(<span class="params">testMethods</span>)</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;Return Type: %@&quot;</span>,[NSString <span class="params">stringWithUTF8String</span>:<span class="params">returnType</span>])</span>;</span><br><span class="line">free(returnType);</span><br><span class="line"></span><br><span class="line">NSInteger numberOfArguments = <span class="keyword">method</span><span class="constructor">_getNumberOfArguments(<span class="params">testMethods</span>)</span>;</span><br><span class="line"><span class="built_in">char</span> *argument = NULL;</span><br><span class="line"><span class="keyword">for</span> (unsigned <span class="built_in">int</span> index = <span class="number">0</span>; index &lt; numberOfArguments; index++) &#123;</span><br><span class="line">    argument = <span class="keyword">method</span><span class="constructor">_copyArgumentType(<span class="params">testMethods</span>, <span class="params">index</span>)</span>;</span><br><span class="line">    <span class="constructor">NSLog(@<span class="string">&quot;Index %d Return Type: %@&quot;</span>, <span class="params">index</span>,[NSString <span class="params">stringWithUTF8String</span>:<span class="params">argument</span>])</span>;</span><br><span class="line">&#125;</span><br><span class="line">free(argument);</span><br></pre></td></tr></table></figure>
+
+<p>输出内容为：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">10</span>:<span class="number">21</span>:<span class="number">22</span>.<span class="number">231254</span>+<span class="number">0800</span> objc-debug[<span class="number">84523</span>:<span class="number">1305673</span>] Type Encoding : @<span class="number">32</span>@<span class="number">0</span>:<span class="number">8</span>@<span class="number">16</span>q24</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">10</span>:<span class="number">21</span>:<span class="number">22</span>.<span class="number">231343</span>+<span class="number">0800</span> objc-debug[<span class="number">84523</span>:<span class="number">1305673</span>] Return Type: @</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">10</span>:<span class="number">21</span>:<span class="number">22</span>.<span class="number">231425</span>+<span class="number">0800</span> objc-debug[<span class="number">84523</span>:<span class="number">1305673</span>] Index <span class="number">0</span> Return Type: @</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">10</span>:<span class="number">21</span>:<span class="number">22</span>.<span class="number">231503</span>+<span class="number">0800</span> objc-debug[<span class="number">84523</span>:<span class="number">1305673</span>] Index <span class="number">1</span> Return Type: :</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">10</span>:<span class="number">21</span>:<span class="number">22</span>.<span class="number">231579</span>+<span class="number">0800</span> objc-debug[<span class="number">84523</span>:<span class="number">1305673</span>] Index <span class="number">2</span> Return Type: @</span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">10</span>:<span class="number">21</span>:<span class="number">22</span>.<span class="number">231653</span>+<span class="number">0800</span> objc-debug[<span class="number">84523</span>:<span class="number">1305673</span>] Index <span class="number">3</span> Return Type: q</span><br></pre></td></tr></table></figure>
+
+<p>我们看****@32@0:8@16q24****这实际上就是方法的类型编码。我们先看下类型编码表：</p>
+<p><img src="/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/00001.png"><br>这里每个部分都包含两位，前面一个表示编码，后面表示这个数据对应的偏移量，返回的类型数据会将返回值放在最后面，所以****@32@0:8@16q24****对应部分的意义如下：</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@32</span> 返回值编码为@，也就是id类型，所处的偏移量为<span class="number">32</span>。也就是q24的后面</span><br><span class="line"><span class="variable">@0</span>  第一个参数的编码为@，也就是id类型，所处的偏移量为<span class="number">0</span>，由于第一个参数恒为方法的接收者，所以是id类型。</span><br><span class="line">:<span class="number">8</span>  第二个参数的编码为: 也就是SEL类型，所处的偏移量为<span class="number">8</span>，由于第二个参数恒为_cmd所以是SEL类型。</span><br><span class="line"><span class="variable">@16</span> 第三个参数的编码为@ 也就是id类型，所处的偏移量为<span class="number">16</span>，上面第三个参数为NSString*</span><br><span class="line">q24 第四个参数的编码为q 也就是long long类型，由于用的是<span class="number">64</span>位机器所以对得上。</span><br></pre></td></tr></table></figure>
+
+<p>Runtime为了我们方便，为我们提供了@encode编译器指令来获取它，当给定一个类型时，@encode返回这个类型的字符串编码，如下所示：</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;char     : %s, %lu&quot;</span>, <span class="variable">@encode</span>(char), sizeof(char));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;short    : %s, %lu&quot;</span>, <span class="variable">@encode</span>(short), sizeof(short));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;int      : %s, %lu&quot;</span>, <span class="variable">@encode</span>(int), sizeof(int));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;long     : %s, %lu&quot;</span>, <span class="variable">@encode</span>(long), sizeof(long));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;long long: %s, %lu&quot;</span>, <span class="variable">@encode</span>(long long), sizeof(long long));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;float    : %s, %lu&quot;</span>, <span class="variable">@encode</span>(float), sizeof(float));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;double   : %s, %lu&quot;</span>, <span class="variable">@encode</span>(double), sizeof(double));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;NSInteger: %s, %lu&quot;</span>, <span class="variable">@encode</span>(NSInteger), sizeof(NSInteger));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;CGFloat  : %s, %lu&quot;</span>, <span class="variable">@encode</span>(CGFloat), sizeof(CGFloat));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;int32_t  : %s, %lu&quot;</span>, <span class="variable">@encode</span>(int32_t), sizeof(int32_t));</span><br><span class="line"><span class="selector-tag">NSLog</span>(@<span class="string">&quot;int64_t  : %s, %lu&quot;</span>, <span class="variable">@encode</span>(int64_t), sizeof(int64_t))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">116484</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] char     : c, <span class="number">1</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">116991</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] short    : s, <span class="number">2</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">117745</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] int      : i, <span class="number">4</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">118195</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] long     : q, <span class="number">8</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">118943</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] long long: q, <span class="number">8</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">121076</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] float    : f, <span class="number">4</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">123510</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] double   : d, <span class="number">8</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">124016</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] NSInteger: q, <span class="number">8</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">124132</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] CGFloat  : d, <span class="number">8</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">124211</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] int32_t  : i, <span class="number">4</span></span><br><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">04</span>:<span class="number">28</span>.<span class="number">124283</span>+<span class="number">0800</span> objc-debug[<span class="number">91476</span>:<span class="number">1363542</span>] int64_t  : q, <span class="number">8</span></span><br></pre></td></tr></table></figure>
+
+<p>一般我们会使用：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">method</span><span class="constructor">_copyArgumentType(<span class="params">testMethods</span>, <span class="params">index</span>)</span>;</span><br></pre></td></tr></table></figure>
+<p>这种方式，避免涉及到偏移量等数据，直接获取参数类型。</p>
+<ul>
+<li><strong><strong>属性编码</strong></strong>：</li>
+</ul>
+<p>前面提到一个例子：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">objc_property_t property = <span class="keyword">class</span><span class="constructor">_getProperty([IDLTestObject <span class="params">class</span>], [@<span class="string">&quot;age&quot;</span> UTF8String])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;Instance Property Name :%@&quot;</span>,[NSString <span class="params">stringWithUTF8String</span>:<span class="params">property_getName</span>(<span class="params">property</span>)</span>]);</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;Instance Property Attribute:%@&quot;</span>,[NSString <span class="params">stringWithUTF8String</span>:<span class="params">property_getAttributes</span>(<span class="params">property</span>)</span>]);</span><br></pre></td></tr></table></figure>
+
+<p>age属性的声明如下所示：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">readonly</span>,<span class="keyword">getter</span>=ageValue,<span class="keyword">setter</span>=setAageValue:) <span class="built_in">NSString</span> *age;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果为：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">2020</span>-<span class="number">02</span>-<span class="number">09</span> <span class="number">11</span>:<span class="number">23</span>:<span class="number">38</span>.<span class="number">356033</span>+<span class="number">0800</span> objc-debug[<span class="number">94653</span>:<span class="number">1391447</span>] Instance Property Attribute:T@<span class="string">&quot;NSString&quot;</span>,R,C,N,GageValue,SsetAageValue:,V_age</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/00002.png"></p>
+<p>我们对照上表给大家分析：<br>属性编码是通过逗号进行分隔开的，<strong><strong>T@”NSString”,R,C,N,GageValue,SsetAageValue:,V_age</strong></strong> 表示的意义如下：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>T@&quot;NSString&quot; 属性类型为NSString</span><br><span class="line"><span class="bullet">* </span>R 属性类型为ReadOnly类型</span><br><span class="line"><span class="bullet">* </span>C 属性存储属性为Copy</span><br><span class="line"><span class="bullet">* </span>N 属性为nonatomic</span><br><span class="line"><span class="bullet">* </span>GageValue 属性指定getter方法为ageValue</span><br><span class="line"><span class="bullet">* </span>SsetAageValue: 属性指定setter方法为setAageValue:</span><br><span class="line"><span class="bullet">* </span>V_age 属性对应的实例变量为_age</span><br></pre></td></tr></table></figure>
+
+<p>对于类型编码和属性编码大致就这些。大家可以通过下面的表格熟悉下属性编码：</p>
+<p><img src="/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/00003.png"></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2020/02/08/iOS-相关总结博客列表/" title="iOS 系列相关总结博客目录列表">
+  <span>
+  iOS 系列相关总结博客目录列表</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2020/02/05/iOS-Runtime应用之多继承/"  title="iOS Runtime应用之多继承">
+ <span>iOS Runtime应用之多继承
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2020/02/06/iOS-Runtime应用之带大家熟悉Runtime-API/" data-title="iOS Runtime应用之Runtime API分类" data-url="http://yoursite.com/2020/02/06/iOS-Runtime%E5%BA%94%E7%94%A8%E4%B9%8B%E5%B8%A6%E5%A4%A7%E5%AE%B6%E7%86%9F%E6%82%89Runtime-API/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%B1%BB%E7%9B%B8%E5%85%B3%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">类相关：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Ivar%E5%AE%9E%E4%BE%8B%E5%8F%98%E9%87%8F%E7%9B%B8%E5%85%B3%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">Ivar实例变量相关：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Property%E5%B1%9E%E6%80%A7%E7%9B%B8%E5%85%B3%EF%BC%9A"><span class="toc-number">3.</span> <span class="toc-text">Property属性相关：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Method%E6%96%B9%E6%B3%95%E7%9B%B8%E5%85%B3%EF%BC%9A"><span class="toc-number">4.</span> <span class="toc-text">Method方法相关：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#SEL%E7%9B%B8%E5%85%B3%EF%BC%9A"><span class="toc-number">5.</span> <span class="toc-text">SEL相关：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AEProtocal%E7%9B%B8%E5%85%B3%EF%BC%9A"><span class="toc-number">6.</span> <span class="toc-text">协议Protocal相关：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%B1%BB%E5%9E%8B%E7%BC%96%E7%A0%81%E4%B8%8E%E5%B1%9E%E6%80%A7%E7%BC%96%E7%A0%81"><span class="toc-number">7.</span> <span class="toc-text">**** 类型编码与属性编码 ****</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

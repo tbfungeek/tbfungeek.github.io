@@ -1,0 +1,715 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 源码分析之TODO MVP | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="新的工作已经定了，在上班之前有点事情需要处理下，也趁机休息下，所以好几天没有更新博客了，但是心里还是惦记着今后需要写点什么，感觉还是有很多需要学习，但是接下来会偏向于通过实例来分析架构设计上的一些技术吧。总的来说今天的博客会从如下几方面进行展开：  开源代码的架构分析 自定义View + 设计方面的知识 + MD 风格 AOSP源码分析 RectNative + H5 开源流媒体播放器源码分析希望">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 源码分析之TODO MVP">
+<meta property="og:url" content="http://yoursite.com/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="新的工作已经定了，在上班之前有点事情需要处理下，也趁机休息下，所以好几天没有更新博客了，但是心里还是惦记着今后需要写点什么，感觉还是有很多需要学习，但是接下来会偏向于通过实例来分析架构设计上的一些技术吧。总的来说今天的博客会从如下几方面进行展开：  开源代码的架构分析 自定义View + 设计方面的知识 + MD 风格 AOSP源码分析 RectNative + H5 开源流媒体播放器源码分析希望">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/3.png">
+<meta property="article:published_time" content="2016-08-22T04:30:23.000Z">
+<meta property="article:modified_time" content="2016-10-30T17:25:46.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android 开源源码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/08/22/Android-源码分析之TODO-MVP-1/" title="Android 源码分析之TODO MVP" itemprop="url">Android 源码分析之TODO MVP</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-08-22T04:30:23.000Z" itemprop="datePublished"> Published 2016-08-22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>新的工作已经定了，在上班之前有点事情需要处理下，也趁机休息下，所以好几天没有更新博客了，但是心里还是惦记着今后需要写点什么，感觉还是有很多需要学习，但是接下来会偏向于通过实例来分析架构设计上的一些技术吧。总的来说今天的博客会从如下几方面进行展开：</p>
+<ol>
+<li>开源代码的架构分析</li>
+<li>自定义View + 设计方面的知识 + MD 风格</li>
+<li>AOSP源码分析</li>
+<li>RectNative + H5</li>
+<li>开源流媒体播放器源码分析<br>希望今年能够在架构上有所提高。</li>
+</ol>
+<p>好了，转入正题，今天想向大家介绍的是Google Sample发布的android开发中的框架设计例子，完整的源码大家可以在如下链接中下载：<br><a target="_blank" rel="noopener" href="https://github.com/googlesamples/android-architecture">Android Architecture</a></p>
+<p>这里包括：</p>
+<figure class="highlight oxygene"><table><tr><td class="code"><pre><span class="line">todo-mvp/ - Basic Model-View-Presenter architecture.</span><br><span class="line">todo-mvp-loaders/ - Based <span class="keyword">on</span> todo-mvp, fetches data <span class="keyword">using</span> Loaders.</span><br><span class="line">todo-mvp-databinding/ - Based <span class="keyword">on</span> todo-mvp, <span class="keyword">uses</span> the Data Binding <span class="keyword">Library</span>.</span><br><span class="line">todo-mvp-clean/ - Based <span class="keyword">on</span> todo-mvp, <span class="keyword">uses</span> concepts <span class="keyword">from</span> Clean Architecture.</span><br><span class="line">todo-mvp-dagger/ - Based <span class="keyword">on</span> todo-mvp, <span class="keyword">uses</span> Dagger2 <span class="keyword">for</span> Dependency Injection</span><br><span class="line">todo-mvp-contentproviders/ - Based <span class="keyword">on</span> todo-mvp-loaders, fetches data <span class="keyword">using</span> Loaders <span class="keyword">and</span> <span class="keyword">uses</span> Content Providers</span><br><span class="line">dev-todo-mvp-rxjava/ - Based <span class="keyword">on</span> todo-mvp, <span class="keyword">uses</span> RxJava <span class="keyword">for</span> concurrency <span class="keyword">and</span> data layer abstraction.</span><br><span class="line">todo-mvp-fragmentless/ - Based <span class="keyword">on</span> todo-mvp, <span class="keyword">uses</span> Android views instead <span class="keyword">of</span> Fragments.</span><br></pre></td></tr></table></figure>
+
+<p>我们接下来将会一个个对上述代码进行分析，在继续往下看之前建议大家先看下我之前写的MVC，MVP，MVVM的介绍：<br>这篇博客将会对todo-mvp进行分析，它是后续所有的基础，在介绍之前我们先来看下它的类图：</p>
+<p><img src="/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/1.png"><br>再和<br><img src="/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/2.png"><br>进行对比下这样会更容易理解整个MVP模式：</p>
+<p>下面我们再来看下项目代码是怎么组织的：<br><img src="/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/3.png"></p>
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">addedittask</span></span><br><span class="line"><span class="attribute">statistics</span></span><br><span class="line"><span class="attribute">taskdetail</span></span><br><span class="line"><span class="attribute">tasks</span></span><br></pre></td></tr></table></figure>
+<p>这三个包是并列的分别对应的是添加编辑任务的功能，统计功能，任务详细信息查询功能，任务展现功能，我们这边只以tasks（任务展现功能）功能作为分析对象。</p>
+<p>module 层代码位于&#x2F;data  数据层上使用的是三级缓存：内存级别，本地数据级别，远程网络级别。<br>View 层代码位于TasksFragment中<br>Presenter 层代码位于TasksPresenter</p>
+<p>TasksContract 是合同类，当中定义了MVP模式中使用到的View和Presenter接口。<br>TasksActivity创建了View和Presenter<br>BasePresenter 是所有Presenter的父接口<br>BaseView 是所有View层的父接口</p>
+<p>了解了整个代码结构，大家就可以进行源码分析了。</p>
+<p>首先看下BaseView这个接口，所有的View都会实现这个接口，它只有一个方法声明setPresenter，它是用于为View层设置Presenter。</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">package com.example.android.architecture.blueprints.todoapp;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="symbol">BaseView</span>&lt;<span class="symbol">T</span>&gt; &#123;</span><br><span class="line">    <span class="built_in">void</span> setPresenter(T presenter);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着我们同样看下所有Presenter的接口，这里同样也只有一个方法start。</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.android.architecture.blueprints.todoapp;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BasePresenter</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">start</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么这两个接口的作用是什么呢？我们可以在代码中看到所有的Presenter都会实现BasePresenter，所有的类都会实现BaseView。也就是说我们可以将所有的Presenter以及View的公共接口放置在这个地方声明。</p>
+<p>我们接下来看下合同类：TasksContract<br>首先我们需要了解下合同类是用来干嘛的，合同类其实是用于规范View层和Presenter交互接口的类。其中合同类中View接口都是用于操作界面上的控制，Presenter接口基本上是通过Presenter来操作module层。</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">TasksContract</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">interface</span> <span class="title">View</span> <span class="title">extends</span> <span class="title">BaseView</span>&lt;<span class="title">Presenter</span>&gt; &#123;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">setLoadingIndicator</span>(<span class="params">boolean active</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showTasks</span>(<span class="params">List&lt;Task&gt; tasks</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showAddTask</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showTaskDetailsUi</span>(<span class="params">String taskId</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showTaskMarkedComplete</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showTaskMarkedActive</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showCompletedTasksCleared</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showLoadingTasksError</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showNoTasks</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showActiveFilterLabel</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showCompletedFilterLabel</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showAllFilterLabel</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showNoActiveTasks</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showNoCompletedTasks</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showSuccessfullySavedMessage</span>()</span>;</span><br><span class="line">        <span class="function">boolean <span class="title">isActive</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">showFilteringPopUpMenu</span>()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">interface</span> <span class="title">Presenter</span> <span class="title">extends</span> <span class="title">BasePresenter</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">result</span>(<span class="params"><span class="built_in">int</span> requestCode, <span class="built_in">int</span> resultCode</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">loadTasks</span>(<span class="params">boolean forceUpdate</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">addNewTask</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">openTaskDetails</span>(<span class="params">@NonNull Task requestedTask</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">completeTask</span>(<span class="params">@NonNull Task completedTask</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">activateTask</span>(<span class="params">@NonNull Task activeTask</span>)</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">clearCompletedTasks</span>()</span>;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">setFiltering</span>(<span class="params">TasksFilterType requestType</span>)</span>;</span><br><span class="line">        <span class="function">TasksFilterType <span class="title">getFiltering</span>()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>介绍了重要的接口后我们看下具体的实现，首先看下TasksActivity：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> TasksActivity extends AppCompatActivity &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//................</span></span><br><span class="line">    <span class="keyword">private</span> TasksPresenter mTasksPresenter;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//...........................</span></span><br><span class="line">        <span class="comment">//创建TaskFragment View</span></span><br><span class="line">        TasksFragment tasksFragment = (TasksFragment) get<span class="constructor">SupportFragmentManager()</span>.find<span class="constructor">FragmentById(R.<span class="params">id</span>.<span class="params">contentFrame</span>)</span>;</span><br><span class="line">        <span class="keyword">if</span> (tasksFragment<span class="operator"> == </span>null) &#123;</span><br><span class="line">            <span class="comment">//创建TaskFragment View</span></span><br><span class="line">            tasksFragment = <span class="module-access"><span class="module"><span class="identifier">TasksFragment</span>.</span></span><span class="keyword">new</span><span class="constructor">Instance()</span>;</span><br><span class="line">            <span class="module-access"><span class="module"><span class="identifier">ActivityUtils</span>.</span></span>add<span class="constructor">FragmentToActivity(<span class="params">getSupportFragmentManager</span>()</span>, tasksFragment, <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.contentFrame);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建一个Presenter 这个Presenter持有一个Module以及一个TaskFragment这个View</span></span><br><span class="line">        mTasksPresenter = <span class="keyword">new</span> <span class="constructor">TasksPresenter(Injection.<span class="params">provideTasksRepository</span>(<span class="params">getApplicationContext</span>()</span>), tasksFragment);</span><br><span class="line">        <span class="comment">//..........................</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//..........................</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的逻辑很简单，就是创建一个TaskFragment作为View层。并将其添加到TasksActivity上，然后再创建一个TasksPresenter，TasksPresenter 中持有数据层TasksRepository，以及View层TasksFragment</p>
+<p>我们先来看下View层：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TasksFragment</span> <span class="keyword">extends</span> <span class="title class_">Fragment</span> <span class="keyword">implements</span> <span class="title class_">TasksContract</span>.View &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TasksContract.Presenter mPresenter;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TasksAdapter mListAdapter;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> View mNoTasksView;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ImageView mNoTaskIcon;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TextView mNoTaskMainView;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TextView mNoTaskAddView;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> LinearLayout mTasksView;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TextView mFilteringLabelView;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">TasksFragment</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// Requires empty public constructor</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> TasksFragment <span class="title function_">newInstance</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">TasksFragment</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(<span class="meta">@Nullable</span> Bundle savedInstanceState)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        <span class="comment">//创建Adapter</span></span><br><span class="line">        mListAdapter = <span class="keyword">new</span> <span class="title class_">TasksAdapter</span>(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;Task&gt;(<span class="number">0</span>), mItemListener);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onResume</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onResume();</span><br><span class="line">        <span class="comment">//加载数据</span></span><br><span class="line">        mPresenter.start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setPresenter</span><span class="params">(<span class="meta">@NonNull</span> TasksContract.Presenter presenter)</span> &#123;</span><br><span class="line">        <span class="comment">//给当前的View设置Presenter</span></span><br><span class="line">        mPresenter = checkNotNull(presenter);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onActivityResult</span><span class="params">(<span class="type">int</span> requestCode, <span class="type">int</span> resultCode, Intent data)</span> &#123;</span><br><span class="line">        mPresenter.result(requestCode, resultCode);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> View <span class="title function_">onCreateView</span><span class="params">(LayoutInflater inflater, ViewGroup container,</span></span><br><span class="line"><span class="params">                             Bundle savedInstanceState)</span> &#123;</span><br><span class="line">        <span class="type">View</span> <span class="variable">root</span> <span class="operator">=</span> inflater.inflate(R.layout.tasks_frag, container, <span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Set up tasks view</span></span><br><span class="line">        <span class="type">ListView</span> <span class="variable">listView</span> <span class="operator">=</span> (ListView) root.findViewById(R.id.tasks_list);</span><br><span class="line">        listView.setAdapter(mListAdapter);</span><br><span class="line">        mFilteringLabelView = (TextView) root.findViewById(R.id.filteringLabel);</span><br><span class="line">        mTasksView = (LinearLayout) root.findViewById(R.id.tasksLL);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Set up  no tasks view</span></span><br><span class="line">        mNoTasksView = root.findViewById(R.id.noTasks);</span><br><span class="line">        mNoTaskIcon = (ImageView) root.findViewById(R.id.noTasksIcon);</span><br><span class="line">        mNoTaskMainView = (TextView) root.findViewById(R.id.noTasksMain);</span><br><span class="line">        mNoTaskAddView = (TextView) root.findViewById(R.id.noTasksAdd);</span><br><span class="line">        mNoTaskAddView.setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123;</span><br><span class="line">                mPresenter.addNewTask();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Set up floating action button</span></span><br><span class="line">        <span class="type">FloatingActionButton</span> <span class="variable">fab</span> <span class="operator">=</span> (FloatingActionButton) getActivity().findViewById(R.id.fab_add_task);</span><br><span class="line"></span><br><span class="line">        fab.setImageResource(R.drawable.ic_add);</span><br><span class="line">        fab.setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123;</span><br><span class="line">                mPresenter.addNewTask();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Set up progress indicator</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">ScrollChildSwipeRefreshLayout</span> <span class="variable">swipeRefreshLayout</span> <span class="operator">=</span> (ScrollChildSwipeRefreshLayout) root.findViewById(R.id.refresh_layout);</span><br><span class="line">        swipeRefreshLayout.setColorSchemeColors(</span><br><span class="line">                ContextCompat.getColor(getActivity(), R.color.colorPrimary),</span><br><span class="line">                ContextCompat.getColor(getActivity(), R.color.colorAccent),</span><br><span class="line">                ContextCompat.getColor(getActivity(), R.color.colorPrimaryDark)</span><br><span class="line">        );</span><br><span class="line">        <span class="comment">// Set the scrolling view in the custom SwipeRefreshLayout.</span></span><br><span class="line">        swipeRefreshLayout.setScrollUpChild(listView);</span><br><span class="line">        swipeRefreshLayout.setOnRefreshListener(<span class="keyword">new</span> <span class="title class_">SwipeRefreshLayout</span>.OnRefreshListener() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onRefresh</span><span class="params">()</span> &#123;</span><br><span class="line">                mPresenter.loadTasks(<span class="literal">false</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        setHasOptionsMenu(<span class="literal">true</span>);</span><br><span class="line">        <span class="keyword">return</span> root;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//...........................</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>View层中最重要的是setPresenter这个方法，通过这个方法让View层持有Presenter的引用，有了Presenter引用就可以将View层中的业务逻辑移到Presenter上，从而保证View层的轻便。<br>而View层中的方法大部分是和页面上控件操作有关。实现这些方法供Presenter调用。</p>
+<p>我们再来看下数据层：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> Injection &#123;</span><br><span class="line"></span><br><span class="line">    public static TasksRepository provide<span class="constructor">TasksRepository(@NonNull Context <span class="params">context</span>)</span> &#123;</span><br><span class="line">        check<span class="constructor">NotNull(<span class="params">context</span>)</span>;</span><br><span class="line">        return <span class="module-access"><span class="module"><span class="identifier">TasksRepository</span>.</span></span>get<span class="constructor">Instance(TasksRemoteDataSource.<span class="params">getInstance</span>()</span>,<span class="module-access"><span class="module"><span class="identifier">TasksLocalDataSource</span>.</span></span>get<span class="constructor">Instance(<span class="params">context</span>)</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们先来看下TasksDataSource，这个是数据层的一个接口，这里定义了两个回调接口，这两个回调接口用于在数据层完成任务之后回调通知Presenter：</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">public</span> <span class="selector-tag">interface</span> <span class="selector-tag">TasksDataSource</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="selector-tag">interface</span> <span class="selector-tag">LoadTasksCallback</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="selector-tag">void</span> <span class="selector-tag">onTasksLoaded</span>(List&lt;Task&gt; tasks);</span><br><span class="line"></span><br><span class="line">        <span class="selector-tag">void</span> <span class="selector-tag">onDataNotAvailable</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="selector-tag">interface</span> <span class="selector-tag">GetTaskCallback</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="selector-tag">void</span> <span class="selector-tag">onTaskLoaded</span>(Task task);</span><br><span class="line"></span><br><span class="line">        <span class="selector-tag">void</span> <span class="selector-tag">onDataNotAvailable</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">getTasks</span>(<span class="variable">@NonNull</span> LoadTasksCallback callback);</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">getTask</span>(<span class="variable">@NonNull</span> String taskId, <span class="variable">@NonNull</span> GetTaskCallback callback);</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">saveTask</span>(<span class="variable">@NonNull</span> Task task);</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">completeTask</span>(<span class="variable">@NonNull</span> Task task);</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">completeTask</span>(<span class="variable">@NonNull</span> String taskId);</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">activateTask</span>(<span class="variable">@NonNull</span> Task task);</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">activateTask</span>(<span class="variable">@NonNull</span> String taskId);</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">clearCompletedTasks</span>();</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">refreshTasks</span>();</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">deleteAllTasks</span>();</span><br><span class="line">    <span class="selector-tag">void</span> <span class="selector-tag">deleteTask</span>(<span class="variable">@NonNull</span> String taskId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>介绍了TasksDataSource我们就可以看下TasksRepository类的实现了。它有两个重要的实例对象mTasksRemoteDataSource，用于模拟网络层数据来源。mTasksLocalDataSource 用于表示本地数据来源这里代表的是数据库。<br>mCachedTasks 是内存缓存，使用mCacheIsDirty表示缓存内数据是否有效。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TasksRepository</span> <span class="keyword">implements</span> <span class="title class_">TasksDataSource</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="title class_">TasksRepository</span> <span class="variable constant_">INSTANCE</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="comment">//模拟网络层数据来源</span></span><br><span class="line">    <span class="keyword">private</span> final <span class="title class_">TasksDataSource</span> mTasksRemoteDataSource;</span><br><span class="line">    <span class="comment">//模拟本地数据来源</span></span><br><span class="line">    <span class="keyword">private</span> final <span class="title class_">TasksDataSource</span> mTasksLocalDataSource;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 内存缓存</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="title class_">Map</span>&lt;<span class="title class_">String</span>, <span class="title class_">Task</span>&gt; mCachedTasks;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用于表示当前缓存数据是否有效</span></span><br><span class="line"><span class="comment">     * Marks the cache as invalid, to force an update the next time data is requested. This variable</span></span><br><span class="line"><span class="comment">     * has package local visibility so it can be accessed from tests.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="built_in">boolean</span> mCacheIsDirty = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">TasksRepository</span>(<span class="meta">@NonNull</span> <span class="title class_">TasksDataSource</span> tasksRemoteDataSource,</span><br><span class="line">                            <span class="meta">@NonNull</span> <span class="title class_">TasksDataSource</span> tasksLocalDataSource) &#123;</span><br><span class="line">        mTasksRemoteDataSource = <span class="title function_">checkNotNull</span>(tasksRemoteDataSource);</span><br><span class="line">        mTasksLocalDataSource = <span class="title function_">checkNotNull</span>(tasksLocalDataSource);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns the single instance of this class, creating it if necessary.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> tasksRemoteDataSource the backend data source</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> tasksLocalDataSource  the device storage data source</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the &#123;<span class="doctag">@link</span> TasksRepository&#125; instance</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">     <span class="comment">// 使用一个单例创建TasksRepository</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="title class_">TasksRepository</span> <span class="title function_">getInstance</span>(<span class="params">TasksDataSource tasksRemoteDataSource,</span></span><br><span class="line"><span class="params">                                              TasksDataSource tasksLocalDataSource</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable constant_">INSTANCE</span> == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="variable constant_">INSTANCE</span> = <span class="keyword">new</span> <span class="title class_">TasksRepository</span>(tasksRemoteDataSource, tasksLocalDataSource);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable constant_">INSTANCE</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Used to force &#123;<span class="doctag">@link</span> #getInstance(TasksDataSource, TasksDataSource)&#125; to create a new instance</span></span><br><span class="line"><span class="comment">     * next time it&#x27;s called.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">void</span> <span class="title function_">destroyInstance</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="variable constant_">INSTANCE</span> = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从缓存，本地数据源（SQLite）或者远程数据源中获取 Task</span></span><br><span class="line"><span class="comment">     * Gets tasks from cache, local data source (SQLite) or remote data source, whichever is</span></span><br><span class="line"><span class="comment">     * available first.</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * Note: &#123;<span class="doctag">@link</span> LoadTasksCallback#onDataNotAvailable()&#125; is fired if all data sources fail to</span></span><br><span class="line"><span class="comment">     * get the data.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">getTasks</span>(<span class="params"><span class="meta">@NonNull</span> final LoadTasksCallback callback</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="title function_">checkNotNull</span>(callback);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Respond immediately with cache if available and not dirty</span></span><br><span class="line">        <span class="comment">// 如果内存中有内容并且缓存中的数据是可用的那么直接将缓存中的内容传递出去</span></span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks != <span class="literal">null</span> &amp;&amp; !mCacheIsDirty) &#123;</span><br><span class="line">            callback.<span class="title function_">onTasksLoaded</span>(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(mCachedTasks.<span class="title function_">values</span>()));</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mCacheIsDirty) &#123;</span><br><span class="line">            <span class="comment">///如果缓存中的数据不可用那么需要从网络中获取新的数据</span></span><br><span class="line">            <span class="comment">// If the cache is dirty we need to fetch new data from the network.</span></span><br><span class="line">            <span class="title function_">getTasksFromRemoteDataSource</span>(callback);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// Query the local storage if available. If not, query the network.</span></span><br><span class="line">            <span class="comment">//这个一般发生在第一次，也就是这时候mCachedTasks = null 并且mCacheIsDirty = false</span></span><br><span class="line">            mTasksLocalDataSource.<span class="title function_">getTasks</span>(<span class="keyword">new</span> <span class="title class_">LoadTasksCallback</span>() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onTasksLoaded</span>(<span class="params">List&lt;Task&gt; tasks</span>) &#123;</span><br><span class="line">                    <span class="comment">//从数据库中加载数据到缓存</span></span><br><span class="line">                    <span class="title function_">refreshCache</span>(tasks);</span><br><span class="line">                    callback.<span class="title function_">onTasksLoaded</span>(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(mCachedTasks.<span class="title function_">values</span>()));</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onDataNotAvailable</span>(<span class="params"></span>) &#123;</span><br><span class="line">                    <span class="comment">//如果数据库中没有数据那么就从缓存中获取</span></span><br><span class="line">                    <span class="title function_">getTasksFromRemoteDataSource</span>(callback);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 要保存的时候将数据存储到远程数据库，本地数据库，以及缓存中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">saveTask</span>(<span class="params"><span class="meta">@NonNull</span> Task task</span>) &#123;</span><br><span class="line">        <span class="title function_">checkNotNull</span>(task);</span><br><span class="line">        <span class="comment">//保存到远程数据源中</span></span><br><span class="line">        mTasksRemoteDataSource.<span class="title function_">saveTask</span>(task);</span><br><span class="line">        <span class="comment">//保存到本地数据库中</span></span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">saveTask</span>(task);</span><br><span class="line">        <span class="comment">// Do in memory cache update to keep the app UI up to date</span></span><br><span class="line">        <span class="comment">//保存到缓存中</span></span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks == <span class="literal">null</span>) &#123;</span><br><span class="line">            mCachedTasks = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        mCachedTasks.<span class="title function_">put</span>(task.<span class="title function_">getId</span>(), task);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *  添加完成任务，也就是将complete标志为设置为true</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">completeTask</span>(<span class="params"><span class="meta">@NonNull</span> Task task</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="title function_">checkNotNull</span>(task);</span><br><span class="line">        mTasksRemoteDataSource.<span class="title function_">completeTask</span>(task);</span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">completeTask</span>(task);</span><br><span class="line">        <span class="title class_">Task</span> completedTask = <span class="keyword">new</span> <span class="title class_">Task</span>(task.<span class="title function_">getTitle</span>(), task.<span class="title function_">getDescription</span>(), task.<span class="title function_">getId</span>(), <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">// Do in memory cache update to keep the app UI up to date</span></span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks == <span class="literal">null</span>) &#123;</span><br><span class="line">            mCachedTasks = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        mCachedTasks.<span class="title function_">put</span>(task.<span class="title function_">getId</span>(), completedTask);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">completeTask</span>(<span class="params"><span class="meta">@NonNull</span> <span class="built_in">String</span> taskId</span>) &#123;</span><br><span class="line">        <span class="title function_">checkNotNull</span>(taskId);</span><br><span class="line">        <span class="title function_">completeTask</span>(<span class="title function_">getTaskWithId</span>(taskId));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//添加激活任务，实现上是简单得将complete设置成false</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">activateTask</span>(<span class="params"><span class="meta">@NonNull</span> Task task</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="title function_">checkNotNull</span>(task);</span><br><span class="line">        mTasksRemoteDataSource.<span class="title function_">activateTask</span>(task);</span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">activateTask</span>(task);</span><br><span class="line">        <span class="title class_">Task</span> activeTask = <span class="keyword">new</span> <span class="title class_">Task</span>(task.<span class="title function_">getTitle</span>(), task.<span class="title function_">getDescription</span>(), task.<span class="title function_">getId</span>());</span><br><span class="line">        <span class="comment">// Do in memory cache update to keep the app UI up to date</span></span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks == <span class="literal">null</span>) &#123;</span><br><span class="line">            mCachedTasks = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        mCachedTasks.<span class="title function_">put</span>(task.<span class="title function_">getId</span>(), activeTask);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">activateTask</span>(<span class="params"><span class="meta">@NonNull</span> <span class="built_in">String</span> taskId</span>) &#123;</span><br><span class="line">        <span class="title function_">checkNotNull</span>(taskId);</span><br><span class="line">        <span class="title function_">activateTask</span>(<span class="title function_">getTaskWithId</span>(taskId));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 清除完成的任务</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">clearCompletedTasks</span>(<span class="params"></span>) &#123;</span><br><span class="line"></span><br><span class="line">        mTasksRemoteDataSource.<span class="title function_">clearCompletedTasks</span>();</span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">clearCompletedTasks</span>();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Do in memory cache update to keep the app UI up to date</span></span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks == <span class="literal">null</span>) &#123;</span><br><span class="line">            mCachedTasks = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="title class_">Iterator</span>&lt;<span class="title class_">Map</span>.<span class="property">Entry</span>&lt;<span class="title class_">String</span>, <span class="title class_">Task</span>&gt;&gt; it = mCachedTasks.<span class="title function_">entrySet</span>().<span class="title function_">iterator</span>();</span><br><span class="line">        <span class="keyword">while</span> (it.<span class="title function_">hasNext</span>()) &#123;</span><br><span class="line">            <span class="title class_">Map</span>.<span class="property">Entry</span>&lt;<span class="title class_">String</span>, <span class="title class_">Task</span>&gt; entry = it.<span class="title function_">next</span>();</span><br><span class="line">            <span class="keyword">if</span> (entry.<span class="title function_">getValue</span>().<span class="title function_">isCompleted</span>()) &#123;</span><br><span class="line">                it.<span class="title function_">remove</span>();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Gets tasks from local data source (sqlite) unless the table is new or empty. In that case it</span></span><br><span class="line"><span class="comment">     * uses the network data source. This is done to simplify the sample.</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * Note: &#123;<span class="doctag">@link</span> LoadTasksCallback#onDataNotAvailable()&#125; is fired if both data sources fail to</span></span><br><span class="line"><span class="comment">     * get the data.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *  依次从缓存，本地，远程中查找某个任务</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> <span class="variable">taskId</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> <span class="variable">callback</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">getTask</span>(<span class="params"><span class="meta">@NonNull</span> final <span class="built_in">String</span> taskId, <span class="meta">@NonNull</span> final GetTaskCallback callback</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="title function_">checkNotNull</span>(taskId);</span><br><span class="line">        <span class="title function_">checkNotNull</span>(callback);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//从缓存中获取指定任务id的任务</span></span><br><span class="line">        <span class="title class_">Task</span> cachedTask = <span class="title function_">getTaskWithId</span>(taskId);</span><br><span class="line">        <span class="comment">// Respond immediately with cache if available</span></span><br><span class="line">        <span class="keyword">if</span> (cachedTask != <span class="literal">null</span>) &#123;</span><br><span class="line">            callback.<span class="title function_">onTaskLoaded</span>(cachedTask);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//从本地数据源以及远程数据源获取指定id的任务数据</span></span><br><span class="line">        <span class="comment">// Load from server/persisted if needed.</span></span><br><span class="line">        <span class="comment">// Is the task in the local data source? If not, query the network.</span></span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">getTask</span>(taskId, <span class="keyword">new</span> <span class="title class_">GetTaskCallback</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onTaskLoaded</span>(<span class="params">Task task</span>) &#123;</span><br><span class="line">                callback.<span class="title function_">onTaskLoaded</span>(task);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onDataNotAvailable</span>(<span class="params"></span>) &#123;</span><br><span class="line">                mTasksRemoteDataSource.<span class="title function_">getTask</span>(taskId, <span class="keyword">new</span> <span class="title class_">GetTaskCallback</span>() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onTaskLoaded</span>(<span class="params">Task task</span>) &#123;</span><br><span class="line">                        callback.<span class="title function_">onTaskLoaded</span>(task);</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onDataNotAvailable</span>(<span class="params"></span>) &#123;</span><br><span class="line">                        callback.<span class="title function_">onDataNotAvailable</span>();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将当前缓存设置为不可用</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">refreshTasks</span>(<span class="params"></span>) &#123;</span><br><span class="line">        mCacheIsDirty = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 删除远程，本地，以及缓存中的任务</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">deleteAllTasks</span>(<span class="params"></span>) &#123;</span><br><span class="line">        mTasksRemoteDataSource.<span class="title function_">deleteAllTasks</span>();</span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">deleteAllTasks</span>();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks == <span class="literal">null</span>) &#123;</span><br><span class="line">            mCachedTasks = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        mCachedTasks.<span class="title function_">clear</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将某个任务从缓存，本地数据库，远程数据库中删除</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> <span class="variable">taskId</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">deleteTask</span>(<span class="params"><span class="meta">@NonNull</span> <span class="built_in">String</span> taskId</span>) &#123;</span><br><span class="line">        mTasksRemoteDataSource.<span class="title function_">deleteTask</span>(<span class="title function_">checkNotNull</span>(taskId));</span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">deleteTask</span>(<span class="title function_">checkNotNull</span>(taskId));</span><br><span class="line">        mCachedTasks.<span class="title function_">remove</span>(taskId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从远程中加载任务并添加到缓存和本地数据库</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> <span class="variable">callback</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">void</span> <span class="title function_">getTasksFromRemoteDataSource</span>(<span class="params"><span class="meta">@NonNull</span> final LoadTasksCallback callback</span>) &#123;</span><br><span class="line">        mTasksRemoteDataSource.<span class="title function_">getTasks</span>(<span class="keyword">new</span> <span class="title class_">LoadTasksCallback</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onTasksLoaded</span>(<span class="params">List&lt;Task&gt; tasks</span>) &#123;</span><br><span class="line">                <span class="comment">///从远程加载数据后添加到缓存和本地数据库</span></span><br><span class="line">                <span class="title function_">refreshCache</span>(tasks);</span><br><span class="line">                <span class="title function_">refreshLocalDataSource</span>(tasks);</span><br><span class="line">                callback.<span class="title function_">onTasksLoaded</span>(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(mCachedTasks.<span class="title function_">values</span>()));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">onDataNotAvailable</span>(<span class="params"></span>) &#123;</span><br><span class="line">                callback.<span class="title function_">onDataNotAvailable</span>();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用参数的tasks来填充mCachedTasks</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> <span class="variable">tasks</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">void</span> <span class="title function_">refreshCache</span>(<span class="params">List&lt;Task&gt; tasks</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks == <span class="literal">null</span>) &#123;</span><br><span class="line">            mCachedTasks = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        mCachedTasks.<span class="title function_">clear</span>();</span><br><span class="line">        <span class="keyword">for</span> (<span class="title class_">Task</span> task : tasks) &#123;</span><br><span class="line">            mCachedTasks.<span class="title function_">put</span>(task.<span class="title function_">getId</span>(), task);</span><br><span class="line">        &#125;</span><br><span class="line">        mCacheIsDirty = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *  用参数的tasks来填充mTasksLocalDataSource</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> <span class="variable">tasks</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">void</span> <span class="title function_">refreshLocalDataSource</span>(<span class="params">List&lt;Task&gt; tasks</span>) &#123;</span><br><span class="line">        mTasksLocalDataSource.<span class="title function_">deleteAllTasks</span>();</span><br><span class="line">        <span class="keyword">for</span> (<span class="title class_">Task</span> task : tasks) &#123;</span><br><span class="line">            mTasksLocalDataSource.<span class="title function_">saveTask</span>(task);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从缓存中获取指定id的任务</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> id  要获取任务的id</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="keyword">private</span> <span class="title class_">Task</span> <span class="title function_">getTaskWithId</span>(<span class="params"><span class="meta">@NonNull</span> <span class="built_in">String</span> id</span>) &#123;</span><br><span class="line">        <span class="title function_">checkNotNull</span>(id);</span><br><span class="line">        <span class="keyword">if</span> (mCachedTasks == <span class="literal">null</span> || mCachedTasks.<span class="title function_">isEmpty</span>()) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> mCachedTasks.<span class="title function_">get</span>(id);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上述的好处是我们可以随便更换数据源数据获取的底层实现。而不需要改动到其他部分，只要我们修改方案的时候按照接口定义规范进行实现即可。这样对于多人开发也是有很大好处的，和其他部分解耦了就可以单独开发了。</p>
+<p>我们再来看下Presenter表示层：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> TasksPresenter implements TasksContract.Presenter &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> final TasksRepository mTasksRepository;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> final TasksContract.View mTasksView;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TasksFilterType mCurrentFiltering = TasksFilterType.ALL_TASKS;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> boolean mFirstLoad = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    public <span class="constructor">TasksPresenter(@NonNull TasksRepository <span class="params">tasksRepository</span>, @NonNull TasksContract.View <span class="params">tasksView</span>)</span> &#123;</span><br><span class="line">        <span class="comment">//数据层</span></span><br><span class="line">        mTasksRepository = check<span class="constructor">NotNull(<span class="params">tasksRepository</span>, <span class="string">&quot;tasksRepository cannot be null&quot;</span>)</span>;</span><br><span class="line">        <span class="comment">//视图层</span></span><br><span class="line">        mTasksView = check<span class="constructor">NotNull(<span class="params">tasksView</span>, <span class="string">&quot;tasksView cannot be null!&quot;</span>)</span>;</span><br><span class="line">        <span class="comment">//将Presenter赋值给View层</span></span><br><span class="line">        mTasksView.set<span class="constructor">Presenter(<span class="params">this</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//加载任务数据</span></span><br><span class="line">    @Override</span><br><span class="line">    public void start<span class="literal">()</span> &#123;</span><br><span class="line">        load<span class="constructor">Tasks(<span class="params">false</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//处理返回值</span></span><br><span class="line">    @Override</span><br><span class="line">    public void result(<span class="built_in">int</span> requestCode, <span class="built_in">int</span> resultCode) &#123;</span><br><span class="line">        <span class="comment">// If a task was successfully added, show snackbar</span></span><br><span class="line">        <span class="keyword">if</span> (AddEditTaskActivity.REQUEST_ADD_TASK<span class="operator"> == </span>requestCode<span class="operator"> &amp;&amp; </span>Activity.RESULT_OK<span class="operator"> == </span>resultCode) &#123;</span><br><span class="line">            <span class="comment">//显示SnakeBar</span></span><br><span class="line">            mTasksView.show<span class="constructor">SuccessfullySavedMessage()</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//加载数据</span></span><br><span class="line">    @Override</span><br><span class="line">    public void load<span class="constructor">Tasks(<span class="params">boolean</span> <span class="params">forceUpdate</span>)</span> &#123;</span><br><span class="line">        <span class="comment">// Simplification for sample: a network reload will be forced on first load.</span></span><br><span class="line">        load<span class="constructor">Tasks(<span class="params">forceUpdate</span> <span class="operator">||</span> <span class="params">mFirstLoad</span>, <span class="params">true</span>)</span>;</span><br><span class="line">        mFirstLoad = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * @param forceUpdate   Pass in true to refresh the data in the &#123;@link TasksDataSource&#125;</span></span><br><span class="line"><span class="comment">     * @param showLoadingUI Pass in true to display a loading icon in the UI</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//加载数据</span></span><br><span class="line">    <span class="keyword">private</span> void load<span class="constructor">Tasks(<span class="params">boolean</span> <span class="params">forceUpdate</span>, <span class="params">final</span> <span class="params">boolean</span> <span class="params">showLoadingUI</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (showLoadingUI) &#123;</span><br><span class="line">            mTasksView.set<span class="constructor">LoadingIndicator(<span class="params">true</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (forceUpdate) &#123;</span><br><span class="line">            mTasksRepository.refresh<span class="constructor">Tasks()</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// The network request might be handled in a different thread so make sure Espresso knows</span></span><br><span class="line">        <span class="comment">// that the app is busy until the response is handled.</span></span><br><span class="line">        <span class="module-access"><span class="module"><span class="identifier">EspressoIdlingResource</span>.</span></span>increment<span class="literal">()</span>; <span class="comment">// App is busy until further notice</span></span><br><span class="line"></span><br><span class="line">        mTasksRepository.get<span class="constructor">Tasks(<span class="params">new</span> TasksDataSource.LoadTasksCallback()</span> &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void on<span class="constructor">TasksLoaded(List&lt;Task&gt; <span class="params">tasks</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">                <span class="comment">//创建需要显示的Task</span></span><br><span class="line">                List&lt;Task&gt; tasksToShow = <span class="keyword">new</span> ArrayList&lt;Task&gt;<span class="literal">()</span>;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// This callback may be called twice, once for the cache and once for loading</span></span><br><span class="line">                <span class="comment">// the data from the server API, so we check before decrementing, otherwise</span></span><br><span class="line">                <span class="comment">// it throws &quot;Counter has been corrupted!&quot; exception.</span></span><br><span class="line">                <span class="keyword">if</span> (!<span class="module-access"><span class="module"><span class="identifier">EspressoIdlingResource</span>.</span></span>get<span class="constructor">IdlingResource()</span>.is<span class="constructor">IdleNow()</span>) &#123;</span><br><span class="line">                    <span class="module-access"><span class="module"><span class="identifier">EspressoIdlingResource</span>.</span></span>decrement<span class="literal">()</span>; <span class="comment">// Set app as idle.</span></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// We filter the tasks based on the requestType</span></span><br><span class="line">                <span class="keyword">for</span> (Task task : tasks) &#123;</span><br><span class="line">                    <span class="comment">//根据mCurrentFiltering 显示那种类型的任务</span></span><br><span class="line">                    switch (mCurrentFiltering) &#123;</span><br><span class="line">                        case ALL_TASKS:</span><br><span class="line">                            tasksToShow.add(task);</span><br><span class="line">                            break;</span><br><span class="line">                        case ACTIVE_TASKS:</span><br><span class="line">                            <span class="keyword">if</span> (task.is<span class="constructor">Active()</span>) &#123;</span><br><span class="line">                                tasksToShow.add(task);</span><br><span class="line">                            &#125;</span><br><span class="line">                            break;</span><br><span class="line">                        case COMPLETED_TASKS:</span><br><span class="line">                            <span class="keyword">if</span> (task.is<span class="constructor">Completed()</span>) &#123;</span><br><span class="line">                                tasksToShow.add(task);</span><br><span class="line">                            &#125;</span><br><span class="line">                            break;</span><br><span class="line">                        default:</span><br><span class="line">                            tasksToShow.add(task);</span><br><span class="line">                            break;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// The view may not be able to handle UI updates anymore</span></span><br><span class="line">                <span class="keyword">if</span> (!mTasksView.is<span class="constructor">Active()</span>) &#123;</span><br><span class="line">                    return;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (showLoadingUI) &#123;</span><br><span class="line">                    mTasksView.set<span class="constructor">LoadingIndicator(<span class="params">false</span>)</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//处理这些任务</span></span><br><span class="line">                process<span class="constructor">Tasks(<span class="params">tasksToShow</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void on<span class="constructor">DataNotAvailable()</span> &#123;</span><br><span class="line">                <span class="comment">// The view may not be able to handle UI updates anymore</span></span><br><span class="line">                <span class="keyword">if</span> (!mTasksView.is<span class="constructor">Active()</span>) &#123;</span><br><span class="line">                    return;</span><br><span class="line">                &#125;</span><br><span class="line">                mTasksView.show<span class="constructor">LoadingTasksError()</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> void process<span class="constructor">Tasks(List&lt;Task&gt; <span class="params">tasks</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (tasks.is<span class="constructor">Empty()</span>) &#123;</span><br><span class="line">            <span class="comment">// Show a message indicating there are no tasks for that filter type.</span></span><br><span class="line">            <span class="comment">//根据类型显示当前需要显示的空加载信息</span></span><br><span class="line">            process<span class="constructor">EmptyTasks()</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// Show the list of tasks</span></span><br><span class="line">            <span class="comment">//显示任务</span></span><br><span class="line">            mTasksView.show<span class="constructor">Tasks(<span class="params">tasks</span>)</span>;</span><br><span class="line">            <span class="comment">// Set the filter label&#x27;s text.</span></span><br><span class="line">            show<span class="constructor">FilterLabel()</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> void show<span class="constructor">FilterLabel()</span> &#123;</span><br><span class="line">        switch (mCurrentFiltering) &#123;</span><br><span class="line">            case ACTIVE_TASKS:</span><br><span class="line">                mTasksView.show<span class="constructor">ActiveFilterLabel()</span>;</span><br><span class="line">                break;</span><br><span class="line">            case COMPLETED_TASKS:</span><br><span class="line">                mTasksView.show<span class="constructor">CompletedFilterLabel()</span>;</span><br><span class="line">                break;</span><br><span class="line">            default:</span><br><span class="line">                mTasksView.show<span class="constructor">AllFilterLabel()</span>;</span><br><span class="line">                break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> void process<span class="constructor">EmptyTasks()</span> &#123;</span><br><span class="line">        switch (mCurrentFiltering) &#123;</span><br><span class="line">            case ACTIVE_TASKS:</span><br><span class="line">                mTasksView.show<span class="constructor">NoActiveTasks()</span>;</span><br><span class="line">                break;</span><br><span class="line">            case COMPLETED_TASKS:</span><br><span class="line">                mTasksView.show<span class="constructor">NoCompletedTasks()</span>;</span><br><span class="line">                break;</span><br><span class="line">            default:</span><br><span class="line">                mTasksView.show<span class="constructor">NoTasks()</span>;</span><br><span class="line">                break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//AddEditTaskActivity</span></span><br><span class="line">    @Override</span><br><span class="line">    public void add<span class="constructor">NewTask()</span> &#123;</span><br><span class="line">        mTasksView.show<span class="constructor">AddTask()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//TaskDetailActivity</span></span><br><span class="line">    @Override</span><br><span class="line">    public void <span class="keyword">open</span><span class="constructor">TaskDetails(@NonNull Task <span class="params">requestedTask</span>)</span> &#123;</span><br><span class="line">        check<span class="constructor">NotNull(<span class="params">requestedTask</span>, <span class="string">&quot;requestedTask cannot be null!&quot;</span>)</span>;</span><br><span class="line">        mTasksView.show<span class="constructor">TaskDetailsUi(<span class="params">requestedTask</span>.<span class="params">getId</span>()</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void complete<span class="constructor">Task(@NonNull Task <span class="params">completedTask</span>)</span> &#123;</span><br><span class="line">        check<span class="constructor">NotNull(<span class="params">completedTask</span>, <span class="string">&quot;completedTask cannot be null!&quot;</span>)</span>;</span><br><span class="line">        mTasksRepository.complete<span class="constructor">Task(<span class="params">completedTask</span>)</span>;</span><br><span class="line">        mTasksView.show<span class="constructor">TaskMarkedComplete()</span>;</span><br><span class="line">        load<span class="constructor">Tasks(<span class="params">false</span>, <span class="params">false</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void activate<span class="constructor">Task(@NonNull Task <span class="params">activeTask</span>)</span> &#123;</span><br><span class="line">        check<span class="constructor">NotNull(<span class="params">activeTask</span>, <span class="string">&quot;activeTask cannot be null!&quot;</span>)</span>;</span><br><span class="line">        mTasksRepository.activate<span class="constructor">Task(<span class="params">activeTask</span>)</span>;</span><br><span class="line">        mTasksView.show<span class="constructor">TaskMarkedActive()</span>;</span><br><span class="line">        load<span class="constructor">Tasks(<span class="params">false</span>, <span class="params">false</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void clear<span class="constructor">CompletedTasks()</span> &#123;</span><br><span class="line">        mTasksRepository.clear<span class="constructor">CompletedTasks()</span>;</span><br><span class="line">        mTasksView.show<span class="constructor">CompletedTasksCleared()</span>;</span><br><span class="line">        load<span class="constructor">Tasks(<span class="params">false</span>, <span class="params">false</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Sets the current task filtering type.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * @param requestType Can be &#123;@link TasksFilterType#ALL_TASKS&#125;,</span></span><br><span class="line"><span class="comment">     *                    &#123;@link TasksFilterType#COMPLETED_TASKS&#125;, or</span></span><br><span class="line"><span class="comment">     *                    &#123;@link TasksFilterType#ACTIVE_TASKS&#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    @Override</span><br><span class="line">    public void set<span class="constructor">Filtering(TasksFilterType <span class="params">requestType</span>)</span> &#123;</span><br><span class="line">        mCurrentFiltering = requestType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public TasksFilterType get<span class="constructor">Filtering()</span> &#123;</span><br><span class="line">        return mCurrentFiltering;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>它持有View层和数据层，这些方法提供给View层调用，绝大部分的代码是调用View层以及数据层的实现，它只负责整个状态的逻辑。数据层和Presenter层的交互使用的是Callback回调机制，回调接口在数据层接口中定义的。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Android 源码分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-开源源码/">Android 开源源码</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/08/22/Android-源码分析之TODO-MVP-Loaders/" title="Android 源码分析之TODO MVP Loaders">
+  <span>
+  Android 源码分析之TODO MVP Loaders</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/08/11/睡前叨叨/"  title="睡前叨叨">
+ <span>睡前叨叨
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/08/22/Android-源码分析之TODO-MVP-1/" data-title="Android 源码分析之TODO MVP" data-url="http://yoursite.com/2016/08/22/Android-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BTODO-MVP-1/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

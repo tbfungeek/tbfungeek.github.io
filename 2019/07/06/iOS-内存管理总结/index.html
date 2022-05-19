@@ -1,0 +1,759 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS 内存管理总结 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="1. 内存区域分布 堆操作：操作系统中有一个存放堆内空闲存储块地址和大小的链表，当程序员申请空间的时候，系统就会遍历整个链表，找到第一个比申请空间大的空闲块节点，系统会将该空闲块从空闲链表中删除，分配给程序，由于申请的空间不一定与找到的空闲块大小相同，多出来剩余的空闲区会被系统重新添加到空闲链表中。当我需要删除对象时，便会根据指针纪录的地址，将这一块区域重新加入到链表中 栈操作：栈区的内存是系统自">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 内存管理总结">
+<meta property="og:url" content="http://yoursite.com/2019/07/06/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="1. 内存区域分布 堆操作：操作系统中有一个存放堆内空闲存储块地址和大小的链表，当程序员申请空间的时候，系统就会遍历整个链表，找到第一个比申请空间大的空闲块节点，系统会将该空闲块从空闲链表中删除，分配给程序，由于申请的空间不一定与找到的空闲块大小相同，多出来剩余的空闲区会被系统重新添加到空闲链表中。当我需要删除对象时，便会根据指针纪录的地址，将这一块区域重新加入到链表中 栈操作：栈区的内存是系统自">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/07/06/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%80%BB%E7%BB%93/00001.png">
+<meta property="article:published_time" content="2019-07-06T10:03:38.000Z">
+<meta property="article:modified_time" content="2019-12-19T12:37:22.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Objective C 相关">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/06/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%80%BB%E7%BB%93/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/06/iOS-内存管理总结/" title="iOS 内存管理总结" itemprop="url">iOS 内存管理总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-06T10:03:38.000Z" itemprop="datePublished"> Published 2019-07-06</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="1-内存区域分布"><a href="#1-内存区域分布" class="headerlink" title="1. 内存区域分布"></a>1. 内存区域分布</h5><p><img src="/2019/07/06/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%80%BB%E7%BB%93/00001.png"></p>
+<p>堆操作：<br>操作系统中有一个存放堆内空闲存储块地址和大小的链表，当程序员申请空间的时候，系统就会遍历整个链表，找到第一个比申请空间大的空闲块节点，系统会将该空闲块从空闲链表中删除，分配给程序，由于申请的空间不一定与找到的空闲块大小相同，多出来剩余的空闲区会被系统重新添加到空闲链表中。当我需要删除对象时，便会根据指针纪录的地址，将这一块区域重新加入到链表中</p>
+<p>栈操作：<br>栈区的内存是系统自动申请的而且是有序的。我们在申请栈空间时就只能在栈的顶部进行申请，当程序执行某个方法（或者函数）时，会从内存中栈（stack）的区域分配出一块内存空间，这个内存空间被称之为帧（frame）用来储存程序在这个方法内声明的变量的值。当应用启动并运行 main 函数时，它的帧会被存在栈的底部。当 main 继续调用另外一个方法时,这个方法的帧又会继续被压入栈的顶部。被调用的方法还可以再调用其他方法，以此类推，会有帧继续被压入栈顶，在被调用的方法结束后，程序会将其帧从栈顶释放。</p>
+<h5 id="2-iOS-引用计数内存管理策略"><a href="#2-iOS-引用计数内存管理策略" class="headerlink" title="2. iOS 引用计数内存管理策略"></a>2. iOS 引用计数内存管理策略</h5><p>引用计数是一种内存管理技术，是指将资源（可以是对象、内存或磁盘空间等等）的被引用次数保存起来，当被引用次数变为零时就将其释放的过程。从而实现资源自动管理的目的。它的做法是:当创建一个对象的实例并在堆上申请内存时，对象的引用计数就为1，在其他对象中需要持有这个对象时，就需要把该对象的引用计数加1，需要释放一个对象时，就将该对象的引用计数减1，对象的引用计数为0时对象的内存会被立刻释放。</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">*</span> 当程序调用方法名以alloc、new、copy、mutableCopy开头的方法来创建对象时，该对象的引用计数加1，这种情况我们将拥有所创建的这个对象。</span><br><span class="line"><span class="bullet">*</span> 当有一个新的指针指向这个对象时（或者调用retain方法时），我们将其引用计数加 1，接收到此调用的对象通常保证在他接收到retain所在的方法中保持有效。</span><br><span class="line"><span class="bullet">*</span> 除了以alloc、new、copy、mutableCopy 开头的方式创建对象外，其他方式创建的对象都是会被添加到AutoReleasePool，该对象的引用计数不会+1,这种情况下我们不用负责释放对象。</span><br><span class="line"><span class="bullet">*</span> 当某个指针不再指向这个对象时（或者调用release方法时），我们将其引用计数减 1 </span><br><span class="line"><span class="bullet">*</span> 当对象的引用计数变为 0 时，说明这个对象不再被任何指针指向了，这个时候我们就可以将对象销毁，回收内存。这时候会调用该对象的dealloc方法。</span><br><span class="line"></span><br><span class="line"><span class="bullet">*</span> 对于数组类型其引用计数是会自动的相应变化的：</span><br><span class="line"><span class="bullet">1.</span> 当一个对象被添加进数组时 ，对象的引用计数也会相应的增加。</span><br><span class="line"><span class="bullet">2.</span> 数组移除指定的对象或者时所有对象，其被移除的对象会 release</span><br><span class="line"><span class="bullet">3.</span> 当数组销毁时，所有对象均会 release。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="3-iOS开发中的内存管理四个黄金法则"><a href="#3-iOS开发中的内存管理四个黄金法则" class="headerlink" title="3. iOS开发中的内存管理四个黄金法则"></a>3. iOS开发中的内存管理四个黄金法则</h5><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>自己生成的对象，自己持有</span><br><span class="line"><span class="bullet">* </span>非自己生成的对象，自己也能持有</span><br><span class="line"><span class="bullet">* </span>不再需要自己持有的对象的时候，释放</span><br><span class="line"><span class="bullet">* </span>非自己持有的对象无法释放</span><br></pre></td></tr></table></figure>
+
+<h5 id="4-有关引用计数的方法："><a href="#4-有关引用计数的方法：" class="headerlink" title="4. 有关引用计数的方法："></a>4. 有关引用计数的方法：</h5><figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>—retain：将该对象的引用计数器加1,从而持有该对象，但是并不拥有对象的释放权利。</span><br><span class="line"><span class="bullet">* </span>—release：将该对象的引用计数器减1,注意只有在计数为0的时候才会释放，而不是说一旦release就释放。</span><br><span class="line"><span class="bullet">* </span>—autorelease：调用 autorelease 后，对象不会被立即释放，而是注册到 autoreleasepool 中，经过一段时间后 pool结束，此时调用release方法，引用计数减1。</span><br><span class="line"><span class="bullet">* </span>—retainCount：返回该对象的引用计数的值。</span><br><span class="line"><span class="bullet">* </span>dealloc: 当一个对象一个拥有者都没有的话，dealloc就会被自动调用，dealloc方法的角色是释放对象自己的内存，并且销毁他所拥有的资源，包括所有对象变量的拥有权。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="5-iOS中的变量标识符-amp-属性标识符"><a href="#5-iOS中的变量标识符-amp-属性标识符" class="headerlink" title="5. iOS中的变量标识符 &amp; 属性标识符"></a>5. iOS中的变量标识符 &amp; 属性标识符</h5><p>变量标识符</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="variable">__strong</span>                持有强引用的变量在超出其作用域时被废弃，随着强引用的失效，引用的对象会随之释放，从另一个角度讲只要还有一个强指针指向某个对象，这个对象就会一直存活</span><br><span class="line"><span class="variable">__weak</span>                  弱引用虽然持有对象，但是并不增加引用计数，这样就避免了循环引用的产生，如果对象没有被其他对象强引用，弱引用会被置为 <span class="literal">nil</span>，弱引用的实现原理是这样：</span><br><span class="line">                        系统对于每一个有弱引用的对象，都维护一个表来记录它所有的弱引用的指针地址。这样，当一个对象的引用计数为 <span class="number">0</span> 时，系统就通过这张表，找到所有的弱引用指针，</span><br><span class="line">                        继而把它们都置成 <span class="literal">nil</span>。</span><br><span class="line"><span class="variable">__unsafe_unretained</span>     它和<span class="variable">__weak</span>有点类似，只不过在没有被其他对象强引用的时候它不会被置为 <span class="literal">nil</span>。如果它引用的对象被回收掉了，该指针就变成了野指针。</span><br><span class="line">                        <span class="variable">__unsafe_unretained</span>修饰符的变量不属于编译器的内存管理对象，赋值时即不获得强引用也不获得弱引用。</span><br><span class="line"></span><br><span class="line"><span class="variable">__autoreleasing</span>         替代autorelease方法</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>属性标识符</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@property</span> (<span class="keyword">assign</span>/<span class="keyword">retain</span>/<span class="keyword">strong</span>/<span class="keyword">weak</span>/<span class="keyword">unsafe_unretained</span>/<span class="keyword">copy</span>) PropertyType* propertyType</span><br><span class="line"></span><br><span class="line">* <span class="keyword">assign</span> 表明 <span class="keyword">setter</span> 仅仅是一个简单的赋值操作，没有持有不持有这一说，通常用于基本的数值类型</span><br><span class="line">* <span class="keyword">strong</span> 表明属性定义一个持有者关系。当给属性设定一个新值的时候，首先对旧值进行 release ，对新值进行<span class="keyword">retain</span> 然后进行赋值操作。</span><br><span class="line">* <span class="keyword">weak</span> 表明属性定义了一个持有者关系。当给属性设定一个新值的时候，这个值不会进行 <span class="keyword">retain</span>，旧值也不会进行 release， 而是进行类似 <span class="keyword">assign</span> 的操作。</span><br><span class="line">  不过当属性指向的对象被销毁时，该属性会被置为<span class="literal">nil</span>。</span><br><span class="line">* <span class="keyword">unsafe_unretained</span> 的语义和 <span class="keyword">assign</span> 类似，不过是用于对象类型的，表示一个非拥有(unretained)的，同时也不会在对象被销毁时置为<span class="literal">nil</span>的(unsafe)关系。</span><br><span class="line">* <span class="keyword">copy</span> 类似于 <span class="keyword">strong</span>，不过在赋值时进行 <span class="keyword">copy</span> 操作而不是 <span class="keyword">retain</span> 操作。通常在需要保留某个不可变对象，并且防止它被意外改变时使用。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>概括得讲：<br>strong 和 copy都会持有对象，一个是持有对象的本身，一个是持有对象的副本。<br>weak，unsafe_unretained 更像一个旁观者，它们不会对数据的引用计数起到任何的改变，它看着对象被持有，被销毁却无能为力，只不过weak会在对象被销毁的时候会将其置为nil。而unsafe_unretained不会，unsafe_unretained 在开发中用得比较少， 如果对性能有极高的要求方可以考虑使用 unsafe_unretained 替换 weak，因为weak 其实对性能还是有影响的，只不过少量使用的时候是不会察觉到的，但是在类似YYModel这种序列化，反序列化库如果大量使用weak，肯定会对性能有较大的影响，weak的最主要作用就是解决循环引用的问题。这个会在后面做介绍，其实这个已经在Block总结的时候已经介绍过了。</p>
+<h5 id="6-ARC规则"><a href="#6-ARC规则" class="headerlink" title="6. ARC规则"></a>6. ARC规则</h5><p>与Java 中 GC 不同，ARC 是编译器特性，而不是基于运行时的，ARC 背后的原理是依赖编译器的静态分析能力，通过在编译时找出合理的插入引用计数管理代码，而不是实时监控与回收内存。</p>
+<p>需要注意的是ARC 所做的事情并不仅仅局限于在编译期找到合适的位置帮你插入合适的 release 等等这样的内存管理方法，其在运行时期也做了一些优化，比如：</p>
+<ul>
+<li>合并对称的引用计数操作。比如将 +1&#x2F;-1&#x2F;+1&#x2F;-1 直接置为 0.</li>
+<li>巧妙地跳过某些情况下 autorelease 机制的调用。<br>当返回值被返回之后，紧接着就需要被 retain 的时候，没有必要进行 autorelease + retain，直接什么都不要做就好了。</li>
+</ul>
+<p>ARC 打开的情况下有如下限制：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">* 不能使用<span class="keyword">retain</span>/release/retainCount/autorelease</span><br><span class="line">* 不能使用<span class="built_in">NSAllocateObject</span>/<span class="built_in">NSDeallocateObject</span></span><br><span class="line">* 须遵守内存管理的方法命名规则</span><br><span class="line">* 不要显式调用dealloc</span><br><span class="line">* 使用<span class="keyword">@autoreleasepool</span>块替代<span class="built_in">NSAutoreleasePool</span></span><br><span class="line">* 不能使用<span class="built_in">NSZone</span></span><br><span class="line">* 对象型变量不能作为C语言结构体（<span class="keyword">struct</span>、<span class="keyword">union</span>）的成员: 要把对象类型添加到结构体成员中，可以强制转换为<span class="type">void</span> *或是附加__<span class="keyword">unsafe_unretained</span>修饰符。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="7-内存相关常见问题"><a href="#7-内存相关常见问题" class="headerlink" title="7. 内存相关常见问题"></a>7. 内存相关常见问题</h5><p>内存问题有两种：</p>
+<ul>
+<li>释放得太早，还在使用中就释放：</li>
+</ul>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">如果某个对象有至少一个拥有者，那么就必须保留不能释放，否则的话其他对象或者方法仍然有指向这个对象的指针沦为野指针（空指针）。这称之为过早释放，这是十分危险的，因为当野指针指向的内存区域再次被某个新的对象使用时，野指针上的操作便会破坏这个新对象造成文件丢失或者崩溃。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>释放得太晚，已经不用了但是还没释放：</li>
+</ul>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">如果某个对象失去了拥有者（变成没有拥有者）那么应该将其释放掉，否则没有拥有者的对象会被孤立而程序找不到，并且始终占用着一块内存，导致内存泄漏</span><br></pre></td></tr></table></figure>
+
+<h6 id="7-1-内存泄漏"><a href="#7-1-内存泄漏" class="headerlink" title="7.1 内存泄漏"></a>7.1 内存泄漏</h6><p>ARC内存泄露常见场景:</p>
+<ul>
+<li>对象型变量作为C语言结构体，或者联合体（struct、union）的成员</li>
+</ul>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> Data &#123;</span><br><span class="line">    <span class="built_in">NSMutableArray</span> __<span class="keyword">unsafe_unretained</span> *array;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>__unsafe_unretained修饰符的变量不属于编译器的内存管理对象。如果管理时不注意赋值对象的所有者，便可能遭遇内存泄露或者程序崩溃。</p>
+<ul>
+<li>循环引用</li>
+</ul>
+<p>循环引用常见有如下几种情况：</p>
+<ol>
+<li>两个对象互相持有对象，这个可以设置弱引用解决，最常见的是block，但是需要注意并非所有的block都需要使用weak来打破循环引用，如果self没有持有block就不会造成循环引用。而有些地方之所以使用了__weak，是为了在[self dealloc]之后就不再执行了。</li>
+</ol>
+<p>解决方案 1：在block外部对弱化self，在block内部强化已经弱化的weakSelf</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Test</span>: <span class="title">NSObject</span> </span>&#123;</span><br><span class="line">    <span class="type">id</span> __<span class="keyword">weak</span> obj_;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)setObject:(<span class="type">id</span> __<span class="keyword">strong</span>)obj;</span><br><span class="line">block持有<span class="keyword">self</span>对象，这个要在block块外面和里面设置弱引用和强引用。</span><br><span class="line"></span><br><span class="line">__<span class="keyword">weak</span> __<span class="keyword">typeof</span>(<span class="keyword">self</span>) wself = <span class="keyword">self</span>;</span><br><span class="line">obj.block = ^&#123;</span><br><span class="line">    __<span class="keyword">strong</span> __<span class="keyword">typeof</span>(wself) sself = wself;</span><br><span class="line">    [sself updateSomeThing];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>解决方法 2: 通过将对象在block中设置为nil,但是这种需要注意的是block一定要被执行</p>
+<figure class="highlight nim"><table><tr><td class="code"><pre><span class="line">__block <span class="type">TestObject</span> *<span class="keyword">object</span> = [[<span class="type">TestObject</span> alloc] init…];</span><br><span class="line"><span class="keyword">object</span>.completionHandler =  ^(<span class="type">NSInteger</span> <span class="built_in">result</span>) &#123;</span><br><span class="line">    [<span class="keyword">object</span> testMethod];</span><br><span class="line">    <span class="keyword">object</span> = <span class="keyword">nil</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>NSTimer的target持有self</li>
+</ol>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">self</span>.timmer = [<span class="built_in">NSTimer</span> scheduledTimerWithTimeInterval:<span class="number">1.0</span> </span><br><span class="line">                                               target:<span class="keyword">self</span> </span><br><span class="line">                                              selector:<span class="keyword">@selector</span>(updateTime:) </span><br><span class="line">                                              userInfo:<span class="literal">nil</span> </span><br><span class="line">                                               repeats:<span class="literal">YES</span>];</span><br></pre></td></tr></table></figure>
+
+<p>NSTimer会造成循环引用，timer会强引用target即self，一般self又会持有timer作为属性，这样就造成了循环引用。<br>如果timer只作为局部变量，不把timer作为属性同样释放不了，因为在加入runloop的操作中，timer被强引用。而timer作为局部变量，是无法执行invalidate的，所以在timer被invalidate之前，self也就不会被释放。</p>
+<p>解决方案：在恰当时机调用[timer invalidate]即可,这个需要根据业务来自己决定，但是放在dealloc中调用是无效的，因为循环引用的情况下dealloc是不会被调用的，所以[timer invalidate]也就不会被调用。</p>
+<p>还有下面几种定时相关的情形也需要注意：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">__weak <span class="constructor">__typeof(<span class="params">self</span>)</span> wself = self;</span><br><span class="line">dispatch<span class="constructor">_after(<span class="params">dispatch_time</span>(DISPATCH_TIME_NOW, (<span class="params">int64_t</span>)</span>(<span class="number">5</span><span class="operator"> * </span>NSEC_PER_SEC)), dispatch<span class="constructor">_get_main_queue()</span>, ^&#123;</span><br><span class="line">    <span class="literal">[<span class="identifier">wself</span> <span class="identifier">commentAnimation</span>]</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">__weak __typeof(<span class="name">self</span>) wself = self<span class="comment">;</span></span><br><span class="line">timer = dispatch_source_create(<span class="name">DISPATCH_SOURCE_TYPE_TIMER</span>, <span class="number">0</span>, <span class="number">0</span>, dispatch_get_main_queue())<span class="comment">;</span></span><br><span class="line">dispatch_source_set_timer(<span class="name">timer</span>, DISPATCH_TIME_NOW, <span class="number">5</span> * NSEC_PER_SEC, 1 * NSEC_PER_SEC)<span class="comment">;</span></span><br><span class="line">dispatch_source_set_event_handler(<span class="name">timer</span>, ^&#123;</span><br><span class="line">    [wself commentAnimation]<span class="comment">;</span></span><br><span class="line">&#125;)<span class="comment">;</span></span><br><span class="line">dispatch_resume(<span class="name">timer</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>代理delegate</li>
+</ol>
+<p>代理在一般情况下，需要使用weak修饰，我们常见的delegate 一般会是VC的属性，被VC持有，同时我们会将VC相关的属性作为delegate从而导致循环引用。<br>解决方案：delegate属性使用weak修饰</p>
+<ol start="4">
+<li>NSNotification</li>
+</ol>
+<p>使用block的方式增加notification，引用了self，在删除notification之前，self不会被释放</p>
+<p>解决方案：在block内部使用弱引用解决</p>
+<ul>
+<li>对象被单例持有</li>
+</ul>
+<p>我们在单例里面设置一个对象的属性，因为单例是不会释放的，所以单例会有一直持有这个对象的引用。</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">[Instanse shared].obj <span class="operator">=</span> self<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>CF类型内存</li>
+</ul>
+<p>注意以creat,copy作为关键字的函数都是需要释放内存的.</p>
+<h5 id="8-内存泄漏的排查方法"><a href="#8-内存泄漏的排查方法" class="headerlink" title="8. 内存泄漏的排查方法"></a>8. 内存泄漏的排查方法</h5><ul>
+<li>静态分析方法（Analyze）</li>
+<li>动态分析方法（Instrument工具库里的Leaks,Allocations）</li>
+<li>在可疑对象的dealloc方法中添加log进行查看</li>
+<li>使用三方开源库：</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://wereadteam.github.io/2016/02/22/MLeaksFinder/">MLeaksFinder</a><br><a target="_blank" rel="noopener" href="http://mrpeak.cn/blog/leak/">PLeakSniffer</a><br><a target="_blank" rel="noopener" href="https://github.com/facebook/FBRetainCycleDetector">FBRetainCycleDetector</a><br><a target="_blank" rel="noopener" href="https://github.com/facebook/FBAllocationTracker">FBAllocationTracker</a><br><a target="_blank" rel="noopener" href="https://github.com/facebook/FBMemoryProfiler">FBMemoryProfiler</a><br><a target="_blank" rel="noopener" href="https://code.fb.com/ios/automatic-memory-leak-detection-on-ios/">介绍FBRetainCycleDetector，FBAllocationTracker，FBMemoryProfiler的文章</a></p>
+<h5 id="9-AutoreleasePool-与-RunLoop的关系"><a href="#9-AutoreleasePool-与-RunLoop的关系" class="headerlink" title="9. AutoreleasePool 与 RunLoop的关系"></a>9. AutoreleasePool 与 RunLoop的关系</h5><p>主线程的AutoreleasePool会在RunLoop进入的时候重新建立一个，在RunLoop退出休眠状态的时候也会进行释放后重新建立一个。在退出RunLoop的时候释放AutoreleasePool，具体见RunLoop总结</p>
+<h5 id="10-weak-strong-dance"><a href="#10-weak-strong-dance" class="headerlink" title="10. weak-strong dance"></a>10. weak-strong dance</h5><p>在7.1 介绍内存泄漏类型时候提到循环引用的一种解决方案是在block外部对弱化self，在block内部强化已经弱化的weakSelf，这也就是这里所说的 weak-strong dance，block外部对弱化self是为了避免循环引用，而在block内部强化已经弱化的weakSelf是为了避免外部_weak导致在运行block的时候self被释放。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/07/08/iOS-Autorelease-Pool-总结/" title="iOS Autorelease Pool 总结">
+  <span>
+  iOS Autorelease Pool 总结</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/07/04/iOS中的宏用法简单总结/"  title="iOS中的宏用法简单总结">
+ <span>iOS中的宏用法简单总结
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/07/06/iOS-内存管理总结/" data-title="iOS 内存管理总结" data-url="http://yoursite.com/2019/07/06/iOS-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%80%BB%E7%BB%93/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E5%88%86%E5%B8%83"><span class="toc-number">1.</span> <span class="toc-text">1. 内存区域分布</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-iOS-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%AD%96%E7%95%A5"><span class="toc-number">2.</span> <span class="toc-text">2. iOS 引用计数内存管理策略</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-iOS%E5%BC%80%E5%8F%91%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%9B%9B%E4%B8%AA%E9%BB%84%E9%87%91%E6%B3%95%E5%88%99"><span class="toc-number">3.</span> <span class="toc-text">3. iOS开发中的内存管理四个黄金法则</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E6%9C%89%E5%85%B3%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="toc-number">4.</span> <span class="toc-text">4. 有关引用计数的方法：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-iOS%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E6%A0%87%E8%AF%86%E7%AC%A6-amp-%E5%B1%9E%E6%80%A7%E6%A0%87%E8%AF%86%E7%AC%A6"><span class="toc-number">5.</span> <span class="toc-text">5. iOS中的变量标识符 &amp; 属性标识符</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-ARC%E8%A7%84%E5%88%99"><span class="toc-number">6.</span> <span class="toc-text">6. ARC规则</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-%E5%86%85%E5%AD%98%E7%9B%B8%E5%85%B3%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">7.</span> <span class="toc-text">7. 内存相关常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#7-1-%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 内存泄漏</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E7%9A%84%E6%8E%92%E6%9F%A5%E6%96%B9%E6%B3%95"><span class="toc-number">8.</span> <span class="toc-text">8. 内存泄漏的排查方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-AutoreleasePool-%E4%B8%8E-RunLoop%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">9.</span> <span class="toc-text">9. AutoreleasePool 与 RunLoop的关系</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#10-weak-strong-dance"><span class="toc-number">10.</span> <span class="toc-text">10. weak-strong dance</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

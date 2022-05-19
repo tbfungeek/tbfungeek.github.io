@@ -1,0 +1,1536 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Android | 全栈工程师">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Edgar&#39;s Blog">
+<meta property="og:url" content="http://yoursite.com/page/9/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Android | 全栈工程师">
+<meta property="og:locale">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/26/ijkplayer-源码分析/" title="ijkplayer 源码分析" itemprop="url">ijkplayer 源码分析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-25T17:57:28.000Z" itemprop="datePublished"> Published 2019-07-26</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/26/ijkplayer-源码分析/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/26/ijkplayer-源码分析/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/25/图解iOS系列之Runtime（五-对象创建，关联对象-自动释放池/" title="图解iOS系列之Runtime（五) 对象创建，关联对象 自动释放池" itemprop="url">图解iOS系列之Runtime（五) 对象创建，关联对象 自动释放池</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-25T11:45:50.000Z" itemprop="datePublished"> Published 2019-07-25</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2019/07/25/%E5%9B%BE%E8%A7%A3iOS%E7%B3%BB%E5%88%97%E4%B9%8BRuntime%EF%BC%88%E4%BA%94-%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E5%85%B3%E8%81%94%E5%AF%B9%E8%B1%A1-%E8%87%AA%E5%8A%A8%E9%87%8A%E6%94%BE%E6%B1%A0/object_create.png"></p>
+<p><img src="/2019/07/25/%E5%9B%BE%E8%A7%A3iOS%E7%B3%BB%E5%88%97%E4%B9%8BRuntime%EF%BC%88%E4%BA%94-%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E5%85%B3%E8%81%94%E5%AF%B9%E8%B1%A1-%E8%87%AA%E5%8A%A8%E9%87%8A%E6%94%BE%E6%B1%A0/acc.png"></p>
+<p><img src="/2019/07/25/%E5%9B%BE%E8%A7%A3iOS%E7%B3%BB%E5%88%97%E4%B9%8BRuntime%EF%BC%88%E4%BA%94-%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%EF%BC%8C%E5%85%B3%E8%81%94%E5%AF%B9%E8%B1%A1-%E8%87%AA%E5%8A%A8%E9%87%8A%E6%94%BE%E6%B1%A0/autoreleasepool.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/25/图解iOS系列之Runtime（五-对象创建，关联对象-自动释放池/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/25/图解iOS系列之Runtime（五-对象创建，关联对象-自动释放池/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/24/图解iOS系列之Runtime（四）发送消息流程/" title="图解iOS系列之Runtime（四）发送消息流程" itemprop="url">图解iOS系列之Runtime（四）发送消息流程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-24T11:44:03.000Z" itemprop="datePublished"> Published 2019-07-24</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2019/07/24/%E5%9B%BE%E8%A7%A3iOS%E7%B3%BB%E5%88%97%E4%B9%8BRuntime%EF%BC%88%E5%9B%9B%EF%BC%89%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF%E6%B5%81%E7%A8%8B/msgSend.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/24/图解iOS系列之Runtime（四）发送消息流程/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/24/图解iOS系列之Runtime（四）发送消息流程/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/20/图解iOS系列之Runtime（三）应用启动到main-过程的操作/" title="图解iOS系列之Runtime（三）应用启动到main 过程的操作" itemprop="url">图解iOS系列之Runtime（三）应用启动到main 过程的操作</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-20T11:42:29.000Z" itemprop="datePublished"> Published 2019-07-20</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2019/07/20/%E5%9B%BE%E8%A7%A3iOS%E7%B3%BB%E5%88%97%E4%B9%8BRuntime%EF%BC%88%E4%B8%89%EF%BC%89%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E5%88%B0main-%E8%BF%87%E7%A8%8B%E7%9A%84%E6%93%8D%E4%BD%9C/app_launcher.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/20/图解iOS系列之Runtime（三）应用启动到main-过程的操作/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/20/图解iOS系列之Runtime（三）应用启动到main-过程的操作/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/18/图解iOS系列之Runtime（一）基本数据结构/" title="图解iOS系列之Runtime（二）基本数据结构" itemprop="url">图解iOS系列之Runtime（二）基本数据结构</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-18T09:12:42.000Z" itemprop="datePublished"> Published 2019-07-18</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2019/07/18/%E5%9B%BE%E8%A7%A3iOS%E7%B3%BB%E5%88%97%E4%B9%8BRuntime%EF%BC%88%E4%B8%80%EF%BC%89%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/base_structs.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/18/图解iOS系列之Runtime（一）基本数据结构/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/18/图解iOS系列之Runtime（一）基本数据结构/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/16/图解iOS系列之Runtime（一）MachO-介绍/" title="图解iOS系列之Runtime（一）MachO 介绍" itemprop="url">图解iOS系列之Runtime（一）MachO 介绍</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-16T09:16:29.000Z" itemprop="datePublished"> Published 2019-07-16</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2019/07/16/%E5%9B%BE%E8%A7%A3iOS%E7%B3%BB%E5%88%97%E4%B9%8BRuntime%EF%BC%88%E4%B8%80%EF%BC%89MachO-%E4%BB%8B%E7%BB%8D/mach0.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/16/图解iOS系列之Runtime（一）MachO-介绍/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/16/图解iOS系列之Runtime（一）MachO-介绍/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/14/iOS-学习记录-一-图解生命周期/" title="iOS 学习记录[一] 图解生命周期" itemprop="url">iOS 学习记录[一] 图解生命周期</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-14T14:18:38.000Z" itemprop="datePublished"> Published 2019-07-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2019/07/14/iOS-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-%E4%B8%80-%E5%9B%BE%E8%A7%A3%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/ios_001.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/14/iOS-学习记录-一-图解生命周期/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/14/iOS-学习记录-一-图解生命周期/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/14/iOS-KVC-KVO/" title="iOS KVC KVO 总结" itemprop="url">iOS KVC KVO 总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-14T01:44:24.000Z" itemprop="datePublished"> Published 2019-07-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h5 id="KVC-—-Key-Value-Coding-键值编码"><a href="#KVC-—-Key-Value-Coding-键值编码" class="headerlink" title="KVC  —  Key Value Coding  键值编码"></a>KVC  —  Key Value Coding  键值编码</h5><p>KVC 是一种不用通过调用 setter、getter 方法而是直接通过属性字符串名称key来存取属性的机制。</p>
+<p>KVC 和 属性访问器的对比如下：</p>
+<ul>
+<li><p>KVC是通过在运行时动态的访问和修改对象的属性而访问器是在编译时确定，单就这一点增加了访问属性的灵活性，<br>但是用访问器访问属性的时候编译器会做预编译处理，访问不存在的属性编译器会报错，使用KVC方式的时候如果有错误只能在运行的时候才能发现。</p>
+</li>
+<li><p>相比访问器KVC 效率会低一点。</p>
+</li>
+<li><p>KVC 可以访问对象的私有属性，修改只读属性</p>
+</li>
+<li><p>KVC 在字典转模型，集合类操作方面有着普通访问器不能提供的功能</p>
+</li>
+</ul>
+<p>总而言之 KVC的特点是在运行时访问，可以访问对象私有属性和修改只读属性，在字典转模型，集合类操作方面十分便捷。</p>
+<p>首先先列下关键的一些方法,后续都会对这些方法进行介绍：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">//通过KeyPath来取值</span></span><br><span class="line">- (<span class="keyword">nullable</span> <span class="type">id</span>)valueForKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br><span class="line"></span><br><span class="line"><span class="comment">//通过KeyPath来设值</span></span><br><span class="line">- (<span class="type">void</span>)setValue:(<span class="keyword">nullable</span> <span class="type">id</span>)value forKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br><span class="line"></span><br><span class="line"> <span class="comment">//直接通过Key来取值 </span></span><br><span class="line">- (<span class="keyword">nullable</span> <span class="type">id</span>)valueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"></span><br><span class="line"><span class="comment">//通过Key来设值</span></span><br><span class="line">- (<span class="type">void</span>)setValue:(<span class="keyword">nullable</span> <span class="type">id</span>)value forKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"></span><br><span class="line"><span class="comment">//默认返回YES，表示如果没有找到会按照一定的规则进行搜索，设置成NO如果没有找到就当作没有，会抛出异常。</span></span><br><span class="line">+ (<span class="type">BOOL</span>)accessInstanceVariablesDirectly;</span><br><span class="line"></span><br><span class="line"><span class="comment">//KVC提供属性值正确性验证的API，它可以用来检查set的值是否正确，为不正确的值做一个替换值或者拒绝设置新值并返回错误原因。但是注意这个方法是不会自动调用的需要我们手动调用。</span></span><br><span class="line">- (<span class="type">BOOL</span>)validateValue:(<span class="keyword">inout</span> <span class="type">id</span> __<span class="keyword">nullable</span> * __<span class="keyword">nonnull</span>)ioValue forKey:(<span class="built_in">NSString</span> *)inKey error:(<span class="keyword">out</span> <span class="built_in">NSError</span> **)outError;</span><br><span class="line"></span><br><span class="line"><span class="comment">//如果Key不存在，且没有KVC无法搜索到任何和Key有关的字段或者属性，则会调用这个方法，默认是抛出异常。</span></span><br><span class="line">- (<span class="keyword">nullable</span> <span class="type">id</span>)valueForUndefinedKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"></span><br><span class="line"><span class="comment">//和上一个方法一样，但这个方法是设值，前面一个是取值。</span></span><br><span class="line">- (<span class="type">void</span>)setValue:(<span class="keyword">nullable</span> <span class="type">id</span>)value forUndefinedKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"></span><br><span class="line"><span class="comment">//如果你在SetValue方法时面给Value传nil，则会调用这个方法</span></span><br><span class="line">- (<span class="type">void</span>)setNilValueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 容器类型相关</span></span><br><span class="line">- (<span class="built_in">NSMutableArray</span> *)mutableArrayValueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line">- (<span class="built_in">NSMutableOrderedSet</span> *)mutableOrderedSetValueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line">- (<span class="built_in">NSMutableSet</span> *)mutableSetValueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"></span><br><span class="line">- (<span class="built_in">NSMutableArray</span> *)mutableArrayValueForKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br><span class="line">- (<span class="built_in">NSMutableOrderedSet</span> *)mutableOrderedSetValueForKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br><span class="line">- (<span class="built_in">NSMutableSet</span> *)mutableSetValueForKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 传入key数组, 返回一个成员变量名和变量值的键值对组成的字典(可用于模型转字典)</span></span><br><span class="line">- (<span class="built_in">NSDictionary</span>&lt;<span class="built_in">NSString</span> *, <span class="type">id</span>&gt; *)dictionaryWithValuesForKeys:(<span class="built_in">NSArray</span>&lt;<span class="built_in">NSString</span> *&gt; *)keys;</span><br><span class="line"><span class="comment">// 字典转模型</span></span><br><span class="line">- (<span class="type">void</span>)setValuesForKeysWithDictionary:(<span class="built_in">NSDictionary</span>&lt;<span class="built_in">NSString</span> *, <span class="type">id</span>&gt; *)keyedValues;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>下面是KVC 关键用法的总结：</p>
+<h6 id="1-设置和访问策略及访问私有属性和可读属性"><a href="#1-设置和访问策略及访问私有属性和可读属性" class="headerlink" title="1. 设置和访问策略及访问私有属性和可读属性"></a>1. 设置和访问策略及访问私有属性和可读属性</h6><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&lt;Foundation/Foundation.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Teacher</span> : <span class="title">NSObject</span></span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>, <span class="keyword">readonly</span>) <span class="built_in">NSString</span> *readonlyValue;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#import <span class="string">&quot;Teacher.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Teacher</span> ()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">assign</span> ,<span class="keyword">readwrite</span>) <span class="built_in">NSInteger</span>      age;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span> ,<span class="keyword">readwrite</span>) <span class="built_in">NSString</span>       *name;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">assign</span> ,<span class="keyword">readwrite</span>) <span class="type">BOOL</span>           male;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">assign</span> ,<span class="keyword">readwrite</span>) <span class="type">BOOL</span>           isTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Teacher</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="built_in">NSString</span> *)description &#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@&quot;name = %@ \</span></span><br><span class="line"><span class="string">                                        age  = %ld \</span></span><br><span class="line"><span class="string">                               readOnlyValue = %@ \</span></span><br><span class="line"><span class="string">                                     is Male = %d&quot;</span>,</span><br><span class="line">                                     <span class="keyword">self</span>.name, (<span class="type">long</span>)<span class="keyword">self</span>.age, <span class="keyword">self</span>.readonlyValue, <span class="keyword">self</span>.male];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> main(<span class="type">int</span> argc, <span class="keyword">const</span> <span class="type">char</span> * argv[]) &#123;</span><br><span class="line">    <span class="keyword">@autoreleasepool</span> &#123;</span><br><span class="line">    </span><br><span class="line">        Teacher *teacher = [Teacher new];</span><br><span class="line">        [teacher setValue:<span class="string">@&quot;linxiaohai&quot;</span> forKey:<span class="string">@&quot;name&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        [teacher setValue:<span class="string">@&quot;linxiaohai1&quot;</span> forKey:<span class="string">@&quot;_name&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//修改NSInteger要转换成NSNumber*</span></span><br><span class="line">        [teacher setValue:@(<span class="number">29</span>) forKey:<span class="string">@&quot;age&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//修改BOOL要转换成NSNumber*</span></span><br><span class="line">        [teacher setValue:@(<span class="literal">YES</span>) forKey:<span class="string">@&quot;male&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        [teacher setValue:@(<span class="literal">NO</span>) forKey:<span class="string">@&quot;_male&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//修改只读属性</span></span><br><span class="line">        [teacher setValue:<span class="string">@&quot;This is a readOnly Value&quot;</span> forKey:<span class="string">@&quot;readonlyValue&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        [teacher setValue:<span class="string">@&quot;This is a readOnly Value 2&quot;</span> forKey:<span class="string">@&quot;_readonlyValue&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//如果没有找到将会按照_is&lt;Key&gt; isKey 方式继续查找 </span></span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;Test: %d&quot;</span>, [[teacher valueForKey:<span class="string">@&quot;test&quot;</span>] boolValue]);</span><br><span class="line">        [teacher setValue:@(<span class="literal">YES</span>) forKey:<span class="string">@&quot;test&quot;</span>];</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>,teacher);</span><br><span class="line">        <span class="built_in">NSLog</span>(<span class="string">@&quot;Test: %d&quot;</span>, [[teacher valueForKey:<span class="string">@&quot;test&quot;</span>] boolValue]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">860598</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] name = linxiaohai age= <span class="number">0</span> readOnlyValue = (null)   is Male = <span class="number">0</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">860744</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] name = linxiaohai age= <span class="number">29</span> readOnlyValue = (null)  is Male = <span class="number">0</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">860916</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] name = linxiaohai age= <span class="number">29</span> readOnlyValue = (null)  is Male = <span class="number">0</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">861087</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] name = linxiaohai age= <span class="number">29</span> readOnlyValue = (null)  is Male = <span class="number">1</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">861213</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] name = linxiaohai age= <span class="number">29</span> readOnlyValue = This is a readOnly Value is Male = <span class="number">1</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">861348</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] name = linxiaohai age= <span class="number">29</span> readOnlyValue = This is a readOnly Value <span class="number">2</span> is Male = <span class="number">1</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">861422</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] male: <span class="number">1</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">877241</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] ===================================================</span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">877501</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] Test: <span class="number">0</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">877765</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] name = linxiaohai  age= <span class="number">29</span> readOnlyValue = This is a readOnly Value <span class="number">2</span> is Male = <span class="number">1</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">877824</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] Test: <span class="number">1</span></span><br><span class="line"><span class="attribute">2019</span>-<span class="number">06</span>-<span class="number">21</span> <span class="number">11</span>:<span class="number">27</span>:<span class="number">36</span>.<span class="number">877867</span>+<span class="number">0800</span> KVC-Demo[<span class="number">42518</span>:<span class="number">5605320</span>] ===================================================</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>-(void)setValue:(id)value forKey:(NSString *)key 规则：</li>
+</ul>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">首先搜索 setter 方法，有就直接赋值。</span><br><span class="line">如果上面的 setter 方法没有找到，再检查类方法+ (BOOL)accessInstanceVariablesDirectly</span><br><span class="line">返回 NO，则执行<span class="built_in">set</span>Value：<span class="keyword">for</span>UNdefinedKey：</span><br><span class="line">返回 YES，则按_<span class="variable">&lt;key&gt;</span>，_<span class="variable">&lt;isKey&gt;</span>，<span class="variable">&lt;key&gt;</span>，<span class="variable">&lt;isKey&gt;</span>的顺序搜索[实例变量]注意这里是搜索实例变量，不是属性。</span><br><span class="line">还没有找到的话，就调用<span class="built_in">set</span>Value:<span class="keyword">for</span>UndefinedKey:</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">总结来说就是KVC设值的顺序如下： <span class="function"><span class="title">setKey</span> -&gt;</span> _<span class="function"><span class="title">key</span> -&gt;</span> _<span class="function"><span class="title">isKey</span> -&gt;</span> <span class="function"><span class="title">key</span> -&gt;</span> isKey</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>-(id)valueForKey:(NSString *)key 规则</li>
+</ul>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">* 首先查找 getter 方法，找到直接调用。如果是 bool、<span class="keyword">int</span>、float 等基本数据类型，会做 NSNumber 的转换。</span><br><span class="line">* 如果没查到，再检查类方法+ (BOOL)accessInstanceVariablesDirectly</span><br><span class="line">* 返回 NO，则执行valueForUNdefinedKey:</span><br><span class="line">* 返回 YES，则按_<span class="symbol">&lt;key&gt;</span>,_is<span class="symbol">&lt;Key&gt;</span>,<span class="symbol">&lt;key&gt;</span>,<span class="keyword">is</span><span class="symbol">&lt;Key&gt;</span>的顺序搜索实例变量。</span><br><span class="line">* 如果没有则查找countOf<span class="symbol">&lt;Key&gt;</span>,objectIn<span class="symbol">&lt;Key&gt;</span>AtIndex或<span class="symbol">&lt;Key&gt;</span>AtIndexes格式的方法，如果countOf<span class="symbol">&lt;Key&gt;</span>方法和另外两个方法中的一个被找到，那么就会返回一个可以响应NSArray所有方法的代理集合</span><br><span class="line">* 还没找到则查找countOf<span class="symbol">&lt;Key&gt;</span>，enumeratorOf<span class="symbol">&lt;Key&gt;</span>,memberOf<span class="symbol">&lt;Key&gt;</span>格式的方法，如果这三个方法都找到，那么就返回一个可以响应NSSet所的方法的代理集合。</span><br><span class="line">* 还没有找到的话，调用valueForUndefinedKey:</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">总结来说就是KVC取值的顺序如下： <span class="function"><span class="title">getKey</span> -&gt;</span> _<span class="function"><span class="title">key</span> -&gt;</span> _<span class="function"><span class="title">isKey</span> -&gt;</span> <span class="function"><span class="title">key</span> -&gt;</span> isKey</span><br><span class="line">-&gt; [<span class="function"><span class="title">countOf</span>&lt;Key&gt; objectIn&lt;Key&gt;AtIndex &lt;Key&gt;AtIndexes] -&gt;</span> [countOf&lt;Key&gt;，enumeratorOf&lt;Key&gt;,memberOf&lt;Key&gt;]</span><br></pre></td></tr></table></figure>
+
+<p>keyPath 用法：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line"><span class="symbol">Teacher</span> *teacher = [<span class="symbol">Teacher</span> new];</span><br><span class="line"><span class="symbol">Student</span> *student = [<span class="symbol">Student</span> new];</span><br><span class="line">[student setValue:@<span class="string">&quot;Jimmy&quot;</span> forKey:@<span class="string">&quot;name&quot;</span>];</span><br><span class="line">[teacher setValue:student forKey:@<span class="string">&quot;student&quot;</span>];</span><br><span class="line"><span class="symbol">NSString</span> *studentName = [teacher valueForKeyPath:@<span class="string">&quot;student.name&quot;</span>];</span><br><span class="line"><span class="symbol">NSLog</span>(@<span class="string">&quot;Student name: %@&quot;</span>,studentName);</span><br><span class="line">[teacher setValue:@<span class="string">&quot;linxiaohai&quot;</span> forKeyPath:@<span class="string">&quot;student.name&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<h6 id="2-异常处理"><a href="#2-异常处理" class="headerlink" title="2. 异常处理"></a>2. 异常处理</h6><p>如果都没找到对应的key就会调用setValue:forUndefinedKey: 和valueForUndefinedKey:<br>下面是一个例子：</p>
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">增加</span><br><span class="line">- (void)setValue:<span class="built_in">(id</span>)<span class="keyword">value</span> forUndefinedKey:(NSString *<span class="built_in">)key</span> &#123;</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">[key</span> isEqualToString:@<span class="string">&quot;undefineKey&quot;</span>]) &#123;</span><br><span class="line">        NSLog(@<span class="string">&quot;=========&gt; %@&quot;</span>,<span class="keyword">value</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">在调用[teacher setValue:@<span class="string">&quot;valueForUndefineKey&quot;</span> forKey:@<span class="string">&quot;undefineKey&quot;</span>] 的时候就会打出如下log</span><br><span class="line"></span><br><span class="line">=========&gt; valueForUndefineKey</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">增加：</span><br><span class="line">- <span class="built_in">(id</span>)valueForUndefinedKey:(NSString *<span class="built_in">)key</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> [NSString stringWithFormat:@<span class="string">&quot;This is A default Value for %@&quot;</span><span class="built_in">,key</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">在调用</span><br><span class="line">NSLog(@<span class="string">&quot;Test: %@&quot;</span>, [teacher valueForKey:@<span class="string">&quot;undefineKey&quot;</span>]); 就会打出如下Log:</span><br><span class="line"></span><br><span class="line">Test: This <span class="literal">is</span> A <span class="keyword">default</span> Value <span class="keyword">for</span> undefineKey</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其他API</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">NSMutableArray</span> *)mutableArrayValueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"><span class="comment">// 这是集合操作的API，里面还有一系列这样的API，如果属性是一个NSMutableArray，那么可以用这个方法来返回</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果你在setValue方法时面给Value传nil，则会调用这个方法</span></span><br><span class="line">- (<span class="type">void</span>)setNilValueForKey:(<span class="built_in">NSString</span> *)key;</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-字典转模型"><a href="#3-字典转模型" class="headerlink" title="3. 字典转模型"></a>3. 字典转模型</h6><p>使用字典来初始化模型</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">NSDictionary *catogiresDic = @&#123;</span><br><span class="line"><span class="meta">@<span class="string">&quot;id&quot;</span> :@<span class="number">1</span>,</span></span><br><span class="line"><span class="meta">@<span class="string">&quot;image&quot;</span>:@<span class="string">&quot;@www.iPhone.com&quot;</span>,</span></span><br><span class="line"><span class="meta">@<span class="string">&quot;name&quot;</span>:@<span class="string">&quot;iPhone&quot;</span>,</span></span><br><span class="line"><span class="meta">@<span class="string">&quot;price&quot;</span>:@<span class="string">&quot;100.03&quot;</span>&#125;;</span></span><br><span class="line">CategoryList *catogires = [[CategoryList alloc] init];</span><br><span class="line">[catogires setValuesForKeysWithDictionary:catogiresDic];</span><br></pre></td></tr></table></figure>
+
+<p>通过key的集合来从一个model中取出值形成一个字典</p>
+<figure class="highlight mel"><table><tr><td class="code"><pre><span class="line">NSDictionary *value = [catogires dictionaryWithValuesForKeys:@[@&quot;name<span class="string">&quot;,@&quot;</span><span class="keyword">image</span><span class="string">&quot;]];</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="4-集合操作"><a href="#4-集合操作" class="headerlink" title="4. 集合操作"></a>4. 集合操作</h6><p>KVC对于数组而言最大的功能还是获取集合类的 count，max，min，avg，sum 这是一个很好用的功能</p>
+<p>集合操作的keyPath整体格式如下图所示:</p>
+<p><img src="/2019/07/14/iOS-KVC-KVO/00001.png"></p>
+<p>左边是当前对象中待操作的集合实例对象，如果是针对自身的某个属性做操作，则可以省略，”@”操作符右边的是需要操作的属性。如果操作符是count的话右边也可以省略，这时候相当于针对当前数量统计。</p>
+<ul>
+<li><strong><strong>简单运算符</strong></strong></li>
+</ul>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;count of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.@count&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;count of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.@count.price&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;min of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.@min.price&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;avg of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.@max.price&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;sum of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.@sum.price&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;avg of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.@avg.price&quot;</span>])</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果自身是一NSNumber数组的话右边的可以为self，表示针对的是自身</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;count of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;@count&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;count of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;@count.self&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;min of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.self&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;avg of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.self&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;sum of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.self&quot;</span>])</span>;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;avg of book price : %@&quot;</span>,[<span class="params">student</span> <span class="params">valueForKeyPath</span>:@<span class="string">&quot;bookList.self&quot;</span>])</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>对象运算符</strong></strong></li>
+</ul>
+<p>通过这个特性能够一个对象集合的所有某个特定字端的值组成一个数组</p>
+<p>一共有两种：</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@distinctUnionOfObjects</span></span><br><span class="line"><span class="variable">@unionOfObjects</span></span><br></pre></td></tr></table></figure>
+<p>它们的返回值都是NSArray，区别是前者返回的元素都是唯一的，是去重以后的结果；后者返回的元素是全集。例子如下：</p>
+<figure class="highlight gherkin"><table><tr><td class="code"><pre><span class="line">NSArray<span class="symbol">*</span> arrDistinct = [arrBooks valueForKeyPath:<span class="meta">@&quot;</span><span class="meta">@distinctUnionOfObjects.price&quot;];</span></span><br><span class="line">NSArray<span class="symbol">*</span> arrUnion = [arrBooks valueForKeyPath:<span class="meta">@&quot;</span><span class="meta">@unionOfObjects.price&quot;];</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>数组集合运算符</strong></strong></li>
+</ul>
+<p>这类操作符的操作对象内对象必须是数组&#x2F;集合，也就是元素为数组&#x2F;集合的数组&#x2F;集合：下面是一个简单例子：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line"><span class="symbol">IDLProductModel</span> *productA = [[<span class="symbol">IDLProductModel</span> alloc] init];</span><br><span class="line">productA.price = <span class="number">99.0</span>;</span><br><span class="line">productA.name = @<span class="string">&quot;iPod&quot;</span>;</span><br><span class="line">    </span><br><span class="line"><span class="symbol">IDLProductModel</span> *productB = [[<span class="symbol">IDLProductModel</span> alloc] init];</span><br><span class="line">productB.price = <span class="number">199000.0</span>;</span><br><span class="line">productB.name = @<span class="string">&quot;iMac&quot;</span>;</span><br><span class="line">    </span><br><span class="line"><span class="symbol">IDLProductModel</span> *productC = [[<span class="symbol">IDLProductModel</span> alloc] init];</span><br><span class="line">productC.price = <span class="number">2990.0</span>;</span><br><span class="line">productC.name = @<span class="string">&quot;iPhone&quot;</span>;</span><br><span class="line">    </span><br><span class="line"><span class="symbol">IDLProductModel</span> *productD = [[<span class="symbol">IDLProductModel</span> alloc] init];</span><br><span class="line">productD.price = <span class="number">1990.0</span>;</span><br><span class="line">productD.name = @<span class="string">&quot;iPhone&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="symbol">NSArray</span> *product = @[productA, productB, productC, productD];</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="type">NSArray</span> <span class="operator">*</span>distinctUnionOfArrays <span class="operator">=</span> [@[product, product] valueForKeyPath:@<span class="string">&quot;@distinctUnionOfArrays.price&quot;</span>];</span><br><span class="line"><span class="type">NSArray</span> <span class="operator">*</span>unionOfArrays <span class="operator">=</span> [@[product, product] valueForKeyPath:@<span class="string">&quot;@unionOfArrays.price&quot;</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">NSSet</span> <span class="operator">*</span>setA <span class="operator">=</span> [<span class="type">NSSet</span> setWithObjects:productA, productB, <span class="literal">nil</span>];</span><br><span class="line"><span class="type">NSSet</span> <span class="operator">*</span>setB <span class="operator">=</span> [<span class="type">NSSet</span> setWithObjects:productC, productD, <span class="literal">nil</span>];</span><br><span class="line"><span class="type">NSSet</span> <span class="operator">*</span><span class="keyword">set</span> <span class="operator">=</span> [<span class="type">NSSet</span> setWithObjects:setA, setB, <span class="literal">nil</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">NSSet</span> <span class="operator">*</span>allSet <span class="operator">=</span> [<span class="keyword">set</span> valueForKeyPath:@<span class="string">&quot;@distinctUnionOfSets.name&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<p>这种其实就是将操作对象的所有数据取出来，展开铺平为一个数组后，再对数组或者集合做操作。</p>
+<h6 id="5-键值验证"><a href="#5-键值验证" class="headerlink" title="5. 键值验证"></a>5. 键值验证</h6><p>KVC提供了验证Key对应的Value是否可用的方法，但是这个方法不会自动调用，必须在使用的时候手动调用：</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(BOOL)</span>validateValue:<span class="params">(inoutid*)</span>ioValue forKey:<span class="params">(NSString*)</span>inKey error:<span class="params">(outNSError**)</span>outError;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>如下例子:</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">BOOL</span>)validateValue:(<span class="keyword">inout</span> <span class="type">id</span>  _Nullable __autoreleasing *)ioValue forKey:(<span class="built_in">NSString</span> *)inKey error:(<span class="keyword">out</span> <span class="built_in">NSError</span> * _Nullable __autoreleasing *)outError &#123;</span><br><span class="line">    <span class="built_in">NSNumber</span> *age = *ioValue;</span><br><span class="line">    <span class="keyword">if</span> (age.integerValue == <span class="number">10</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">YES</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">NSNumber</span> *age = @<span class="number">10</span>;</span><br><span class="line"><span class="built_in">NSError</span>* error;</span><br><span class="line"><span class="built_in">NSString</span> *key = <span class="string">@&quot;age&quot;</span>;</span><br><span class="line"><span class="type">BOOL</span> isValid = [test validateValue:&amp;age forKey:key error:&amp;error];</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h6 id="6-其他用途"><a href="#6-其他用途" class="headerlink" title="6.其他用途"></a>6.其他用途</h6><ul>
+<li>指定数组中每个元素的执行方法,然后将新元素放到新数组中返回</li>
+</ul>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">NSArray</span> *arr = @[@<span class="string">&quot;iPod&quot;</span>, @<span class="string">&quot;iPhone&quot;</span>, @<span class="string">&quot;iMac&quot;</span>, @<span class="string">&quot;iPhone8 Plus&quot;</span>];</span><br><span class="line"><span class="attribute">NSArray</span> *uppercaseStrArr = [arr valueForKeyPath:@<span class="string">&quot;uppercaseString&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>抽取字典数组中的指定key</li>
+</ul>
+<figure class="highlight gherkin"><table><tr><td class="code"><pre><span class="line">NSArray <span class="symbol">*</span>array = <span class="meta">@[</span><span class="meta">@&#123;</span><span class="meta">@&quot;name&quot;</span> : <span class="meta">@&quot;iPod&quot;,</span>   <span class="meta">@&quot;price&quot;</span> : <span class="meta">@99</span> &#125;,</span><br><span class="line">                   <span class="meta">@&#123;</span><span class="meta">@&quot;name&quot;</span> : <span class="meta">@&quot;iPhone&quot;,</span> <span class="meta">@&quot;price&quot;</span> : <span class="meta">@199&#125;,</span></span><br><span class="line">                   <span class="meta">@&#123;</span><span class="meta">@&quot;name&quot;</span> : <span class="meta">@&quot;iPhone&quot;,</span> <span class="meta">@&quot;price&quot;</span> : <span class="meta">@299&#125;,</span></span><br><span class="line">                   <span class="meta">@&#123;</span><span class="meta">@&quot;name&quot;</span> : <span class="meta">@&quot;iPhone&quot;,</span> <span class="meta">@&quot;price&quot;</span> : <span class="meta">@299&#125;,</span></span><br><span class="line">                       ];</span><br><span class="line">NSLog(<span class="meta">@&quot;%</span><span class="meta">@&quot;,</span> [array valueForKeyPath:<span class="meta">@&quot;name&quot;]);//iPod,iPhone,iPhone,iPhone</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="KVO-—-Key-Value-Observer-键值观察"><a href="#KVO-—-Key-Value-Observer-键值观察" class="headerlink" title="KVO  —  Key Value Observer  键值观察"></a>KVO  —  Key Value Observer  键值观察</h5><h6 id="1-KVO-的基本使用"><a href="#1-KVO-的基本使用" class="headerlink" title="1. KVO 的基本使用"></a>1. KVO 的基本使用</h6><p>KVO 适合任何对象监听另一个对象的改变，这是一个对象与另外一个对象保持同步的一种方法。KVO 只能对属性做出反应，不会用来对方法或者动作做出反应</p>
+<p>为某个对象的属性添加观察者：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">[_person addObserver:<span class="keyword">self</span></span><br><span class="line">          forKeyPath:<span class="string">@&quot;age&quot;</span></span><br><span class="line">             options:<span class="built_in">NSKeyValueObservingOptionNew</span> | <span class="built_in">NSKeyValueObservingOptionOld</span> | <span class="built_in">NSKeyValueObservingOptionInitial</span>|<span class="built_in">NSKeyValueObservingOptionPrior</span></span><br><span class="line">             context:<span class="literal">nil</span>];</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>回调方法</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>observeValueForKeyPath:<span class="params">(NSString *)</span>keyPath</span><br><span class="line">                      ofObject:<span class="params">(id)</span>object</span><br><span class="line">                        change:<span class="params">(NSDictionary&lt;NSString *,id&gt; *)</span>change</span><br><span class="line">                        context:<span class="params">(void *)</span>context &#123;</span><br><span class="line">    NSLog<span class="params">(@<span class="string">&quot;%@对象的%@属性改变了：%@&quot;</span>,object,keyPath,change)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>移除观察者</p>
+<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">[<span class="variable language_">self</span>.person <span class="symbol">removeObserver:</span><span class="variable language_">self</span> <span class="symbol">forKeyPath:</span>@<span class="string">&quot;age&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<p>这里比较重要的是option这个参数：</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line">NSKeyValueObservingOptionNew = 0x01 change字典包括改变后的值</span><br><span class="line">NSKeyValueObservingOptionOld = 0x02 change字典包括改变前的值</span><br><span class="line">NSKeyValueObservingOptionInitial = 0x04 注册后立刻触发KVO通知</span><br><span class="line">NSKeyValueObservingOptionPrior = 0x08</span><br><span class="line">如果指定，则在每次修改属性时，会在修改通知被发送之前预先发送一条通知给观察者，</span><br><span class="line"><span class="section">这与-willChangeValueForKey:被触发的时间是相对应的。</span></span><br><span class="line">这样，在每次修改属性时，实际上是会发送两条通知。</span><br></pre></td></tr></table></figure>
+
+<h6 id="2-KVO-触发规则："><a href="#2-KVO-触发规则：" class="headerlink" title="2. KVO 触发规则："></a>2. KVO 触发规则：</h6><ul>
+<li>通过成员变量的setter方法&#x2F;或者通过KVC都可以触发KVO</li>
+<li>直接修改成员变量是不会触发KVC的，需要手动添加KVC才能触发。如何手动触发见下面部分。</li>
+</ul>
+<h6 id="3-设置相互关联的属性"><a href="#3-设置相互关联的属性" class="headerlink" title="3. 设置相互关联的属性"></a>3. 设置相互关联的属性</h6><p>假如有个 Person 类，类里有三个属性，fullName、firstName、lastName。这种情况如果需要观察名字的变化，就要分别添加 fullName、firstName、lastName 三次观察，非常麻烦。通过设置相互关联的属性就会在关联的属性发生变化的时候，另外的属性也受到通知。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Person</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSString</span> *firstName;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSString</span> *lastName;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSString</span> *fullName;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Person</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//在这里设置与fullName相关的依赖属性，外面一旦设置了这些依赖属性，fullName的观察者就会被触发</span></span><br><span class="line">+ (<span class="built_in">NSSet</span>&lt;<span class="built_in">NSString</span> *&gt; *)keyPathsForValuesAffectingFullName &#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="built_in">NSSet</span> setWithObjects:<span class="string">@&quot;firstName&quot;</span>,<span class="string">@&quot;lastName&quot;</span>, <span class="literal">nil</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line">[_person addObserver:<span class="keyword">self</span></span><br><span class="line">            forKeyPath:<span class="string">@&quot;fullName&quot;</span></span><br><span class="line">            options:<span class="built_in">NSKeyValueObservingOptionNew</span></span><br><span class="line">            context:<span class="literal">nil</span>];</span><br><span class="line"></span><br><span class="line">[_person setValue:<span class="string">@&quot;FistName&quot;</span> forKey:<span class="string">@&quot;fistName&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子中我们不论设置Person类的firstName或者lastName 都会触发 fullName 的观察。</p>
+<h6 id="4-手动KVO-禁用自动KVO"><a href="#4-手动KVO-禁用自动KVO" class="headerlink" title="4. 手动KVO (禁用自动KVO)"></a>4. 手动KVO (禁用自动KVO)</h6><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Target</span> : <span class="title">NSObject</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">int</span>)age;</span><br><span class="line">- (<span class="type">void</span>)setAge:(<span class="type">int</span>)theAge;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Target</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="type">id</span>)init &#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="variable language_">super</span> init];</span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">nil</span> != <span class="keyword">self</span>) &#123;</span><br><span class="line">        age = <span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">int</span>)age &#123;</span><br><span class="line">    <span class="keyword">return</span> age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)setAge:(<span class="type">int</span>)theAge &#123;</span><br><span class="line">    [<span class="keyword">self</span> willChangeValueForKey:<span class="string">@&quot;age&quot;</span>];</span><br><span class="line">    age = theAge;</span><br><span class="line">    [<span class="keyword">self</span> didChangeValueForKey:<span class="string">@&quot;age&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="type">BOOL</span>)automaticallyNotifiesObserversForKey:(<span class="built_in">NSString</span> *)key &#123;</span><br><span class="line">    <span class="keyword">if</span> ([key isEqualToString:<span class="string">@&quot;age&quot;</span>]) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> [<span class="variable language_">super</span> automaticallyNotifiesObserversForKey:key];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>需要手动实现属性的 setter 方法，并在设置操作的前后分别调用 willChangeValueForKey: 和 didChangeValueForKey方法</li>
+<li>实现类方法 automaticallyNotifiesObserversForKey，并在其中设置对该 key 不自动发送通知（返回 NO 即可）。这里要注意，对其它非手动实现的 key，要转交给 super 来处理。</li>
+</ol>
+<h6 id="5-查看某个对象有哪些属性被监听"><a href="#5-查看某个对象有哪些属性被监听" class="headerlink" title="5. 查看某个对象有哪些属性被监听"></a>5. 查看某个对象有哪些属性被监听</h6><p>如果我们想获取一个对象上有哪些观察者正在监听其属性的修改，则可以查看对象的observationInfo属性</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">id info = <span class="keyword">object</span>.observationInfo;</span><br><span class="line"><span class="constructor">NSLog(@<span class="string">&quot;%@&quot;</span>, [<span class="params">info</span> <span class="params">description</span>])</span>;</span><br></pre></td></tr></table></figure>
+
+<h6 id="6-KVO-原理："><a href="#6-KVO-原理：" class="headerlink" title="6.KVO 原理："></a>6.KVO 原理：</h6><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">KVO 是通过 isa-swizzling 实现的,当某个类的对象第一次被观察时，系统就会在运行期动态地创建该类的一个派生类，在这个派生类中做如下的几方面工作：</span><br><span class="line"></span><br><span class="line"><span class="number">1.</span> 重写基类中任何被观察属性的 <span class="keyword">setter</span> 方法，而通过重写就获得了 KVO 需要的通知机制</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)setName:(<span class="built_in">NSString</span> *)newName &#123;</span><br><span class="line">    [<span class="keyword">self</span> willChangeValueForKey:<span class="string">@&quot;name&quot;</span>];    <span class="comment">// KVO在调用存取方法之前总调用</span></span><br><span class="line">    [<span class="variable language_">super</span> setValue:newName forKey:<span class="string">@&quot;name&quot;</span>]; <span class="comment">// 调用父类的存取方法</span></span><br><span class="line">    [<span class="keyword">self</span> didChangeValueForKey:<span class="string">@&quot;name&quot;</span>];     <span class="comment">// KVO在调用存取方法之后总调用</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">KVO 在调用存取方法之前总是调用 willChangeValueForKey:，通知系统该 keyPath 的属性值即将变更。 当改变发生后，didChangeValueForKey: 被调用，通知系统该 keyPath 的属性值已经变更。 之后，observeValueForKey:ofObject:change:context: 也会被调用。</span><br><span class="line"></span><br><span class="line"><span class="number">2.</span> 让这个重写的类成为原来类的派生类：</span><br><span class="line"></span><br><span class="line">除了完成上面提到的第一步操作的同时派生类还重写了<span class="keyword">class</span> 方法以“欺骗”外部调用者它就是起初的那个类。然后系统将这个对象的 isa 指针指向这个新诞生的派生类，因此这个对象就成为该派生类的对象了，因而在该对象上对 <span class="keyword">setter</span> 的调用就会调用重写的 <span class="keyword">setter</span>，从而激活键值通知机制</span><br><span class="line"></span><br><span class="line"><span class="number">3.</span> 重写派生类的dealloc 方法释放资源</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h4 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h4><p>*<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/e5430487b9fb">KVO进阶——KVO实现探究</a></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/14/iOS-KVC-KVO/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/14/iOS-KVC-KVO/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/12/iOS-Runloop-总结/" title="iOS Runloop 总结" itemprop="url">iOS Runloop 总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-12T12:48:00.000Z" itemprop="datePublished"> Published 2019-07-12</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h6 id="一-概述"><a href="#一-概述" class="headerlink" title="**** 一.概述 ****"></a>**** 一.概述 ****</h6><p>一般来讲，开一个线程执行某项任务，在任务执行完成后线程就会退出。如果我们需要让线程能不退出一直常驻，随时处理事件这就需要消息循环来实现了。<br>Runloop 是 iOS中的消息循环，Android也有Looper&#x2F;Handler一套消息循环机制，这到底是啥，以前玩过单片机的小伙伴肯定记得很清楚，我们在配置完硬件，对各个部件进行初始化完毕后，都会在main中执行一个死循环，然后等待硬件中断，软件中断，在对应的中断函数中处理外部事件，其实这个死循环就是我们今天要介绍的Runloop，它会保持整个应用进程处于存活状态，然后在每个消息循环中处理各个事件。Runloop是我们平常看不见摸不着，但是又比不可少的一个系统组件。</p>
+<p>Runloop 的思想可以用下面的伪代码来表示：</p>
+<figure class="highlight sas"><table><tr><td class="code"><pre><span class="line">int mai<span class="meta">n</span>(void) &#123;</span><br><span class="line">    初始化();</span><br><span class="line">    <span class="keyword">while</span> (不满足退出条件) &#123;</span><br><span class="line">        休眠前处理待处理事件(<span class="keyword">message</span>);</span><br><span class="line">        睡眠ZZzzzz... 等待被事件唤醒</span><br><span class="line">        <span class="keyword">message</span> = 获取需要处理的事件();</span><br><span class="line">        处理事件(<span class="keyword">message</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>依赖NSRunloop的类和框架</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSTimer</span></span><br><span class="line"><span class="built_in">UIEvent</span></span><br><span class="line">autorelease</span><br><span class="line"><span class="built_in">NSObject</span>(<span class="built_in">NSDelaydPerforming</span>)</span><br><span class="line"><span class="built_in">NSObject</span>(<span class="built_in">NSThreadPerformAddtion</span>)</span><br><span class="line"><span class="built_in">CADisplayLink</span></span><br><span class="line"><span class="built_in">CATransition</span></span><br><span class="line"><span class="built_in">CAAnimation</span></span><br><span class="line">dispatch_get_main_queue()</span><br></pre></td></tr></table></figure>
+
+<h6 id="二-RunLoop-需要注意的点："><a href="#二-RunLoop-需要注意的点：" class="headerlink" title="**** 二.RunLoop 需要注意的点：****"></a>**** 二.RunLoop 需要注意的点：****</h6><ul>
+<li><p>CFRunLoopRef基于C线程安全，NSRunLoop基于CFRunLoopRef面向对象的API是不安全的.</p>
+</li>
+<li><p>RunLoop和线程的一一对应的，对应的方式是以key-value的方式保存在一个全局字典中，</p>
+</li>
+<li><p>主线程的 Runloop 会在应用启动的时候启动，其他线程的 Runloop需要我们手动创建并启动，RunLoop在第一次获取时创建，在线程结束时销毁，我们只能在一个线程的内部获取其RunLoop，并且苹果系统不允许我们直接创建RunLoop对象，只能通过以下几个函数来获取RunLoop:</p>
+  <figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">CFRunLoopRef</span> <span class="built_in">CFRunLoopGetCurrent</span>(<span class="type">void</span>)</span><br><span class="line"><span class="built_in">CFRunLoopRef</span> <span class="built_in">CFRunLoopGetMain</span>(<span class="type">void</span>)</span><br><span class="line">+(<span class="built_in">NSRunLoop</span> *)currentRunLoop</span><br><span class="line">+(<span class="built_in">NSRunLoop</span> *)mainRunLoop</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><strong>Runloop Mode</strong></strong>是 Source，Timer 和 Observer 的集合，不同的 Mode 把不同组的 Source，Timer 和 Observer隔绝开。Runloop 在某个时刻只能跑在一个Mode下，处理这一个Mode 当中的 Source，Timer 和 Observer,这也是为啥在滑动屏幕的时候有时候定时器会失效的原因，这个会在后续介绍。</p>
+</li>
+<li><p><strong><strong>Source0</strong></strong>是内部事件 UIEvent、CFSocket都是source0,它区别于source1，它不是基于Port的，它不能主动触发事件。我们需要先调用 CFRunLoopSourceSignal(source)，将这个 Source 标记为待处理，然后手动调用 CFRunLoopWakeUp(runloop) 来唤醒 RunLoop处理这个事件。</p>
+</li>
+<li><p><strong><strong>Source1</strong></strong>由RunLoop和内核管理，source1带有mach_port_t和一个回调，可以接收内核消息并触发回调，它能主动唤醒 RunLoop 的线程。</p>
+</li>
+<li><p>source0 有公开的 API 可供开发者调用，source1 却只能供系统使用</p>
+</li>
+<li><p><strong><strong>Timmer</strong></strong> 包含一个时间长度和一个回调。当其加入到 RunLoop 时，RunLoop会注册对应的时间点，当时间点到时，RunLoop会被唤醒以执行那个回调。<br>NSTimer的创建通常有两种方式，一种是以timer开头，另一种是以schedued开头，第一种是没有添加到Runloop中的，需要我们自己去手动调用代码添加，第二种会自动以NSDefaultRunLoopModeMode添加到当前线程RunLoop中。</p>
+</li>
+<li><p>一个 item 可以被同时加入多个 mode。但一个 item 被重复加入同一个 mode 时是不会有效果的。如果一个 mode 中一个 item 都没有，则 RunLoop 会直接退出，不进入循环</p>
+</li>
+</ul>
+<h6 id="三-RunLoop-关键源码解析："><a href="#三-RunLoop-关键源码解析：" class="headerlink" title="三. RunLoop 关键源码解析："></a><strong><strong>三. RunLoop 关键源码解析：</strong></strong></h6><h6 id="3-1-RunLoop-关键数据结构"><a href="#3-1-RunLoop-关键数据结构" class="headerlink" title="3.1 RunLoop 关键数据结构"></a><strong><strong>3.1 RunLoop 关键数据结构</strong></strong></h6><ul>
+<li><strong><strong>__CFRunLoop</strong></strong></li>
+</ul>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">struct <span class="variable">__CFRunLoop</span> &#123;</span><br><span class="line">    CFRuntimeBase <span class="variable">_base</span>;</span><br><span class="line">    pthread_mutex_t <span class="variable">_lock</span>;                             <span class="comment">// 用来锁对于 mode 列表的访问</span></span><br><span class="line">    <span class="variable">__CFPort</span> <span class="variable">_wakeUpPort</span>;                              <span class="comment">// 用来唤醒 run loop 的 mach port</span></span><br><span class="line">    Boolean <span class="variable">_unused</span>;</span><br><span class="line">    volatile <span class="variable">_per_run_data</span> *<span class="variable">_perRunData</span>;</span><br><span class="line">    pthread_t <span class="variable">_pthread</span>;                                <span class="comment">//对应的 pthread</span></span><br><span class="line">    uint32_t <span class="variable">_winthread</span>;                               <span class="comment">//Windows 下对应线程</span></span><br><span class="line">    CFMutableSetRef <span class="variable">_commonModes</span>;                      <span class="comment">//[存放 common mode 的集合]</span></span><br><span class="line">    CFMutableSetRef <span class="variable">_commonModeItems</span>;                  <span class="comment">//[每个 common mode 都有的 item (source, timer and observer) 集合]</span></span><br><span class="line">    CFRunLoopModeRef <span class="variable">_currentMode</span>;                     <span class="comment">//当前 run 的 mode</span></span><br><span class="line">    CFMutableSetRef <span class="variable">_modes</span>;                            <span class="comment">//这个 run loop 所有的 mode 集合</span></span><br><span class="line">    struct <span class="variable">_block_item</span> *<span class="variable">_blocks_head</span>;                  <span class="comment">//存放 CFRunLoopPerformBlock 函数添加的 block 的双向链表的头指针</span></span><br><span class="line">    struct <span class="variable">_block_item</span> *<span class="variable">_blocks_tail</span>;                  <span class="comment">//存放 CFRunLoopPerformBlock 函数添加的 block 的双向链表的尾指针</span></span><br><span class="line">    CFAbsoluteTime <span class="variable">_runTime</span>;                           <span class="comment">//总共的运行时间</span></span><br><span class="line">    CFAbsoluteTime <span class="variable">_sleepTime</span>;                         <span class="comment">//总共的睡眠时间</span></span><br><span class="line">    CFTypeRef <span class="variable">_counterpart</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>每个__CFRunLoop 会存储有：</p>
+<ul>
+<li><p>当前RunLoop所对应的线程****_pthread****</p>
+</li>
+<li><p>当前RunLoop所能运行的所有模式****_modes<strong><strong>以及它的锁</strong></strong>_lock****</p>
+</li>
+<li><p>当前RunLoop当前运行模式****_modes****</p>
+</li>
+<li><p>当前RunLoop当前运行模式****_currentMode****</p>
+</li>
+<li><p>当前RunLoop的公用模式信息****_commonModes<strong><strong>，</strong></strong>_commonModeItems****</p>
+</li>
+<li><p>当前RunLoop唤醒端口****_wakeUpPort****</p>
+</li>
+<li><p>添加到当前Runloop的Block信息****_blocks_head，_blocks_tail****</p>
+</li>
+<li><p>当前RunLoop相关的统计信息****_runTime，_sleepTime****</p>
+</li>
+<li><p><strong><strong>__CFRunLoopMode</strong></strong></p>
+</li>
+</ul>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">struct <span class="variable">__CFRunLoopMode</span> &#123;</span><br><span class="line">    CFRuntimeBase <span class="variable">_base</span>;</span><br><span class="line">    pthread_mutex_t <span class="variable">_lock</span>;	    <span class="comment">/* 一个mutex，锁mode里的各种操作。根据注释，需要runloop 的锁先锁上才能锁这个锁。 */</span></span><br><span class="line">    CFStringRef <span class="variable">_name</span>;          <span class="comment">/* 模式名称 */</span></span><br><span class="line">    Boolean <span class="variable">_stopped</span>;           <span class="comment">//是否停止了</span></span><br><span class="line">    char <span class="variable">_padding</span>[<span class="number">3</span>];</span><br><span class="line">    CFMutableSetRef <span class="variable">_sources0</span>;  <span class="comment">//Source0 集合，也就是非 port 的 source</span></span><br><span class="line">    CFMutableSetRef <span class="variable">_sources1</span>;  <span class="comment">//Source1 集合，也就是基于 port 的 source</span></span><br><span class="line">    CFMutableArrayRef <span class="variable">_observers</span>; <span class="comment">//Observer 集合</span></span><br><span class="line">    CFMutableArrayRef <span class="variable">_timers</span>;    <span class="comment">//Timer 集合</span></span><br><span class="line">    CFMutableDictionaryRef <span class="variable">_portToV1SourceMap</span>;  <span class="comment">//Key 是 port，value 是对应 source1 的字典</span></span><br><span class="line">    <span class="variable">__CFPortSet</span> <span class="variable">_portSet</span>;         <span class="comment">//所有 port 的集合</span></span><br><span class="line">    CFIndex <span class="variable">_observerMask</span>;        <span class="comment">//需要 observe 的事件的 mask</span></span><br><span class="line"><span class="meta">#if USE_DISPATCH_SOURCE_FOR_TIMERS</span></span><br><span class="line">    dispatch_source_t <span class="variable">_timerSource</span>;  <span class="comment">//用来实现 timer 的 GCD timer</span></span><br><span class="line">    dispatch_queue_t <span class="variable">_queue</span>;         <span class="comment">//放 _timerSource 的队列</span></span><br><span class="line">    Boolean <span class="variable">_timerFired</span>; <span class="comment">// _timerSource 是否被启动</span></span><br><span class="line">    Boolean <span class="variable">_dispatchTimerArmed</span>;  <span class="comment">//timer是否开启了</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#if USE_MK_TIMER_TOO</span></span><br><span class="line">    mach_port_t <span class="variable">_timerPort</span>;        <span class="comment">//使用 MK timer 时的端口</span></span><br><span class="line">    Boolean <span class="variable">_mkTimerArmed</span>;         <span class="comment">//timer 是否被开启</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#if DEPLOYMENT_TARGET_WINDOWS</span></span><br><span class="line">    DWORD <span class="variable">_msgQMask</span>;             </span><br><span class="line">    void (*<span class="variable">_msgPump</span>)(void);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    uint64_t <span class="variable">_timerSoftDeadline</span>; <span class="comment">/* //下一个计划启动的时间 */</span></span><br><span class="line">    uint64_t <span class="variable">_timerHardDeadline</span>; <span class="comment">/* 下一个最迟启动的时间（计划加上容忍延迟的时间）*/</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>__CFRunLoopMode 里面最关键的元素包括：****_sources0****,<strong><strong>_sources1</strong></strong>,<strong><strong>_observers</strong></strong>,<strong><strong>_timers</strong></strong>,<strong><strong>_portSet</strong></strong></p>
+<p>iOS 系统中定义了如下几种Mode:</p>
+<ul>
+<li><strong>NSDefaultRunLoopMode:</strong><br>NSDefaultRunLoopMode是Runloop的默认的运行模式，主线程在启动的时候就是运行在这个模式下的，NSTimer与NSURLConnection默认运行该模式下。</li>
+<li><strong>UITrackingRunLoopMode</strong>：在触摸滑动界面的时候会切换到这个模式用于保证界面滑动时不受其他 Mode 影响</li>
+<li><strong>UIInitializationRunLoopMode</strong>：在刚启动 App 时第进入的第一个 Mode，启动完成后就不再使用。</li>
+<li><strong>NSRunLoopCommonModes</strong>：这是一个 Mode 的集合。注册到这个 Mode 下后，无论当前 runLoop 运行哪个 mode ，事件都能得到执行。默认包括 NSDefaultRunLoopMode 和 NSEventTrackingRunLoopMode</li>
+</ul>
+<ul>
+<li><strong><strong>__CFRunLoopSource</strong></strong><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> __CFRunLoopSource &#123;</span><br><span class="line">    <span class="built_in">CFRuntimeBase</span> _base;</span><br><span class="line">    uint32_t _bits;     <span class="comment">//用于标记Signaled状态，source0只有在被标记为Signaled状态，才会被处理</span></span><br><span class="line">    pthread_mutex_t _lock;</span><br><span class="line">    <span class="built_in">CFIndex</span> _order;			<span class="comment">/* immutable */</span></span><br><span class="line">    <span class="built_in">CFMutableBagRef</span> _runLoops;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">	    <span class="built_in">CFRunLoopSourceContext</span> version0;	<span class="comment">/* immutable, except invalidation */</span></span><br><span class="line">        <span class="built_in">CFRunLoopSourceContext1</span> version1;	<span class="comment">/* immutable, except invalidation */</span></span><br><span class="line">    &#125; _context;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>Source0是App内部事件，由App自己管理的UIEvent、CFSocket都是source0。当一个source0事件准备执行的时候，必须要先把它标记为signal状态,标记信息位于****_bits****</p>
+<ul>
+<li><strong><strong>__CFRunLoopObserver</strong></strong></li>
+</ul>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">struct <span class="variable">__CFRunLoopObserver</span> &#123;</span><br><span class="line">    CFRuntimeBase <span class="variable">_base</span>;</span><br><span class="line">    pthread_mutex_t <span class="variable">_lock</span>;</span><br><span class="line">    CFRunLoopRef <span class="variable">_runLoop</span>;</span><br><span class="line">    CFIndex <span class="variable">_rlCount</span>;</span><br><span class="line">    CFOptionFlags <span class="variable">_activities</span>;		<span class="comment">/* immutable */</span></span><br><span class="line">    CFIndex <span class="variable">_order</span>;			<span class="comment">/* immutable */</span></span><br><span class="line">    CFRunLoopObserverCallBack <span class="variable">_callout</span>;	<span class="comment">/* immutable */</span></span><br><span class="line">    CFRunLoopObserverContext <span class="variable">_context</span>;	<span class="comment">/* immutable, except invalidation */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>__CFRunLoopObserver 里面最关键的字段是****_callout****，它会在通知发出的时候被回调。</p>
+<ul>
+<li><strong><strong>__CFRunLoopTimer</strong></strong></li>
+</ul>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">struct <span class="variable">__CFRunLoopTimer</span> &#123;</span><br><span class="line">    CFRuntimeBase <span class="variable">_base</span>;</span><br><span class="line">    uint16_t <span class="variable">_bits</span>;</span><br><span class="line">    pthread_mutex_t <span class="variable">_lock</span>;</span><br><span class="line">    CFRunLoopRef <span class="variable">_runLoop</span>;</span><br><span class="line">    CFMutableSetRef <span class="variable">_rlModes</span>;</span><br><span class="line">    CFAbsoluteTime <span class="variable">_nextFireDate</span>;</span><br><span class="line">    CFTimeInterval <span class="variable">_interval</span>;		<span class="comment">/* immutable */</span></span><br><span class="line">    CFTimeInterval <span class="variable">_tolerance</span>;          <span class="comment">/* mutable */</span></span><br><span class="line">    uint64_t <span class="variable">_fireTSR</span>;			<span class="comment">/* TSR units */</span></span><br><span class="line">    CFIndex <span class="variable">_order</span>;			<span class="comment">/* immutable */</span></span><br><span class="line">    CFRunLoopTimerCallBack <span class="variable">_callout</span>;	<span class="comment">/* immutable */</span></span><br><span class="line">    CFRunLoopTimerContext <span class="variable">_context</span>;	<span class="comment">/* immutable, except invalidation */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>__CFRunLoopTimer 里面主要包含了触发的时机，以及对应的回调方法。</p>
+<p>在针对RunLoop源码进行解析的时候大家可以针对下面这张图进行理解。下面的解析也是围绕者这张图来分析的：<br><img src="/2019/07/12/iOS-Runloop-%E6%80%BB%E7%BB%93/000011.png"></p>
+<h6 id="3-2-RunLoop-起点"><a href="#3-2-RunLoop-起点" class="headerlink" title="3.2 RunLoop 起点"></a><strong><strong>3.2 RunLoop 起点</strong></strong></h6><p>前面提到除了主线程外，其他我们自己创建的线程是没有RunLoop的，我们可以通过<strong><strong>currentRunLoop</strong></strong>来创建,而主线程的RunLoop是通过<strong><strong>mainRunLoop</strong></strong>创建的，最终会调用CFRunLoopRef 下的<strong><strong>CFRunLoopGetCurrent</strong></strong>，<strong><strong>CFRunLoopGetMain</strong></strong>：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">CFRunLoopRef</span> <span class="built_in">CFRunLoopGetMain</span>(<span class="type">void</span>) &#123;</span><br><span class="line">    CHECK_FOR_FORK();</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">CFRunLoopRef</span> __main = <span class="literal">NULL</span>; <span class="comment">// no retain needed</span></span><br><span class="line">    <span class="keyword">if</span> (!__main) __main = _CFRunLoopGet0(pthread_main_thread_np()); <span class="comment">// no CAS needed</span></span><br><span class="line">    <span class="keyword">return</span> __main;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">CFRunLoopRef</span> <span class="built_in">CFRunLoopGetCurrent</span>(<span class="type">void</span>) &#123;</span><br><span class="line">    CHECK_FOR_FORK();</span><br><span class="line">    <span class="built_in">CFRunLoopRef</span> rl = (<span class="built_in">CFRunLoopRef</span>)_CFGetTSD(__CFTSDKeyRunLoop);</span><br><span class="line">    <span class="keyword">if</span> (rl) <span class="keyword">return</span> rl;</span><br><span class="line">    <span class="keyword">return</span> _CFRunLoopGet0(pthread_self());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的这两个方法都会归到一处入口，****_CFRunLoopGet0****传入的是当前所在的线程：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">CF_EXPORT CFRunLoopRef <span class="constructor">_CFRunLoopGet0(<span class="params">pthread_t</span> <span class="params">t</span>)</span> &#123;</span><br><span class="line">    <span class="comment">//检查当前传入的线程对象，如果传入的不合法，就使用主线程替代t</span></span><br><span class="line">    <span class="keyword">if</span> (pthread<span class="constructor">_equal(<span class="params">t</span>, <span class="params">kNilPthreadT</span>)</span>) &#123;</span><br><span class="line">	    t = pthread<span class="constructor">_main_thread_np()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="constructor">__CFLock(&amp;<span class="params">loopsLock</span>)</span>;</span><br><span class="line">    <span class="comment">//如果存储RunLoop的字典不存在</span></span><br><span class="line">    <span class="keyword">if</span> (!__CFRunLoops) &#123;</span><br><span class="line">        <span class="constructor">__CFUnlock(&amp;<span class="params">loopsLock</span>)</span>;</span><br><span class="line">        <span class="comment">//创建主线程的RunLoop</span></span><br><span class="line">        CFMutableDictionaryRef dict = <span class="constructor">CFDictionaryCreateMutable(<span class="params">kCFAllocatorSystemDefault</span>, 0, NULL, &amp;<span class="params">kCFTypeDictionaryValueCallBacks</span>)</span>;</span><br><span class="line">        <span class="comment">//创建一个主线程的runloop</span></span><br><span class="line">        CFRunLoopRef mainLoop = <span class="constructor">__CFRunLoopCreate(<span class="params">pthread_main_thread_np</span>()</span>);</span><br><span class="line">        <span class="comment">//将主线程 以及 主线程runloop 加入到字典中</span></span><br><span class="line">        <span class="constructor">CFDictionarySetValue(<span class="params">dict</span>, <span class="params">pthreadPointer</span>(<span class="params">pthread_main_thread_np</span>()</span>), mainLoop);</span><br><span class="line">        <span class="keyword">if</span> (!<span class="constructor">OSAtomicCompareAndSwapPtrBarrier(NULL, <span class="params">dict</span>, (<span class="params">void</span> <span class="operator">*</span> <span class="params">volatile</span> <span class="operator">*</span>)</span>&amp;__CFRunLoops)) &#123;</span><br><span class="line">            <span class="constructor">CFRelease(<span class="params">dict</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="constructor">CFRelease(<span class="params">mainLoop</span>)</span>;</span><br><span class="line">        <span class="constructor">__CFLock(&amp;<span class="params">loopsLock</span>)</span>;</span><br><span class="line">        <span class="comment">//第一次进来的时候，不管是getMainRunloop还是get子线程的runloop，主线程的runloop总是会被创建</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//通过传入的线程去获取runloop</span></span><br><span class="line">    CFRunLoopRef loop = (CFRunLoopRef)<span class="constructor">CFDictionaryGetValue(<span class="params">__CFRunLoops</span>, <span class="params">pthreadPointer</span>(<span class="params">t</span>)</span>);</span><br><span class="line">    <span class="constructor">__CFUnlock(&amp;<span class="params">loopsLock</span>)</span>;</span><br><span class="line">    <span class="keyword">if</span> (!loop) &#123;</span><br><span class="line">        <span class="comment">//如果字典中没有则创建新的一个runloop后加入字典</span></span><br><span class="line">	    CFRunLoopRef newLoop = <span class="constructor">__CFRunLoopCreate(<span class="params">t</span>)</span>;</span><br><span class="line">        <span class="constructor">__CFLock(&amp;<span class="params">loopsLock</span>)</span>;</span><br><span class="line">	    loop = (CFRunLoopRef)<span class="constructor">CFDictionaryGetValue(<span class="params">__CFRunLoops</span>, <span class="params">pthreadPointer</span>(<span class="params">t</span>)</span>);</span><br><span class="line">        <span class="keyword">if</span> (!loop) &#123;</span><br><span class="line">            <span class="constructor">CFDictionarySetValue(<span class="params">__CFRunLoops</span>, <span class="params">pthreadPointer</span>(<span class="params">t</span>)</span>, newLoop);</span><br><span class="line">            loop = newLoop;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// don&#x27;t release run loops inside the loopsLock, because CFRunLoopDeallocate may end up taking it</span></span><br><span class="line">        <span class="constructor">__CFUnlock(&amp;<span class="params">loopsLock</span>)</span>;</span><br><span class="line">	    <span class="constructor">CFRelease(<span class="params">newLoop</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果传入线程就是当前线程</span></span><br><span class="line">    <span class="keyword">if</span> (pthread<span class="constructor">_equal(<span class="params">t</span>, <span class="params">pthread_self</span>()</span>)) &#123;</span><br><span class="line">        <span class="constructor">_CFSetTSD(<span class="params">__CFTSDKeyRunLoop</span>, (<span class="params">void</span> <span class="operator">*</span>)</span>loop, NULL);</span><br><span class="line">        <span class="keyword">if</span> (<span class="number">0</span><span class="operator"> == </span><span class="constructor">_CFGetTSD(<span class="params">__CFTSDKeyRunLoopCntr</span>)</span>) &#123;</span><br><span class="line">            <span class="comment">//注册一个回调，当线程销毁时，销毁对应的RunLoop</span></span><br><span class="line">            <span class="constructor">_CFSetTSD(<span class="params">__CFTSDKeyRunLoopCntr</span>, (<span class="params">void</span> <span class="operator">*</span>)</span>(PTHREAD_DESTRUCTOR_ITERATIONS-<span class="number">1</span>), (void (*)(void *))__CFFinalizeRunLoop);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return loop;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只要是第一次调用****_CFRunLoopGet0<strong><strong>，不管是getMainRunloop还是get子线程的runloop，主线程的runloop总是会被创建,创建出来的RunLoop会被添加到</strong></strong>__CFRunLoops<strong><strong>这个全局字典里面。这个字典以线程指针作为key，Runloop作为value进行存储的，后续创建的一系列的Runloop都会添加到这里。每次调用_CFRunLoopGet会先从这里看下是否有已经创建好的RunLoop如果有就直接返回，如果没有则新建一个，然后存到</strong></strong>__CFRunLoops****作为缓存。在最后的时候会判断如果传入线程就是当前线程，则会注册一个回调，当线程销毁时，销毁对应的RunLoop。</p>
+<h6 id="3-3-RunLoop-的创建"><a href="#3-3-RunLoop-的创建" class="headerlink" title="3.3 RunLoop 的创建"></a><strong><strong>3.3 RunLoop 的创建</strong></strong></h6><figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">static CFRunLoopRef __CFRunLoopCreate(pthread_t t) &#123;</span><br><span class="line">    CFRunLoopRef <span class="keyword">loop</span> = NULL;</span><br><span class="line">    CFRunLoopModeRef rlm;</span><br><span class="line">    uint32_t size = sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase);</span><br><span class="line">    <span class="keyword">loop</span> = (CFRunLoopRef)_CFRuntimeCreateInstance(kCFAllocatorSystemDefault, CFRunLoopGetTypeID(), size, NULL);</span><br><span class="line">    <span class="keyword">if</span> (NULL == <span class="keyword">loop</span>) &#123;</span><br><span class="line">	return NULL;</span><br><span class="line">    &#125;</span><br><span class="line">    (void)__CFRunLoopPushPerRunData(<span class="keyword">loop</span>);</span><br><span class="line">    __CFR<span class="function"><span class="title">unLoopLockInit</span>(&amp;<span class="keyword">loop</span>-&gt;</span>_lock);</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_wakeUpPort = __CFPortAllocate();</span><br><span class="line">    <span class="function"><span class="title">if</span> (CFPORT_NULL == <span class="keyword">loop</span>-&gt;</span>_wakeUpPort) HALT;</span><br><span class="line">    __CFRunLoopSetIgnoreWakeUps(<span class="keyword">loop</span>);</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_commonModes = CFSetCreateMutable(kCFAllocatorSystemDefault, <span class="number">0</span>, &amp;kCFTypeSetCallBacks);</span><br><span class="line">    CFS<span class="function"><span class="title">etAddValue</span>(<span class="keyword">loop</span>-&gt;</span>_commonModes, kCFRunLoopDefaultMode);</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_commonModeItems = NULL;</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_currentMode = NULL;</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_modes = CFSetCreateMutable(kCFAllocatorSystemDefault, <span class="number">0</span>, &amp;kCFTypeSetCallBacks);</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_blocks_head = NULL;</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_blocks_tail = NULL;</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_counterpart = NULL;</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_pthread = t;</span><br><span class="line">#<span class="keyword">if</span> DEPLOYMENT_TARGET_WINDOWS</span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_winthread = GetCurrentThreadId();</span><br><span class="line">#<span class="keyword">else</span></span><br><span class="line">    <span class="function"><span class="title">loop</span>-&gt;</span>_winthread = <span class="number">0</span>;</span><br><span class="line">#endif</span><br><span class="line">    rlm = __CFRunLoopFindMode(<span class="keyword">loop</span>, kCFRunLoopDefaultMode, <span class="literal">true</span>);</span><br><span class="line">    <span class="keyword">if</span> (NULL != rlm) __CFRunLoopModeUnlock(rlm);</span><br><span class="line">    return <span class="keyword">loop</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里没啥亮点。我们继续看下一步：</p>
+<h6 id="3-4-启动RunLoop"><a href="#3-4-启动RunLoop" class="headerlink" title="3.4 启动RunLoop"></a><strong><strong>3.4 启动RunLoop</strong></strong></h6><p>在什么都没有指定的时候，CFRunLoopRun默认是跑在<strong><strong>kCFRunLoopDefaultMode</strong></strong>模式下的</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="built_in">CFRunLoopRun</span>(<span class="type">void</span>) &#123;	<span class="comment">/* DOES CALLOUT */</span></span><br><span class="line">    int32_t result;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">//运行当前线程的Runloop在默认模式</span></span><br><span class="line">        result = <span class="built_in">CFRunLoopRunSpecific</span>(<span class="built_in">CFRunLoopGetCurrent</span>(), kCFRunLoopDefaultMode, <span class="number">1.0e10</span>, <span class="literal">false</span>);</span><br><span class="line">        CHECK_FOR_FORK();</span><br><span class="line">        <span class="comment">//CFRunLoopRun 函数不主动调用 CFRunLoopStop 函数（kCFRunLoopRunStopped 的情况）或者将所有事件源移除（kCFRunLoopRunFinished 的情况）是没有办法退出的</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (kCFRunLoopRunStopped != result &amp;&amp; kCFRunLoopRunFinished != result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>后续的各种run最终的入口都是归结到<strong><strong>CFRunLoopRunSpecific</strong></strong>：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">SInt32 <span class="constructor">CFRunLoopRunSpecific(CFRunLoopRef <span class="params">rl</span>, CFStringRef <span class="params">modeName</span>, CFTimeInterval <span class="params">seconds</span>, Boolean <span class="params">returnAfterSourceHandled</span>)</span> &#123;     <span class="comment">/* DOES CALLOUT */</span></span><br><span class="line">    <span class="constructor">CHECK_FOR_FORK()</span>;</span><br><span class="line">    <span class="comment">// 检查 run loop 是否正在销毁,如果销毁返回kCFRunLoopRunFinished，表示Runloop运行结束</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="constructor">__CFRunLoopIsDeallocating(<span class="params">rl</span>)</span>) return kCFRunLoopRunFinished;</span><br><span class="line">    <span class="constructor">__CFRunLoopLock(<span class="params">rl</span>)</span>;</span><br><span class="line">    <span class="comment">//根据modeName找到本次运行的mode</span></span><br><span class="line">    CFRunLoopModeRef currentMode = <span class="constructor">__CFRunLoopFindMode(<span class="params">rl</span>, <span class="params">modeName</span>, <span class="params">false</span>)</span>;</span><br><span class="line">    <span class="comment">/// 没有找到 mode 或者 mode 里面没有任何事件源的话，返回 kCFRunLoopRunFinished</span></span><br><span class="line">    <span class="keyword">if</span> (NULL<span class="operator"> == </span>currentMode<span class="operator"> || </span><span class="constructor">__CFRunLoopModeIsEmpty(<span class="params">rl</span>, <span class="params">currentMode</span>, <span class="params">rl</span>-&gt;<span class="params">_currentMode</span>)</span>) &#123;</span><br><span class="line">        Boolean did = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (currentMode) <span class="constructor">__CFRunLoopModeUnlock(<span class="params">currentMode</span>)</span>;</span><br><span class="line">        <span class="constructor">__CFRunLoopUnlock(<span class="params">rl</span>)</span>;</span><br><span class="line">        return did ? kCFRunLoopRunHandledSource : kCFRunLoopRunFinished;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 因为可以嵌套调用，所以在进入当前Mode之前保存一下之前的状态</span></span><br><span class="line">    volatile _per_run_data *previousPerRun = <span class="constructor">__CFRunLoopPushPerRunData(<span class="params">rl</span>)</span>;</span><br><span class="line">    CFRunLoopModeRef previousMode = rl-&gt;_currentMode;</span><br><span class="line">    rl-&gt;_currentMode = currentMode;</span><br><span class="line">    int32_t result = kCFRunLoopRunFinished;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 通知 observers: kCFRunLoopEntry, 进入 run loop</span></span><br><span class="line">    <span class="keyword">if</span> (currentMode-&gt;_observerMask &amp; kCFRunLoopEntry ) <span class="constructor">__CFRunLoopDoObservers(<span class="params">rl</span>, <span class="params">currentMode</span>, <span class="params">kCFRunLoopEntry</span>)</span>;</span><br><span class="line">    result = <span class="constructor">__CFRunLoopRun(<span class="params">rl</span>, <span class="params">currentMode</span>, <span class="params">seconds</span>, <span class="params">returnAfterSourceHandled</span>, <span class="params">previousMode</span>)</span>;</span><br><span class="line">    <span class="comment">// 通知 observers: `kCFRunLoopExit`, 退出 run loop</span></span><br><span class="line">    <span class="keyword">if</span> (currentMode-&gt;_observerMask &amp; kCFRunLoopExit ) <span class="constructor">__CFRunLoopDoObservers(<span class="params">rl</span>, <span class="params">currentMode</span>, <span class="params">kCFRunLoopExit</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 恢复之前的状态</span></span><br><span class="line">        <span class="constructor">__CFRunLoopModeUnlock(<span class="params">currentMode</span>)</span>;</span><br><span class="line">        <span class="constructor">__CFRunLoopPopPerRunData(<span class="params">rl</span>, <span class="params">previousPerRun</span>)</span>;</span><br><span class="line">    rl-&gt;_currentMode = previousMode;</span><br><span class="line">    <span class="constructor">__CFRunLoopUnlock(<span class="params">rl</span>)</span>;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在CFRunLoopRunSpecific中会通过传入的modeName，找到对应的CFRunLoopModeRef，并将其传入****__CFRunLoopRun<strong><strong>作为当前RunLoop要跑的模式。进入和退出</strong></strong>__CFRunLoopRun<strong><strong>会发出</strong></strong>kCFRunLoopEntry<strong><strong>，和</strong></strong>kCFRunLoopExit****通知外部的Observer Runloop将要开始，以及Runloop已经退出。</p>
+<p><strong><strong>__CFRunLoopRun</strong></strong>方法有点长，我省略了一些不必要的代码：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">static int32_t <span class="constructor">__CFRunLoopRun(CFRunLoopRef <span class="params">rl</span>, CFRunLoopModeRef <span class="params">rlm</span>, CFTimeInterval <span class="params">seconds</span>, Boolean <span class="params">stopAfterHandle</span>, CFRunLoopModeRef <span class="params">previousMode</span>)</span> &#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 通知 observers: kCFRunLoopBeforeTimers, 即将处理 timers</span></span><br><span class="line">        <span class="keyword">if</span> (rlm-&gt;_observerMask &amp; kCFRunLoopBeforeTimers) <span class="constructor">__CFRunLoopDoObservers(<span class="params">rl</span>, <span class="params">rlm</span>, <span class="params">kCFRunLoopBeforeTimers</span>)</span>;</span><br><span class="line">        <span class="comment">// 通知 observers: kCFRunLoopBeforeSources, 即将处理 sources</span></span><br><span class="line">        <span class="keyword">if</span> (rlm-&gt;_observerMask &amp; kCFRunLoopBeforeSources) <span class="constructor">__CFRunLoopDoObservers(<span class="params">rl</span>, <span class="params">rlm</span>, <span class="params">kCFRunLoopBeforeSources</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 执行加入当前runloop的block</span></span><br><span class="line">        <span class="constructor">__CFRunLoopDoBlocks(<span class="params">rl</span>, <span class="params">rlm</span>)</span>;</span><br><span class="line">        <span class="comment">// 处理 sources 0</span></span><br><span class="line">        Boolean sourceHandledThisLoop = <span class="constructor">__CFRunLoopDoSources0(<span class="params">rl</span>, <span class="params">rlm</span>, <span class="params">stopAfterHandle</span>)</span>;</span><br><span class="line">        <span class="keyword">if</span> (sourceHandledThisLoop) &#123;</span><br><span class="line">            <span class="comment">// 如果实际处理了 sources 0，再一次处理blocks</span></span><br><span class="line">            <span class="constructor">__CFRunLoopDoBlocks(<span class="params">rl</span>, <span class="params">rlm</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">        <span class="comment">// 通知 observers: kCFRunLoopBeforeWaiting, 即将进入等待（睡眠）</span></span><br><span class="line">        <span class="comment">// 注意到如果实际处理了 source 0 或者超时了，不会进入睡眠，所以不会通知</span></span><br><span class="line">        <span class="keyword">if</span> (!poll<span class="operator"> &amp;&amp; </span>(rlm-&gt;_observerMask &amp; kCFRunLoopBeforeWaiting)) <span class="constructor">__CFRunLoopDoObservers(<span class="params">rl</span>, <span class="params">rlm</span>, <span class="params">kCFRunLoopBeforeWaiting</span>)</span>;</span><br><span class="line">        <span class="comment">// 设置标志位，正在睡眠</span></span><br><span class="line">        <span class="constructor">__CFRunLoopSetSleeping(<span class="params">rl</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="constructor">__CFRunLoopSetIgnoreWakeUps(<span class="params">rl</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// user callouts now OK again</span></span><br><span class="line">        <span class="constructor">__CFRunLoopUnsetSleeping(<span class="params">rl</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 通知 observers: kCFRunLoopAfterWaiting, 即停止等待（被唤醒）</span></span><br><span class="line">        <span class="comment">// 注意实际处理过 source 0 或者已经超时的话，不会通知（因为没有睡）</span></span><br><span class="line">        <span class="keyword">if</span> (!poll<span class="operator"> &amp;&amp; </span>(rlm-&gt;_observerMask &amp; kCFRunLoopAfterWaiting)) <span class="constructor">__CFRunLoopDoObservers(<span class="params">rl</span>, <span class="params">rlm</span>, <span class="params">kCFRunLoopAfterWaiting</span>)</span>;</span><br><span class="line">        <span class="comment">// 被什么唤醒就处理什么：</span></span><br><span class="line">            handle_msg:;</span><br><span class="line">            <span class="constructor">__CFRunLoopSetIgnoreWakeUps(<span class="params">rl</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//// 不知道哪个端口唤醒的（或者根本没睡），啥也不干</span></span><br><span class="line">        <span class="keyword">if</span> (MACH_PORT_NULL<span class="operator"> == </span>livePort) &#123;</span><br><span class="line">            <span class="constructor">CFRUNLOOP_WAKEUP_FOR_NOTHING()</span>;</span><br><span class="line">            <span class="comment">// handle nothing</span></span><br><span class="line">            <span class="comment">//// 被 CFRunLoopWakeUp 函数弄醒的，啥也不干</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (livePort<span class="operator"> == </span>rl-&gt;_wakeUpPort) &#123;</span><br><span class="line">            <span class="constructor">CFRUNLOOP_WAKEUP_FOR_WAKEUP()</span>;</span><br><span class="line">            <span class="comment">// do nothing on Mac OS</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (modeQueuePort != MACH_PORT_NULL<span class="operator"> &amp;&amp; </span>livePort<span class="operator"> == </span>modeQueuePort) &#123;</span><br><span class="line">            <span class="constructor">CFRUNLOOP_WAKEUP_FOR_TIMER()</span>;</span><br><span class="line">            <span class="keyword">if</span> (!<span class="constructor">__CFRunLoopDoTimers(<span class="params">rl</span>, <span class="params">rlm</span>, <span class="params">mach_absolute_time</span>()</span>)) &#123;</span><br><span class="line">                <span class="comment">// Re-arm the next timer, because we apparently fired early</span></span><br><span class="line">                <span class="constructor">__CFArmNextTimerInMode(<span class="params">rlm</span>, <span class="params">rl</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 被 GCD 唤醒处理 GCD</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (livePort<span class="operator"> == </span>dispatchPort) &#123;</span><br><span class="line">            <span class="constructor">CFRUNLOOP_WAKEUP_FOR_DISPATCH()</span>;</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">            <span class="constructor">__CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__(<span class="params">msg</span>)</span>;</span><br><span class="line">            <span class="comment">//....</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">/// 被 sources 1 唤醒，处理 sources 1</span></span><br><span class="line">            <span class="constructor">CFRUNLOOP_WAKEUP_FOR_SOURCE()</span>;</span><br><span class="line">            <span class="comment">//.......</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//....</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (<span class="number">0</span><span class="operator"> == </span>retVal);</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    return retVal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>大体流程大家可以结合代码注释看下图中所示。</p>
+<ol>
+<li>通知将要处理Timmer事件</li>
+<li>通知将要处理Source事件</li>
+<li>处理Source0事件，在处理Source0事件之前都会调用****__CFRunLoopDoBlocks****处理下block。</li>
+<li>通知将要进入睡眠状态</li>
+<li>Runloop进入睡眠状态</li>
+<li>当有事件源给Runloop发送消息，表示有事件处理的时候，就会唤醒Runloop。</li>
+<li>唤醒Runloop。</li>
+<li>通知Runloop已经唤醒。</li>
+<li>根据事件源来调用不同的方法来执行处理，这里的事件源可以是Timmer,Source1，GCD事件。</li>
+<li>继续上面循环。</li>
+</ol>
+<h6 id="四-RunLoop-应用相关"><a href="#四-RunLoop-应用相关" class="headerlink" title="四 RunLoop 应用相关"></a><strong><strong>四 RunLoop 应用相关</strong></strong></h6><p><img src="/2019/07/12/iOS-Runloop-%E6%80%BB%E7%BB%93/0003.png"></p>
+<ul>
+<li><p><strong><strong>AutoreleasePool</strong></strong><br>RunLoop的进入的时候会调用objc_autoreleasePoolPush()创建新的自动释放池。<br>RunLoop的进入休眠的时候会调用objc_autoreleasePoolPop() 和 objc_autoreleasePoolPush() 销毁自动释放池，创建一个新的自动释放池。<br>RunLoop即将退出时会调用objc_autoreleasePoolPop() 释放自动自动释放池内对象。</p>
+</li>
+<li><p><strong><strong>GCD</strong></strong></p>
+</li>
+</ul>
+<p>当调用了dispatch_async(dispatch_get_main_queue())时libDispatch会向主线程RunLoop发送消息唤醒RunLoop，RunLoop从消息中获取block，并且在CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE回调里执行这个block。需要注意的是dispatch_async() 到其他线程是由libDispatch处理，并不涉及到RunLoop。</p>
+<ul>
+<li><strong><strong>支持异步方法调用</strong></strong></li>
+</ul>
+<p>我们使用 performSelector:onThread: 或者 performSelecter:afterDelay: 时，实际上系统会创建一个Timer并添加到当前线程的RunLoop中</p>
+<ul>
+<li><strong><strong>NSTimer, GCD Timer,CADisplayLink</strong></strong></li>
+</ul>
+<p>NSTimer 的执行必须依赖于 RunLoop，如果没有 RunLoop，NSTimer 是不会执行的。而GCD 的线程管理是通过系统来直接管理的。GCD Timer 是通过 dispatch port 给 RunLoop 发送消息，来使 RunLoop 执行相应的 block，如果所在线程没有 RunLoop，那么 GCD 会临时创建一个线程去执行 block，执行完之后再销毁掉，因此 GCD 的 Timer 是不依赖 RunLoop 的。CADisplayLink是一个执行频率和屏幕刷新相同的定时器，它也需要加入到RunLoop才能执行，通常情况下CADisaplayLink用于构建帧动画，看起来相对更加流畅。</p>
+<p>子线程启动定时器需要按照如下方式启动Runloop</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">dispatch_async</span>(dispatch_get_global_queue(<span class="number">0</span>, <span class="number">0</span>), ^&#123;</span><br><span class="line">    <span class="built_in">NSTimer</span>* timer = [<span class="built_in">NSTimer</span> timerWithTimeInterval:<span class="number">1</span> target:<span class="keyword">self</span> selector:<span class="keyword">@selector</span>(Timered:) userInfo:<span class="literal">nil</span> repeats:<span class="literal">YES</span>];</span><br><span class="line">    [[<span class="built_in">NSRunLoop</span> currentRunLoop] addTimer:timer forMode:<span class="built_in">NSRunLoopCommonModes</span>];</span><br><span class="line">    [[<span class="built_in">NSRunLoop</span> currentRunLoop] run];</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>滑动屏幕导致定时器失效</strong></strong></li>
+</ul>
+<p>一般而言</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">[<span class="built_in">NSTimer</span> scheduledTimerWithTimeInterval:<span class="number">2.0</span> target:<span class="keyword">self</span> selector:<span class="keyword">@selector</span>(run) userInfo:<span class="literal">nil</span> repeats:<span class="literal">YES</span>];</span><br></pre></td></tr></table></figure>
+<p>等效于</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSTimer</span> *timer = [<span class="built_in">NSTimer</span> timerWithTimeInterval:<span class="number">2.0</span> target:<span class="keyword">self</span> selector:<span class="keyword">@selector</span>(run) userInfo:<span class="literal">nil</span> repeats:<span class="literal">YES</span>];</span><br><span class="line">[[<span class="built_in">NSRunLoop</span> currentRunLoop] addTimer:timer forMode:<span class="built_in">NSRunLoopDefaultModes</span>];</span><br></pre></td></tr></table></figure>
+
+<p>当我们滚动ScrollView或者滑动屏幕的时候，RunLoop会切换到UITrackingRunLoopMode 模式，而定时器运行在defaultMode下面，系统一次只能处理一种模式的RunLoop，所以导致defaultMode下的定时器失效，所以这种情况的解决方式就是将定时器放到commonMode中，这样即使切换到UITrackingRunLoopMode也会被触发。</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[[NSRunLoop currentRunLoop]</span> addTimer:timer forMode:NSRunLoopCommonModes];</span><br></pre></td></tr></table></figure>
+
+<p>或者使用GCD定时器，它不会受RunLoop的影响：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">//</span> 获得队列</span><br><span class="line">dispatch_queue_t queue = dispatch_get_main_queue();</span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span> 创建一个定时器(dispatch_source_t本质还是个OC对象)</span><br><span class="line">self.timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, <span class="number">0</span>, <span class="number">0</span>, queue);</span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span> 设置定时器的各种属性（几时开始任务，每隔多长时间执行一次）</span><br><span class="line"><span class="regexp">//</span> GCD的时间参数，一般是纳秒（<span class="number">1</span>秒 == <span class="number">10</span>的<span class="number">9</span>次方纳秒）</span><br><span class="line"><span class="regexp">//</span> 比当前时间晚<span class="number">1</span>秒开始执行</span><br><span class="line">dispatch_time_t start = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(<span class="number">1.0</span> * NSEC_PER_SEC));</span><br><span class="line">    </span><br><span class="line"><span class="regexp">//</span>每隔一秒执行一次</span><br><span class="line">uint64_t interval = (uint64_t)(<span class="number">1.0</span> * NSEC_PER_SEC);</span><br><span class="line">dispatch_source_set_timer(self.timer, start, interval, <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line"><span class="regexp">//</span> 设置回调</span><br><span class="line">dispatch_source_set_event_handler(self.timer, ^&#123;</span><br><span class="line">&#125;);</span><br><span class="line">    </span><br><span class="line"><span class="regexp">//</span> 启动定时器</span><br><span class="line">dispatch_resume(self.timer);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>触摸事件</strong></strong></li>
+</ul>
+<p>当一个硬件事件发生后，首先由 IOKit.framework 生成一个 IOHIDEvent 事件并由 SpringBoard 接收。随后用 mach port 转发给需要的App进程。随后苹果注册的那个 Source1 就会触发回调，并调用 _UIApplicationHandleEventQueue() 进行应用内部的分发。<br>_UIApplicationHandleEventQueue() 会把 IOHIDEvent 处理并包装成 UIEvent 进行处理或分发，</p>
+<p><img src="/2019/07/12/iOS-Runloop-%E6%80%BB%E7%BB%93/00002.png"></p>
+<ul>
+<li><strong><strong>屏幕刷新</strong></strong></li>
+</ul>
+<p>在我们修改了View frame、或者调整了UI层级，或者手动设置了setNeedsDisplay&#x2F;setNeedsLayout之后，这个 UIView&#x2F;CALayer 就被标记为待处理，并被提交到一个全局的容器去，_ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv 这个Observer会监听RunLoop即将进入休眠和退出状态，一旦进入这两种状态则会遍历所有的UI更新并提交进行实际绘制更新。facebook推出的AsyncDisplayKit的机制和它也类似，它将UI排版和绘制运算尽可能放到后台，将UI的最终更新操作放到主线程，在主线程RunLoop中增加了一个Observer监听即将进入休眠和退出RunLoop两种状态,收到回调时遍历队列中的待处理任务更新界面。</p>
+<ul>
+<li><strong><strong>常驻线程</strong></strong></li>
+</ul>
+<p>我们有时候需要创建一个在后台一直存在的程序，来做一些需要频繁处理的任务</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">-</span> (void)<span class="selector-tag">run</span> &#123;</span><br><span class="line">    <span class="variable">@autoreleasepool</span>&#123;</span><br><span class="line">    <span class="comment">/*如果不加这句，会发现runloop创建出来就挂了，因为runloop如果没有CFRunLoopSourceRef事件源输入或者定时器，就会立马消亡。</span></span><br><span class="line"><span class="comment">      下面的方法给runloop添加一个NSPort，就是添加一个事件源，也可以添加一个定时器，或者observer，让runloop不会挂掉*/</span></span><br><span class="line">    <span class="selector-attr">[[NSRunLoop currentRunLoop]</span> <span class="selector-tag">addPort</span>:<span class="selector-attr">[NSPort port]</span> <span class="selector-tag">forMode</span>:<span class="selector-tag">NSDefaultRunLoopMode</span>];</span><br><span class="line">    </span><br><span class="line">    <span class="selector-attr">[[NSRunLoop currentRunLoop]</span> <span class="selector-tag">run</span>];</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当需要这个后台线程执行任务时，通过调用 [NSObject performSelector:onThread:..] 将这个任务扔到了后台线程的 RunLoop 中。</p>
+<p>AFNetworking 就是通过这种方式接收 Delegate 回调</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">+ (<span class="type">void</span>)networkRequestThreadEntryPoint:(<span class="type">id</span>)__unused object &#123;</span><br><span class="line">    <span class="keyword">@autoreleasepool</span> &#123;</span><br><span class="line">        [[<span class="built_in">NSThread</span> currentThread] setName:<span class="string">@&quot;AFNetworking&quot;</span>];</span><br><span class="line"></span><br><span class="line">        <span class="built_in">NSRunLoop</span> *runLoop = [<span class="built_in">NSRunLoop</span> currentRunLoop];</span><br><span class="line">         <span class="comment">// 这里主要是监听某个 port，目的是让RunLoop不会退出，确保该 Thread 不会被回收</span></span><br><span class="line">        [runLoop addPort:[<span class="built_in">NSMachPort</span> port] forMode:<span class="built_in">NSDefaultRunLoopMode</span>]; </span><br><span class="line">        [runLoop run];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="built_in">NSThread</span> *)networkRequestThread &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">NSThread</span> *_networkRequestThread = <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> oncePredicate;</span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;oncePredicate, ^&#123;</span><br><span class="line">        _networkRequestThread =</span><br><span class="line">        [[<span class="built_in">NSThread</span> alloc] initWithTarget:<span class="keyword">self</span></span><br><span class="line">                                selector:<span class="keyword">@selector</span>(networkRequestThreadEntryPoint:)</span><br><span class="line">                                  object:<span class="literal">nil</span>];</span><br><span class="line">        [_networkRequestThread start];</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> _networkRequestThread;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>观察Runloop状态</strong></strong></li>
+</ul>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">CFRunLoopObserverRef</span> observer = <span class="built_in">CFRunLoopObserverCreateWithHandler</span></span><br><span class="line">(kCFAllocatorDefault, kCFRunLoopBeforeWaiting, <span class="literal">true</span>, <span class="number">0</span>, ^(<span class="built_in">CFRunLoopObserverRef</span> observer, <span class="built_in">CFRunLoopActivity</span> _) &#123;</span><br><span class="line">    <span class="comment">// TODO here</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="built_in">CFRunLoopAddObserver</span>(<span class="built_in">CFRunLoopGetCurrent</span>(), observer, kCFRunLoopDefaultMode);</span><br><span class="line"><span class="built_in">CFRelease</span>(observer);</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/12/iOS-Runloop-总结/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/12/iOS-Runloop-总结/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/07/10/iOS-Block-总结/" title="iOS Block 总结" itemprop="url">iOS Block 总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-07-10T06:54:11.000Z" itemprop="datePublished"> Published 2019-07-10</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="Block源码地址"><a href="#Block源码地址" class="headerlink" title="Block源码地址"></a><a target="_blank" rel="noopener" href="https://opensource.apple.com/tarballs/libclosure/">Block源码地址</a></h4><h4 id="1-Block实质"><a href="#1-Block实质" class="headerlink" title="1. Block实质:"></a>1. Block实质:</h4><p><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/00001.png"></p>
+<p>Block从C语言角度实质上是能够捕获上下文变量的匿名函数，在创建的时候会捕获所需要的上下文局部自动变量到闭包内部。Block的底层是作为C语言源代码来处理的，支持Block的编译器会将含有Block语法的源代码转换为C语言编译器能处理的源代码，当作C语言源码来编译。Block和__block 最终都会转换为一个C语言的结构体对象。</p>
+<p>Block 在OC中的实现如下</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> Block_layout &#123;</span><br><span class="line">    <span class="type">void</span> *isa;</span><br><span class="line">    <span class="type">int</span> flags;</span><br><span class="line">    <span class="type">int</span> reserved;</span><br><span class="line">    <span class="type">void</span> (*invoke)(<span class="type">void</span> *, ...);</span><br><span class="line">    <span class="keyword">struct</span> Block_descriptor *descriptor;</span><br><span class="line">    <span class="comment">/* Imported variables. */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> Block_descriptor &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> <span class="type">int</span> reserved;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> <span class="type">int</span> size;</span><br><span class="line">    <span class="type">void</span> (*<span class="keyword">copy</span>)(<span class="type">void</span> *dst, <span class="type">void</span> *src);</span><br><span class="line">    <span class="type">void</span> (*dispose)(<span class="type">void</span> *);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/0000001.png"></p>
+<p>Block 需要了解如下几个方面：</p>
+<p>(1) 我们怎么把带有Block的 Objective C 代码转化为 C 代码<br>(2) 转换后的代码结构是怎样的<br>(3) Block对局部自动变量，局部静态变量，全局变量，对象，__block变量的捕获<br>(4) Block 与 __block 的存储特性<br>(5) Block的循环引用<br>(6) Block的内存布局</p>
+<p>我们使用的转换block的命令行如下：</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc <span class="selector-tag">main</span><span class="selector-class">.m</span> -o <span class="selector-tag">main</span>.cpp</span><br></pre></td></tr></table></figure>
+
+<p>一个简单常见的例子：</p>
+<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line"><span class="comment">#import &lt;UIKit/UIKit.h&gt;</span></span><br><span class="line"><span class="comment">#import &lt;Foundation/Foundation.h&gt;</span></span><br><span class="line">@interface Person : NSObject</span><br><span class="line">@property(nonatomic) <span class="keyword">int</span> testProperty;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation Person</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> globleIntValue = <span class="number">2</span>;</span><br><span class="line">static <span class="keyword">int</span> staticGlobleIntValue = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">int</span> main(<span class="keyword">int</span> argc, char * argv[]) &#123;</span><br><span class="line">    <span class="keyword">int</span> intValue = <span class="number">5</span>;</span><br><span class="line">    static <span class="keyword">int</span> staticIntValue = <span class="number">3</span>;</span><br><span class="line">    __block <span class="keyword">int</span> blockInt = <span class="number">5</span>;</span><br><span class="line">    Person *person = [Person new];</span><br><span class="line">    void (^blockTest)(<span class="keyword">int</span>) = ^ (<span class="keyword">int</span> value)&#123;</span><br><span class="line">        <span class="keyword">printf</span>(<span class="string">&quot;Hello %d&quot;</span>,value);</span><br><span class="line">        <span class="keyword">printf</span>(<span class="string">&quot;Hello %d&quot;</span>,intValue);</span><br><span class="line">        <span class="keyword">printf</span>(<span class="string">&quot;Hello %d&quot;</span>,staticIntValue);</span><br><span class="line">        <span class="keyword">printf</span>(<span class="string">&quot;Hello %d&quot;</span>,globleIntValue);</span><br><span class="line">        <span class="keyword">printf</span>(<span class="string">&quot;Hello %d&quot;</span>,staticGlobleIntValue);</span><br><span class="line">        <span class="keyword">printf</span>(<span class="string">&quot;Hello %d&quot;</span>,person.testProperty);</span><br><span class="line">        blockInt = <span class="number">34</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">    blockTest(<span class="number">2222</span>);   </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>转换后的代码：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="built_in">int</span> globleIntValue = <span class="number">2</span>;</span><br><span class="line">static <span class="built_in">int</span> staticGlobleIntValue = <span class="number">5</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> __Block_byref_blockInt_0 &#123;</span><br><span class="line">  void *__isa;</span><br><span class="line">__Block_byref_blockInt_0 *__forwarding;</span><br><span class="line"> <span class="built_in">int</span> __flags;</span><br><span class="line"> <span class="built_in">int</span> __size;</span><br><span class="line"> <span class="built_in">int</span> blockInt;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> __main_block_impl_0 &#123;</span><br><span class="line">  <span class="keyword">struct</span> __block_impl impl;</span><br><span class="line">  <span class="keyword">struct</span> __main_block_desc_0* Desc;</span><br><span class="line">  <span class="built_in">int</span> intValue;</span><br><span class="line">  <span class="built_in">int</span> *staticIntValue;</span><br><span class="line">  Person *person;</span><br><span class="line">  __Block_byref_blockInt_0 *blockInt; <span class="comment">// by ref</span></span><br><span class="line">  <span class="constructor">__main_block_impl_0(<span class="params">void</span> <span class="operator">*</span><span class="params">fp</span>, <span class="params">struct</span> <span class="params">__main_block_desc_0</span> <span class="operator">*</span><span class="params">desc</span>, <span class="params">int</span> <span class="params">_intValue</span>, <span class="params">int</span> <span class="operator">*</span><span class="params">_staticIntValue</span>, Person <span class="operator">*</span><span class="params">_person</span>, <span class="params">__Block_byref_blockInt_0</span> <span class="operator">*</span><span class="params">_blockInt</span>, <span class="params">int</span> <span class="params">flags</span>=0)</span> : <span class="built_in">int</span><span class="constructor">Value(<span class="params">_intValue</span>)</span>, static<span class="constructor">IntValue(<span class="params">_staticIntValue</span>)</span>, person(_person), block<span class="constructor">Int(<span class="params">_blockInt</span>-&gt;<span class="params">__forwarding</span>)</span> &#123;</span><br><span class="line">    impl.isa = &amp;_NSConcreteStackBlock;</span><br><span class="line">    impl.Flags = flags;</span><br><span class="line">    impl.FuncPtr = fp;</span><br><span class="line">    Desc = desc;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line">static void <span class="constructor">__main_block_func_0(<span class="params">struct</span> <span class="params">__main_block_impl_0</span> <span class="operator">*</span><span class="params">__cself</span>, <span class="params">int</span> <span class="params">value</span>)</span> &#123;</span><br><span class="line">  __Block_byref_blockInt_0 *blockInt = __cself-&gt;blockInt; <span class="comment">// bound by ref</span></span><br><span class="line">  <span class="built_in">int</span> intValue = __cself-&gt;intValue; <span class="comment">// bound by copy</span></span><br><span class="line">  <span class="built_in">int</span> *staticIntValue = __cself-&gt;staticIntValue; <span class="comment">// bound by copy</span></span><br><span class="line">  Person *person = __cself-&gt;person; <span class="comment">// bound by copy</span></span><br><span class="line"></span><br><span class="line">        printf(<span class="string">&quot;Hello %d&quot;</span>,value);</span><br><span class="line">        printf(<span class="string">&quot;Hello %d&quot;</span>,intValue);</span><br><span class="line">        printf(<span class="string">&quot;Hello %d&quot;</span>,(*staticIntValue));</span><br><span class="line">        printf(<span class="string">&quot;Hello %d&quot;</span>,globleIntValue);</span><br><span class="line">        printf(<span class="string">&quot;Hello %d&quot;</span>,staticGlobleIntValue);</span><br><span class="line">        printf(<span class="string">&quot;Hello %d&quot;</span>,((<span class="built_in">int</span> (*)(id, SEL))(void *)objc_msgSend)((id)person, sel<span class="constructor">_registerName(<span class="string">&quot;testProperty&quot;</span>)</span>));</span><br><span class="line">        (blockInt-&gt;__forwarding-&gt;blockInt) = <span class="number">34</span>;</span><br><span class="line">    &#125;</span><br><span class="line">static void <span class="constructor">__main_block_copy_0(<span class="params">struct</span> <span class="params">__main_block_impl_0</span><span class="operator">*</span><span class="params">dst</span>, <span class="params">struct</span> <span class="params">__main_block_impl_0</span><span class="operator">*</span><span class="params">src</span>)</span> &#123;<span class="constructor">_Block_object_assign((<span class="params">void</span><span class="operator">*</span>)</span>&amp;dst-&gt;person, (void*)src-&gt;person, <span class="number">3</span><span class="comment">/*BLOCK_FIELD_IS_OBJECT*/</span>);<span class="constructor">_Block_object_assign((<span class="params">void</span><span class="operator">*</span>)</span>&amp;dst-&gt;blockInt, (void*)src-&gt;blockInt, <span class="number">8</span><span class="comment">/*BLOCK_FIELD_IS_BYREF*/</span>);&#125;</span><br><span class="line"></span><br><span class="line">static void <span class="constructor">__main_block_dispose_0(<span class="params">struct</span> <span class="params">__main_block_impl_0</span><span class="operator">*</span><span class="params">src</span>)</span> &#123;<span class="constructor">_Block_object_dispose((<span class="params">void</span><span class="operator">*</span>)</span>src-&gt;person, <span class="number">3</span><span class="comment">/*BLOCK_FIELD_IS_OBJECT*/</span>);<span class="constructor">_Block_object_dispose((<span class="params">void</span><span class="operator">*</span>)</span>src-&gt;blockInt, <span class="number">8</span><span class="comment">/*BLOCK_FIELD_IS_BYREF*/</span>);&#125;</span><br><span class="line"></span><br><span class="line">static <span class="keyword">struct</span> __main_block_desc_0 &#123;</span><br><span class="line">  size_t reserved;</span><br><span class="line">  size_t Block_size;</span><br><span class="line">  void (*copy)(<span class="keyword">struct</span> __main_block_impl_0*, <span class="keyword">struct</span> __main_block_impl_0*);</span><br><span class="line">  void (*dispose)(<span class="keyword">struct</span> __main_block_impl_0*);</span><br><span class="line">&#125; __main_block_desc_0_DATA = &#123; <span class="number">0</span>, sizeof(<span class="keyword">struct</span> __main_block_impl_0), __main_block_copy_0, __main_block_dispose_0&#125;;</span><br><span class="line"><span class="built_in">int</span> main(<span class="built_in">int</span> argc, <span class="built_in">char</span><span class="operator"> * </span>argv<span class="literal">[]</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">int</span> intValue = <span class="number">5</span>;</span><br><span class="line">    static <span class="built_in">int</span> staticIntValue = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="constructor">__attribute__((<span class="params">__blocks__</span>(<span class="params">byref</span>)</span>)) __Block_byref_blockInt_0 blockInt = &#123;(void*)<span class="number">0</span>,(__Block_byref_blockInt_0 *)&amp;blockInt, <span class="number">0</span>, sizeof(__Block_byref_blockInt_0), <span class="number">5</span>&#125;;</span><br><span class="line"></span><br><span class="line">    Person *person = ((Person *(*)(id, SEL))(void *)objc_msgSend)((id)objc<span class="constructor">_getClass(<span class="string">&quot;Person&quot;</span>)</span>, sel<span class="constructor">_registerName(<span class="string">&quot;new&quot;</span>)</span>);</span><br><span class="line"></span><br><span class="line">    void (*blockTest)(<span class="built_in">int</span>) = ((void (*)(<span class="built_in">int</span>))&amp;<span class="constructor">__main_block_impl_0((<span class="params">void</span> <span class="operator">*</span>)</span>__main_block_func_0, &amp;__main_block_desc_0_DATA, intValue, &amp;staticIntValue, person, (__Block_byref_blockInt_0 *)&amp;blockInt, <span class="number">570425344</span>));</span><br><span class="line">    ((void (*)(__block_impl *, <span class="built_in">int</span>))((__block_impl *)blockTest)-&gt;FuncPtr)((__block_impl *)blockTest, <span class="number">2222</span>);</span><br><span class="line"></span><br><span class="line">    return <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/009.png"></p>
+<h4 id="2-Block定义"><a href="#2-Block定义" class="headerlink" title="2. Block定义"></a>2. <a target="_blank" rel="noopener" href="http://fuckingblocksyntax.com/">Block定义</a></h4><p>Block类型变量,一般结合用typedef定义：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> (^blockType)(<span class="type">int</span>,<span class="type">int</span>)</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, asign, <span class="keyword">readonly</span>)  blockType  block;</span><br></pre></td></tr></table></figure>
+<p>Block 变量可以作为自动变量，函数参数，函数返回值，静态局部变量，静态全局变量，全局变量<br>Block 定义：<br>block定义和普通的C语言函数定义类似，只不过多了一个^省去函数名称</p>
+<figure class="highlight dust"><table><tr><td class="code"><pre><span class="line"><span class="language-xml">^返回值类型 (参数列表) </span><span class="template-variable">&#123;</span></span><br><span class="line"><span class="template-variable">    表达式</span></span><br><span class="line"><span class="template-variable">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="3-block-impl-结构体"><a href="#3-block-impl-结构体" class="headerlink" title="3. __block_impl 结构体"></a>3. __block_impl 结构体</h4><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">__block_impl</span> &#123;</span><br><span class="line"><span class="type">void</span> *isa;</span><br><span class="line"><span class="type">int</span> Flags;</span><br><span class="line"><span class="type">int</span> Reserved;</span><br><span class="line"><span class="type">void</span> *FuncPtr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight actionscript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> (^blk)(<span class="keyword">void</span>) = ^ &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>转换成：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void (*blk)(void) = &amp;<span class="constructor">__main_block_impl_0(<span class="params">__main_block_func_0</span>,&amp;<span class="params">__main_block_desc_0_DATA</span>,<span class="params">auto_peram1</span>,<span class="params">auto_peram2</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>blk() 实际上执行的是</p>
+<figure class="highlight clojure"><table><tr><td class="code"><pre><span class="line">(<span class="name">*blk-&gt;impl.FuncPtr</span>)(<span class="name">blk</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>一个block的组成：</p>
+<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="type">__block_impl</span> impl;</span><br><span class="line"><span class="keyword">struct</span> <span class="type">__main_block_desc_0</span> *Desc;</span><br><span class="line">----&gt;</span><br><span class="line">捕获的自动变量和局部静态变量指针</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="4-Block的变量捕获"><a href="#4-Block的变量捕获" class="headerlink" title="4. Block的变量捕获"></a>4. Block的变量捕获</h4><ul>
+<li><p>block接受的参数属于值传递，可以在block内修改，不对其进行捕获</p>
+</li>
+<li><p>局部变量的捕获: 当定义block的时候，Block中所使用的自动变量值被保存到Block的结构体实例中，也就是Block自身中,并且保存后就不能改写该值。但是还是可以调用变更该对象的方法。比如NSMutableArray 的 addObject </p>
+</li>
+<li><p>static局部变量的捕获: 局部静态变量 作用域在block之外，这种情况下block中存储的是静态局部变量的地址，所以当FuncPtr指向的函数调用的时候会通过取地址中存储的值</p>
+</li>
+<li><p>全局变量的捕获<br>全局变量并没有被block所捕获，因为全局变量存放在全局区，随时都可以访问，所以当FuncPtr指向的函数调用的时候就会直接取全局变量的值使用。而局部变量超过作用域就会自动回收所以block需要在自身存放一份，以保证其能准确访问。</p>
+</li>
+<li><p>对象类型的捕获:<br>在没有调用copy的情况下，还没有调用block()的时候对象就已经释放了，说明在栈上的block并没有对所使用的对象强引用，对block 进行一次copy操作会发现在block没有release之前，所引用的对象没有被释放，所以堆上的block强引用了所使用的对象，对对象执行一次release之后，对象的引用计数依然没有成为0，因为block还引用着它。这是因为当对block进行copy操作的时候，block会执行内部的__main_block_copy_0方法。__main_block_copy_0方法执行_Block_object_assign根据变量的修饰符判断对捕获的对象的引用情况（retain或者弱引用）。而当block从堆中移除的时候，会调用与__main_block_copy_0对应的_Block_object_dispose函数，该函数会自动释放引用的auto变量。(栈上block访问了对象类型的auto变量的时候不会对其发生强引用)</p>
+</li>
+</ul>
+<p>block从栈上copy到堆上的时候，block内部会执行copy操作，_Block_object_assign函数回通过auto变量的修饰符判断发生强弱引用。block从堆中移除的时候，block内部会执行dispose，将引用的对象进行释放。</p>
+<p>简而言之：<br>局部变量在block中使用的时候会被block捕获，auto变量是值捕获，而static变量是地址捕获。全部变量不会被捕获。当Block从栈复制到堆上时，block会对id类型的变量产生强引用</p>
+<p><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/000001.png"></p>
+<h4 id="5-block-说明符"><a href="#5-block-说明符" class="headerlink" title="5. __block 说明符"></a>5. __block 说明符</h4><p>在block中允许修改静态局部变量，静态全局变量和全局变量这几种类型，但是对于局部自动变量如果在block里面修改编译器会发出警告，这时候需要在局部自动变量之前添加__block 说明符，__block 可以指定任何类型的自动变量，通过__block修饰的变量将会变成一个结构体实例,只有这样这个值才能被block共享、并且不受栈帧生命周期的限制、在block被copy后，能够随着block复制到堆上</p>
+<p>这时候被捕获的对象会转换为</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">struct <span class="variable">__Block_byref_val_0</span> &#123;</span><br><span class="line">    void *<span class="variable">__isa</span>;</span><br><span class="line">    <span class="variable">__Block_byref_val_0</span> * <span class="variable">__forwarding</span>;</span><br><span class="line">    int <span class="variable">__flags</span>;</span><br><span class="line">    int <span class="variable">__size</span>;</span><br><span class="line">    <span class="comment">// 这后面是__block变量</span></span><br><span class="line">    int val;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>__main_block_impl_0中也会多出一个</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">__Block_byref_val_0 *val<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>也就是说局部自动变量添加了__block后该变量将会以__Block_byref_val_0 形式被捕获</p>
+<p>有时候__block变量配置在堆上的情况下，也可以访问栈上的__block变量，在这种情况下只要栈上的结构体实例成员变量__forwarding指向堆上的结构体实例，那么不管是从堆上的__block变量还是从栈上的__block变量都能正确得访问。简而言之：<br>__block 变量结构体成员变量__forwarding可以实现无论__block变量配置在栈上还是在堆上都能正确得访问__block变量</p>
+<p><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/000002.png"><br><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/008.png"></p>
+<p>__block id __strong obj &#x3D; [[NSObject alloc] init]; 和 id __strong obj &#x3D; [[NSObject alloc] init] 一样在block没有copy的时候是不持有的，copy后block会持有对象引用</p>
+<p>id array &#x3D; [[NSMutableArray alloc] init];<br>id __weak array2 &#x3D; array;</p>
+<p>array2 是弱引用，当变量作用域结束，array 所指向的对象内存被释放，array2 指向 nil</p>
+<p>如果 __weak 再改成 __unsafe_unretained ,__unsafe_unretained 修饰的对象变量指针就相当于一个普通指针。使用这个修饰符有点需要注意的地方是，当指针所指向的对象内存被释放时，指针变量不会被置为 nil。所以当使用这个修饰符时，一定要注意不要通过悬挂指针（指向被废弃内存的指针）来访问已经被废弃的对象内存，否则程序就会崩溃。</p>
+<p>如果 __unsafe_unretained 再改成 __autoreleasing 会怎样呢？会报错，编译器并不允许你这么干！如果你这么写<br>__block id __autoreleasing obj &#x3D; [[NSObject alloc] init];<br>编译器就会报下面的错误，意思就是 __block 和 __autoreleasing 不能同时使用。</p>
+<h4 id="6-Block-存储属性"><a href="#6-Block-存储属性" class="headerlink" title="6. Block 存储属性"></a>6. Block 存储属性</h4><p>Block 有如下几种存储类型：</p>
+<p>_NSConcreteGlobalBlock  程序的数据区域</p>
+<ul>
+<li>Block当作全局变量使用时（block 字面量写在全局作用域时）</li>
+<li>当 block 字面量不获取任何外部变量时(只使用全局变量以及block参数的时候)<br>_NSConcreteGlobalBlock不持有对象</li>
+</ul>
+<p>_NSConcreteStackBlock  栈</p>
+<ul>
+<li>除了上述两中情况下Block配置在程序的数据区中以外（换种说法如果只用到外部局部变量、成员属性变量，且没有强指针引用的block就是StackBlock），Block语法生成的Block为_NSConcreteStackBlock类对象，且设置在栈上。配置在栈上的Block，如果其所属的变量作用域结束，该Block就被自动废弃。_NSConcreteStackBlock不持有对象</li>
+</ul>
+<p>_NSConcreteMallocBlock 堆</p>
+<ul>
+<li>有强指针引用或copy修饰的成员属性引用的block，配置在全局变量上的Block，从变量作用域外也可以通过指针访问。但是设置在栈上的Block，如果其所属的作用域结束，该Block就被废弃；并且__block变量的也是配置在栈上的，如果其所属的变量作用域结束，则该__block变量也会被废弃。那么这时需要将Block和__block变量复制到堆上，才能让其不受变量域作用结束的影响。_NSConcreteMallocBlock持有对象。</li>
+</ul>
+<p>整个存储区域如下图所示：<br><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/00003.png"></p>
+<p>通过上述结果我们可以看出当block访问了auto变量的时候会变成__NSStackBlock__类型。而其他情况下是__NSGlobalBlock__类型，比较典型的是Block声明在全局区域，以及Block虽然不声明在全局区域但是Block不截获自动变量。<br>__NSGlobalBlock__类型存在于数据区，__NSStackBlock__存在于栈区。</p>
+<p>而在ARC环境下原本__NSGlobalBlock__的block依然是__NSGlobalBlock__类型，而原本是__NSStackBlock__却变成了__NSMallocBlock__存放在堆区。这是因为当我们定义block的时候ARC默认为我们做了一次copy操作。</p>
+<p>在开启 ARC 时，大部分情况下编译器通常会将创建在栈上的 block 自动拷贝到堆上，只有当<br> block 作为方法或函数的参数传递时，编译器不会自动调用 copy 方法这时候需要手动调用copy，但是比如Cocoa框架的方法且方法名中包含usingBlock等，或者GCD API的情况下，这些在方法或者函数中对传递过来的参数做了复制操作所以不需要copy</p>
+<p> copy 的结果：</p>
+<p> 如果原先存储域处于_NSConcreteGlobalBlock  那么什么都不做<br> 如果原先存储域处于 _NSConcreteMallocBlock 那么将会导致引用计数增加<br> 如果原先存储域处于_NSConcreteStackBlock   那么会将block从栈复制到堆</p>
+<p> 下面是Block复制和释放的源码：</p>
+<p>Block 复制</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"> void *_Block_copy(const void *arg) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//1. 声明一个Block_layout结构体类型的指针，如果传入的Block为NULL就直接返回。</span></span><br><span class="line">    struct Block_layout *aBlock;</span><br><span class="line">    <span class="keyword">if</span> (!arg) return NULL;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果Block有值就强转成Block_layout的指针类型。</span></span><br><span class="line">    aBlock = (struct Block_layout *)arg;</span><br><span class="line">    <span class="comment">//如果Block的flags表明该Block为堆Block </span></span><br><span class="line">    <span class="function"><span class="title">if</span> (aBlock-&gt;</span>flags &amp; BLOCK_NEEDS_FREE) &#123;</span><br><span class="line">        <span class="comment">//对block的引用计数递增后返回Block</span></span><br><span class="line">        <span class="function"><span class="title">latching_incr_int</span>(&amp;aBlock-&gt;</span>flags);</span><br><span class="line">        return aBlock;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果Block为全局Block就不做其他处理直接返回</span></span><br><span class="line">    <span class="function"><span class="title">else</span> <span class="keyword">if</span> (aBlock-&gt;</span>flags &amp; BLOCK_IS_GLOBAL) &#123;</span><br><span class="line">        return aBlock;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果是堆栈类型就对block执行一次copy</span></span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//分配空间，这里的控件大小为descriptor-&gt;size</span></span><br><span class="line">        struct Block_layout *result =</span><br><span class="line">            (<span class="function"><span class="title">struct</span> Block_layout *)malloc(aBlock-&gt;</span><span class="function"><span class="title">descriptor</span>-&gt;</span>size);</span><br><span class="line">        <span class="keyword">if</span> (!result) return NULL;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//将Block从栈上复制到堆上</span></span><br><span class="line">        <span class="function"><span class="title">memmove</span>(result, aBlock, aBlock-&gt;</span><span class="function"><span class="title">descriptor</span>-&gt;</span>size); <span class="comment">// bitcopy first</span></span><br><span class="line"></span><br><span class="line">#<span class="keyword">if</span> __has_feature(ptrauth_calls)</span><br><span class="line">        <span class="comment">// Resign the invoke pointer as it uses address authentication.</span></span><br><span class="line">        <span class="function"><span class="title">result</span>-&gt;</span><span class="function"><span class="title">invoke</span> = aBlock-&gt;</span>invoke;</span><br><span class="line">#endif</span><br><span class="line">        <span class="comment">// reset refcount</span></span><br><span class="line">        <span class="comment">//将新Block的引用计数置零。</span></span><br><span class="line">        <span class="function"><span class="title">result</span>-&gt;</span>flags &amp;= ~(BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING);    <span class="comment">// XXX not needed</span></span><br><span class="line">        <span class="function"><span class="title">result</span>-&gt;</span>flags |= BLOCK_NEEDS_FREE | <span class="number">2</span>;  <span class="comment">// logical refcount 1</span></span><br><span class="line">        _Block_call_copy_helper(result, aBlock);</span><br><span class="line">        <span class="comment">// Set isa last so memory analysis tools see a fully-initialized object.</span></span><br><span class="line">        <span class="comment">//将堆Block的isa指针置为_NSConcreteMallocBlock，返回新Block</span></span><br><span class="line">        <span class="function"><span class="title">result</span>-&gt;</span>isa = _NSConcreteMallocBlock;</span><br><span class="line">        return result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Block 释放</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void <span class="constructor">_Block_release(<span class="params">const</span> <span class="params">void</span> <span class="operator">*</span><span class="params">arg</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">struct</span> Block_layout *aBlock = (<span class="keyword">struct</span> Block_layout *)arg;</span><br><span class="line">    <span class="keyword">if</span> (!aBlock) return;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//如果是Globle类型的 Block 就不做任何操作</span></span><br><span class="line">    <span class="keyword">if</span> (aBlock-&gt;flags &amp; BLOCK_IS_GLOBAL) return;</span><br><span class="line">    <span class="comment">//如果Block flags 标志位指示 block 不需要释放 就直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (! (aBlock-&gt;flags &amp; BLOCK_NEEDS_FREE)) return;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//判断aBlock的引用计数是否需要释放内存</span></span><br><span class="line">    <span class="keyword">if</span> (latching<span class="constructor">_decr_int_should_deallocate(&amp;<span class="params">aBlock</span>-&gt;<span class="params">flags</span>)</span>) &#123;</span><br><span class="line">        <span class="comment">//释放block</span></span><br><span class="line">        <span class="constructor">_Block_call_dispose_helper(<span class="params">aBlock</span>)</span>;</span><br><span class="line">        <span class="constructor">_Block_destructInstance(<span class="params">aBlock</span>)</span>;</span><br><span class="line">        free(aBlock);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>简而言之：<br>访问了auto变量的block是__NSStackBlock__类型，没有访问auto变量的block是__NSGlobalBlock__类型。而对__NSStackBlock__类型进行copy操作就会变为__NSMallocBlock__类型。</p>
+<p>在如下情况下栈上的block会被复制到堆上：</p>
+<p>在调用Block 的copy 实例方法的时候<br>Block 作为函数返回值返回时<br>将Block赋给带有__strong修饰符id 类型的类或者Block类型成员变量时(block作为强指针引用的时候也会自动调用copy)<br>在方法名中含有usingBlock的Cocoa框架方法，或者GCD API中传递Block时候</p>
+<p>在谁都不持有Block的时候block将会被释放</p>
+<p>copy 函数会持有截获的对象，以及所使用的__block变量，dispose函数会释放截获的对象以及__block变量，<br>所以Block中使用的赋给赋有__strong修饰符的自动变量的对象和复制到堆上的__block变量由于被堆上的Block所持有，因而可以超出其变量作用域而存在。</p>
+<p>再简而言之：也就是block 被copy到堆上的时候，它所使用的strong类型的对象以及__block变量都会超出作用域而存在。</p>
+<ol start="7">
+<li>__block 变量存储属性</li>
+</ol>
+<p>当Block从栈复制到堆上的时候，它所使用的所有__block变量也会被复制到堆上，并被Block持有。在多个Block中使用__block变量的时候，因为最先会将所有的Block配置在栈上，所以__block变量最初也会配置到栈上，在任何一个Block从栈上复制到堆上的时候，__block变量也会一起从栈复制到堆上，并被该Block 持有，当剩下的Block从栈复制到堆的时候，被复制的Block持有__block变量，并增加__block变量的引用计数。<br>如果配置在堆上的Block被废弃，那么它所使用的__block变量也会被释放。</p>
+<p><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/002.png"><br><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/004.png"><br><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/005.png"><br><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/006.png"><br><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/007.png"></p>
+<ol start="8">
+<li>避免循环引用：</li>
+</ol>
+<p><img src="/2019/07/10/iOS-Block-%E6%80%BB%E7%BB%93/00002.png"></p>
+<p>如果用self引用了block，block又捕获了self，这样就会有循环引用。因此，需要用weak来声明self，如果捕获到的是当前对象的成员变量对象，同样也会造成对self的引用，同样也要避免。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">使用__<span class="keyword">weak</span>来声明<span class="keyword">self</span></span><br><span class="line">- (<span class="keyword">instancetype</span>)init &#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="variable language_">super</span> init];</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        __<span class="keyword">weak</span> <span class="keyword">typeof</span>(<span class="keyword">self</span>) weakSelf = <span class="keyword">self</span>;</span><br><span class="line">        <span class="keyword">self</span>.blk = ^&#123;</span><br><span class="line">            <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>, weakSelf.name);</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="keyword">void</span>)<span class="keyword">configureBlock</span> &#123;</span><br><span class="line">    <span class="built_in">id</span> tmpIvar <span class="operator">=</span> _ivar; <span class="comment">//临时变量,避免了self引用</span></span><br><span class="line">    self.block <span class="operator">=</span> <span class="operator">^</span>&#123;</span><br><span class="line">        [tmpIvar msg];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>当struct第一次被创建时，它是存在于该函数的栈帧上的，其Class是固定的_NSConcreteStackBlock。其捕获的变量是会赋值到结构体的成员上，所以当block初始化完成后，捕获到的变量不能更改。</p>
+<p>当函数返回时，函数的栈帧被销毁，这个block的内存也会被清除。所以在函数结束后仍然需要这个block时，就必须用Block_copy()方法将它拷贝到堆上。这个方法的核心动作很简单：申请内存，将栈数据复制过去，将Class改一下，最后向捕获到的对象发送retain，增加block的引用计数。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2019/07/10/iOS-Block-总结/#comments" class="ds-thread-count comments-count-link" data-thread-key="2019/07/10/iOS-Block-总结/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/8/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="extend next" rel="next" href="/page/10/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

@@ -1,0 +1,764 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之自动化测试Espreso | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Espresso 文档Espresso 帮助文档 Espresso 环境搭建在Android Studio 2.2中Expresso是默认引入的，你会发现在新创建的Android studio项目的build.gradle中已经帮我们添加好了如下的依赖，并且已经帮我们创建好了androidTest目录，之前是没有这个待遇的，所以如果你还在为搭建环境困扰，不要纠结了升级你的Android Studi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之自动化测试Espreso">
+<meta property="og:url" content="http://yoursite.com/2016/07/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95Espreso/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Espresso 文档Espresso 帮助文档 Espresso 环境搭建在Android Studio 2.2中Expresso是默认引入的，你会发现在新创建的Android studio项目的build.gradle中已经帮我们添加好了如下的依赖，并且已经帮我们创建好了androidTest目录，之前是没有这个待遇的，所以如果你还在为搭建环境困扰，不要纠结了升级你的Android Studi">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/07/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95Espreso/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95Espreso/2.png">
+<meta property="article:published_time" content="2016-07-01T13:05:25.000Z">
+<meta property="article:modified_time" content="2016-07-18T22:11:20.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android 自动化测试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/07/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95Espreso/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/01/Android-进阶之自动化测试Espreso/" title="Android 进阶之自动化测试Espreso" itemprop="url">Android 进阶之自动化测试Espreso</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-01T13:05:25.000Z" itemprop="datePublished"> Published 2016-07-01</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="Espresso-文档"><a href="#Espresso-文档" class="headerlink" title="Espresso 文档"></a>Espresso 文档</h4><p><a target="_blank" rel="noopener" href="https://google.github.io/android-testing-support-library/docs/espresso/setup/index.html">Espresso 帮助文档</a></p>
+<h4 id="Espresso-环境搭建"><a href="#Espresso-环境搭建" class="headerlink" title="Espresso 环境搭建"></a>Espresso 环境搭建</h4><p>在Android Studio 2.2中Expresso是默认引入的，你会发现在新创建的Android studio项目的build.gradle中已经帮我们添加好了如下的依赖，<br>并且已经帮我们创建好了androidTest目录，之前是没有这个待遇的，所以如果你还在为搭建环境困扰，不要纠结了升级你的Android Studio吧。</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">//</span> Android JUnit Runner</span><br><span class="line">androidTestCompile <span class="string">&#x27;com.android.support.test:runner:0.5&#x27;</span></span><br><span class="line"><span class="regexp">//</span> JUnit4 Rules</span><br><span class="line">androidTestCompile <span class="string">&#x27;com.android.support.test:rules:0.5&#x27;</span></span><br><span class="line"><span class="regexp">//</span> Espresso core</span><br><span class="line">androidTestCompile <span class="string">&#x27;com.android.support.test.espresso:espresso-core:2.2.2&#x27;</span></span><br><span class="line"><span class="regexp">//</span> Espresso-contrib <span class="keyword">for</span> DatePicker, RecyclerView, Drawer actions, Accessibility checks, CountingIdlingResource</span><br><span class="line">androidTestCompile <span class="string">&#x27;com.android.support.test.espresso:espresso-contrib:2.2.2&#x27;</span></span><br><span class="line"><span class="regexp">//</span> Espresso-web <span class="keyword">for</span> WebView support</span><br><span class="line">androidTestCompile <span class="string">&#x27;com.android.support.test.espresso:espresso-web:2.2.2&#x27;</span></span><br><span class="line"><span class="regexp">//</span> Espresso-idling-resource <span class="keyword">for</span> synchronization with background jobs</span><br><span class="line">androidTestCompile <span class="string">&#x27;com.android.support.test.espresso:espresso-idling-resource:2.2.2&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>当然如果你们公司不能上网那么只能下载如下的jar包存在对应的libs中：<br><a target="_blank" rel="noopener" href="https://github.com/googlesamples/android-testing/tree/master/ui/espresso/BasicSampleBundled/libs">自动化测试静态jar包</a></p>
+<p>一定要注意需要添加 defaultConfig  节点添加</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">testInstrumentationRunner</span> <span class="string">&quot;android.support.test.runner.AndroidJUnitRunner&quot;</span></span><br></pre></td></tr></table></figure>
+<p>否则会遇到明明编写了测试用例，但是还是报没有测试项的错误：</p>
+<h4 id="Espresso-组成"><a href="#Espresso-组成" class="headerlink" title="Espresso 组成"></a>Espresso 组成</h4><p>Expresso 是由三大部分组成的：</p>
+<figure class="highlight cos"><table><tr><td class="code"><pre><span class="line">ViewMachers：寻找用来测试的<span class="keyword">View</span>。 </span><br><span class="line">ViewActions：发送交互事件。 </span><br><span class="line">ViewAssertions：检验测试结果。</span><br></pre></td></tr></table></figure>
+<p>上述的操作可以简单归结为定位到某个控件，对某个空间执行某项操作，检查操作结束后的结果。</p>
+<p>下面是Espresso的CheetSheet<br><img src="/2016/07/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95Espreso/1.png"></p>
+<h5 id="ActivityTestRule"><a href="#ActivityTestRule" class="headerlink" title="ActivityTestRule"></a>ActivityTestRule</h5><p>在开始自动化测试之前都会定义一个ActivityTestRule 它用于在测试的时候launch待测试的activity。Rules会在每个测试方法执行的时候执行，并且优先于 @Before方法。使用ActivityTestRule还能通过ActivityTestRule#getActivity()方法来获取某个activity的引用。</p>
+<h4 id="查找待操作的View"><a href="#查找待操作的View" class="headerlink" title="查找待操作的View"></a>查找待操作的View</h4><p>从上面的Espresso CheetSheet中可以看出查找视图可以用onView 和 onData两个方法，整体来说，onView()比较适用于UI比较简单的情况，一般我们获取这些简单的View可以通过id，text，Discription，Hint等属性来获取。但是需要注意的是上面的onView所找到的应该只能有一项，不能有多个View满足给出的条件，否则会报出AmbiguousViewMatcherException，如果遇到这种情况可以有两种方式一种是使用allof来添加多个条件来重新定位，另一个是找到具体的那个父View然后再定位。<br>但是，对于类似ListView, GridView, Spinner这种有UI复用的元素来说，，可能只有一部分显示在了屏幕上，对于没有显示在屏幕上的那部分数据，我们通过onView()是没有办法找到的。onView就不能胜任了只能借助onData来完成。</p>
+<p>我们首先对比下onView和onData两个方法：</p>
+<p>从返回值角度来看：</p>
+<ul>
+<li>onView返回的是ViewInteraction，它是一个符合匹配条件的唯一目标控件</li>
+<li>onData返回的是DataInteraction，它关注于数据。<br>从传入参数角度来看：</li>
+<li>onView 传入的是Matcher<View> 它是一个View匹配的匹配规则</View></li>
+<li>onData 传入的是Matcher&lt;? extends Object&gt; 它是针对数据匹配的匹配规则</li>
+</ul>
+<p>也就是说onView偏向于直接匹配视图，而onData由于有些视图不能完全显示所以偏向于从数据入手。也就是Adapter对应的Data入手</p>
+<h5 id="在AdapterView中点击某项的例子："><a href="#在AdapterView中点击某项的例子：" class="headerlink" title="在AdapterView中点击某项的例子："></a>在AdapterView中点击某项的例子：</h5><p>先上代码：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> ItemMatcher &#123;</span><br><span class="line">    public static Matcher&lt;Object&gt; <span class="keyword">with</span><span class="constructor">Name(<span class="params">final</span> String <span class="params">name</span>)</span> &#123;</span><br><span class="line">        return <span class="keyword">new</span> BoundedMatcher&lt;Object,ItemInfo&gt;(<span class="module-access"><span class="module"><span class="identifier">ItemInfo</span>.</span></span><span class="keyword">class</span>) &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void describe<span class="constructor">To(Description <span class="params">description</span>)</span> &#123;</span><br><span class="line">                description.append<span class="constructor">Text(<span class="string">&quot;item mathcher&quot;</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            protected boolean matches<span class="constructor">Safely(ItemInfo <span class="params">item</span>)</span> &#123;</span><br><span class="line">                <span class="keyword">if</span>(item != null<span class="operator"> &amp;&amp; </span>!<span class="module-access"><span class="module"><span class="identifier">TextUtils</span>.</span></span>is<span class="constructor">Empty(<span class="params">item</span>.<span class="params">getName</span>()</span>)<span class="operator"> &amp;&amp; </span>item.get<span class="constructor">Name()</span>.equals(name)) &#123;</span><br><span class="line">                    return <span class="literal">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                return <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@<span class="constructor">RunWith(AndroidJUnit4.<span class="params">class</span>)</span></span><br><span class="line">@LargeTest</span><br><span class="line">public <span class="keyword">class</span> MainActivityTest &#123;</span><br><span class="line"></span><br><span class="line">    @Rule</span><br><span class="line">    public ActivityTestRule&lt;MainActivity&gt; mActityTestRule = <span class="keyword">new</span> ActivityTestRule&lt;MainActivity&gt;(<span class="module-access"><span class="module"><span class="identifier">MainActivity</span>.</span></span><span class="keyword">class</span>);</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    public void test<span class="constructor">Scroller()</span> &#123;</span><br><span class="line">        on<span class="constructor">Data(<span class="params">allOf</span>(<span class="params">instanceOf</span>(ItemInfo.<span class="params">class</span>)</span>, <span class="module-access"><span class="module"><span class="identifier">ItemMatcher</span>.</span></span><span class="keyword">with</span><span class="constructor">Name(<span class="string">&quot;Jimmy 999&quot;</span>)</span>))</span><br><span class="line">                .<span class="keyword">in</span><span class="constructor">AdapterView(<span class="params">withId</span>(R.<span class="params">id</span>.<span class="params">listviews</span>)</span>)</span><br><span class="line">                .on<span class="constructor">ChildView(<span class="params">withId</span>(R.<span class="params">id</span>.<span class="params">name</span>)</span>)</span><br><span class="line">            .perform(click<span class="literal">()</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上面我们使用了onData来在数据集中查找，这里最重要的就是自定义的ItemMatcher，通过它可以找到name为”Jimmy 999”的那一项，在有多个ListView的时候可以使用inAdapterView来指定要查找的listView。找到之后会自动滚动到哪一项，执行点击操作。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public void test<span class="constructor">ClickSpecialItem()</span> &#123;</span><br><span class="line">        on<span class="constructor">Data(<span class="params">instanceOf</span>(ItemInfo.<span class="params">class</span>)</span>)</span><br><span class="line">                .<span class="keyword">in</span><span class="constructor">AdapterView(<span class="params">allOf</span>(<span class="params">withId</span>(R.<span class="params">id</span>.<span class="params">listviews</span>)</span>, is<span class="constructor">Displayed()</span>))</span><br><span class="line">                .at<span class="constructor">Position(99)</span></span><br><span class="line">                .on<span class="constructor">ChildView(<span class="params">withId</span>(R.<span class="params">id</span>.<span class="params">name</span>)</span>)</span><br><span class="line">                .perform(click<span class="literal">()</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然并不是所有的AdapterView都像上面那么复杂比如点击某项Spinner可以使用如下方式：</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">onData(allOf(<span class="keyword">is</span>(instanceOf(String.<span class="keyword">class</span>)),<span class="keyword">is</span>(&quot;xxxx&quot;))).<span class="keyword">perform</span>(click());</span><br></pre></td></tr></table></figure>
+<p>在googlesample中给出的一个测试SimpleAdapter的例子如下：</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">@RunWith(AndroidJUnit4.<span class="keyword">class</span>)</span><br><span class="line">@LargeTest</span><br><span class="line"><span class="built_in">public</span> <span class="keyword">class</span> TestSimpleAdapter &#123;</span><br><span class="line">    private static final String TEXT_ITEM_50 = &quot;item: 95&quot;;</span><br><span class="line">    @<span class="keyword">Rule</span></span><br><span class="line">    <span class="built_in">public</span> ActivityTestRule&lt;MainActivity&gt; mActivityRule = <span class="built_in">new</span> ActivityTestRule&lt;&gt;(MainActivity.<span class="keyword">class</span>);</span><br><span class="line">    @Test</span><br><span class="line">    <span class="built_in">public</span> <span class="type">void</span> testCheckBoxClick() &#123;</span><br><span class="line">        onRow(TEXT_ITEM_50).onChildView(withId(R.id.checkbox)).<span class="keyword">perform</span>(click());</span><br><span class="line">        onRow(TEXT_ITEM_50).onChildView(withId(R.id.checkbox)).<span class="keyword">check</span>(matches(isChecked()));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">public</span> static DataInteraction onRow(String str) &#123;</span><br><span class="line">        <span class="keyword">return</span>  onData(hasEntry(<span class="keyword">is</span>(MainActivity.ROW_TEXT1),<span class="keyword">is</span>(str)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="RecyclerView-的用法："><a href="#RecyclerView-的用法：" class="headerlink" title="RecyclerView 的用法："></a>RecyclerView 的用法：</h5><p>当要测试RecyclerView的时候需要添加如下依赖：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">//</span> Espresso-contrib <span class="keyword">for</span> DatePicker, RecyclerView, Drawer actions, Accessibility checks, CountingIdlingResource</span><br><span class="line">androidTestCompile <span class="string">&#x27;com.android.support.test.espresso:espresso-contrib:2.2.2&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>这个不是默认添加的所以需要自己添加。并且这个库的某些依赖和support有冲突需要使用移除部分，也可以考虑上面说的离线的方式添加对应的jar包。</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">@Test</span><br><span class="line"><span class="built_in">public</span> <span class="type">void</span> testrecycleView() &#123;</span><br><span class="line"></span><br><span class="line">    onView(withId(R.id.recycleviews)).<span class="keyword">perform</span>(RecyclerViewActions.actionOnItemAtPosition(<span class="number">909</span>, click()));</span><br><span class="line"></span><br><span class="line">    onView(withId(R.id.recycleviews)).<span class="keyword">perform</span>(RecyclerViewActions.actionOnItem(hasDescendant(withText(&quot;Name </span><br><span class="line">    999&quot;)), click()));</span><br><span class="line"></span><br><span class="line">    onView(withId(R.id.recycleviews)).<span class="keyword">perform</span>(RecyclerViewActions.actionOnHolderItem(<span class="built_in">new</span> 		</span><br><span class="line">    CustomViewHolderMatcher(hasDescendant(withText(&quot;Name 999&quot;))), click()));</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static <span class="keyword">class</span> CustomViewHolderMatcher extends TypeSafeMatcher&lt;RecyclerView.ViewHolder&gt; &#123;</span><br><span class="line">    <span class="built_in">public</span> CustomViewHolderMatcher() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">public</span> CustomViewHolderMatcher(Matcher&lt;<span class="keyword">View</span>&gt; viewMatcher) &#123;</span><br><span class="line">        itemMatcher = viewMatcher;</span><br><span class="line">    &#125;</span><br><span class="line">    private Matcher&lt;<span class="keyword">View</span>&gt; itemMatcher = <span class="keyword">any</span>(<span class="keyword">View</span>.<span class="keyword">class</span>);</span><br><span class="line">    @Override</span><br><span class="line">    protected <span class="type">boolean</span> matchesSafely(RecyclerView.ViewHolder viewHolder) &#123;</span><br><span class="line">        <span class="keyword">return</span> MainActivity2.ItemBeanAdapter.MyViewHolder.<span class="keyword">class</span>.isAssignableFrom(viewHolder.getClass())</span><br><span class="line">                &amp;&amp; itemMatcher.matches(viewHolder.itemView);</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    <span class="built_in">public</span> <span class="type">void</span> describeTo(Description description) &#123;</span><br><span class="line">        description.appendText(&quot;this is assigned from view holder&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="hasSibling的用法"><a href="#hasSibling的用法" class="headerlink" title="hasSibling的用法"></a>hasSibling的用法</h5><p>Sibling 的意思是 兄弟，姐妹;[生]同科，同属;[人]氏族成员<br>比如我们有一个ListView每一项都有一个显示“70”的TextView，这些TextView的text属性和id都是相同的，但是每一个TextView左边都放置有不同的TextView。如下图所示，此时可以通过如下的代码出目标项：<br><img src="/2016/07/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95Espreso/2.png"></p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">onView(allOf(withText(&quot;70&quot;), hasSibling(withText(&quot;Jimmy: 12&quot;))))</span><br><span class="line">  .<span class="keyword">perform</span>(click());</span><br></pre></td></tr></table></figure>
+<p>这里需要注意的是这些项必须是在屏幕上可见的。</p>
+<h5 id="inRoot-验证Toast-amp-amp-AutoComplete"><a href="#inRoot-验证Toast-amp-amp-AutoComplete" class="headerlink" title="inRoot 验证Toast &amp;&amp; AutoComplete"></a>inRoot 验证Toast &amp;&amp; AutoComplete</h5><p>这个很简单就是判断Toast时候在Root之上。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">on<span class="constructor">View(<span class="params">withText</span>(<span class="string">&quot;Position = 99&quot;</span>)</span>)</span><br><span class="line">        .<span class="keyword">in</span><span class="constructor">Root(<span class="params">withDecorView</span>(<span class="params">not</span>(<span class="params">mActityTestRule</span>.<span class="params">getActivity</span>()</span>.get<span class="constructor">Window()</span>.get<span class="constructor">DecorView()</span>)))</span><br><span class="line">        .check(matches(is<span class="constructor">Displayed()</span>));</span><br></pre></td></tr></table></figure>
+
+<h4 id="自定义ViewAction"><a href="#自定义ViewAction" class="headerlink" title="自定义ViewAction"></a>自定义ViewAction</h4><p>一般我们要执行某个操作都是针对某个匹配的View的所以我们一般作为参数的都是Matcher，里面使用Matcher找到空间并添加ViewAction 在perform方法中会传入对应的View可以根据这个传入的View对其进行操作<br>下面是两个自定义的ViewAction：getText 会从View中获取文本，changeTextColor会改变文本的颜色。</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line"><span class="built_in">public</span> String getText (Matcher&lt;<span class="keyword">View</span>&gt; matcher) &#123;</span><br><span class="line">    final String[] textStr = &#123;<span class="keyword">null</span>&#125;;</span><br><span class="line">    onView(matcher).<span class="keyword">perform</span>(<span class="built_in">new</span> ViewAction() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        <span class="built_in">public</span> Matcher&lt;<span class="keyword">View</span>&gt; getConstraints() &#123;</span><br><span class="line">            <span class="keyword">return</span> isAssignableFrom(TextView.<span class="keyword">class</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        @Override</span><br><span class="line">        <span class="built_in">public</span> String getDescription() &#123;</span><br><span class="line">            <span class="keyword">return</span> &quot;get text from TextView&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        @Override</span><br><span class="line">        <span class="built_in">public</span> <span class="type">void</span> <span class="keyword">perform</span>(UiController uiController, <span class="keyword">View</span> <span class="keyword">view</span>) &#123;</span><br><span class="line">            textStr[<span class="number">0</span>] = ((TextView) <span class="keyword">view</span>).getText().toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> textStr[<span class="number">0</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line"><span class="built_in">public</span> <span class="type">void</span> changeTextColor(Matcher&lt;<span class="keyword">View</span>&gt; matcher) &#123;</span><br><span class="line">    onView(matcher).<span class="keyword">perform</span>(<span class="built_in">new</span> ViewAction() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        <span class="built_in">public</span> Matcher&lt;<span class="keyword">View</span>&gt; getConstraints() &#123;</span><br><span class="line">            <span class="keyword">return</span> isAssignableFrom(TextView.<span class="keyword">class</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        @Override</span><br><span class="line">        <span class="built_in">public</span> String getDescription() &#123;</span><br><span class="line">            <span class="keyword">return</span> &quot;Change text Color&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        @Override</span><br><span class="line">        <span class="built_in">public</span> <span class="type">void</span> <span class="keyword">perform</span>(UiController uiController, <span class="keyword">View</span> <span class="keyword">view</span>) &#123;</span><br><span class="line">            ((TextView)<span class="keyword">view</span>).setTextColor(Color.parseColor(&quot;#ff0000&quot;));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>要输入中文可以使用如下的方式：<br>onView(withId(R.id.imputString)).perform(replaceText(“各种格式文件”));<br>对于一般的View我们可以使用onView来定位，但是对于AdapterView（ListView GridView Spinner都是属于AdapterView）就需要onData来进行定位。</p>
+</blockquote>
+<h4 id="自定义Idling-Resource"><a href="#自定义Idling-Resource" class="headerlink" title="自定义Idling Resource"></a>自定义Idling Resource</h4><p>Idling Resource 用于需要等待异步计算或I&#x2F;O操作完成的情况。使用它Espresso会等待app处于idle状态，才会执行下个动作和检查下个断言。</p>
+<p>为了实现IdlingResource，需要重写3个函数：getName()，registerIdleTransitionCallback()，isIdleNow()。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">* get<span class="constructor">Name()</span>：必须返回代表idling resource的非空字符串,这个一般个人不做过多的纠结直接通过<span class="module-access"><span class="module"><span class="identifier">XXXX</span>.</span></span><span class="keyword">class</span>.get<span class="constructor">Name()</span><span class="operator"></span></span><br><span class="line"><span class="operator">* </span>is<span class="constructor">IdleNow()</span>：返回当前idlingresource的idle状态。<span class="operator"></span></span><br><span class="line"><span class="operator">* </span>register<span class="constructor">IdleTransitionCallback(IdlingResource.ResourceCallback <span class="params">callback</span>)</span> 用于注入回调。</span><br></pre></td></tr></table></figure>
+<p>下面是一个在网上找的比较典型的例子，就是主程序使用IntentService处理一个耗时操作，等到耗时操作结束的时候进行后续的测试</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="title class_">String</span> <span class="title function_">getName</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">IntentServiceIdlingResource</span>.<span class="property">class</span>.<span class="title function_">getName</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">registerIdleTransitionCallback</span>(<span class="params">ResourceCallback resourceCallback</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">resourceCallback</span> = resourceCallback;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="built_in">boolean</span> <span class="title function_">isIdleNow</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="built_in">boolean</span> idle = !<span class="title function_">isIntentServiceRunning</span>();</span><br><span class="line">    <span class="keyword">if</span> (idle &amp;&amp; resourceCallback != <span class="literal">null</span>) &#123;</span><br><span class="line">        resourceCallback.<span class="title function_">onTransitionToIdle</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> idle;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="built_in">boolean</span> <span class="title function_">isIntentServiceRunning</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">ActivityManager</span> manager = (<span class="title class_">ActivityManager</span>) context.<span class="title function_">getSystemService</span>(<span class="title class_">Context</span>.<span class="property">ACTIVITY_SERVICE</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="title class_">ActivityManager</span>.<span class="property">RunningServiceInfo</span> info : manager.<span class="title function_">getRunningServices</span>(<span class="title class_">Integer</span>.<span class="property">MAX_VALUE</span>)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="title class_">RepeatService</span>.<span class="property">class</span>.<span class="title function_">getName</span>().<span class="title function_">equals</span>(info.<span class="property">service</span>.<span class="title function_">getClassName</span>())) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="注册和注销idling-resource"><a href="#注册和注销idling-resource" class="headerlink" title="注册和注销idling resource"></a>注册和注销idling resource</h6><p>为了让Espresso等待自定义的idling resource，你需要注册它。在测试代码的@Before方法中执行注册，在@After中执行注销。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">@Before</span><br><span class="line">public void register<span class="constructor">IntentServiceIdlingResource()</span> &#123;</span><br><span class="line">    Instrumentation instrumentation = <span class="module-access"><span class="module"><span class="identifier">InstrumentationRegistry</span>.</span></span>get<span class="constructor">Instrumentation()</span>;</span><br><span class="line">    idlingResource = <span class="keyword">new</span> <span class="constructor">IntentServiceIdlingResource(<span class="params">instrumentation</span>.<span class="params">getTargetContext</span>()</span>);</span><br><span class="line">    register<span class="constructor">IdlingResources(<span class="params">idlingResource</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@After</span></span><br><span class="line"><span class="keyword">public</span> <span class="built_in">void</span> <span class="title function_">unregisterIntentServiceIdlingResource</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title function_">unregisterIdlingResources</span>(idlingResource);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Espresso-Intent-测试"><a href="#Espresso-Intent-测试" class="headerlink" title="Espresso Intent 测试"></a>Espresso Intent 测试</h4><p>要测试Intent就必须使用到如下的库：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">androidTestCompile</span> &#x27;com.android.support.test.espresso:espresso-intents:<span class="number">2</span>.<span class="number">2</span>&#x27;</span><br></pre></td></tr></table></figure>
+<p>这个库在上面介绍的离线库中也可以找到。</p>
+<p>在使用Intent进行测试的时候需要首先明确两个方法：<br>intending and intended<br>intending 相当于 when ，respondWith 相当于 thenReturn。intending还有个用法是用于检查返回的Intent携带的参数<br>intended 用于验证某个Intent是否被发送。<br>在使用这两个方法的时候必须先初始化Intents。用完后必须调用release释放。</p>
+<ul>
+<li>检测某个Intent是否发送成功</li>
+</ul>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">private Matcher&lt;Intent&gt; expectedIntent;</span><br><span class="line">@<span class="keyword">Rule</span></span><br><span class="line"><span class="built_in">public</span> final ActivityTestRule&lt;MainActivity&gt; <span class="keyword">rule</span> =</span><br><span class="line">        <span class="built_in">new</span> ActivityTestRule&lt;&gt;(MainActivity.<span class="keyword">class</span>);</span><br><span class="line">@<span class="keyword">Before</span></span><br><span class="line"><span class="built_in">public</span> <span class="type">void</span> setupIntents() &#123;</span><br><span class="line">    expectedIntent = allOf(toPackage(InstrumentationRegistry.getTargetContext().getPackageName()),isInternal());</span><br><span class="line">&#125;</span><br><span class="line">@Test</span><br><span class="line"><span class="built_in">public</span> <span class="type">void</span> testLoginIntent() &#123;</span><br><span class="line">    Intents.init();</span><br><span class="line">    onView(withId(R.id.button_login)).<span class="keyword">perform</span>(click());</span><br><span class="line">    intended(expectedIntent);</span><br><span class="line">    Intents.<span class="keyword">release</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>检测某个Intent 发送后的响应是否正确：</li>
+</ul>
+<p>有的时候我们会按下某个按钮发送一个Intent来获取某个结果，这个结果一般在onActivityResult中返回。如果要测试返回某个结果时候的情况可以使用如下的代码来验证</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line"><span class="built_in">public</span> <span class="type">void</span> testLoginPass() &#123;</span><br><span class="line">    //创建一个响应的ActivityResult</span><br><span class="line">    Instrumentation.ActivityResult activityResult = <span class="built_in">new</span> Instrumentation.ActivityResult(</span><br><span class="line">            Activity.RESULT_OK, <span class="built_in">new</span> Intent());</span><br><span class="line">    //Intent初始化</span><br><span class="line">    Intents.init();</span><br><span class="line">    //将activityResult与待发送的expectedIntent绑定</span><br><span class="line">    intending(expectedIntent).respondWith(activityResult);</span><br><span class="line">    //执行操作</span><br><span class="line">    onView(withId(R.id.button_login)).<span class="keyword">perform</span>(click());</span><br><span class="line">    //验证是否发送成功</span><br><span class="line">    intended(expectedIntent);</span><br><span class="line">    //释放Intent</span><br><span class="line">    Intents.<span class="keyword">release</span>();</span><br><span class="line">    //检验返回activityResult时的现象是否正确</span><br><span class="line">    onView(withId(R.id.button_login)).<span class="keyword">check</span>(matches(withText(R.string.pass_login)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>验证发送出去的数据<br>Intent 一般会携带一些数据我们可以通过hasExtra来检查是否发送带有特定键值的数据，</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">@Test</span><br><span class="line"><span class="built_in">public</span> <span class="type">void</span> testLoginSuccess() throws InterruptedException &#123;</span><br><span class="line"></span><br><span class="line">    onView(withId(R.id.email)).<span class="keyword">perform</span>(typeText(TEST_USER));</span><br><span class="line">    onView(withId(R.id.<span class="keyword">password</span>)).<span class="keyword">perform</span>(typeText(TEST_PASS));</span><br><span class="line">    closeSoftKeyboard();</span><br><span class="line">    Intents.init();</span><br><span class="line">    onView(withId(R.id.email_sign_in_button)).<span class="keyword">perform</span>(click());</span><br><span class="line">    //等待<span class="number">20</span>秒</span><br><span class="line">    TimeUnit.SECONDS.sleep(<span class="number">20</span>);</span><br><span class="line">    //检验返回的数据</span><br><span class="line">    intending(hasExtra(MainActivity.LOGIN_NAME, TEST_USER));</span><br><span class="line">    Intents.<span class="keyword">release</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Espresso中提供了许多方法用于检测Intent的各个部分,下面是每个字段的对应关系</p>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">Intent.<span class="built_in">set</span>Data <span class="variable">&lt;–&gt;</span> hasData</span><br><span class="line">Intent.<span class="built_in">set</span>Action <span class="variable">&lt;–&gt;</span> hasAction</span><br><span class="line">Intent.<span class="built_in">set</span>Flag <span class="variable">&lt;–&gt;</span> hasFlag</span><br><span class="line">Intent.<span class="built_in">set</span>Component <span class="variable">&lt;–&gt;</span> hasComponent</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>发送一个带有数据的Intent检验返回的结果</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">@<span class="keyword">Before</span></span><br><span class="line"><span class="built_in">public</span> <span class="type">void</span> setupImageUri() &#123;</span><br><span class="line"></span><br><span class="line">    Resources resources = InstrumentationRegistry.getTargetContext().getResources();</span><br><span class="line">    Uri imageUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + &quot;://&quot; + resources</span><br><span class="line">            .getResourcePackageName(</span><br><span class="line">                    R.mipmap.ic_launcher) + <span class="string">&#x27;/&#x27;</span> + resources.getResourceTypeName(</span><br><span class="line">            R.mipmap.ic_launcher) + <span class="string">&#x27;/&#x27;</span> + resources.getResourceEntryName(</span><br><span class="line">            R.mipmap.ic_launcher));</span><br><span class="line">    Intent resultData = <span class="built_in">new</span> Intent();</span><br><span class="line">    resultData.setData(imageUri);</span><br><span class="line">    //创建一个Intent响应结果</span><br><span class="line">    mActivityResult = <span class="built_in">new</span> Instrumentation.ActivityResult(</span><br><span class="line">            Activity.RESULT_OK, resultData);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Test</span><br><span class="line"><span class="built_in">public</span> <span class="type">void</span> testSelectImage() &#123;</span><br><span class="line"></span><br><span class="line">    //<span class="keyword">Check</span> the image <span class="keyword">is</span> <span class="keyword">not</span> displayed</span><br><span class="line">    onView(withId(R.id.imageView)).<span class="keyword">check</span>(matches(<span class="keyword">not</span>(hasDrawable())));</span><br><span class="line">    //Setup the intent</span><br><span class="line">    Intents.init();</span><br><span class="line">    //将响应结果绑定到具有如下条件的Intent上</span><br><span class="line">    Matcher&lt;Intent&gt; expectedIntent = allOf(hasAction(Intent.ACTION_PICK),</span><br><span class="line">            hasData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI));</span><br><span class="line">    intending(expectedIntent).respondWith(mActivityResult);</span><br><span class="line"></span><br><span class="line">    //执行操作触发满足上述条件的Intent</span><br><span class="line">    onView(withId(R.id.fab_image)).<span class="keyword">perform</span>(click());</span><br><span class="line">    //检验是否发送成功</span><br><span class="line">    intended(expectedIntent);</span><br><span class="line">    Intents.<span class="keyword">release</span>();</span><br><span class="line"></span><br><span class="line">    //<span class="keyword">Check</span> the image <span class="keyword">is</span> displayed</span><br><span class="line">    onView(withId(R.id.imageView)).<span class="keyword">check</span>(matches(hasDrawable()));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>测试启动Activity的Intent:<br>首先要设置不启动Activity</p>
+<figure class="highlight d"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@Rule</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> ActivityTestRule&lt;TextHashActivity&gt; rule =</span><br><span class="line">        <span class="keyword">new</span> ActivityTestRule&lt;&gt;(TextHashActivity.<span class="keyword">class</span>, <span class="literal">false</span>,</span><br><span class="line">                <span class="literal">false</span>);  <span class="comment">// not launch the activity</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">@Test</span><br><span class="line">public void test<span class="constructor">CorrectIntent()</span> throws InterruptedException &#123;</span><br><span class="line">	<span class="comment">//设置启动Activity的Intent</span></span><br><span class="line">    Intent intent = <span class="keyword">new</span> <span class="constructor">Intent()</span>;</span><br><span class="line">    intent.set<span class="constructor">Action(Intent.ACTION_SEND)</span>;</span><br><span class="line">    intent.set<span class="constructor">Type(TextHashActivity.SUPPORT_TYPE)</span>;</span><br><span class="line">    intent.put<span class="constructor">Extra(Intent.EXTRA_TEXT, TEST_INPUT)</span>;</span><br><span class="line">	<span class="comment">//启动Activity</span></span><br><span class="line">    rule.launch<span class="constructor">Activity(<span class="params">intent</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">TimeUnit</span>.</span><span class="module"><span class="identifier">SECONDS</span>.</span></span>sleep(<span class="number">1</span>);</span><br><span class="line">    on<span class="constructor">View(<span class="params">withId</span>(R.<span class="params">id</span>.<span class="params">textview_sha1</span>)</span>)</span><br><span class="line">            .check(matches(<span class="keyword">with</span><span class="constructor">Text(TEST_SHA1)</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另一种方式测试：</p>
+</li>
+</ul>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">@Test</span><br><span class="line"><span class="keyword">public</span> <span class="built_in">void</span> testFromOtherApp() throws InterruptedException &#123;</span><br><span class="line"></span><br><span class="line">    Intent <span class="built_in">int</span>ent = new Intent();</span><br><span class="line">    <span class="built_in">int</span>ent.setAction(Intent.ACTION_SEND);</span><br><span class="line">    <span class="built_in">int</span>ent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);</span><br><span class="line">    <span class="built_in">int</span>ent.setType(TextHashActivity.SUPPORT_TYPE);</span><br><span class="line">    <span class="built_in">int</span>ent.putExtra(Intent.EXTRA_TEXT, TEST_INPUT);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// There maybe more than one app will handle this requirement</span></span><br><span class="line">    String packageName = InstrumentationRegistry.getTargetContext().getPackageName();</span><br><span class="line">    ComponentName componentName = new ComponentName(packageName,</span><br><span class="line">            TextHashActivity.class.getName());</span><br><span class="line">    <span class="built_in">int</span>ent.setComponent(componentName);</span><br><span class="line"></span><br><span class="line">    Intents.init();</span><br><span class="line">    InstrumentationRegistry.getContext().startActivity(<span class="built_in">int</span>ent);</span><br><span class="line">    Matcher&lt;Intent&gt; expectedIntent = hasComponent(componentName);</span><br><span class="line">    <span class="built_in">int</span>ended(expectedIntent);</span><br><span class="line">    Intents.release();</span><br><span class="line"></span><br><span class="line">    TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">    onView(withId(R.id.textview_sha1))</span><br><span class="line">            .check(matches(withText(TEST_SHA1)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>想让每个Activity启动的时候都收到某个Intent</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@SmallTest</span></span><br><span class="line"><span class="meta">@RunWith(AndroidJUnit4.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MainActivityTest</span> &#123;</span><br><span class="line">    <span class="meta">@Rule</span></span><br><span class="line">    <span class="keyword">public</span> ActivityTestRule&lt;MainActivity&gt; mActivityRule =</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">ActivityTestRule</span>&lt;MainActivity&gt;(MainActivity.class) &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="keyword">protected</span> Intent <span class="title function_">getActivityIntent</span><span class="params">()</span> &#123;</span><br><span class="line">                    <span class="type">Context</span> <span class="variable">targetContext</span> <span class="operator">=</span> InstrumentationRegistry.getInstrumentation()</span><br><span class="line">                        .getTargetContext();</span><br><span class="line">                    <span class="type">Intent</span> <span class="variable">result</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>(targetContext, MainActivity.class);</span><br><span class="line">                    result.putExtra(<span class="string">&quot;Name&quot;</span>, <span class="string">&quot;Value&quot;</span>);</span><br><span class="line">                    <span class="keyword">return</span> result;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>排除外部Intent的影响</p>
+</li>
+</ul>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">intending(not(is<span class="constructor">Internal()</span>)).(<span class="keyword">new</span> <span class="constructor">ActivityResult(Activity.RESULT_OK, <span class="params">null</span>)</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="Espresso-测试用例中使用源码中的数据"><a href="#Espresso-测试用例中使用源码中的数据" class="headerlink" title="Espresso 测试用例中使用源码中的数据"></a>Espresso 测试用例中使用源码中的数据</h4><p>要想在测试用例中使用源码中的数据可以使用VisibleForTesting 这个注释符。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@VisibleForTesting</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">VALID_ENDING</span> <span class="operator">=</span> <span class="string">&quot;coffee&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h4><p><a target="_blank" rel="noopener" href="http://michaelevans.org/blog/2015/09/15/testing-intents-with-espresso-intents/">http://michaelevans.org/blog/2015/09/15/testing-intents-with-espresso-intents/</a><br><a target="_blank" rel="noopener" href="https://github.com/pengj/Intent-Test">https://github.com/pengj/Intent-Test</a><br><a target="_blank" rel="noopener" href="http://collectiveidea.com/blog/archives/2015/06/11/testing-for-android-intents-using-espresso/">http://collectiveidea.com/blog/archives/2015/06/11/testing-for-android-intents-using-espresso/</a><br><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000004338384">https://segmentfault.com/a/1190000004338384</a><br>guides.codepath.com&#x2F;android&#x2F;UI-Testing-with-Espresso<br><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/ad8b3514b852">http://www.jianshu.com/p/ad8b3514b852</a><br><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000004355178">https://segmentfault.com/a/1190000004355178</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/qq744746842/article/details/51005604">http://blog.csdn.net/qq744746842/article/details/51005604</a><br><a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/32142463/how-to-stub-select-images-intent-using-espresso-intents">http://stackoverflow.com/questions/32142463/how-to-stub-select-images-intent-using-espresso-intents</a><br><a target="_blank" rel="noopener" href="http://pengj.me/android/test/2015/10/17/expresso-test-intent.html">http://pengj.me/android/test/2015/10/17/expresso-test-intent.html</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-自动化测试/">Android 自动化测试</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/02/Android-进阶之自动化测试-UIAutomator/" title="Android 进阶之自动化测试 UIAutomator">
+  <span>
+  Android 进阶之自动化测试 UIAutomator</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/07/01/查看已经打包Apk的VersionCode-VersionName/"  title="查看已经打包Apk的VersionCode &amp;&amp; VersionName">
+ <span>查看已经打包Apk的VersionCode &amp;&amp; VersionName
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/01/Android-进阶之自动化测试Espreso/" data-title="Android 进阶之自动化测试Espreso" data-url="http://yoursite.com/2016/07/01/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95Espreso/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Espresso-%E6%96%87%E6%A1%A3"><span class="toc-number">1.</span> <span class="toc-text">Espresso 文档</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Espresso-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">2.</span> <span class="toc-text">Espresso 环境搭建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Espresso-%E7%BB%84%E6%88%90"><span class="toc-number">3.</span> <span class="toc-text">Espresso 组成</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ActivityTestRule"><span class="toc-number">3.1.</span> <span class="toc-text">ActivityTestRule</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9F%A5%E6%89%BE%E5%BE%85%E6%93%8D%E4%BD%9C%E7%9A%84View"><span class="toc-number">4.</span> <span class="toc-text">查找待操作的View</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%9C%A8AdapterView%E4%B8%AD%E7%82%B9%E5%87%BB%E6%9F%90%E9%A1%B9%E7%9A%84%E4%BE%8B%E5%AD%90%EF%BC%9A"><span class="toc-number">4.1.</span> <span class="toc-text">在AdapterView中点击某项的例子：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#RecyclerView-%E7%9A%84%E7%94%A8%E6%B3%95%EF%BC%9A"><span class="toc-number">4.2.</span> <span class="toc-text">RecyclerView 的用法：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#hasSibling%E7%9A%84%E7%94%A8%E6%B3%95"><span class="toc-number">4.3.</span> <span class="toc-text">hasSibling的用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#inRoot-%E9%AA%8C%E8%AF%81Toast-amp-amp-AutoComplete"><span class="toc-number">4.4.</span> <span class="toc-text">inRoot 验证Toast &amp;&amp; AutoComplete</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89ViewAction"><span class="toc-number">5.</span> <span class="toc-text">自定义ViewAction</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89Idling-Resource"><span class="toc-number">6.</span> <span class="toc-text">自定义Idling Resource</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E5%92%8C%E6%B3%A8%E9%94%80idling-resource"><span class="toc-number">6.0.1.</span> <span class="toc-text">注册和注销idling resource</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Espresso-Intent-%E6%B5%8B%E8%AF%95"><span class="toc-number">7.</span> <span class="toc-text">Espresso Intent 测试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Espresso-%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%BA%90%E7%A0%81%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="toc-number">8.</span> <span class="toc-text">Espresso 测试用例中使用源码中的数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-number">9.</span> <span class="toc-text">参考文章</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,874 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS 组件化总结 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="0. 开篇叨叨今天给大家讲的主题是iOS组件化，提起组件化让我想起了在读研的时候用的一款图形化编程语言NI LabVIEW,它是由美国国家仪器公司开发的，它编写的程序是由一个个图形模块堆叠起来的，我们可以很轻松地将几个模块通过数据流连接起来构成一个比较复杂的程序，当然它还有和硬件通信控制硬件的功能，但这不是我们的重点。从整体角度来看，它编写的程序主要由下面几部分构成： 模块         --">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 组件化总结">
+<meta property="og:url" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="0. 开篇叨叨今天给大家讲的主题是iOS组件化，提起组件化让我想起了在读研的时候用的一款图形化编程语言NI LabVIEW,它是由美国国家仪器公司开发的，它编写的程序是由一个个图形模块堆叠起来的，我们可以很轻松地将几个模块通过数据流连接起来构成一个比较复杂的程序，当然它还有和硬件通信控制硬件的功能，但这不是我们的重点。从整体角度来看，它编写的程序主要由下面几部分构成： 模块         --">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000001.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000002.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000004.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000003.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000005.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000006.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000007.png">
+<meta property="article:published_time" content="2019-09-13T17:57:51.000Z">
+<meta property="article:modified_time" content="2020-02-23T09:19:06.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 进阶">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/09/14/iOS-组件化总结/" title="iOS 组件化总结" itemprop="url">iOS 组件化总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-09-13T17:57:51.000Z" itemprop="datePublished"> Published 2019-09-14</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="0-开篇叨叨"><a href="#0-开篇叨叨" class="headerlink" title="0. 开篇叨叨"></a>0. 开篇叨叨</h5><p>今天给大家讲的主题是iOS组件化，提起组件化让我想起了在读研的时候用的一款图形化编程语言<a target="_blank" rel="noopener" href="https://www.ni.com/zh-cn/shop/labview/labview-details.html">NI LabVIEW</a>,它是由美国国家仪器公司开发的，它编写的程序是由一个个图形模块堆叠起来的，我们可以很轻松地将几个模块通过数据流连接起来构成一个比较复杂的程序，当然它还有和硬件通信控制硬件的功能，但这不是我们的重点。从整体角度来看，它编写的程序主要由下面几部分构成：</p>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line">模块         <span class="comment">-- 提供某个功能服务</span></span><br><span class="line">模块间的连线  <span class="comment">-- 数据事件沿着连线流动</span></span><br><span class="line">逻辑块       <span class="comment">-- 控制数据怎样沿着连线在这些功能模块上流动</span></span><br></pre></td></tr></table></figure>
+
+<p>我们在组件化某个项目的时候也就是也就是在搭建类似NI LabVIEW平台的过程，在这个过程中我们需要考虑如何划分和封装模块，模块间数据怎么交互，如何注册&#x2F;查找对应服务的模块。</p>
+<p>开发人员在组件化的项目上编写代码的时候只需要提供输入数据，然后调用合适的组件，将数据送入组件处理，组件处理完后将处理后的数据按照约定的交付形式输出，然后再流入下个组件，在项目中能够通过便捷的方式路由到任何一个组件，并且组件间没有任何耦合，拆开组件在不修改任何代码的情况下在另一个项目中复用组件。</p>
+<p><strong><strong>那么大家思考过没：什么是组件化？ 为啥要在项目上使用组件化技术？</strong></strong></p>
+<p>在我看来组件化指的是将项目代码进行分层，解耦，并制定模块间通信的方式，从而实现解耦，复用。不可否认有些项目的组件化是KPI产物，但是很大程度来说组件化都是十分必要的，为啥？它有啥好处？</p>
+<ul>
+<li><p>首先组件化带来的最大好处就是项目成果积累，一般一个公司都会不只一个项目，如果采用组件化将可共享的模块从各个项目中抽离出来，形成一个组件，那么其他项目需要这个功能的时候就可以直接复用，而不用重复开发，并且这些组件在多个项目的维护下会越来越健壮，这种积累从长远角度看对于一个公司来说是一个十分可观的成果。</p>
+</li>
+<li><p>其次从宏观角度上看，每个组件都相当于一个黑盒，我们只关心我们注入哪些数据，组件吐出哪些数据，里面的细节对于组件使用者来说不用太多关照，这样就会使得整个项目的结构更加清晰。同时这种黑盒结构很容易通过测试用例对组件进行测试。</p>
+</li>
+<li><p>在多人协作的团队可以将整个项目分割成多个模块分配给开发成员。</p>
+</li>
+<li><p>由于组件是可以单独编译的，开发测试过程中，可以只编译自己那部分代码，不需要编译整个项目代码，从这个角度出发，组件化可以很大程度上加快整个项目的编译速度。从测试角度可以在开发过程中先提交组件测试，测试通过后再进行组件集成测试，从开发流程角度可以更好得进行独立并行开发，各个组件的负责人在功能尚未开发完之前可以按照约定的组件接口结构，Mock假数据给调用者，这样我们在开发组件的同时，依赖方可以同时开发他们的组件，等到我们的组件开发完毕后使用真实数据替换Mock假数据就可以很轻松得将两个组件对接起来。</p>
+</li>
+<li><p>不同组件的开发人员可以选择自己喜欢的架构模式 (当然这里不推荐这样做，一个项目尽量保持架构一致)</p>
+</li>
+<li><p>可以针对单个组件或者模块进行编译测试，更好定位问题，我们可以通过对组件间接口进行测试，如果发现异常就可以针对组件进行排查。</p>
+</li>
+<li><p>组件化架构在各个模块之间天然形成了一道屏障，避免某个开发人员偷懒直接引用头文件，产生组件间的耦合，破坏整体架构，同时，因为每个人都负责自己的组件，代码提交也只提交自己负责模块的仓库，所以代码冲突的问题会变得很少，还有好处就是假设以后某个业务发生大的改变，需要对相关代码进行重构，可以在单个组件内进行重构，只要保证对外接口准确无误就可以了，组件化架构降低了重构的风险，保证了代码的健壮性。</p>
+</li>
+</ul>
+<p>但是<strong><strong>组件化又有那些缺点呢？</strong></strong></p>
+<p>其实倒不是组件化有啥缺点，组件化的唯一缺点就是会给项目带来复杂性，比如我们在非组件化项目中从一个对象拿到另一个对象是十分容易的，但是组件化项目中有可能这两个对象是跨组件的，这种情况下可能就需要绕个大弯去获取，这对于项目初期进度很赶的时候是十分恼火的一个问题，并且某个项目刚刚成立之前，往往对于项目的整体形态都没形成一个很系统的认知，这种情况下对项目进行组件化规划是比较困难的，因为如果组件划分不合理调整起来是很困难的一件事情，这对需求的把握能力以及前瞻能力都有很高的要求，这就导致一般项目初期很少考虑组件化，到了项目第一个demo出来，并且人员到齐的情况下才会将组件化纳入到项目日程。</p>
+<h5 id="1-组件化要思考的关键问题"><a href="#1-组件化要思考的关键问题" class="headerlink" title="1. 组件化要思考的关键问题"></a>1. 组件化要思考的关键问题</h5><p>组件简单说就是如何组织组件，如何添加组件，如何发现组件，如何交付数据，如何传递动作，把这些理清楚了组件框架就可以理出个头绪了，往详细得说组件化需要考虑如下几点：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="bullet">* </span>如何划分组件/组件解耦</span><br><span class="line"><span class="bullet">* </span>组件间数据通信的时候数据怎么交付</span><br><span class="line"><span class="bullet">* </span>如何设计组件路由</span><br><span class="line"><span class="bullet">* </span>如何设计消息总线</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="2-用组件化视角审视项目结构"><a href="#2-用组件化视角审视项目结构" class="headerlink" title="2. 用组件化视角审视项目结构"></a>2. 用组件化视角审视项目结构</h5><p>在用组件化视角审视项目结构之前我们看下一般一个应用的通用部分有哪些，下面是我自己设计的一个框架的结构图，该框架是我的练手项目，目前完成大部分的基础工作，还有一部分正在开发中，后续整个完善后开源给大家，大家一起完善，一起学习，目前暂定名字为IDLFundation,之前有打算叫GKFundation(Geek Fundation) 但是后面觉得俗气，所以想了个更俗气的名字IDLFundation（idealist Fundation 理想主义者）</p>
+<p><img src="/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000001.png"></p>
+<h5 id="2-1-数据层"><a href="#2-1-数据层" class="headerlink" title="2.1 数据层"></a>2.1 数据层</h5><p>数据层主要包括两大部分:DataSource以及Data Processor。DataSource 又可以分成Local DataSource 以及Remote DataSource</p>
+<ul>
+<li>Local DataSource 包括</li>
+</ul>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>数据库：一般用于存储结构性数据</span><br><span class="line"><span class="bullet">* </span>缓存：  一般用于存储有时效性的数据，超过某个过期时间或者超过一定容量限制就会被清除</span><br><span class="line"><span class="bullet">* </span>文件管理：一般用于管理文件</span><br><span class="line"><span class="bullet">* </span>KeyChain: 它的特点是除非恢复出厂设置否则即使卸载应用数据也都会保留着，很适合存储密码等关键信息。</span><br><span class="line"><span class="bullet">* </span>UserDefault: 一般用于存储极为小型的数据，比如某个标志位等，它会随着应用的卸载而丢失</span><br><span class="line"><span class="bullet">* </span>ImageLoader: 实质上也是一种缓存，只不过存储的是图片数据。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Remote DataSource 包括</li>
+</ul>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>Http/Https: 这个是大多数的远程数据来源</span><br><span class="line"><span class="bullet">* </span>WebSocket:  WebSocket一般用于后端主动下发消息</span><br><span class="line"><span class="bullet">* </span>Downloader/Uploader: 一般用于上传和下载大型的数据，比如图像或者文件等</span><br></pre></td></tr></table></figure>
+
+<p>在拿到数据后或者在存储数据之前一般会对数据做相应处理后交付给使用方：</p>
+<p>常用的数据处理包括：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>数据加解密： 一般在存储或者传输敏感数据的时候需要对数据进行一次加密，但是加密有时候会比较耗时，所以对于非关键数据一般不用加密传输。</span><br><span class="line"><span class="bullet">* </span>数据压缩/解压缩：对于传输比较大的数据一般都会在传输前做压缩解压处理</span><br><span class="line"><span class="bullet">* </span>序列化/反序列化：这个是最常见的数据处理方式，在拿到后台的数据后我们通常会对数据进行反序列化成一个对象后传递给上层进行处理，而在向服务端发送数据对象之前需要将数据进行序列化后进行传输。目前比较常用的序列化和反序列化方式有JSON以及Probuf,JSON的特点是比较直观，而Probuf是基于二进制的数据，所以数据量会比JSON小，但是调试的时候比较不直观。</span><br></pre></td></tr></table></figure>
+
+<p>在MVVM架构中和数据层关系最密切的就是Model层了，Model中一般都是一些获取数据的方法，在获取完数据后经过处理后放在Model层待使用方取用，Model层状态发生变化View层一般也会同步变化，比如开始获取数据的时候一般会呈现一个加载动画，数据拿到后会呈现一个用于显示数据的界面，获取数据失败会有错误信息界面，这里我们用一个ViewAction来向View层同步状态</p>
+<h5 id="2-2-视图层"><a href="#2-2-视图层" class="headerlink" title="2.2 视图层"></a>2.2 视图层</h5><p>视图层在各个项目中往往差异比较大，但是还是有可以提炼出的共同点：</p>
+<figure class="highlight nestedtext"><table><tr><td class="code"><pre><span class="line"><span class="attribute">* UI Components</span><span class="punctuation">:</span> <span class="string">大多数项目中会用到列表，闪屏，Banner,按钮，圆角图片，弹窗，面板，Toast的界面相关的控件，可以将这些控件的公共部分给抽象出来，使用的时候通过配置就可以应用在不同项目中。</span></span><br><span class="line"><span class="attribute">* Theme Manager</span><span class="punctuation">:</span> <span class="string">主题管理包括图片，颜色，字体等多种资源管理，一般在主题发生切换的时候还需要往外部传递信号，供外界监听。</span></span><br><span class="line"><span class="attribute">* LayoutKit</span><span class="punctuation"> :</span> <span class="string">布局库，目前比较流行的就是Masory了，除了它还有一系列基于Flex模式的布局库，比如Yoga,ComponentKit等，一般比较高效的布局库会带有异步计算布局参数，缓存布局参数的功能。</span></span><br><span class="line"><span class="attribute">* Device UI Adapter</span><span class="punctuation">:</span> <span class="string">随着越来越多的屏幕分辨率出现，适配也成为了视图层中一个很重要的工作，所以一个项目中一般会有视图适配工具类。</span></span><br></pre></td></tr></table></figure>
+
+<p>视图层的工作比较简单，IDLFundation 中会管理三种状态的视图分别是Loading View,Content View, Empty&#x2F;Exception View,这三者的作用从名称上都可以看出来是干什么用的，它受ViewAction信号控制<br>如果说数据层是生产数据的，那么视图层的作用就是生产交互事件，在IDLFunation中会将事件通过RACCommand暴露出去，可以在ViewController中对其进行相关工作的绑定。<br>视图还有一个功能就是布局它的子控件。嗯，视图层大致就这么简单。</p>
+<h5 id="2-3-ViewController层"><a href="#2-3-ViewController层" class="headerlink" title="2.3 ViewController层"></a>2.3 ViewController层</h5><p>在IDLFundation中 ViewController层相当于MVVM的ViewModel层，它负责绑定View 和 Model层，同时处理View层生成的动作，它会监听一系列事件，比如主题更换，语言更换，网络状态切换，ViewController生命周期变化，通过感知这些事件触发对应的逻辑处理。</p>
+<h5 id="2-4-APM-amp-amp-Quality-Center"><a href="#2-4-APM-amp-amp-Quality-Center" class="headerlink" title="2.4 APM &amp;&amp; Quality Center"></a>2.4 APM &amp;&amp; Quality Center</h5><p>介绍完IDLFundation最核心的MVVM框架后，仅次于它的一个部分就是APM &amp;&amp; Quality Center 模块，在这里包含了一系列性能检测，以及异常收集，Logger上报，埋点数据上报等工具，这个模块用于对整个应用进行检测。所以个人将这个模块也归入核心框架层。</p>
+<h5 id="2-5-应用配置层"><a href="#2-5-应用配置层" class="headerlink" title="2.5 应用配置层"></a>2.5 应用配置层</h5><p>应用配置层会以两种形式对应用进行配置，一种是本地项目配置，一种是云指令控制，后者可以根据服务端下发的配置文件对应用的功能进行配置。</p>
+<h5 id="2-6-AppContext"><a href="#2-6-AppContext" class="headerlink" title="2.6 AppContext"></a>2.6 AppContext</h5><p>这个一般同于存储一些全局的应用变量，比如登录后的登录态等，多个地方都需要使用，并且方便取用。</p>
+<h5 id="2-7-应用路由"><a href="#2-7-应用路由" class="headerlink" title="2.7 应用路由"></a>2.7 应用路由</h5><p>这里指的是路由的框架层，一般一个路由可以分成两部分一部分是强应用相关的部分，包括应用定义的路由协议，以及对某个协议的处理。<br>另一部分是通用的部分，包括路由的分发匹配，路由策略等，这部分是可以抽出来对多个项目共用的。</p>
+<h5 id="2-8-Hot-Fix"><a href="#2-8-Hot-Fix" class="headerlink" title="2.8 Hot Fix"></a>2.8 Hot Fix</h5><p>说到Hot Fix 大家一定会联想到JSPatch,但是其实Hot Fix 除了JSPath外还可以结合动态下发路由表来修复线上问题，这个后续有时间会向大家介绍下。</p>
+<h5 id="2-9-ABTest"><a href="#2-9-ABTest" class="headerlink" title="2.9 ABTest"></a>2.9 ABTest</h5><p>目前一般项目都会使用到ABTest据说这种开发方式在字节跳动会比较常用，也就是说同一个功能客户端会同时开发几套效果，通过对用户进行不同的分组，对不同的用户使用不同的展示方式，ABTest比较强调公平性，不然很难说服产品们他们的策略谁优谁劣，<br>但是一般小型项目一个功能往往只有一个产品负责，这种ABTest往往比较不那么严格，只要随机分组就好。对于字节跳动那种模式，分组的公平性就很重要，不然产品们吵着吵着就会将矛头指向ABTest开发工程师。哈哈，毕竟KPI相关。</p>
+<h5 id="2-10-Web-Componente"><a href="#2-10-Web-Componente" class="headerlink" title="2.10 Web Componente"></a>2.10 Web Componente</h5><p>我把这个成为应用的动态化模块，主要包括基于JavaScripCore的 JS桥，以及React Native.这些是可以动态变化的，动态指的是同一个地址里面的内容可以随时变化而不用通过发布版本的方式。</p>
+<h5 id="2-11-AutoMation-Tools"><a href="#2-11-AutoMation-Tools" class="headerlink" title="2.11 AutoMation Tools"></a>2.11 AutoMation Tools</h5><p>我们很经常在玩笑啥时候能给自动化需求，哈哈，估计等不到那一天吧，不过我们确实可以将开发中很大一部分工作通过自动化来完成，比如埋点key，参数，颜色表，字符表，资源索引等。这些脚本很容易提高我们的开发效率，并且不容易出错，个人感觉很值得。</p>
+<h5 id="2-12-Common-Module"><a href="#2-12-Common-Module" class="headerlink" title="2.12 Common Module"></a>2.12 Common Module</h5><p>这部分就相对比较大的模块，一般我们会将这些常用模块公共部分抽象出来，通过在业务层配置，达到复用的目的。</p>
+<h5 id="3-组件化设计细节"><a href="#3-组件化设计细节" class="headerlink" title="3 组件化设计细节"></a>3 组件化设计细节</h5><p>在我们介绍完一个项目的大致结构后我们重新回到组件化这个问题，在组件化这个问题上没有固定的模式，需要依照项目的实际情况来确定，但是在设计组件化框架的时候有一些问题是必须要思考的：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>如何划分组件/组件如何解耦</span><br><span class="line"><span class="bullet">* </span>如何设计组件路由</span><br><span class="line"><span class="bullet">* </span>组件化消息总线设计</span><br><span class="line"><span class="bullet">* </span>组件集成</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-1-组件划分"><a href="#3-1-组件划分" class="headerlink" title="3.1 组件划分"></a>3.1 组件划分</h5><p>关于组件划分我们需要思考如下几个问题：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>划分组件需要遵循那些规则</span><br><span class="line"><span class="bullet">* </span>如何能够做到某个组件单独拎出来在不修改的情况下在另一个项目中使用。</span><br><span class="line"><span class="bullet">* </span>如何能够在只修改极少数代码的情况下将某个组件移除，并且主工程能够正常运行。</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-1-1-组件划分规则"><a href="#3-1-1-组件划分规则" class="headerlink" title="3.1.1 组件划分规则"></a>3.1.1 组件划分规则</h5><p>一般我们在项目中会把项目划分成：业务模块，功能组件以及基础组件。</p>
+<ul>
+<li><strong><strong>业务模块</strong></strong>：</li>
+</ul>
+<p>业务模块一般是一个具体的业务比如酒店业务模块，机票订阅业务模块，每个模块都是较大的一个需求，每一个模块都是由多个功能组件组合而成。通过调用不同的功能组件来获得相应的支持，数据从一个功能组件流向另一个功能组件，每个功能组件提供对应的服务，最终展现给用户。一般业务模块粒度比较粗，但是数量不宜太多。这一层往往变动比较频繁。一般会有单独的人来维护。</p>
+<ul>
+<li><strong><strong>功能组件</strong></strong>：</li>
+</ul>
+<p>功能组件指的是从业务角度来看是一个相对独立的不可再分的部件，每个功能组件都能够提供某项独立的服务，比如搜索组件，比如用户信息管理组件。一般我们在开发过程中会不断从业务模块中去提取，一旦有较为稳定的可以归并为一个功能的逻辑出现的时候，我们就会将这部分逻辑封装后下沉到功能组件。</p>
+<ul>
+<li><strong><strong>基础组件</strong></strong>：</li>
+</ul>
+<p>基础组件一般指的是和业务无关的，可以在多个项目中复用的，比如应用主题管理组件。网络组件等等。这个层的组件强调的是多项目的可复用性，所以对稳定性要求一般是最高的。一般考虑到它的可复用性在划分粒度上都会分得比较细。功能也会比较单一，基础层组件相互之间不应该产生任何依赖。</p>
+<ul>
+<li><strong><strong>资源组件</strong></strong>：</li>
+</ul>
+<p>对于图片资源，可以单独剥出一个组件，这个组件中只存放图片文件不包含任何代码，这些图片可以通过Bundle,image Assets进行管理，并按不同业务模块建立不同的Bundle或者image Assets。</p>
+<p>组件拆分原则：</p>
+<p>对于组件的拆分，一般需要依据各个组件的特点，首先总体上应该去中心化，形成层级从上而下单向依赖，也就是说业务模块依赖功能组件，功能组件依赖基础组件。在发现有多个组件可以共用的逻辑或者数据模型的情况下，要考虑将这些公用的部分下沉，这种层级结构还有一种特点就是：越是上层的组件，越贴近业务，也就越不稳定，因此我们在划分的时候一般业务模块粒度会相对粗一些，功能组件划分粒度一般会细一点，而基础组件一般会考虑它的稳定性，只有十分必要的情况下才会考虑把它纳入到基础组件。对于项目中存在的公共资源和代码，应该将其下沉到下层。</p>
+<p>总结:</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">在划分的过程中遵循：</span><br><span class="line"><span class="bullet">1.</span> 去中心化，组件结构层级化，依赖从上而下，平级组件无依赖。</span><br><span class="line"><span class="bullet">2.</span> 业务模块粗粒度，功能组件细粒度，基础组件强调高稳定性，高复用性。</span><br><span class="line"><span class="bullet">3.</span> 目标：独立模块组件可以编译运行，每个模块可随意插拔。</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-1-2-组件解耦"><a href="#3-1-2-组件解耦" class="headerlink" title="3.1.2 组件解耦"></a>3.1.2 组件解耦</h5><p>在组件化过程中，主要有两部分会产生耦合：一个是组件间调用，一个是组件间数据交付形式,这部分需要思考如下几个问题：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>组件间通信选用何种形式才能降低耦合</span><br><span class="line"><span class="bullet">* </span>组件间数据通信的时候数据怎么交付，以什么形式交付才不会带来耦合</span><br><span class="line"><span class="bullet">* </span>如何交付非常规数据</span><br></pre></td></tr></table></figure>
+
+<p>关于组件解耦推荐大家阅读下bang的<a target="_blank" rel="noopener" href="https://wereadteam.github.io/2016/03/19/iOS-Component/">iOS 组件化方案探索</a>，这篇博客很清晰地介绍了组件化组件间依赖的解耦过程。</p>
+<p>组件间通信以及组件间数据交付形式是产生组件耦合的最根源原因。组件间通信一般有URL形式，class-protocals 形式，target-action形式。我们来看下理想的依赖模式是怎样的：</p>
+<p><img src="/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000002.png"></p>
+<p>理想的依赖关系应该如上图所示，调用方依赖Mediator及对应模块的Mediator分类，但是被调用组件中不知道Mediator以及调用方的存在（只让其他模块对中间层产生耦合关系，中间层不对其他模块发生耦合），假定我们要移除被调用方直接移除就好，Mediator在没有找到被调用者的时候只是不响应而已不会对其他部分有任何影响，而被调用者由于不感知Mediator所以从项目中提取出来也不会对它有任何影响。对于调用者要从项目中移出只需要调整与Mediator相关的代码即可，甚至可以带着Mediator移出。到新环境中的时候只要对接Mediator接口即可。具体的实现方式可以看casatwy的<a target="_blank" rel="noopener" href="https://casatwy.com/iOS-Modulization.html">iOS应用架构谈 组件化方案</a>.在这种模式下，可以通过Mediator解决组件间头文件直接引用、依赖混乱的问题。需要注意的是Mediator应该只负责挂接节点的通信任务，不应该包含涉及具体业务的逻辑。也就是说Mediator中只应该负责找到响应方，将参数打包抛给响应方即可，至于具体的逻辑由调用方和响应方做具体的处理。</p>
+<p>下面是CTMediator的大致结构：<br><img src="/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000004.png"></p>
+<p>还有一处可能会带来耦合的地方是组件间的数据交付形式，如果不用组件化的话我们一般在两个对象数据产生交付的时候一般会以一个具体的Model形式交付，但是应用组件化后这些Model存放在哪里就是个问题，模型类放在调用方和被调方的哪个组件都不太合适，因为以具体Model形式交付的化双方就都会依赖这个Model，这就导致必须将这个Model下沉。但是同一个Model可能是多个模块之间交付的数据形式，这就导致需要将所有的Model放置到一个单独的下层组件中去。也就是说每个层都会有一个Model层供上层使用，在这种情况下抽出某个组件都会有藕断丝连痛不欲生的感觉。可能大家会退而求其次在用到这个模型对象的所有组件中，都分别维护一份相同的模型类，或者各自维护不同结构的模型类，但是这样业务发生改变模型类就会很麻烦，这是不可取的。所以比较合理的方式是去Model化，以Dictionary形式进行交互，参数Dictionary在Mediator中封装。这样所有的变化都集中在Mediator中。这里需要注意的是组件内部还是可以使用Model的。</p>
+<p>总结:</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line">在解耦方面，主要有两部分会产生耦合：</span><br><span class="line"><span class="bullet">* </span>一个是组件间调用，一个是组件间数据交付形式</span><br><span class="line"><span class="bullet">* </span>前者可以借助runtime + target-action形式解决，后者采用去Model化Dictionary进行交付。</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-2-组件路由"><a href="#3-2-组件路由" class="headerlink" title="3.2 组件路由"></a>3.2 组件路由</h5><h5 id="3-2-1-组件路由的作用"><a href="#3-2-1-组件路由的作用" class="headerlink" title="3.2.1 组件路由的作用"></a>3.2.1 组件路由的作用</h5><p>路由是组件化中很重要的一部分，我们有时候会自嘲我们日常做的工作就是从一个界面点击后跳转到另一界面拉取数据后，再次点击后再重复上面的工作，这个侧面反应了路由跳转再整个应用中的重要程度，但是我们再从比较宽泛的角度来看，其实通过路由不一定只是解决在页面之间的跳转问题，它其实是一个资源的索引，通过它不但可以跳转页面，还可以获得某些资源数据。</p>
+<h5 id="3-2-2-评判组件路由的标准"><a href="#3-2-2-评判组件路由的标准" class="headerlink" title="3.2.2 评判组件路由的标准"></a>3.2.2 评判组件路由的标准</h5><p>一个组件路由设计得好还是不好往往会有一定地标准去评判，下面列出个人认为的一些标准：</p>
+<ul>
+<li><p><strong><strong>准确高效</strong></strong><br>路由最基本的要求就是准确高效，如果这一点都不能保证那么这个路由一般不会在项目中采用。</p>
+</li>
+<li><p><strong><strong>灵活跳转</strong></strong></p>
+</li>
+</ul>
+<p>在设计路由接口的时候一般需要思考如下几个点：</p>
+<ul>
+<li><p>如何对外提供远程访问的功能：<br>这些接口包括：Web端访问的接口，其他App调用接口。</p>
+</li>
+<li><p>如何在应用内部提供应用内模块(组件)间的页面之间访问的功能。</p>
+</li>
+<li><p>如何统一同一个产品下不同端，不同页面形式（RN,Weex，H5，Native页面）之间的路由方式。</p>
+</li>
+<li><p>如何通过路由访问资源</p>
+</li>
+<li><p>如何通过路由进行模块调度，组件加载</p>
+</li>
+<li><p><strong><strong>动态性</strong></strong></p>
+</li>
+</ul>
+<p>一般我们在设计路由的时候都会有个路由映射表，可能你会说target-action方式没有这种路由映射表，但实际上它的target以及action selector就是它的路由映射表，有了路由映射表的概念，我们就可以通过动态下发对应的路由映射表来实现路由的动态化，在跳转之前查询下如果有在路由映射表里面那么就按照表里面的进行跳转，如果不在那么就按照原样跳转，通过这种机制在跳转前进行拦截，替换，这有什么好处呢？比如我们线上某个页面有奔溃异常那么可以将这个界面的路由指定到一个统一的异常页面页面，或者用某个特定的H5页面作为降级页面，这样就可以达到简单的热修复的目的。</p>
+<p>在这里需要补充一点：有了路由后我们可以在路由上做很多工作，除了上面提到了热修复策略，页面黑白名单策略，还可以在路由上进行统一跳转埋点，鉴权，配合灰度进行风控逻辑。</p>
+<ul>
+<li><strong><strong>安全性</strong></strong></li>
+</ul>
+<p>跨应用时，需要注意注入攻击，做到敏感参数加密防篡改，同时需要注意路由层应提供能够实现风控的机制。<br>跨业务系统的时候，访问敏感页面或资源的时候需要通过Token等认证信息来实现路由层的身份认证。</p>
+<p>下面是目前开源的一些比较好的路由开源代码，大家在设计过程中可以参照这些项目进行设计符合自己项目的路由器：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/joeldev/JLRoutes">JLRoutes 5029 star</a><br><a target="_blank" rel="noopener" href="https://github.com/casatwy/CTMediator">CTMediator 2638 star</a><br><a target="_blank" rel="noopener" href="https://github.com/meili/MGJRouter">MGJRouter 1946 star</a><br><a target="_blank" rel="noopener" href="https://github.com/clayallsopp/routable-ios">routable-ios 1773 star</a><br><a target="_blank" rel="noopener" href="https://github.com/button/DeepLinkKit">DeepLinkKit 3236 star</a><br><a target="_blank" rel="noopener" href="https://github.com/aaronbrethorst/ABRouter">ABRouter 136 star</a><br><a target="_blank" rel="noopener" href="https://github.com/lightory/HHRouter">HHRouter 1574 star</a><br><a target="_blank" rel="noopener" href="https://github.com/imlifengfeng/FFRouter">FFRouter 157 star</a><br><a target="_blank" rel="noopener" href="https://github.com/chenxiancai/STCRouter">STCRouter 19 star</a></p>
+<p>上面的路由大体可以归为三类：URL形式，class-protocals 形式，target-action形式。个人比较偏向于target-action形式，关于target-action形式的组件化介绍可以看下<a target="_blank" rel="noopener" href="https://casatwy.com/iOS-Modulization.html">iOS应用架构谈 组件化方案</a>以及<a target="_blank" rel="noopener" href="https://wereadteam.github.io/2016/03/19/iOS-Component/">iOS 组件化方案探索</a>。URL形式，class-protocals 形式大家可以看下<a target="_blank" rel="noopener" href="https://limboy.me/tech/2016/03/10/mgj-components.html">蘑菇街 App 的组件化之路</a> <a target="_blank" rel="noopener" href="https://limboy.me/tech/2016/03/14/mgj-components-continued.html">蘑菇街 App 的组件化之路·续</a></p>
+<p>下面我们分别简单对比下三种路由方式：</p>
+<ul>
+<li><strong><strong>URL形式</strong></strong></li>
+</ul>
+<p>这种方式是借鉴前端的路由思想，它将应用内任何资源与一个URL对应在一起。它最大的优点就是可以统一三端路由形式。具有天然的动态性，适合经常开展运营活动的应用，它的缺点也是比较致命的：这种方式不能在模块间传递非常规数据。所以一般会在多端路由的情况下或者暴露给外部应用调用的情况下使用这种形式。</p>
+<ul>
+<li><strong><strong>Class-Protocals 形式</strong></strong></li>
+</ul>
+<p>这种方式的优点是没有硬编码，但是它的缺点也比较明显处理不好会产生模块间耦合。</p>
+<ul>
+<li><strong><strong>Target-Action形式</strong></strong></li>
+</ul>
+<p>Target-Action方式的优点是无需注册，能够做到被调用模块不被依赖。但是它有个比较不足的地方就是在参数打包的时候会有硬编码，但是可以通过在Mediator中包装一层将这部分归并到Mediator统一处理。</p>
+<h5 id="4-组件化消息总线设计"><a href="#4-组件化消息总线设计" class="headerlink" title="4 组件化消息总线设计"></a>4 组件化消息总线设计</h5><p>下图是个人设计的一个组件化消息总线：</p>
+<p><img src="/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000003.png"></p>
+<p>整个总线是集中式下发，消息中心包含了各个消息的注册信息，最主要包括某个事件的监听组件列表，每个eventType为key，value为当前事件的监听组件列表，另一个注册信息是某个事件的响应selector字符串，key为eventType，value为seletorString, 当某个模块需要发送消息的时候调用triggEvent方法，将要触发的事件以及要携带的参数传递到消息中心，消息中心通过查表找出哪些模块需要通知，然后再查着该事件的响应selector,通过performSeletor来调用监听模块的响应方法，从而达到通知消息的目的。</p>
+<h5 id="5-组件集成"><a href="#5-组件集成" class="headerlink" title="5 组件集成"></a>5 组件集成</h5><p>在实际项目中一般会将每个组件都分割成一个单独工程，通过git统一管理，主工程通过Cocoapods集成各个组件，关于Cocoapods的时候大家可以看之前的博客，之前有专门拎出一篇博客进行介绍，但是除了Cocoapods之外还可以有其他的方式。一种是在项目中直接集成源码这种的优点是在主工程调试比较方便，可以看到组件的内部实现，另一种是framework，它的好处是可以加快编译速度，并且每个组件的代码是不可见的，对于比较机密敏感的模块可以选用这种方式。</p>
+<p><img src="/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000005.png"></p>
+<h5 id="6-组件化步骤"><a href="#6-组件化步骤" class="headerlink" title="6 组件化步骤"></a>6 组件化步骤</h5><p>在项目相对稳定成型的时候我们就可以向项目引入组件化了，有了上面的介绍相信大家对整个组件化有了一定的了解了，作为文章的最后给出一个组件化的一个步骤供大家在项目实际开发过程中参考：</p>
+<ul>
+<li>6.1 <strong><strong>项目模块划分</strong></strong></li>
+</ul>
+<p>组件化过程不同人有不同的方式，有的人喜欢从下往上，先从细粒度的基本组件开始，然后再封装功能组件，而后才是业务模块，但是个人比较不推荐这种方式，这种方式比较容易陷入到细节中没有宏观的概念，建议找个纸和笔画出整个项目可以划分成哪些模块，这些模块就是我们的业务模块部分，然后在划分这部分模块的时候，再考虑这个模块有那些功能，一一穷举出来，这时候就大概知道有那些功能模块了，到了这一步就可以开始动手从代码层面上进行组件划分了，在划分过程中再把通用的部分下沉，形成一个一个基础组件。不断封装不断下沉公共部分。通过定义一些组件间接口，这些接口后续会在路由中实现，步骤完成后确认组件和其他部分代码没有耦合后就可以将这部分组件提交到组件库中进行管理。</p>
+<p>基础层组件则在集成后直接依赖，例如资源文件和配置文件，这些都是直接在主工程或组件中使用的。第三方库则是通过功能组件层的业务封装，封装后由路由进行通信，业务组件层是直接依赖第三方库源码的。</p>
+<ul>
+<li>6.2 <strong><strong>设计组件路由，进行组件解耦</strong></strong></li>
+</ul>
+<p>个人建议在内部模块之间使用Target-Action方式，而对外接口或者有些需要H5跳转到客户端的采用URL形式（这主要考虑到H5跳客户端需要保持两端共同的跳转方式，而URL是这些之中唯一能够做到多端统一的路由方式）。<br>在开始解耦之前先列出上一步划分的组件之间的交互接口，然后通过组件路由来桥接这些接口，传递数据，这里数据的交付应该是去Model化的形式进行交付。</p>
+<ul>
+<li>6.3 <strong><strong>组件消息梳理</strong></strong></li>
+</ul>
+<p>梳理出各个组件哪个组件发出那些消息，哪些组件监听这些消息，都将这些信息注册到组件化消息总线中。</p>
+<ul>
+<li>6.4 <strong><strong>组件测试</strong></strong></li>
+</ul>
+<p>经过上述的组件化，需要我们对整个项目进行自测，首先从各个组件内部先进行测试，然后再扩展到组件间的接口部分进行测试，最后再对项目整体进行测试。</p>
+<ul>
+<li>6.5 <strong><strong>新起项目如何做组件化</strong></strong></li>
+</ul>
+<p>上面介绍的主要针对项目成型的情况下，通过组件化来重构项目，如果是新起的项目，我们会先将项目配置文件等集成到主工程中，做一些基础的项目配置，随后集成需要的组件。之后各个业务根据业务需求实现各个业务组件，一旦遇到需要依赖基础组件库中的服务的时候，就往主项目中引入基础组件库，遇到要从某个组件开发者那里获得某项服务的时候可以到接口需求后台提单，支持组件开发人员根据需求单来提供服务。在这个过程中可以通过Mock数据来并行开发，组件开发结束后，测试先介入对组件进行功能测试，在所有组件完成后再进行组件集成测试。</p>
+<p>总结：<br>这篇文章是写得算是比较久的一篇博客，主要涵盖了：什么是组件化，组件化的优缺点，从项目结构角度分析了一个项目该有的部分，而后正式从如何划分组件，如何从路由角度，数据交付角度来对组件解耦，再接着介绍了路由的功能，三种常见的路由实现方式以及如何设计路由。如何设计消息总线，组件的集成。最后给出了组件化的大致步骤。相信通过上面的介绍结合给出的开源方案，大家都应该会对组件化有个进一步的理解。组件化是一个很强义务相关的话题，需要对自己的项目业务有比较深刻的理解才能设计出比较优雅的组件化框架，本文只是针对比较通用的一些方面进行总结，文章的最后结合<a target="_blank" rel="noopener" href="https://blog.csdn.net/licaomengRICE/article/details/49253255">手机淘宝的客户端架构探索之路</a>来做个结尾，我自己的组件化也从无锋的这篇文章中借鉴了很多思想，所以想分享给大家，首先建议大家先通读原文，然后再看接下来的内容。</p>
+<p>首先我们看下整个方案的大题结构图：</p>
+<p><img src="/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000006.png"></p>
+<p>这里涉及到了一切皆Bundle（组件）的概念，整个方案是围绕Bundle展开的，分成三层，最顶层是一系列Bundle，第二层是总线层，用于数据的交付，事件的通知，资源的路由。最后一层则是容器层.<br>如果将容器看成一个OS，那么一个个Bundle就相当于一个个App一样，它是可被部署的单元，里面可以涉及UI的部分，服务的部分。Bundle对容器是没有依赖的，它只会依赖中间的总线层。容器有完全独立的三大职能：启动加载、生命周期管理、组件管理。其中生命周期管理，负责将容器的生命周期通知到各个Bundle，让Bundle能够感知这些生命周期事件，并作出响应。组件管理器负责添加、删除、替换。在启动的时候，会首先由容器完成整个应用的引导流程，容器的初始化，核心中间件的初始化，启动入口的Bundle(入口Bundle是可配置的，一旦被配置就表示用户点击图标后首先会看到的界面).</p>
+<p>总线方面主要分成三大部分，UI总线，服务总线，消息总线：</p>
+<p><strong><strong>UI总线</strong></strong>和上述的组件路由类似，负责资源的选址，为了三端统一，使用了以跨平台统一的URL作为路由方式，这里比较有意思的是自动降级机制:</p>
+<blockquote>
+<p>没有Bundle承载的URL，将自动以Web 容器加载。这样就可以实现，当一个新的业务到达手机当中的时候，当手机客户端还没有实现这个功能，就会自动以Web的形式把它运作出来。当想要保证轻量化的时候，可能会裁剪掉一些Bundle，这时没有了这些Bundle，这些功能将会自动以Web的方式替换掉，使得在整个流程里面它是完整的。体验可能会有一些差别，但是功能是不受影响的。</p>
+</blockquote>
+<p><strong><strong>服务总线</strong></strong>主要用于提供某项服务的总线，通过往总线传入数据后，经过某项服务处理后将数据传出。<br><strong><strong>消息总线</strong></strong>这里的消息总线Android里面使用Broadcast，iOS使用NSNotification。个人比较偏向于使用该博客上面介绍的那种消息总线的方式来通知事件。这里对手淘的具体项目需求不是很清楚所以不做评判。但是这三种总线的划分十分值得借鉴的。</p>
+<p>最后手淘在组件化架构的基础上，淘宝提出Bundle App的概念，可以通过已有组件，进行简单配置后就可以组成一个新的app出来。解决了多个应用业务复用的问题，防止重复开发同一业务或功能。</p>
+<p><img src="/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/0000007.png"></p>
+<h5 id="组件化相关的较好文章"><a href="#组件化相关的较好文章" class="headerlink" title="组件化相关的较好文章"></a>组件化相关的较好文章</h5><ul>
+<li><a target="_blank" rel="noopener" href="https://casatwy.com/iOS-Modulization.html">iOS应用架构谈 组件化方案</a></li>
+<li><a target="_blank" rel="noopener" href="https://casatwy.com/modulization_in_action.html">在现有工程中实施基于CTMediator的组件化方案</a></li>
+<li><a target="_blank" rel="noopener" href="https://limboy.me/tech/2016/03/10/mgj-components.html">蘑菇街 App 的组件化之路</a></li>
+<li><a target="_blank" rel="noopener" href="https://limboy.me/tech/2016/03/14/mgj-components-continued.html">蘑菇街 App 的组件化之路·续</a></li>
+<li><a target="_blank" rel="noopener" href="https://wereadteam.github.io/2016/03/19/iOS-Component/">iOS 组件化方案探索</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fengmin/p/5507790.html">iOS组件化思路－大神博客研读和思考</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/alibaba/BeeHive">BeeHive</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/5ucpVa6ku4b9_pfMP9CqlQ">Category 特性在 iOS 组件化中的应用与管控</a></li>
+<li><a target="_blank" rel="noopener" href="https://halfrost.com/ios_router/">iOS 组件化 —— 路由设计思路分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/22565656">iOS组件化方案</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5d0e1eaf5188251a36222cd9">组件化架构漫谈</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/BwVSA-aI2jVv4IRNOwps">有赞移动 iOS 组件化（模块化）架构设计实践</a></li>
+<li><a target="_blank" rel="noopener" href="https://zuikyo.github.io/2019/07/15/iOS_inrerface_orientation_modularization/">打造完备的iOS组件化方案：如何面向接口进行模块解耦</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/licaomengRICE/article/details/49253255">手机淘宝客户端架构探索实践</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/cf314e4df9ad">iOS组件化–壳工程</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/568e875abd48">iOS组件化实践(一)：简介</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5ba3cc0df265da0aac6fdaa0">iOS 从零到一搭建组件化项目框架</a></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E8%BF%9B%E9%98%B6/">iOS 进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-进阶/">iOS 进阶</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/10/02/图解iOS之ReactiveObjc-部分重要概念及操作简图/" title="图解iOS之ReactiveObjc 部分重要概念及操作简图 一">
+  <span>
+  图解iOS之ReactiveObjc 部分重要概念及操作简图 一</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/09/10/在部门内分享的Flutter材料/"  title="iOS 跨平台方案总结">
+ <span>iOS 跨平台方案总结
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/09/14/iOS-组件化总结/" data-title="iOS 组件化总结" data-url="http://yoursite.com/2019/09/14/iOS-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%80%BB%E7%BB%93/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#0-%E5%BC%80%E7%AF%87%E5%8F%A8%E5%8F%A8"><span class="toc-number">1.</span> <span class="toc-text">0. 开篇叨叨</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E7%BB%84%E4%BB%B6%E5%8C%96%E8%A6%81%E6%80%9D%E8%80%83%E7%9A%84%E5%85%B3%E9%94%AE%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">1. 组件化要思考的关键问题</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E7%94%A8%E7%BB%84%E4%BB%B6%E5%8C%96%E8%A7%86%E8%A7%92%E5%AE%A1%E8%A7%86%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">2. 用组件化视角审视项目结构</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-1-%E6%95%B0%E6%8D%AE%E5%B1%82"><span class="toc-number">4.</span> <span class="toc-text">2.1 数据层</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-%E8%A7%86%E5%9B%BE%E5%B1%82"><span class="toc-number">5.</span> <span class="toc-text">2.2 视图层</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-ViewController%E5%B1%82"><span class="toc-number">6.</span> <span class="toc-text">2.3 ViewController层</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-4-APM-amp-amp-Quality-Center"><span class="toc-number">7.</span> <span class="toc-text">2.4 APM &amp;&amp; Quality Center</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-%E5%BA%94%E7%94%A8%E9%85%8D%E7%BD%AE%E5%B1%82"><span class="toc-number">8.</span> <span class="toc-text">2.5 应用配置层</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-6-AppContext"><span class="toc-number">9.</span> <span class="toc-text">2.6 AppContext</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-7-%E5%BA%94%E7%94%A8%E8%B7%AF%E7%94%B1"><span class="toc-number">10.</span> <span class="toc-text">2.7 应用路由</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-8-Hot-Fix"><span class="toc-number">11.</span> <span class="toc-text">2.8 Hot Fix</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-9-ABTest"><span class="toc-number">12.</span> <span class="toc-text">2.9 ABTest</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-10-Web-Componente"><span class="toc-number">13.</span> <span class="toc-text">2.10 Web Componente</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-11-AutoMation-Tools"><span class="toc-number">14.</span> <span class="toc-text">2.11 AutoMation Tools</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-12-Common-Module"><span class="toc-number">15.</span> <span class="toc-text">2.12 Common Module</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E7%BB%84%E4%BB%B6%E5%8C%96%E8%AE%BE%E8%AE%A1%E7%BB%86%E8%8A%82"><span class="toc-number">16.</span> <span class="toc-text">3 组件化设计细节</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-1-%E7%BB%84%E4%BB%B6%E5%88%92%E5%88%86"><span class="toc-number">17.</span> <span class="toc-text">3.1 组件划分</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-1-1-%E7%BB%84%E4%BB%B6%E5%88%92%E5%88%86%E8%A7%84%E5%88%99"><span class="toc-number">18.</span> <span class="toc-text">3.1.1 组件划分规则</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-1-2-%E7%BB%84%E4%BB%B6%E8%A7%A3%E8%80%A6"><span class="toc-number">19.</span> <span class="toc-text">3.1.2 组件解耦</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-2-%E7%BB%84%E4%BB%B6%E8%B7%AF%E7%94%B1"><span class="toc-number">20.</span> <span class="toc-text">3.2 组件路由</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-2-1-%E7%BB%84%E4%BB%B6%E8%B7%AF%E7%94%B1%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">21.</span> <span class="toc-text">3.2.1 组件路由的作用</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-2-2-%E8%AF%84%E5%88%A4%E7%BB%84%E4%BB%B6%E8%B7%AF%E7%94%B1%E7%9A%84%E6%A0%87%E5%87%86"><span class="toc-number">22.</span> <span class="toc-text">3.2.2 评判组件路由的标准</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%B6%88%E6%81%AF%E6%80%BB%E7%BA%BF%E8%AE%BE%E8%AE%A1"><span class="toc-number">23.</span> <span class="toc-text">4 组件化消息总线设计</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-%E7%BB%84%E4%BB%B6%E9%9B%86%E6%88%90"><span class="toc-number">24.</span> <span class="toc-text">5 组件集成</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-%E7%BB%84%E4%BB%B6%E5%8C%96%E6%AD%A5%E9%AA%A4"><span class="toc-number">25.</span> <span class="toc-text">6 组件化步骤</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6%E5%8C%96%E7%9B%B8%E5%85%B3%E7%9A%84%E8%BE%83%E5%A5%BD%E6%96%87%E7%AB%A0"><span class="toc-number">26.</span> <span class="toc-text">组件化相关的较好文章</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

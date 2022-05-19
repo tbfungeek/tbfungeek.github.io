@@ -1,0 +1,887 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Texture 五 Texture源码解析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="1. Texture 异步绘制源码分析1.1 整体流程图在开始分析代码之前先给大家看下整个异步绘制的关键流程图，我把它划分成两条主线，第一条以setNeedDisplay为起点，将displayBlock返回的UImage在Group中转换为ASAsyncTransationOperation的value，另一条是以RunLoop休眠前及退出RunLoop事件为触发点，将第一条主线产生的UImag">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Texture 五 Texture源码解析">
+<meta property="og:url" content="http://yoursite.com/2019/11/12/Texture-%E4%BA%94-Texture%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="1. Texture 异步绘制源码分析1.1 整体流程图在开始分析代码之前先给大家看下整个异步绘制的关键流程图，我把它划分成两条主线，第一条以setNeedDisplay为起点，将displayBlock返回的UImage在Group中转换为ASAsyncTransationOperation的value，另一条是以RunLoop休眠前及退出RunLoop事件为触发点，将第一条主线产生的UImag">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/11/12/Texture-%E4%BA%94-Texture%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/000023.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/12/Texture-%E4%BA%94-Texture%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/11111.png">
+<meta property="article:published_time" content="2019-11-12T03:27:59.000Z">
+<meta property="article:modified_time" content="2019-12-19T13:28:34.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/12/Texture-%E4%BA%94-Texture%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/000023.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/11/12/Texture-五-Texture源码解析/" title="Texture 五 Texture源码解析" itemprop="url">Texture 五 Texture源码解析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-11-12T03:27:59.000Z" itemprop="datePublished"> Published 2019-11-12</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="1-Texture-异步绘制源码分析"><a href="#1-Texture-异步绘制源码分析" class="headerlink" title="1. Texture 异步绘制源码分析"></a>1. Texture 异步绘制源码分析</h5><h6 id="1-1-整体流程图"><a href="#1-1-整体流程图" class="headerlink" title="1.1 整体流程图"></a>1.1 整体流程图</h6><p>在开始分析代码之前先给大家看下整个异步绘制的关键流程图，我把它划分成两条主线，第一条以setNeedDisplay为起点，将displayBlock返回的UImage在Group中转换为ASAsyncTransationOperation的value，另一条是以<br>RunLoop休眠前及退出RunLoop事件为触发点，将第一条主线产生的UImage通过ASAsyncTransationOperation 的 operationCompleteBlock 传到layer.content.</p>
+<p>整个图可以分成两大块，第一块是displayBlock生成UImage,第二块是UImage怎么传到layer.content</p>
+<p>围绕着这两条主线，两大块就可以捋清楚整个异步绘制的整个流程。</p>
+<p><img src="/2019/11/12/Texture-%E4%BA%94-Texture%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/000023.png"></p>
+<h6 id="1-2-触发异步绘制的入口点"><a href="#1-2-触发异步绘制的入口点" class="headerlink" title="1.2 触发异步绘制的入口点"></a>1.2 触发异步绘制的入口点</h6><p>Texture触发异步绘制的入口点主要有如下两个地方：</p>
+<ul>
+<li>UIView加入视图层级，这时候会调用willMoveToWindow</li>
+<li>直接调用setNeedsDisplay方法</li>
+</ul>
+<p>其实最终都会归并到setNeedsDisplay</p>
+<p>首先看下willMoveToWindow，这里会调用ASDisplayNode的__enterHierarchy</p>
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">- (void)willMoveToWindow:(UIWindow *)newWindow &#123;</span><br><span class="line">  ASDisplayNode *<span class="keyword">node</span> <span class="title">= _asyncdisplaykit_node</span>; // Create strong <span class="keyword">reference</span> to weak ivar.</span><br><span class="line">  BOOL visible = (newWindow != nil);</span><br><span class="line">  if (visible &amp;&amp; !node.inHierarchy) &#123;</span><br><span class="line">    [<span class="keyword">node</span> <span class="title">__enterHierarchy</span>];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在__enterHierarchy中会调用子节点的__enterHierarchy，并且根据具体情况创建placeHolderLayer添加到当前layer上</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)__enterHierarchy</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  <span class="comment">//.......</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (!_flags.isInHierarchy &amp;&amp; !_flags.visibilityNotificationsDisabled &amp;&amp; ![<span class="keyword">self</span> __selfOrParentHasVisibilityNotificationsDisabled]) &#123;</span><br><span class="line">      <span class="comment">//.......</span></span><br><span class="line">      <span class="comment">//更新状态</span></span><br><span class="line">      [<span class="keyword">self</span> willEnterHierarchy];</span><br><span class="line">      <span class="comment">//遍历节点调用节点的__enterHierarchy</span></span><br><span class="line">      <span class="keyword">for</span> (ASDisplayNode *subnode <span class="keyword">in</span> <span class="keyword">self</span>.subnodes) &#123;</span><br><span class="line">        [subnode __enterHierarchy];</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">//.......</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>.contents == <span class="literal">nil</span>) &#123; <span class="comment">//如果内容为空</span></span><br><span class="line">      <span class="built_in">CALayer</span> *layer = <span class="keyword">self</span>.layer;</span><br><span class="line">      [layer setNeedsDisplay]; <span class="comment">//调用layer的setNeedsDisplay</span></span><br><span class="line">      <span class="comment">//如果有占位图则显示占位图</span></span><br><span class="line">      <span class="keyword">if</span> ([<span class="keyword">self</span> _locked_shouldHavePlaceholderLayer]) &#123;</span><br><span class="line">        [<span class="built_in">CATransaction</span> begin];</span><br><span class="line">        [<span class="built_in">CATransaction</span> setDisableActions:<span class="literal">YES</span>];</span><br><span class="line">        <span class="comment">//显示placeHolderLayer</span></span><br><span class="line">        [<span class="keyword">self</span> _locked_setupPlaceholderLayerIfNeeded];</span><br><span class="line">        _placeholderLayer.opacity = <span class="number">1.0</span>;</span><br><span class="line">        [<span class="built_in">CATransaction</span> commit];</span><br><span class="line">        <span class="comment">//将placehHolderLayer添加到layer</span></span><br><span class="line">        [layer addSublayer:_placeholderLayer];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  [<span class="keyword">self</span> didEnterHierarchy];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这里比较关键的是setNeedsDisplay，在这里会创建后续需要的渲染队列，渲染队列是一个高优先级的串行异步队列，displayBlock就是这个队列中执行的，</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)setNeedsDisplay</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//...........</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="comment">//...........</span></span><br><span class="line">    <span class="keyword">if</span> (isRasterized == <span class="literal">NO</span> &amp;&amp; shouldApply == <span class="literal">NO</span>) &#123;</span><br><span class="line">      <span class="comment">// We can&#x27;t release the lock before applying to pending state, or it may be flushed before it can be applied.</span></span><br><span class="line">      [ASDisplayNodeGetPendingState(<span class="keyword">self</span>) setNeedsDisplay];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (isRasterized) &#123;</span><br><span class="line">    ASPerformBlockOnMainThread(^&#123;</span><br><span class="line">      <span class="comment">// The below operation must be performed on the main thread to ensure against an extremely rare deadlock, where a parent node</span></span><br><span class="line">      <span class="comment">// begins materializing the view / layer hierarchy (locking itself or a descendant) while this node walks up</span></span><br><span class="line">      <span class="comment">// the tree and requires locking that node to access .rasterizesSubtree.</span></span><br><span class="line">      <span class="comment">// For this reason, this method should be avoided when possible.  Use _hierarchyState &amp; ASHierarchyStateRasterized.</span></span><br><span class="line">      ASDisplayNodeAssertMainThread();</span><br><span class="line">      ASDisplayNode *rasterizedContainerNode = <span class="keyword">self</span>.supernode;</span><br><span class="line">      <span class="keyword">while</span> (rasterizedContainerNode) &#123;</span><br><span class="line">        <span class="keyword">if</span> (rasterizedContainerNode.rasterizesSubtree) &#123;</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        rasterizedContainerNode = rasterizedContainerNode.supernode;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">//将根节点标记为dirty</span></span><br><span class="line">      [rasterizedContainerNode setNeedsDisplay];</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (shouldApply) &#123;</span><br><span class="line">      <span class="comment">// If not rasterized, and the node is loaded (meaning we certainly have a view or layer), send a</span></span><br><span class="line">      <span class="comment">// message to the view/layer first. This is because __setNeedsDisplay calls as scheduleNodeForDisplay,</span></span><br><span class="line">      <span class="comment">// which may call -displayIfNeeded. We want to ensure the needsDisplay flag is set now, and then cleared.</span></span><br><span class="line">      [viewOrLayer setNeedsDisplay];</span><br><span class="line">    &#125;</span><br><span class="line">    [<span class="keyword">self</span> __setNeedsDisplay];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)__setNeedsDisplay</span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">BOOL</span> shouldScheduleForDisplay = <span class="literal">NO</span>;</span><br><span class="line">  &#123;</span><br><span class="line">    MutexLocker l(__instanceLock__);</span><br><span class="line">    <span class="type">BOOL</span> nowDisplay = ASInterfaceStateIncludesDisplay(_interfaceState);</span><br><span class="line">    <span class="comment">// <span class="doctag">FIXME:</span> This should not need to recursively display, so create a non-recursive variant.</span></span><br><span class="line">    <span class="comment">// The semantics of setNeedsDisplay (as defined by CALayer behavior) are not recursive.</span></span><br><span class="line">    <span class="keyword">if</span> (_layer != <span class="literal">nil</span> &amp;&amp; !checkFlag(Synchronous) &amp;&amp; nowDisplay &amp;&amp; [<span class="keyword">self</span> _implementsDisplay]) &#123;</span><br><span class="line">      shouldScheduleForDisplay = <span class="literal">YES</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (shouldScheduleForDisplay) &#123;</span><br><span class="line">    [ASDisplayNode scheduleNodeForRecursiveDisplay:<span class="keyword">self</span>];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="type">void</span>)scheduleNodeForRecursiveDisplay:(ASDisplayNode *)node</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</span><br><span class="line">  <span class="keyword">static</span> ASRunLoopQueue&lt;ASDisplayNode *&gt; *renderQueue;</span><br><span class="line">  <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">    renderQueue = [[ASRunLoopQueue&lt;ASDisplayNode *&gt; alloc] initWithRunLoop:<span class="built_in">CFRunLoopGetMain</span>()</span><br><span class="line">                                                             retainObjects:<span class="literal">NO</span></span><br><span class="line">                                                                   handler:^(ASDisplayNode * _Nonnull dequeuedItem, <span class="type">BOOL</span> isQueueDrained) &#123;</span><br><span class="line">      [dequeuedItem _recursivelyTriggerDisplayAndBlock:<span class="literal">NO</span>];</span><br><span class="line">      <span class="keyword">if</span> (isQueueDrained) &#123;</span><br><span class="line">        <span class="built_in">CFTimeInterval</span> timestamp = <span class="built_in">CACurrentMediaTime</span>();</span><br><span class="line">        [[<span class="built_in">NSNotificationCenter</span> defaultCenter] postNotificationName:ASRenderingEngineDidDisplayScheduledNodesNotification</span><br><span class="line">                                                            object:<span class="literal">nil</span></span><br><span class="line">                                                          userInfo:@&#123;ASRenderingEngineDidDisplayNodesScheduledBeforeTimestamp: @(timestamp)&#125;];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;];</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  as_log_verbose(ASDisplayLog(), <span class="string">&quot;%s %@&quot;</span>, sel_getName(_cmd), node);</span><br><span class="line">  [renderQueue enqueue:node];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>经过层层调用会调到_ASDisplayLayer的display方法</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">- (void)<span class="attribute">display</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">ASDisplayNodeAssertMainThread</span>();</span><br><span class="line">  <span class="selector-attr">[self _hackResetNeedsDisplay]</span>;</span><br><span class="line"></span><br><span class="line">  if (self.displaySuspended) &#123;</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="selector-attr">[self display:self.displaysAsynchronously]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>display方法中的实际工作就是调用 - (void)display:(BOOL)asynchronously，在- (void)display:(BOOL)asynchronously中将流程转到asyncDelegate中</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)display:(<span class="type">BOOL</span>)asynchronously</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">CGRectIsEmpty</span>(<span class="keyword">self</span>.bounds)) &#123;</span><br><span class="line">    _attemptedDisplayWhileZeroSized = <span class="literal">YES</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  [<span class="keyword">self</span>.asyncDelegate displayAsyncLayer:<span class="keyword">self</span> asynchronously:asynchronously];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="1-3-几个重要类之间的关系"><a href="#1-3-几个重要类之间的关系" class="headerlink" title="1.3 几个重要类之间的关系"></a>1.3 几个重要类之间的关系</h6><p>接下来就是比较重要的异步绘制的流程了，这里主要分两大块：</p>
+<ol>
+<li>displayBlock,completionBlock 指责是什么，怎么构建出来的，在什么时机调用？</li>
+<li>整个异步绘制的流程是怎样的？</li>
+</ol>
+<p>对于第一点我们先留一个印象，displayBlock是用于生成UImage的，completionBlock是用于将displayBlock获得的UIImage设置到layer.content中。我们先把最大块的第二点给梳理清楚—整个异步绘制的流程。</p>
+<p>在开始之前需先梳理下_ASAsyncTransactionGroup,ASAsyncTransactionContainer,_ASAsyncTransaction,ASAsyncTransactionQueue,ASAsyncTransactionOperation,DispatchEntry,Operation 这些类的关系，其实梳理了这些类的关系整个异步绘制流程就会显得十分清晰，建议大家可以结合文章开始时候给出的图来看。</p>
+<ul>
+<li>_ASAsyncTransactionGroup</li>
+</ul>
+<p>_ASAsyncTransactionGroup 用于管理ASAsyncTransactionContainer，ASAsyncTransactionContainer通过_ASAsyncTransactionGroup的addTransactionContainer方法添加到_ASAsyncTransactionGroup中，这里有个很重要的_ASAsyncTransactionGroup 就是mainTransactionGroup，在每个主线程RunLoop即将进入睡眠期间，以及由于RunLoop模式切换等原因导致的当前RunLoop退出的时候将添加mainTransactionGroup中ASAsyncTransactionContainer中的_ASAsyncTransaction 调用commit进行提交，这里先卖个关子，先不介绍commit到底是干啥的。我们先看看mainTransactionGroup：</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">+ (<span class="variable">_ASAsyncTransactionGroup</span> *)mainTransactionGroup</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  static <span class="variable">_ASAsyncTransactionGroup</span> *mainTransactionGroup;</span><br><span class="line">  <span class="comment">//懒加载_ASAsyncTransactionGroup</span></span><br><span class="line">  <span class="keyword">if</span> (mainTransactionGroup == <span class="literal">nil</span>) &#123;</span><br><span class="line">    mainTransactionGroup = [[<span class="variable">_ASAsyncTransactionGroup</span> alloc] <span class="variable">_init</span>];</span><br><span class="line">    <span class="comment">//注册监听runloop结束或者进入休眠之前的通知</span></span><br><span class="line">    [mainTransactionGroup registerAsMainRunloopObserver];</span><br><span class="line">  &#125;</span><br><span class="line">  return mainTransactionGroup;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>mainTransactionGroup 是以懒加载的方式实例化出来，在创建的时候会注册监听kCFRunLoopBeforeWaiting和kCFRunLoopExit这两个通知，在RunLoop睡眠和退出之前，在主线程调用commit。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)registerAsMainRunloopObserver</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  <span class="keyword">static</span> <span class="built_in">CFRunLoopObserverRef</span> observer;</span><br><span class="line">  <span class="built_in">CFRunLoopRef</span> runLoop = <span class="built_in">CFRunLoopGetCurrent</span>();</span><br><span class="line">  <span class="built_in">CFOptionFlags</span> activities = (kCFRunLoopBeforeWaiting | <span class="comment">// before the run loop starts sleeping</span></span><br><span class="line">                              kCFRunLoopExit);          <span class="comment">// before exiting a runloop run</span></span><br><span class="line"></span><br><span class="line">  observer = <span class="built_in">CFRunLoopObserverCreateWithHandler</span>(<span class="literal">NULL</span>,        <span class="comment">// allocator</span></span><br><span class="line">                                                activities,  <span class="comment">// activities</span></span><br><span class="line">                                                <span class="literal">YES</span>,         <span class="comment">// repeats</span></span><br><span class="line">                                                INT_MAX,     <span class="comment">// order after CA transaction commits</span></span><br><span class="line">                                                ^(<span class="built_in">CFRunLoopObserverRef</span> observer, <span class="built_in">CFRunLoopActivity</span> activity) &#123;</span><br><span class="line">                                                  ASDisplayNodeCAssertMainThread();</span><br><span class="line">                                                  <span class="comment">//在进入runloop休眠之前或者切换runloop模式导致runloop退出的时候会调用commit</span></span><br><span class="line">                                                  [<span class="keyword">self</span> commit];</span><br><span class="line">                                                &#125;);</span><br><span class="line">  <span class="built_in">CFRunLoopAddObserver</span>(runLoop, observer, kCFRunLoopCommonModes);</span><br><span class="line">  <span class="built_in">CFRelease</span>(observer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在commit中遍历添加到mainTransactionGroup中的TransactionContainer，调用asyncdisplaykit_currentAsyncTransaction的commit方法提交，<br>提交后会将asyncdisplaykit_currentAsyncTransaction设置为nil。</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">- (void)commit</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ([<span class="variable">_containers</span> <span class="built_in">count</span>]) &#123;</span><br><span class="line">    NSHashTable *containersToCommit = <span class="variable">_containers</span>;</span><br><span class="line">    <span class="variable">_containers</span> = [NSHashTable hashTableWithOptions:NSHashTableObjectPointerPersonality];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//遍历添加到mainTransactionContainer中的TransactionContainer，调用asyncdisplaykit_currentAsyncTransaction的commit方法</span></span><br><span class="line">    <span class="keyword">for</span> (id&lt;ASAsyncTransactionContainer&gt; container <span class="built_in">in</span> containersToCommit) &#123;</span><br><span class="line">      <span class="variable">_ASAsyncTransaction</span> *transaction = container.asyncdisplaykit_currentAsyncTransaction;</span><br><span class="line">      container.asyncdisplaykit_currentAsyncTransaction = <span class="literal">nil</span>;</span><br><span class="line">      [transaction commit];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>ASAsyncTransactionContainer</li>
+</ul>
+<p>ASAsyncTransactionContainer 是Transaction的容器，它其实是一个CALayer,最重要的有两个属性：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line">asyncdisplaykit<span class="emphasis">_currentAsyncTransaction  当前的异步事务</span></span><br><span class="line"><span class="emphasis">asyncdisplaykit_</span>asyncLayerTransactions   当前layer的所有异步事务</span><br></pre></td></tr></table></figure>
+<p>在 - (void)displayAsyncLayer:(_ASDisplayLayer *)asyncLayer asynchronously:(BOOL)asynchronously方法中会在整个层级树中找到最顶层的父节点，调用ASAsyncTransactionContainer的asyncdisplaykit_asyncTransaction方法为父节点创建asyncdisplaykit_asyncLayerTransactions以及asyncdisplaykit_currentAsyncTransaction，然后将当前TransactionContainer 添加到 mainTransactionGroup。代码如下：</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (_ASAsyncTransaction <span class="operator">*</span>)asyncdisplaykit_asyncTransaction</span><br><span class="line">&#123;</span><br><span class="line">  _ASAsyncTransaction <span class="operator">*</span>transaction <span class="operator">=</span> <span class="keyword">self</span>.asyncdisplaykit_currentAsyncTransaction;</span><br><span class="line">  <span class="keyword">if</span> (transaction <span class="operator">==</span> <span class="literal">nil</span>) &#123;</span><br><span class="line">    <span class="comment">//如果当前的异步Transaction为空</span></span><br><span class="line">    <span class="type">NSMutableSet</span>&lt;_ASAsyncTransaction *&gt; <span class="operator">*</span>transactions <span class="operator">=</span> <span class="keyword">self</span>.asyncdisplaykit_asyncLayerTransactions;</span><br><span class="line">    <span class="keyword">if</span> (transactions <span class="operator">==</span> <span class="literal">nil</span>) &#123;</span><br><span class="line">      <span class="comment">//检查transactions是否为空，如果为空则创建一个并作为asyncdisplaykit_asyncLayerTransactions</span></span><br><span class="line">      transactions <span class="operator">=</span> <span class="type">ASCreatePointerBasedMutableSet</span>();</span><br><span class="line">      <span class="keyword">self</span>.asyncdisplaykit_asyncLayerTransactions <span class="operator">=</span> transactions;</span><br><span class="line">    &#125;</span><br><span class="line">    __weak <span class="type">CALayer</span> <span class="operator">*</span>weakSelf <span class="operator">=</span> <span class="keyword">self</span>;</span><br><span class="line">    transaction <span class="operator">=</span> [[_ASAsyncTransaction alloc] initWithCompletionBlock:<span class="operator">^</span>(_ASAsyncTransaction <span class="operator">*</span>completedTransaction, <span class="type">BOOL</span> cancelled) &#123;</span><br><span class="line">      __strong <span class="type">CALayer</span> <span class="operator">*</span><span class="keyword">self</span> <span class="operator">=</span> weakSelf;</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">self</span> <span class="operator">==</span> <span class="literal">nil</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      [<span class="keyword">self</span>.asyncdisplaykit_asyncLayerTransactions removeObject:completedTransaction];</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">self</span>.asyncdisplaykit_asyncLayerTransactions.count <span class="operator">==</span> <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// Reclaim object memory.</span></span><br><span class="line">        <span class="keyword">self</span>.asyncdisplaykit_asyncLayerTransactions <span class="operator">=</span> <span class="literal">nil</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      [<span class="keyword">self</span> asyncdisplaykit_asyncTransactionContainerDidCompleteTransaction:completedTransaction];</span><br><span class="line">    &#125;];</span><br><span class="line"></span><br><span class="line">    <span class="comment">//将transaction添加到transactions进行管理</span></span><br><span class="line">    [transactions addObject:transaction];</span><br><span class="line">    <span class="keyword">self</span>.asyncdisplaykit_currentAsyncTransaction <span class="operator">=</span> transaction;</span><br><span class="line">    [<span class="keyword">self</span> asyncdisplaykit_asyncTransactionContainerWillBeginTransaction:transaction];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//ASAsyncTransactionContainer----&gt; transations ----&gt; transaction</span></span><br><span class="line">  <span class="comment">//将当前TransactionContainer 添加到 mainTransactionGroup，在runloop结束或者休眠之前会调用transaction的commit</span></span><br><span class="line">  [_ASAsyncTransactionGroup.mainTransactionGroup addTransactionContainer:<span class="keyword">self</span>];</span><br><span class="line">  <span class="keyword">return</span> transaction;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>_ASAsyncTransaction</li>
+</ul>
+<p>_ASAsyncTransaction 是啥？源码中给出了如下的描述：</p>
+<blockquote>
+<p>@summary ASAsyncTransaction provides lightweight transaction semantics for asynchronous operations.<br>  ASAsyncTransaction 为异步操作提供了轻量级的事务片段</p>
+</blockquote>
+<blockquote>
+<p>@desc ASAsyncTransaction provides the following properties:</p>
+<ul>
+<li>Transactions group an arbitrary number of operations, each consisting of an execution block and a completion block.<br>  Transactions 将任意多个operations打包在一起，每个Transaction包含一个executionBlok以及一个completionblock</li>
+<li>The execution block returns a single object that will be passed to the completion block.<br>  execution block将会生成一个对象，然后将这个对象传递给completionblock</li>
+<li>Execution blocks added to a transaction will run in parallel on the global background dispatch queues;<br> the completion blocks are dispatched to the callback queue.<br> 添加到transaction的execution blocks将会在后台线程中并行运行，而completion block将会在回调队列中执行。</li>
+<li>Every operation completion block is guaranteed to execute, regardless of cancelation.<br> However, execution blocks may be skipped if the transaction is canceled.<br> 只要transaction不被取消每个completion block都会确保执行。 </li>
+<li>Operation completion blocks are always executed in the order they were added to the transaction, assuming the<br> callback queue is serial of course.<br> completion总是会按照加入到transaction的顺序执行。</li>
+</ul>
+</blockquote>
+<p>应用到当前场景，简单得说就是，每个_ASAsyncTransaction包裹着display Block和 complage Block,display block将会在后台并行执行，然后将结果传递给complete block,complete block会按照顺序在主线程中顺序执行。</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">@implementation <span class="variable">_ASAsyncTransaction</span></span><br><span class="line">&#123;</span><br><span class="line">  ASAsyncTransactionQueue::<span class="built_in">Group</span> *<span class="variable">_group</span>;</span><br><span class="line">  NSMutableArray&lt;ASAsyncTransactionOperation *&gt; *<span class="variable">_operations</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>_ASAsyncTransaction 有两个主要的私有成员属性，_group和_operations。这就会扯到ASAsyncTransactionQueue，ASAsyncTransactionOperation，Operation，DispatchEntry</p>
+<ul>
+<li>ASAsyncTransactionOperation</li>
+</ul>
+<p>首先看下_operations 它其实是一个ASAsyncTransactionOperation数组，ASAsyncTransactionOperation类的结构如下，</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> <span class="attribute">ASAsyncTransactionOperation </span>: NSObject</span><br><span class="line"></span><br><span class="line">- (instancetype)<span class="attribute">initWithOperationCompletionBlock</span>:(asyncdisplaykit_async_transaction_operation_completion_block_t)operationCompletionBlock;</span><br><span class="line"></span><br><span class="line"><span class="variable">@property</span> (nonatomic) asyncdisplaykit_async_transaction_operation_completion_block_t operationCompletionBlock;</span><br><span class="line"><span class="variable">@property</span> id value; <span class="comment">// set on bg queue by the operation block</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure>
+<p>这里比较关键的是operationCompletionBlock和value，operationCompletionBlock是最前面提到的complete block 用于将display block 返回的UIImage传递给layer.content. </p>
+<p>value 就是 display block 返回的UIImage，这里会在后台线程中生成UIImage，然后将其保存到value中，这个后面会介绍。最关键的是callAndReleaseCompletionBlock这个方法，CompletionBlock就是在这个方法中调用的，至于callAndReleaseCompletionBlock什么时候调用先留在后面。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">- (void)callAndReleaseCompletionBlock:(BOOL)canceled;</span><br><span class="line">&#123;</span><br><span class="line">  <span class="constructor">ASDisplayNodeAssertMainThread()</span>;</span><br><span class="line">  <span class="keyword">if</span> (_operationCompletionBlock) &#123;</span><br><span class="line">    <span class="comment">//调用CompletionBlock</span></span><br><span class="line">    <span class="constructor">_operationCompletionBlock(<span class="params">self</span>.<span class="params">value</span>, <span class="params">canceled</span>)</span>;</span><br><span class="line">    _operationCompletionBlock = nil;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>总而言之ASAsyncTransactionOperation封装着complete block,和一个存储display block执行结果的value值，并且在某个时期调用complete block</p>
+<ul>
+<li>ASAsyncTransactionQueue</li>
+</ul>
+<p>ASAsyncTransactionQueue 其实是一个并发数受限的轻量级operation队列，它包含了Group，Operation，DispatchEntry 三大对象。</p>
+<p>Group 有点类似于 dispatch_group_t，它比较重要的有两个方法：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在指定队列中调度block</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">schedule</span><span class="params">(NSInteger priority, <span class="type">dispatch_queue_t</span> queue, <span class="type">dispatch_block_t</span> block)</span> </span>= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 所有先前调度的block都完成的时候发送的通知block</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">notify</span><span class="params">(<span class="type">dispatch_queue_t</span> queue, <span class="type">dispatch_block_t</span> block)</span> </span>= <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<p>schedule 方法中会创建一个Operation然后通过DispatchEntry pushOperation添加到DispatchEntry，DispatchEntry中的线程数是受控制的，它最多是当前处理器内核数的两倍，如果还有线程数可以用，那么将会从DispatchEntry中按照优先级pop出一个operation执行它的block。要注意这里的block不是display block也不是complete block。而是执行display block后将值存储到operation.value中。</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">void ASAsyncTransactionQueue::GroupImpl::schedule(NSInteger <span class="built_in">priority</span>, dispatch_queue_t queue, dispatch_block_t block)</span><br><span class="line">&#123;</span><br><span class="line">  ASAsyncTransactionQueue &amp;q = <span class="variable">_queue</span>;</span><br><span class="line">  std::lock_guard&lt;std::mutex&gt; l(q.<span class="variable">_mutex</span>);</span><br><span class="line">  </span><br><span class="line">  DispatchEntry &amp;entry = q.<span class="variable">_entries</span>[queue];</span><br><span class="line">  </span><br><span class="line">  Operation operation;</span><br><span class="line">  operation.<span class="variable">_block</span> = block;</span><br><span class="line">  operation.<span class="variable">_group</span> = this;</span><br><span class="line">  operation.<span class="variable">_priority</span> = <span class="built_in">priority</span>;</span><br><span class="line">  entry.pushOperation(operation);</span><br><span class="line">  </span><br><span class="line">  ++<span class="variable">_pendingOperations</span>; <span class="comment">// enter group</span></span><br><span class="line">  </span><br><span class="line"><span class="meta">#if ASDISPLAYNODE_DELAY_DISPLAY</span></span><br><span class="line">  NSUInteger maxThreads = <span class="number">1</span>;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span> </span></span><br><span class="line">  NSUInteger maxThreads = [NSProcessInfo processInfo].activeProcessorCount * <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Bit questionable maybe - we can give main thread more CPU time during tracking.</span></span><br><span class="line">  <span class="keyword">if</span> ([[NSRunLoop mainRunLoop].currentMode isEqualToString:UITrackingRunLoopMode])</span><br><span class="line">    --maxThreads;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (entry.<span class="variable">_threadCount</span> &lt; maxThreads) &#123; <span class="comment">// we need to spawn another thread</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// first thread will take operations in queue order (regardless of priority), other threads will respect priority</span></span><br><span class="line">    bool respectPriority = entry.<span class="variable">_threadCount</span> &gt; <span class="number">0</span>;</span><br><span class="line">    ++entry.<span class="variable">_threadCount</span>;</span><br><span class="line">    </span><br><span class="line">    dispatch_async(queue, ^&#123;</span><br><span class="line">      std::unique_lock&lt;std::mutex&gt; <span class="built_in">lock</span>(q.<span class="variable">_mutex</span>);</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// go until there are no more pending operations</span></span><br><span class="line">      <span class="keyword">while</span> (!entry.<span class="variable">_operationQueue</span>.empty()) &#123;</span><br><span class="line">        Operation operation = entry.popNextOperation(respectPriority);</span><br><span class="line">        <span class="built_in">lock</span>.unlock();</span><br><span class="line">        <span class="keyword">if</span> (operation.<span class="variable">_block</span>) &#123;</span><br><span class="line">          operation.<span class="variable">_block</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        operation.<span class="variable">_group</span>-&gt;leave();</span><br><span class="line">        operation.<span class="variable">_block</span> = <span class="literal">nil</span>; <span class="comment">// the block must be freed while mutex is unlocked</span></span><br><span class="line">        <span class="built_in">lock</span>.<span class="built_in">lock</span>();</span><br><span class="line">      &#125;</span><br><span class="line">      --entry.<span class="variable">_threadCount</span>;</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">if</span> (entry.<span class="variable">_threadCount</span> == <span class="number">0</span>) &#123;</span><br><span class="line">        NSCAssert(entry.<span class="variable">_operationQueue</span>.empty() || entry.<span class="variable">_operationPriorityMap</span>.empty(), @<span class="string">&quot;No working threads but operations are still scheduled&quot;</span>); <span class="comment">// this shouldn&#x27;t happen</span></span><br><span class="line">        q.<span class="variable">_entries</span>.erase(queue);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>notify 方法是将block和queue封装成GroupNotify后添加到_notifyList，我们看到schedule方法中会调用_group-&gt;leave()</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> ASAsyncTransactionQueue::GroupImpl::<span class="built_in">notify</span>(<span class="type">dispatch_queue_t</span> queue, <span class="type">dispatch_block_t</span> block)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">l</span><span class="params">(_queue._mutex)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (_pendingOperations == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">dispatch_async</span>(queue, block);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    GroupNotify notify;</span><br><span class="line">    notify._block = block;</span><br><span class="line">    notify._queue = queue;</span><br><span class="line">    _notifyList.<span class="built_in">push_back</span>(notify);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在leave中会将_notifyList取出来，将GroupNotify的block放到queue中执行。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> ASAsyncTransactionQueue::GroupImpl::<span class="built_in">leave</span>()</span><br><span class="line">&#123;</span><br><span class="line">  <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">l</span><span class="params">(_queue._mutex)</span></span>;</span><br><span class="line">  --_pendingOperations;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (_pendingOperations == <span class="number">0</span>) &#123;</span><br><span class="line">    std::list&lt;GroupNotify&gt; notifyList;</span><br><span class="line">    _notifyList.<span class="built_in">swap</span>(notifyList);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (GroupNotify &amp; notify : notifyList) &#123;</span><br><span class="line">      <span class="built_in">dispatch_async</span>(notify._queue, notify._block);</span><br><span class="line">    &#125;</span><br><span class="line">    _condition.<span class="built_in">notify_one</span>();</span><br><span class="line">    <span class="keyword">if</span> (_releaseCalled) &#123;</span><br><span class="line">      <span class="keyword">delete</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么这里就有两个问题，notify什么时候被调用，_notifyList放的是什么东西。这个也放在流程中讲，这里只需要了解，Group 实际上是一个线程数受控的类似于dispatch_group_t的任务队列，每次调用shedule的时候，会将block封装成一个Operation，然后添加到DispatchEntry，然后在DispatchEntry线程数没达到最大值的时候，会从DispatchEntry中取出来一个执行它的block，然后在leave中，将_notifyList运行完。</p>
+<ul>
+<li>DispatchEntry &amp;&amp; Operation</li>
+</ul>
+<p>DispatchEntry 放着两个东西，一个是操作列表_operationQueue，一个是以优先级为key，操作列表为value的map _operationPriorityMap。在添加的时候会同时往这两个上面同时添加。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">DispatchEntry</span> <span class="comment">// entry for each dispatch queue</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">typedef</span> std::list&lt;Operation&gt; OperationQueue;</span><br><span class="line">  <span class="keyword">typedef</span> std::list&lt;OperationQueue::iterator&gt; OperationIteratorList; <span class="comment">// each item points to operation queue</span></span><br><span class="line">  <span class="keyword">typedef</span> std::map&lt;NSInteger, OperationIteratorList&gt; OperationPriorityMap; <span class="comment">// sorted by priority</span></span><br><span class="line"></span><br><span class="line">  OperationQueue _operationQueue;</span><br><span class="line">  OperationPriorityMap _operationPriorityMap;</span><br><span class="line">  <span class="type">int</span> _threadCount;</span><br><span class="line">    </span><br><span class="line">  <span class="function">Operation <span class="title">popNextOperation</span><span class="params">(<span class="type">bool</span> respectPriority)</span></span>;  <span class="comment">// assumes locked mutex</span></span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">pushOperation</span><span class="params">(Operation operation)</span></span>;           <span class="comment">// assumes locked mutex</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>Operation 就是个结构体封装着block group和优先级</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">struct Operation</span><br><span class="line">&#123;</span><br><span class="line">    dispatch_block_t _block<span class="comment">;</span></span><br><span class="line">    GroupImpl *_group<span class="comment">;</span></span><br><span class="line">    NSInteger _priority<span class="comment">;</span></span><br><span class="line">&#125;<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>稍稍总结下，我们会将一个block（非display block）包装在Operation 然后添加到DispatchEntry，中的OperationQueue和OperationPriorityMap，在Group的schedule方法中从DispatchEntry按照优先级取出后，在后台线程中执行block，并在执行完后执行leave方法。</p>
+<p>这里有几个预留的问题下面要介绍的：</p>
+<ol>
+<li>Operation 中的block到底是啥</li>
+<li>Group的notify操作是干啥的，什么时候调用，leave 方法中的_notifyList放的是什么东西</li>
+</ol>
+<h6 id="1-4-异步绘制流程"><a href="#1-4-异步绘制流程" class="headerlink" title="1.4 异步绘制流程"></a>1.4 异步绘制流程</h6><p>有了上面的铺垫这里可以开始讲整个异步绘制流程了，我们先看下：- (void)displayAsyncLayer:(_ASDisplayLayer *)asyncLayer asynchronously:(BOOL)asynchronously</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)displayAsyncLayer:(_ASDisplayLayer *)asyncLayer asynchronously:(<span class="type">BOOL</span>)asynchronously</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line"></span><br><span class="line">  <span class="comment">//......</span></span><br><span class="line">  <span class="comment">///1. CancelBlock  displayBlock  completetionBlock 初始化</span></span><br><span class="line">  <span class="comment">//创建CancelBlock</span></span><br><span class="line">  asdisplaynode_iscancelled_block_t isCancelledBlock = <span class="literal">nil</span>;</span><br><span class="line">  <span class="keyword">if</span> (asynchronously) &#123;</span><br><span class="line">    uint displaySentinelValue = ++_displaySentinel;</span><br><span class="line">    __<span class="keyword">weak</span> ASDisplayNode *weakSelf = <span class="keyword">self</span>;</span><br><span class="line">    isCancelledBlock = ^<span class="type">BOOL</span>&#123;</span><br><span class="line">      __<span class="keyword">strong</span> ASDisplayNode *<span class="keyword">self</span> = weakSelf;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">self</span> == <span class="literal">nil</span> || (displaySentinelValue != <span class="keyword">self</span>-&gt;_displaySentinel.load());</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    isCancelledBlock = ^<span class="type">BOOL</span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建displayBlock，这里会调用delegate display 或者draw方法来获取到UIImage内容</span></span><br><span class="line">  asyncdisplaykit_async_transaction_operation_block_t displayBlock = [<span class="keyword">self</span> _displayBlockWithAsynchronous:asynchronously</span><br><span class="line">                                                                                        isCancelledBlock:isCancelledBlock</span><br><span class="line">                                                                                             rasterizing:<span class="literal">NO</span>];</span><br><span class="line">  <span class="comment">//.........</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建completionBlock：这个block会在当前异步事务完成后并完成渲染后在主线程被调用，或者在同步的情况下（asynchronously == NO）直接调用</span></span><br><span class="line">  asyncdisplaykit_async_transaction_operation_completion_block_t completionBlock = ^(<span class="type">id</span>&lt;<span class="built_in">NSObject</span>&gt; value, <span class="type">BOOL</span> canceled)&#123;</span><br><span class="line">    ASDisplayNodeCAssertMainThread();</span><br><span class="line">    <span class="keyword">if</span> (!canceled &amp;&amp; !isCancelledBlock()) &#123; <span class="comment">//是否被取消，同步的情况下isCancelledBlock始终为NO</span></span><br><span class="line">      <span class="built_in">UIImage</span> *image = (<span class="built_in">UIImage</span> *)value; <span class="comment">//value放置的是image</span></span><br><span class="line">      <span class="type">BOOL</span> stretchable = (<span class="literal">NO</span> == <span class="built_in">UIEdgeInsetsEqualToEdgeInsets</span>(image.capInsets, <span class="built_in">UIEdgeInsetsZero</span>)); <span class="comment">//图像是否是可拉伸的</span></span><br><span class="line">      <span class="keyword">if</span> (stretchable) &#123;</span><br><span class="line">        ASDisplayNodeSetResizableContents(layer, image);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//不可拉伸的情况下直接将内容作为contents</span></span><br><span class="line">        layer.contentsScale = <span class="keyword">self</span>.contentsScale;</span><br><span class="line">        layer.contents = (<span class="type">id</span>)image.CGImage;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">//............</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//............</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (asynchronously) &#123;</span><br><span class="line">    <span class="comment">// 异步渲染操作被包含在transaction中，transaction可以允许并行处理最终将结果以同步的方式应用到layer的contents属性中</span></span><br><span class="line">    <span class="comment">// Async rendering operations are contained by a transaction, which allows them to proceed and concurrently</span></span><br><span class="line">    <span class="comment">// while synchronizing the final application of the results to the layer&#x27;s contents property (completionBlock).</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 2. 我们先查看我们是否可以将自己添加到父类的transaction容器中</span></span><br><span class="line">    <span class="comment">// First, look to see if we are expected to join a parent&#x27;s transaction container.</span></span><br><span class="line">    <span class="built_in">CALayer</span> *containerLayer = layer.asyncdisplaykit_parentTransactionContainer ? : layer;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果transaction没有存在那么这里将会实例化并将它添加到_ASAsyncTransactionGroup，它会在runloop结束或者即将进入休眠之前提交出去</span></span><br><span class="line">    <span class="comment">// In the case that a transaction does not yet exist (such as for an individual node outside of a container),</span></span><br><span class="line">    <span class="comment">// this call will allocate the transaction and add it to _ASAsyncTransactionGroup.</span></span><br><span class="line">    <span class="comment">// It will automatically commit the transaction at the end of the runloop.</span></span><br><span class="line">    _ASAsyncTransaction *transaction = containerLayer.asyncdisplaykit_asyncTransaction;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//3. 将displayBlock添加到transaction，transaction将会立即启动执行</span></span><br><span class="line">    <span class="comment">// Adding this displayBlock operation to the transaction will start it IMMEDIATELY.</span></span><br><span class="line">    <span class="comment">// The only function of the transaction commit is to gate the calling of the completionBlock.</span></span><br><span class="line">    [transaction addOperationWithBlock:displayBlock priority:<span class="keyword">self</span>.drawingPriority queue:[_ASDisplayLayer displayQueue] completion:completionBlock];</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">//同步的情况下直接通过displayBlock生成contents，并通过completionBlock设置到layer.content</span></span><br><span class="line">    <span class="built_in">UIImage</span> *contents = (<span class="built_in">UIImage</span> *)displayBlock();</span><br><span class="line">    completionBlock(contents, <span class="literal">NO</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<p>上面代码有三个关键点：</p>
+<ol>
+<li>创建CancelBlock  displayBlock  completetionBlock 这里先不展开</li>
+<li>顺着层级树找到最顶层的节点作为TransationContainer,并根据实际情况创建它的asyncdisplaykit_currentAsyncTransaction。并将TransationContainer添加到mainTransactionGroup。</li>
+<li>调用addOperationWithBlock 往asyncdisplaykit_currentAsyncTransaction中添加display Block和complete Block.</li>
+</ol>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">- (void)addOperationWithBlock:(asyncdisplaykit_async_transaction_operation_block_t)<span class="built_in">block</span></span><br><span class="line">                     priority:(NSInteger)priority</span><br><span class="line">                        <span class="keyword">queue</span>:(dispatch_queue_t)<span class="keyword">queue</span></span><br><span class="line">                   completion:(asyncdisplaykit_async_transaction_operation_completion_block_t)completion</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  //...........</span><br><span class="line">  //创建一个TransationOperation将它添加到_operations，并且在displayQueue中执行displayBlock() 并将输出的UIImage保存到value中</span><br><span class="line">  ASAsyncTransactionOperation *operation = [[ASAsyncTransactionOperation alloc] initWithOperationCompletionBlock:completion];</span><br><span class="line">  [_operations addObject:operation];</span><br><span class="line">  _group-&gt;schedule(priority, <span class="keyword">queue</span>, ^&#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">      if (<span class="literal">self</span>.<span class="keyword">state</span> != ASAsyncTransactionStateCanceled) &#123;</span><br><span class="line">        operation.value = <span class="built_in">block</span>();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>addOperationWithBlock 完成两个工作：</p>
+<ol>
+<li>将complete block 封装到ASAsyncTransactionOperation，并添加到_operations中</li>
+<li>调用group 的 schedule，这里就可以解答第一个问题，schedule 中的block其实是如下的一个block,用于执行displayBlock后将输出的UIImage保存到value中</li>
+</ol>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">^&#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">      if (<span class="literal">self</span>.<span class="keyword">state</span> != ASAsyncTransactionStateCanceled) &#123;</span><br><span class="line">        operation.value = <span class="built_in">block</span>();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有第二个问题：<br>Group的notify操作是干啥的，什么时候调用，leave 方法中的_notifyList放的是什么东西</p>
+<p>ASAsyncTransaction的commit方法中</p>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">- (void)commit</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  NSAssert(<span class="literal">self</span>.<span class="keyword">state</span> == ASAsyncTransactionStateOpen, @<span class="string">&quot;You cannot double-commit a transaction&quot;</span>);</span><br><span class="line">  <span class="literal">self</span>.<span class="keyword">state</span> = ASAsyncTransactionStateCommitted;</span><br><span class="line">  </span><br><span class="line">  if ([_operations count] == <span class="number">0</span>) &#123;</span><br><span class="line">    // Fast path: if a transaction was opened, but <span class="keyword">no</span> operations were added, execute completion <span class="built_in">block</span> synchronously.</span><br><span class="line">    if (_completionBlock) &#123;</span><br><span class="line">      _completionBlock(<span class="literal">self</span>, NO);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    NSAssert(_group != NULL, @<span class="string">&quot;If there are operations, dispatch group should have been created&quot;</span>);</span><br><span class="line">    //通过_group发出通知将后台得到的UImage通过completeBlock</span><br><span class="line">    _group-&gt;notify(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">      [<span class="literal">self</span> completeTransaction];</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)completeTransaction</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  ASAsyncTransactionState <span class="keyword">state</span> = <span class="literal">self</span>.<span class="keyword">state</span>;</span><br><span class="line">  if (<span class="keyword">state</span> != ASAsyncTransactionStateComplete) &#123;</span><br><span class="line">    BOOL isCanceled = (<span class="keyword">state</span> == ASAsyncTransactionStateCanceled);</span><br><span class="line">    //遍历每个ASAsyncTransactionOperation 让后台生成的image通过ComplateBlock设置到layer.content上</span><br><span class="line">    <span class="keyword">for</span> (ASAsyncTransactionOperation *operation <span class="keyword">in</span> _operations) &#123;</span><br><span class="line">      [operation callAndReleaseCompletionBlock:isCanceled];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // Always <span class="built_in">set</span> <span class="keyword">state</span> <span class="keyword">to</span> Complete, even if we were cancelled, <span class="keyword">to</span> <span class="built_in">block</span> <span class="literal">any</span> extraneous</span><br><span class="line">    // calls <span class="keyword">to</span> this method that may have been scheduled <span class="keyword">for</span> the next runloop</span><br><span class="line">    // (e.g. if we needed <span class="keyword">to</span> force one <span class="keyword">in</span> this runloop with -waitUntilComplete, but another was already scheduled)</span><br><span class="line">    <span class="literal">self</span>.<span class="keyword">state</span> = ASAsyncTransactionStateComplete;</span><br><span class="line"></span><br><span class="line">    //通过回调通知当前transation结束</span><br><span class="line">    if (_completionBlock) &#123;</span><br><span class="line">      _completionBlock(<span class="literal">self</span>, isCanceled);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们知道commit是在Runloop进入休眠状态或者退出之前调用的，这里调用了group的notify方法，将completeTransaction 添加到_notifyList，在group shedule方法中执行block后将display block产生的UIImage 放到value中，然后调用leave方法，将_notifyList中的block放到queue中执行，也就是在主线程中执行complete block，将value传出来最终设置到layer.content中。</p>
+<p>总结一下：</p>
+<ol>
+<li><p>首先，在RunLoop进入休眠状态或者退出的时候通知到mainTransationGroup,mainTransationGroup 在commit方法中，遍历加入到mainTransationGroup中的每个TransationContainer，在TransationContainer中会对currentTransation调用一次commit方法。从而触发Group的notify方法，将在主线程执行的block操作放到Group的_notifyList中，这个bock操作就是将displayBlock生成的对象通过completeBlock传递给layer.content.</p>
+</li>
+<li><p>在displayAsyncLayer方法中将会创建displayBlock 和 complateBlock，然后封装到ASAsyncTransationOperation,并将它添加到当前页面的TransationContainer中的currentTransation中。在currentTransation中将diaplayBlock获取UIImage并存储到ASTransationOperation value中的操作封装成block，在Group中的DispathEntry中执行。执行完block后会调用Group leave，执行_notifyList中的任务，将ASTransationOperation value中的 UIImage通过complete Block设置到layer.content.</p>
+</li>
+</ol>
+<h6 id="1-5-DisplayBlock-amp-amp-Complete-Block"><a href="#1-5-DisplayBlock-amp-amp-Complete-Block" class="headerlink" title="1.5 DisplayBlock  &amp;&amp; Complete Block"></a>1.5 DisplayBlock  &amp;&amp; Complete Block</h6><ol>
+<li>Complete Block其实没多少东西可以介绍的，它的逻辑十分简单：就是将传入的value也就是displayBlock生成的UIImage设置到layer.content</li>
+</ol>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">asyncdisplaykit_async_transaction_operation_completion_block_t completionBlock = ^(<span class="type">id</span>&lt;<span class="built_in">NSObject</span>&gt; value, <span class="type">BOOL</span> canceled)&#123;</span><br><span class="line">  ASDisplayNodeCAssertMainThread();</span><br><span class="line">  <span class="keyword">if</span> (!canceled &amp;&amp; !isCancelledBlock()) &#123; <span class="comment">//是否被取消，同步的情况下isCancelledBlock始终为NO</span></span><br><span class="line">    <span class="built_in">UIImage</span> *image = (<span class="built_in">UIImage</span> *)value; <span class="comment">//value放置的是image</span></span><br><span class="line">    <span class="type">BOOL</span> stretchable = (<span class="literal">NO</span> == <span class="built_in">UIEdgeInsetsEqualToEdgeInsets</span>(image.capInsets, <span class="built_in">UIEdgeInsetsZero</span>)); <span class="comment">//图像是否是可拉伸的</span></span><br><span class="line">    <span class="keyword">if</span> (stretchable) &#123;</span><br><span class="line">      ASDisplayNodeSetResizableContents(layer, image);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">//不可拉伸的情况下直接将内容作为contents</span></span><br><span class="line">      layer.contentsScale = <span class="keyword">self</span>.contentsScale;</span><br><span class="line">      layer.contents = (<span class="type">id</span>)image.CGImage;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>DisplayBlock</li>
+</ol>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (asyncdisplaykit_async_transaction_operation_block_t)_displayBlockWithAsynchronous:(<span class="type">BOOL</span>)asynchronous</span><br><span class="line">                                                                    isCancelledBlock:(asdisplaynode_iscancelled_block_t)isCancelledBlock</span><br><span class="line">                                                                         rasterizing:(<span class="type">BOOL</span>)rasterizing</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  asyncdisplaykit_async_transaction_operation_block_t displayBlock = <span class="literal">nil</span>;</span><br><span class="line">  ASDisplayNodeFlags flags;</span><br><span class="line">  </span><br><span class="line">  __instanceLock__.lock();</span><br><span class="line"></span><br><span class="line">  flags = _flags;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// We always create a graphics context, unless a -display method is used, OR if we are a subnode drawing into a rasterized parent.</span></span><br><span class="line">  <span class="comment">//如果没有display方法或者正在将子节点绘制到栅格化的父类上的时候需要创建Context</span></span><br><span class="line">  <span class="type">BOOL</span> shouldCreateGraphicsContext = (flags.implementsImageDisplay == <span class="literal">NO</span> &amp;&amp; rasterizing == <span class="literal">NO</span>);</span><br><span class="line">  <span class="comment">//子节点时候需要栅格化</span></span><br><span class="line">  <span class="type">BOOL</span> shouldBeginRasterizing = (rasterizing == <span class="literal">NO</span> &amp;&amp; flags.rasterizesSubtree);</span><br><span class="line">  <span class="comment">//是否实现了display方法</span></span><br><span class="line">  <span class="type">BOOL</span> usesImageDisplay = flags.implementsImageDisplay;</span><br><span class="line">  <span class="comment">//是否实现了drawRect方法</span></span><br><span class="line">  <span class="type">BOOL</span> usesDrawRect = flags.implementsDrawRect;</span><br><span class="line">  <span class="comment">//如果没有实现display/drawRect方法并且子节点不需要栅格化直接返回</span></span><br><span class="line">  <span class="keyword">if</span> (usesImageDisplay == <span class="literal">NO</span> &amp;&amp; usesDrawRect == <span class="literal">NO</span> &amp;&amp; shouldBeginRasterizing == <span class="literal">NO</span>) &#123;</span><br><span class="line">    <span class="comment">// Early exit before requesting more expensive properties like bounds and opaque from the layer.</span></span><br><span class="line">    __instanceLock__.unlock();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="type">BOOL</span> opaque = <span class="keyword">self</span>.opaque;</span><br><span class="line">  <span class="built_in">CGRect</span> bounds = <span class="keyword">self</span>.bounds;</span><br><span class="line">  <span class="built_in">UIColor</span> *backgroundColor = <span class="keyword">self</span>.backgroundColor;</span><br><span class="line">  <span class="built_in">CGColorRef</span> borderColor = <span class="keyword">self</span>.borderColor;</span><br><span class="line">  <span class="built_in">CGFloat</span> borderWidth = <span class="keyword">self</span>.borderWidth;</span><br><span class="line">  <span class="built_in">CGFloat</span> contentsScaleForDisplay = _contentsScaleForDisplay;</span><br><span class="line">    </span><br><span class="line">  __instanceLock__.unlock();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Capture drawParameters from delegate on main thread, if this node is displaying itself rather than recursively rasterizing.</span></span><br><span class="line">  <span class="type">id</span> drawParameters = (shouldBeginRasterizing == <span class="literal">NO</span> ? [<span class="keyword">self</span> drawParameters] : <span class="literal">nil</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// Only the -display methods should be called if we can&#x27;t size the graphics buffer to use.</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">CGRectIsEmpty</span>(bounds) &amp;&amp; (shouldBeginRasterizing || shouldCreateGraphicsContext)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//..........</span></span><br><span class="line">  <span class="comment">//是否栅格化</span></span><br><span class="line">  <span class="keyword">if</span> (shouldBeginRasterizing) &#123;</span><br><span class="line">    <span class="comment">// Collect displayBlocks for all descendants.</span></span><br><span class="line">    <span class="comment">// 用于放置子节点的displayBlock在父节点的displayBlock中直接遍历各个子节点的displayBlock</span></span><br><span class="line">    <span class="built_in">NSMutableArray</span> *displayBlocks = [[<span class="built_in">NSMutableArray</span> alloc] init];</span><br><span class="line">    [<span class="keyword">self</span> _recursivelyRasterizeSelfAndSublayersWithIsCancelledBlock:isCancelledBlock displayBlocks:displayBlocks];</span><br><span class="line">    CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line"></span><br><span class="line">    opaque = opaque &amp;&amp; <span class="built_in">CGColorGetAlpha</span>(backgroundColor.CGColor) == <span class="number">1.0</span>f;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//这里会将整个container的所有子节点的displayBlock打包给displayBlock，在执行container的displayBlock后会调用这些子节点的displayBlock将其绘制到container上</span></span><br><span class="line">    displayBlock = ^<span class="type">id</span>&#123;</span><br><span class="line">      CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line">      <span class="built_in">UIImage</span> *image = ASGraphicsCreateImageWithOptions(bounds.size, opaque, contentsScaleForDisplay, <span class="literal">nil</span>, isCancelledBlock, ^&#123;</span><br><span class="line">        <span class="keyword">for</span> (dispatch_block_t block <span class="keyword">in</span> displayBlocks) &#123;</span><br><span class="line">          <span class="keyword">if</span> (isCancelledBlock()) <span class="keyword">return</span>;</span><br><span class="line">          block();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line">      ASDN_DELAY_FOR_DISPLAY();</span><br><span class="line">      <span class="keyword">return</span> image;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    </span><br><span class="line">    displayBlock = ^<span class="type">id</span>&#123;</span><br><span class="line">      </span><br><span class="line">      CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line"></span><br><span class="line">      __block <span class="built_in">UIImage</span> *image = <span class="literal">nil</span>;</span><br><span class="line">      <span class="type">void</span> (^workWithContext)() = ^&#123;</span><br><span class="line">        <span class="built_in">CGContextRef</span> currentContext = <span class="built_in">UIGraphicsGetCurrentContext</span>();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (shouldCreateGraphicsContext &amp;&amp; !currentContext) &#123;</span><br><span class="line">          ASDisplayNodeAssert(<span class="literal">NO</span>, <span class="string">@&quot;Failed to create a CGContext (size: %@)&quot;</span>, <span class="built_in">NSStringFromCGSize</span>(bounds.size));</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// For -display methods, we don&#x27;t have a context, and thus will not call the _willDisplayNodeContentWithRenderingContext or</span></span><br><span class="line">        <span class="comment">// _didDisplayNodeContentWithRenderingContext blocks. It&#x27;s up to the implementation of -display... to do what it needs.</span></span><br><span class="line">        [<span class="keyword">self</span> __willDisplayNodeContentWithRenderingContext:currentContext drawParameters:drawParameters];</span><br><span class="line">        <span class="comment">//根据情况调用display方法或者drawRect方法</span></span><br><span class="line">        <span class="keyword">if</span> (usesImageDisplay) &#123;                                   <span class="comment">// If we are using a display method, we&#x27;ll get an image back directly.</span></span><br><span class="line">          image = [<span class="keyword">self</span>.class displayWithParameters:drawParameters isCancelled:isCancelledBlock];</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (usesDrawRect) &#123;                                <span class="comment">// If we&#x27;re using a draw method, this will operate on the currentContext.</span></span><br><span class="line">          [<span class="keyword">self</span>.class drawRect:bounds withParameters:drawParameters isCancelled:isCancelledBlock isRasterizing:rasterizing];</span><br><span class="line">        &#125;</span><br><span class="line">        [<span class="keyword">self</span> __didDisplayNodeContentWithRenderingContext:currentContext image:&amp;image drawParameters:drawParameters backgroundColor:backgroundColor borderWidth:borderWidth borderColor:borderColor];</span><br><span class="line">        ASDN_DELAY_FOR_DISPLAY();</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (shouldCreateGraphicsContext) &#123;</span><br><span class="line">        <span class="keyword">return</span> ASGraphicsCreateImageWithOptions(bounds.size, opaque, contentsScaleForDisplay, <span class="literal">nil</span>, isCancelledBlock, workWithContext);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        workWithContext();</span><br><span class="line">        <span class="keyword">return</span> image;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//...........</span></span><br><span class="line">  <span class="keyword">return</span> displayBlock;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>display Block 的开始会先通过flags来判断当前的子节点是否需要栅格化，flags这个结构体变量主要用来标记该Node的一些状态属性，以及是否重载了某些方法。如果需要栅格化，那么就需要遍历各个子节点，从各个子节点中获取自身的display Block放置到一个名字为displayBlocks的数组中。这些Block负责生成自身的UIImage.根节点的displayBlock中包含着子节点的display block.在绘制页面的时候，通过这些子节点的display block在绘图的context中将自己绘制出来。这里比较关键的是_recursivelyRasterizeSelfAndSublayersWithIsCancelledBlock方法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)_recursivelyRasterizeSelfAndSublayersWithIsCancelledBlock:(asdisplaynode_iscancelled_block_t)isCancelledBlock displayBlocks:(<span class="built_in">NSMutableArray</span> *)displayBlocks</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// Skip subtrees that are hidden or zero alpha.</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">self</span>.isHidden || <span class="keyword">self</span>.alpha &lt;= <span class="number">0.0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  __instanceLock__.lock();</span><br><span class="line">  <span class="type">BOOL</span> rasterizingFromAscendent = (_hierarchyState &amp; ASHierarchyStateRasterized);</span><br><span class="line">  __instanceLock__.unlock();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// if super node is rasterizing descendants, subnodes will not have had layout calls because they don&#x27;t have layers</span></span><br><span class="line">  <span class="keyword">if</span> (rasterizingFromAscendent) &#123;</span><br><span class="line">    [<span class="keyword">self</span> __layout];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Capture these outside the display block so they are retained.</span></span><br><span class="line">  <span class="built_in">UIColor</span> *backgroundColor = <span class="keyword">self</span>.backgroundColor;</span><br><span class="line">  <span class="built_in">CGRect</span> bounds = <span class="keyword">self</span>.bounds;</span><br><span class="line">  <span class="built_in">CGFloat</span> cornerRadius = <span class="keyword">self</span>.cornerRadius;</span><br><span class="line">  <span class="type">BOOL</span> clipsToBounds = <span class="keyword">self</span>.clipsToBounds;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">CGRect</span> frame;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// If this is the root container node, use a frame with a zero origin to draw into. If not, calculate the correct frame using the node&#x27;s position, transform and anchorPoint.</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">self</span>.rasterizesSubtree) &#123;</span><br><span class="line">    frame = <span class="built_in">CGRectMake</span>(<span class="number">0.0</span>f, <span class="number">0.0</span>f, bounds.size.width, bounds.size.height);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">CGPoint</span> position = <span class="keyword">self</span>.position;</span><br><span class="line">    <span class="built_in">CGPoint</span> anchorPoint = <span class="keyword">self</span>.anchorPoint;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Pretty hacky since full 3D transforms aren&#x27;t actually supported, but attempt to compute the transformed frame of this node so that we can composite it into approximately the right spot.</span></span><br><span class="line">    <span class="built_in">CGAffineTransform</span> transform = <span class="built_in">CATransform3DGetAffineTransform</span>(<span class="keyword">self</span>.transform);</span><br><span class="line">    <span class="built_in">CGSize</span> scaledBoundsSize = <span class="built_in">CGSizeApplyAffineTransform</span>(bounds.size, transform);</span><br><span class="line">    <span class="built_in">CGPoint</span> origin = <span class="built_in">CGPointMake</span>(position.x - scaledBoundsSize.width * anchorPoint.x,</span><br><span class="line">                                 position.y - scaledBoundsSize.height * anchorPoint.y);</span><br><span class="line">    frame = <span class="built_in">CGRectMake</span>(origin.x, origin.y, bounds.size.width, bounds.size.height);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Get the display block for this node.</span></span><br><span class="line">  asyncdisplaykit_async_transaction_operation_block_t displayBlock = [<span class="keyword">self</span> _displayBlockWithAsynchronous:<span class="literal">NO</span> isCancelledBlock:isCancelledBlock rasterizing:<span class="literal">YES</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// We&#x27;ll display something if there is a display block, clipping, translation and/or a background color.</span></span><br><span class="line">  <span class="type">BOOL</span> shouldDisplay = displayBlock || backgroundColor || <span class="built_in">CGPointEqualToPoint</span>(<span class="built_in">CGPointZero</span>, frame.origin) == <span class="literal">NO</span> || clipsToBounds;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// If we should display, then push a transform, draw the background color, and draw the contents.</span></span><br><span class="line">  <span class="comment">// The transform is popped in a block added after the recursion into subnodes.</span></span><br><span class="line">  <span class="keyword">if</span> (shouldDisplay) &#123;</span><br><span class="line">    dispatch_block_t pushAndDisplayBlock = ^&#123;</span><br><span class="line">      <span class="comment">// Push transform relative to parent.</span></span><br><span class="line">      <span class="built_in">CGContextRef</span> context = <span class="built_in">UIGraphicsGetCurrentContext</span>();</span><br><span class="line">      <span class="built_in">CGContextSaveGState</span>(context);</span><br><span class="line"></span><br><span class="line">      <span class="built_in">CGContextTranslateCTM</span>(context, frame.origin.x, frame.origin.y);</span><br><span class="line"></span><br><span class="line">      <span class="comment">//support cornerRadius</span></span><br><span class="line">      <span class="keyword">if</span> (rasterizingFromAscendent &amp;&amp; clipsToBounds) &#123;</span><br><span class="line">        <span class="keyword">if</span> (cornerRadius) &#123;</span><br><span class="line">          [[<span class="built_in">UIBezierPath</span> bezierPathWithRoundedRect:bounds cornerRadius:cornerRadius] addClip];</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="built_in">CGContextClipToRect</span>(context, bounds);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Fill background if any.</span></span><br><span class="line">      <span class="built_in">CGColorRef</span> backgroundCGColor = backgroundColor.CGColor;</span><br><span class="line">      <span class="keyword">if</span> (backgroundColor &amp;&amp; <span class="built_in">CGColorGetAlpha</span>(backgroundCGColor) &gt; <span class="number">0.0</span>) &#123;</span><br><span class="line">        <span class="built_in">CGContextSetFillColorWithColor</span>(context, backgroundCGColor);</span><br><span class="line">        <span class="built_in">CGContextFillRect</span>(context, bounds);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// If there is a display block, call it to get the image, then copy the image into the current context (which is the rasterized container&#x27;s backing store).</span></span><br><span class="line">      <span class="keyword">if</span> (displayBlock) &#123;</span><br><span class="line">        <span class="built_in">UIImage</span> *image = (<span class="built_in">UIImage</span> *)displayBlock();</span><br><span class="line">        <span class="keyword">if</span> (image) &#123;</span><br><span class="line">          <span class="type">BOOL</span> opaque = ASImageAlphaInfoIsOpaque(<span class="built_in">CGImageGetAlphaInfo</span>(image.CGImage));</span><br><span class="line">          <span class="built_in">CGBlendMode</span> blendMode = opaque ? kCGBlendModeCopy : kCGBlendModeNormal;</span><br><span class="line">          [image drawInRect:bounds blendMode:blendMode alpha:<span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    [displayBlocks addObject:pushAndDisplayBlock];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Recursively capture displayBlocks for all descendants.</span></span><br><span class="line">  <span class="keyword">for</span> (ASDisplayNode *subnode <span class="keyword">in</span> <span class="keyword">self</span>.subnodes) &#123;</span><br><span class="line">    [subnode _recursivelyRasterizeSelfAndSublayersWithIsCancelledBlock:isCancelledBlock displayBlocks:displayBlocks];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// If we pushed a transform, pop it by adding a display block that does nothing other than that.</span></span><br><span class="line">  <span class="keyword">if</span> (shouldDisplay) &#123;</span><br><span class="line">    <span class="comment">// Since this block is pure, we can store it statically.</span></span><br><span class="line">    <span class="keyword">static</span> dispatch_block_t popBlock;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">      popBlock = ^&#123;</span><br><span class="line">        <span class="built_in">CGContextRef</span> context = <span class="built_in">UIGraphicsGetCurrentContext</span>();</span><br><span class="line">        <span class="built_in">CGContextRestoreGState</span>(context);</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;);</span><br><span class="line">    [displayBlocks addObject:popBlock];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>_recursivelyRasterizeSelfAndSublayersWithIsCancelledBlock 这个方法中也调用_displayBlockWithAsynchronous来获取displayBlock，只不过需要注意的是rasterizing参数为YES导致_displayBlockWithAsynchronous中shouldBeginRasterizing为NO.直接走displayWithParameters&#x2F;drawRect部分。绘制子节点的工作在pushAndDisplayBlock中完成，pushAndDisplayBlock就是被添加到displayBlocks的子block。</p>
+<p>如果不需要栅格化,就直接走displayWithParameters&#x2F;drawRect部分具体是displayWithParameters还是drawRect取决于flags中的标志，如果走displayWithParameters将会直接获取image返回，如果是drawRect将会在当前Context中绘制自身绘制。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (asyncdisplaykit_async_transaction_operation_block_t)_displayBlockWithAsynchronous:(<span class="type">BOOL</span>)asynchronous</span><br><span class="line">                                                                    isCancelledBlock:(asdisplaynode_iscancelled_block_t)isCancelledBlock</span><br><span class="line">                                                                         rasterizing:(<span class="type">BOOL</span>)rasterizing</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  <span class="comment">//........</span></span><br><span class="line">  <span class="comment">//是否实现了display方法</span></span><br><span class="line">  <span class="type">BOOL</span> usesImageDisplay = flags.implementsImageDisplay;</span><br><span class="line">  <span class="comment">//是否实现了drawRect方法</span></span><br><span class="line">  <span class="type">BOOL</span> usesDrawRect = flags.implementsDrawRect;</span><br><span class="line">  <span class="comment">//..........</span></span><br><span class="line">  <span class="comment">//是否栅格化</span></span><br><span class="line">  <span class="keyword">if</span> (shouldBeginRasterizing) &#123;</span><br><span class="line">      <span class="comment">//.......</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    displayBlock = ^<span class="type">id</span>&#123;</span><br><span class="line">      __block <span class="built_in">UIImage</span> *image = <span class="literal">nil</span>;</span><br><span class="line">      <span class="type">void</span> (^workWithContext)() = ^&#123;</span><br><span class="line">        <span class="built_in">CGContextRef</span> currentContext = <span class="built_in">UIGraphicsGetCurrentContext</span>();</span><br><span class="line">        <span class="comment">// .......</span></span><br><span class="line">        <span class="comment">// For -display methods, we don&#x27;t have a context, and thus will not call the _willDisplayNodeContentWithRenderingContext or</span></span><br><span class="line">        <span class="comment">// _didDisplayNodeContentWithRenderingContext blocks. It&#x27;s up to the implementation of -display... to do what it needs.</span></span><br><span class="line">        [<span class="keyword">self</span> __willDisplayNodeContentWithRenderingContext:currentContext drawParameters:drawParameters];</span><br><span class="line">        <span class="comment">//根据情况调用display方法或者drawRect方法</span></span><br><span class="line">        <span class="keyword">if</span> (usesImageDisplay) &#123;                                   <span class="comment">// If we are using a display method, we&#x27;ll get an image back directly.</span></span><br><span class="line">          image = [<span class="keyword">self</span>.class displayWithParameters:drawParameters isCancelled:isCancelledBlock];</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (usesDrawRect) &#123;                                <span class="comment">// If we&#x27;re using a draw method, this will operate on the currentContext.</span></span><br><span class="line">          [<span class="keyword">self</span>.class drawRect:bounds withParameters:drawParameters isCancelled:isCancelledBlock isRasterizing:rasterizing];</span><br><span class="line">        &#125;</span><br><span class="line">        [<span class="keyword">self</span> __didDisplayNodeContentWithRenderingContext:currentContext image:&amp;image drawParameters:drawParameters backgroundColor:backgroundColor borderWidth:borderWidth borderColor:borderColor];</span><br><span class="line">        ASDN_DELAY_FOR_DISPLAY();</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (shouldCreateGraphicsContext) &#123;</span><br><span class="line">        <span class="keyword">return</span> ASGraphicsCreateImageWithOptions(bounds.size, opaque, contentsScaleForDisplay, <span class="literal">nil</span>, isCancelledBlock, workWithContext);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        workWithContext();</span><br><span class="line">        <span class="keyword">return</span> image;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//...........</span></span><br><span class="line">  <span class="keyword">return</span> displayBlock;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="1-Texture-布局源码分析"><a href="#1-Texture-布局源码分析" class="headerlink" title="1. Texture 布局源码分析"></a>1. Texture 布局源码分析</h5><p>最早iOS平台上的布局方式是基于frame的布局，但是后续iPhone推出了一系列不同尺寸的设备，这时候frame布局方式就显得十分麻烦，为了解决这个问题Auto Layout 就诞生了，如果使用过Auto Layout原生接口进行布局的经历，我相信一定是十分难受的，但是随着Masonry的推出，让Auto Layout逐渐被开发者所接受，<br>但是Auto Layout与frame 布局不同的是我们给出的是组件与组件之间的约束关系，然后由系统布局引擎帮我们计算出每个组件的实际frame。也就是说Auto Layout最终还是要转换成组件的frame，只不过这个转换系统帮我们做了，我们只需要给出约束条件就可以了。但是Auto Layout每个组件的约束最终都会转换为一个N元一次的线性等式或者不等式，要计算出整个页面每个组件frame的值，就需要根据这些N元一次的线性等式或者不等式组成的不等式组解出结果。这个时间是不确定的，并且界面越复杂不等式组也就越复杂，计算所耗费的时间也就越多。最要命的是它还会强制视图在主线程上布局。如果这个时间超过16.67ms就会导致界面的卡顿。</p>
+<p>那么我们有没有一套可以不用手动计算布局参数，又能有较高的布局效率的布局引擎呢？我们先看下Texture的布局引擎的源码，在这里寻找下我们需要的答案。</p>
+<p>Texture 布局引擎是可以在后台线程中运行的布局引擎，它采用了目前前端比较流行的FlexBox布局形式，具体的使用大家可以看下之前的介绍Texture布局使用的博客。Texture 2.X 目前采用了两套布局引擎：LayoutSpec 布局规范 和 Yoga 布局引擎，这里先介绍 LayoutSpec 布局规范引擎。</p>
+<p>Texture 布局引擎比较突出的特点是能够在后台计算布局，并且能够缓存布局结果。</p>
+<p>Texture中可以通过如下四种方式指定布局：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>提供 layoutSpecBlock</span><br><span class="line"><span class="bullet">* </span>覆写 - layoutSpecThatFits: 方法</span><br><span class="line"><span class="bullet">* </span>覆写 - calculateSizeThatFits: 方法 </span><br><span class="line"><span class="bullet">* </span>覆写 - calculateLayoutThatFits: 方法</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><ul>
+<li>layoutSpecThatFits: 与 layoutSpecBlock 是完全等价的只不过是实现的形式不一样而已。</li>
+</ul>
+</li>
+<li><ul>
+<li>calculateSizeThatFits: 这种方式提供了手动布局的方式，通过在该方法内对 frame 进行计算，返回一个当前视图的 CGSize,它和UIView 中的 -[UIView sizeThatFits:] 非常相似 只不过 Texture中的布局会对所有计算出的布局进行缓存来提高性能。</li>
+</ul>
+</li>
+<li><ul>
+<li>calculateLayoutThatFits: 把上面的两种布局方式：手动布局和 Spec 布局封装成了一个接口，这样，无论是 CGSize 还是 ASLayoutSpec 最后都会以 ASLayout 的形式返回给方法调用者。一般推荐calculateLayoutThatFits覆写这个方法，而不是layoutSpecThatFits。</li>
+</ul>
+</li>
+</ul>
+<p>还是老规矩在介绍流程之前先熟悉下关键对象的组成：</p>
+<ol>
+<li>ASLayoutElement</li>
+</ol>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@protocol</span> ASLayoutElement &lt;ASLayoutElementExtensibility, ASTraitEnvironment, ASLayoutElementAsciiArtProtocol&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">//包括ASLayoutElementTypeLayoutSpec以及ASLayoutElementTypeDisplayNode，前者为布局约束元素，后一个表明为显示节点元素</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@property</span> (nonatomic, readonly) ASLayoutElementType layoutElementType;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 尺寸约束</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="variable">@property</span> (nonatomic, readonly) ASLayoutElementStyle *style;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 当前节点的子节点集合</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="selector-tag">-</span> (nullable NSArray&lt;id&lt;ASLayoutElement&gt;&gt; *)<span class="selector-tag">sublayoutElements</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 要求节点基于给定的尺寸范围返回一个ASLayout布局</span></span><br><span class="line"><span class="comment"> * 这个方法会缓存约束条件和布局结果，所以子类不能覆盖它，因为它会缓存calculateLayoutThatFits获得的结果，如果没有缓存结果那么这个方法的将会十分耗时</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="selector-tag">-</span> (ASLayout *)<span class="selector-tag">layoutThatFits</span>:(ASSizeRange)<span class="selector-tag">constrainedSize</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 让子元素在calculateLayoutThatFits计算它们的布局，这个是供给内部使用的我们不应该覆写这个方法，但是可以通过覆写-calculateLayoutThatFits来代替，constrainedSize 是一个最大值和最小值的一个限制，最终得到的尺寸必须在这个范围内。这个方法也是会缓存计算的结果和约束条件</span></span><br><span class="line"><span class="comment">- (ASLayout *)layoutThatFits:(ASSizeRange)constrainedSize parentSize:(CGSize)parentSize;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 通过覆写这个方法来计算当前布局元素的布局</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="selector-tag">-</span> (ASLayout *)<span class="selector-tag">calculateLayoutThatFits</span>:(ASSizeRange)<span class="selector-tag">constrainedSize</span>;</span><br><span class="line"></span><br><span class="line">@<span class="selector-tag">end</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>ASLayout</li>
+</ol>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">ASLayout</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 当前布局对象</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">weak</span>, <span class="keyword">readonly</span>) <span class="type">id</span>&lt;ASLayoutElement&gt; layoutElement;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 节点类型</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) ASLayoutElementType type;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 当前布局的Size</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">CGSize</span> size;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 在父节点的位置</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">CGPoint</span> position;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 子节点的布局</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">readonly</span>) <span class="built_in">NSArray</span>&lt;ASLayout *&gt; *sublayouts;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 某个节点的位置</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">- (<span class="built_in">CGRect</span>)frameForElement:(<span class="type">id</span>&lt;ASLayoutElement&gt;)layoutElement;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 根据postion和size计算出来的frame</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">CGRect</span> frame;</span><br><span class="line"></span><br><span class="line"><span class="comment">//......</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Traverses the existing layout tree and generates a new tree that represents only ASDisplayNode layouts</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">- (ASLayout *)filteredNodeLayoutTree <span class="built_in">NS_RETURNS_RETAINED</span> AS_WARN_UNUSED_RESULT;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>在介绍关键都类之后我们来看下整个布局流程：<br>我们以手动调用节点都layoutThatFits方法作为入口点。在layoutThatFits：中简单得转调了下layoutThatFits:parentSize</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">- (ASLayout *)layoutThatFits:(ASSizeRange)constrainedSize</span><br><span class="line">&#123;</span><br><span class="line">  return <span class="literal">[<span class="identifier">self</span> <span class="identifier">layoutThatFits</span>:<span class="identifier">constrainedSize</span> <span class="identifier">parentSize</span>:<span class="identifier">constrainedSize</span>.<span class="identifier">max</span>]</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (ASLayout *)layoutThatFits:(ASSizeRange)constrainedSize parentSize:(CGSize)parentSize</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//......</span></span><br><span class="line">  ASLayout *layout = nil;</span><br><span class="line">  <span class="comment">//在每次调用-setNeedsLayout / -invalidateCalculatedLayout 方法的时候_layoutVersion会+1</span></span><br><span class="line">  NSUInteger version = _layoutVersion;</span><br><span class="line">  <span class="comment">//先检查_calculatedDisplayNodeLayout是否可用，如果可用则优先使用</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="module-access"><span class="module"><span class="identifier">_calculatedDisplayNodeLayout</span>.</span></span>is<span class="constructor">Valid(<span class="params">constrainedSize</span>, <span class="params">parentSize</span>, <span class="params">version</span>)</span>) &#123;</span><br><span class="line">    layout = <span class="module-access"><span class="module"><span class="identifier">_calculatedDisplayNodeLayout</span>.</span></span>layout;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="module-access"><span class="module"><span class="identifier">_pendingDisplayNodeLayout</span>.</span></span>is<span class="constructor">Valid(<span class="params">constrainedSize</span>, <span class="params">parentSize</span>, <span class="params">version</span>)</span>) &#123;</span><br><span class="line">    <span class="comment">//检查_pendingDisplayNodeLayout是否可用，如果可用则优先使用</span></span><br><span class="line">    layout = <span class="module-access"><span class="module"><span class="identifier">_pendingDisplayNodeLayout</span>.</span></span>layout;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">     <span class="comment">//如果_calculatedDisplayNodeLayout和_pendingDisplayNodeLayout都不可用则新建一个ASLayout作为_pendingDisplayNodeLayout</span></span><br><span class="line">    <span class="comment">// Create a pending display node layout for the layout pass</span></span><br><span class="line">    layout = <span class="literal">[<span class="identifier">self</span> <span class="identifier">calculateLayoutThatFits</span>:<span class="identifier">constrainedSize</span></span></span><br><span class="line"><span class="literal">                          <span class="identifier">restrictedToSize</span>:<span class="identifier">self</span>.<span class="identifier">style</span>.<span class="identifier">size</span></span></span><br><span class="line"><span class="literal">                      <span class="identifier">relativeToParentSize</span>:<span class="identifier">parentSize</span>]</span>;</span><br><span class="line">    _pendingDisplayNodeLayout = <span class="constructor">ASDisplayNodeLayout(<span class="params">layout</span>, <span class="params">constrainedSize</span>, <span class="params">parentSize</span>,<span class="params">version</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  return layout ?: <span class="literal">[ASL<span class="identifier">ayout</span> <span class="identifier">layoutWithLayoutElement</span>:<span class="identifier">self</span> <span class="identifier">size</span>:&#123;<span class="number">0</span>, <span class="number">0</span>&#125;]</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>最初的时候_calculatedDisplayNodeLayout和_pendingDisplayNodeLayout都是不可用的，所以layout是由calculateLayoutThatFits:restrictedToSize:relativeToParentSize 返回的，然后将其包裹成ASDisplayNodeLayout赋值给_pendingDisplayNodeLayout，这里需要注意的是这里的_layoutVersion，每次调用-setNeedsLayout &#x2F; -invalidateCalculatedLayout 方法的时候_layoutVersion会+1，当版本不对的时候isValid就会返回NO,这里的_calculatedDisplayNodeLayout和_pendingDisplayNodeLayout应该是一个布局缓存。这个等后续的时候进一步查看。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">- (ASLayout *)calculateLayoutThatFits:(ASSizeRange)constrainedSize</span><br><span class="line">                     restrictedToSize:(ASLayoutElementSize)size</span><br><span class="line">                 relativeToParentSize:(CGSize)parentSize</span><br><span class="line">&#123;</span><br><span class="line">  ASSizeRange styleAndParentSize = <span class="constructor">ASLayoutElementSizeResolve(<span class="params">self</span>.<span class="params">style</span>.<span class="params">size</span>, <span class="params">parentSize</span>)</span>;</span><br><span class="line">  const ASSizeRange resolvedRange = <span class="constructor">ASSizeRangeIntersect(<span class="params">constrainedSize</span>, <span class="params">styleAndParentSize</span>)</span>;</span><br><span class="line">  ASLayout *result = <span class="literal">[<span class="identifier">self</span> <span class="identifier">calculateLayoutThatFits</span>:<span class="identifier">resolvedRange</span>]</span>;</span><br><span class="line">  return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在calculateLayoutThatFits中会对限制的范围做个重新修正，再以修正后的约束范围作为参数计算布局。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (ASLayout *)calculateLayoutThatFits:(ASSizeRange)constrainedSize</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//调用方法之前的检查，必须提供layoutSpecBlock或者重写calculateLayoutThatFits，calculateSizeThatFits或者layoutSpecThatFits</span></span><br><span class="line">  __ASDisplayNodeCheckForLayoutMethodOverrides;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//根据不同布局引擎类型实现不同的布局</span></span><br><span class="line">  <span class="keyword">switch</span> (<span class="keyword">self</span>.layoutEngineType) &#123;</span><br><span class="line">    <span class="comment">//使用布局规范引擎</span></span><br><span class="line">    <span class="keyword">case</span> ASLayoutEngineTypeLayoutSpec:</span><br><span class="line">      <span class="keyword">return</span> [<span class="keyword">self</span> calculateLayoutLayoutSpec:constrainedSize];</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> YOGA</span></span><br><span class="line">    <span class="comment">//使用YOGA布局引擎</span></span><br><span class="line">    <span class="keyword">case</span> ASLayoutEngineTypeYoga:</span><br><span class="line">      <span class="keyword">return</span> [<span class="keyword">self</span> calculateLayoutYoga:constrainedSize];</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Texture 2.0开始引入了YOGA布局引擎，YOGA布局是FaceBook推出的布局形式，我们这里以Texture 默认采用的LayoutSpec作为研究对象进行介绍。</p>
+<figure class="highlight mel"><table><tr><td class="code"><pre><span class="line">- (ASLayout *)calculateLayoutLayoutSpec:(ASSizeRange)constrainedSize</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// 没有通过_layoutSpecBlock也没有实现LayoutSpecThatFits指定布局则直接通过calculateSizeThatFits手动指定size</span></span><br><span class="line">  <span class="keyword">if</span> (_layoutSpecBlock == NULL &amp;&amp; (_methodOverrides &amp; ASDisplayNodeMethodOverrideLayoutSpecThatFits) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">//手动指定尺寸</span></span><br><span class="line">    CGSize <span class="keyword">size</span> = [self calculateSizeThatFits:constrainedSize.<span class="keyword">max</span>];</span><br><span class="line">    <span class="keyword">return</span> [ASLayout layoutWithLayoutElement:self <span class="keyword">size</span>:ASSizeRangeClamp(constrainedSize, <span class="keyword">size</span>) sublayouts:nil];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 通过_layoutSpecBlock 或者 layoutSpecThatFits来从node中获得ASLayoutElement</span></span><br><span class="line">  id&lt;ASLayoutElement&gt; layoutElement = [self _locked_layoutElementThatFits:constrainedSize];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 调用ASLayoutElement的layoutThatFits:方法计算得到ASLayout。</span></span><br><span class="line">  ASLayout *<span class="keyword">layout</span> = (&#123;</span><br><span class="line">    AS::SumScopeTimer t(_layoutComputationTotalTime, measureLayoutComputation);</span><br><span class="line">    [layoutElement layoutThatFits:constrainedSize];</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//.......</span></span><br><span class="line">  <span class="keyword">layout</span> = [<span class="keyword">layout</span> filteredNodeLayoutTree];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">layout</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>首先先判断是否有设置过_layoutSpecBlock或者实现过layoutSpecThatFits:这两者其实是等效的，如果这两者都没有，那么就只能通过calculateSizeThatFits手动指定size。将用户手动指定的Size封装成ASLayout返回</p>
+</li>
+<li><p>如果有实现layoutSpecThatFits:或者有设置过_layoutSpecBlock那么就通过各自的方法返回实现了ASLayoutElement协议的对象。</p>
+</li>
+<li><p>通过调用layoutThatFits返回ASLayout，这里会调用各个ASLayoutSpec子类的calculateLayoutThatFits方法。这里以最简单的ASWrapperLayoutSpec为例子进行分析：</p>
+</li>
+</ol>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">- (ASLayout *)calculateLayoutThatFits:(ASSizeRange)constrainedSize</span><br><span class="line">&#123;</span><br><span class="line">  NSArray *children = self.children;</span><br><span class="line">  <span class="type">const</span> <span class="keyword">auto</span> count = children.count;</span><br><span class="line">  ASLayout *rawSublayouts[count];</span><br><span class="line">  <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">  CGSize size = constrainedSize.min;</span><br><span class="line">  <span class="comment">//遍历子节点，获得子节点的ASLayout</span></span><br><span class="line">  <span class="keyword">for</span> (id&lt;ASLayoutElement&gt; child in children) &#123;</span><br><span class="line">    ASLayout *sublayout = [child layoutThatFits:constrainedSize parentSize:constrainedSize.max];</span><br><span class="line">    sublayout.position = CGPointZero;</span><br><span class="line">    <span class="comment">//获得最大的宽高</span></span><br><span class="line">    size.width = <span class="built_in">MAX</span>(size.width,  sublayout.size.width);</span><br><span class="line">    size.height = <span class="built_in">MAX</span>(size.height, sublayout.size.height);</span><br><span class="line">    <span class="comment">//将子节点的布局保存起来</span></span><br><span class="line">    rawSublayouts[i++] = sublayout;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="type">const</span> <span class="keyword">auto</span> sublayouts = [NSArray&lt;ASLayout *&gt; arrayByTransferring:rawSublayouts count:i];</span><br><span class="line">  <span class="comment">//将size转换为ASLayout</span></span><br><span class="line">  <span class="keyword">return</span> [ASLayout layoutWithLayoutElement:self size:size sublayouts:sublayouts];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ASWrapperLayoutSpec的功能就是用一个布局将轮廓包起开，这里会遍历每个子节点获取子节点的尺寸，获取最大的size，并通过layoutWithLayoutElement将size转换为ASLayout返回。</p>
+<p>calculateLayoutLayoutSpec针对上面获得的ASLayout还有最后一步处理：</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">layout</span> <span class="operator">=</span> [layout filteredNodeLayoutTree]<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>什么是扁平化，我们之前的步骤都是针对节点的宽高。扁平化就是针对position进行修正。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">- (ASLayout *)filteredNodeLayoutTree NS_RETURNS_RETAINED</span><br><span class="line">&#123;</span><br><span class="line">    </span><br><span class="line">  <span class="keyword">struct</span> <span class="title class_">Context</span> &#123;</span><br><span class="line">    unowned ASLayout *layout;</span><br><span class="line">    CGPoint absolutePosition;</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="comment">// Queue used to keep track of sublayouts while traversing this layout in a DFS fashion.</span></span><br><span class="line">  std::deque&lt;Context&gt; queue;</span><br><span class="line">  <span class="comment">//将_sublayouts数据先填到queue</span></span><br><span class="line">  <span class="keyword">for</span> (ASLayout *sublayout in _sublayouts) &#123;</span><br><span class="line">    queue.<span class="built_in">push_back</span>(&#123;sublayout, sublayout.position&#125;);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//这个是扁平化的子布局</span></span><br><span class="line">  std::vector&lt;ASLayout *&gt; flattenedSublayouts;</span><br><span class="line">  <span class="keyword">while</span> (!queue.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">    <span class="comment">//从queue中拿出数据</span></span><br><span class="line">    <span class="type">const</span> Context context = std::<span class="built_in">move</span>(queue.<span class="built_in">front</span>());</span><br><span class="line">    queue.<span class="built_in">pop_front</span>();</span><br><span class="line">    </span><br><span class="line">    unowned ASLayout *layout = context.layout;</span><br><span class="line">    <span class="comment">// Direct ivar access to avoid retain/release, use existing +1.</span></span><br><span class="line">    <span class="type">const</span> NSUInteger sublayoutsCount = layout-&gt;_sublayouts.count;</span><br><span class="line">    <span class="type">const</span> CGPoint absolutePosition = context.absolutePosition;</span><br><span class="line">    <span class="comment">//是否是DisplayNode节点，如果是节点就不需要扁平化，看absolutePosition是否和layout.position是否相同，如果不相同就需要新建一个放到flattenedSublayouts</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">ASLayoutIsDisplayNodeType</span>(layout)) &#123;</span><br><span class="line">      <span class="keyword">if</span> (sublayoutsCount &gt; <span class="number">0</span> || <span class="built_in">CGPointEqualToPoint</span>(<span class="built_in">ASCeilPointValues</span>(absolutePosition), layout.position) == NO) &#123;</span><br><span class="line">        <span class="comment">// Only create a new layout if the existing one can&#x27;t be reused, which means it has either some sublayouts or an invalid absolute position.</span></span><br><span class="line">        <span class="type">const</span> <span class="keyword">auto</span> newLayout = [ASLayout layoutWithLayoutElement:layout-&gt;_layoutElement</span><br><span class="line">                                                     size:layout.size</span><br><span class="line">                                                 position:absolutePosition</span><br><span class="line">                                               sublayouts:@[]];</span><br><span class="line">        flattenedSublayouts.<span class="built_in">push_back</span>(newLayout);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        flattenedSublayouts.<span class="built_in">push_back</span>(layout);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sublayoutsCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="comment">//如果是一个布局容器，那么就需要根据节点之间的关系修正positon位置</span></span><br><span class="line">      <span class="comment">// Fast-reverse-enumerate the sublayouts array by copying it into a C-array and push_front&#x27;ing each into the queue.</span></span><br><span class="line">      unowned ASLayout *rawSublayouts[sublayoutsCount];</span><br><span class="line">      [layout-&gt;_sublayouts getObjects:rawSublayouts range:<span class="built_in">NSMakeRange</span>(<span class="number">0</span>, sublayoutsCount)];</span><br><span class="line">      <span class="keyword">for</span> (NSInteger i = sublayoutsCount - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">        queue.<span class="built_in">push_front</span>(&#123;rawSublayouts[i], absolutePosition + rawSublayouts[i].position&#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//将flattenedSublayouts转换成ASLayout</span></span><br><span class="line">  NSArray *array = [NSArray arrayByTransferring:flattenedSublayouts.<span class="built_in">data</span>() count:flattenedSublayouts.<span class="built_in">size</span>()];</span><br><span class="line">  ASLayout *layout = [ASLayout layoutWithLayoutElement:_layoutElement size:_size sublayouts:array];</span><br><span class="line">  [layout retainSublayoutElements];</span><br><span class="line">  <span class="keyword">return</span> layout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那我们怎么将ASLayout应用到节点的frame完成布局呢？我们在上面介绍ASLayout的时候有提到一个方法：</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(CGRect)</span>frameForElement:<span class="params">(id&lt;ASLayoutElement&gt;)</span>layoutElement;</span><br></pre></td></tr></table></figure>
+<p>它传入一个节点或者节点容器，会返回一个frame：</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(CGRect)</span>frameForElement:<span class="params">(id&lt;ASLayoutElement&gt;)</span>layoutElement</span><br><span class="line">&#123;</span><br><span class="line">  for <span class="params">(ASLayout *l in _sublayouts)</span> &#123;</span><br><span class="line">    if <span class="params">(l-&gt;_layoutElement == layoutElement)</span> &#123;</span><br><span class="line">      return l.frame;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return CGRectNull;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>frameForElement这个方法在ASDisplayNode+Layout.mm类中的_layoutSublayouts调用，这里遍历当前节点的子节点，将每个节点传入frameForElement，获得frame，再将frame赋给node.frame，完成布局。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)_layoutSublayouts</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertThreadAffinity(<span class="keyword">self</span>);</span><br><span class="line">  <span class="comment">//............</span></span><br><span class="line">  <span class="keyword">for</span> (ASDisplayNode *node <span class="keyword">in</span> <span class="keyword">self</span>.subnodes) &#123;</span><br><span class="line">    <span class="built_in">CGRect</span> frame = [layout frameForElement:node];</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">CGRectIsNull</span>(frame)) &#123;</span><br><span class="line">      <span class="comment">// There is no frame for this node in our layout.</span></span><br><span class="line">      <span class="comment">// This currently can happen if we get a CA layout pass</span></span><br><span class="line">      <span class="comment">// while waiting for the client to run animateLayoutTransition:</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      node.frame = frame;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可能大家还会有一个疑问，我们上面介绍的都是posistion，size那frame怎么得到的？其实frame 就是一个postion和size组合而来。</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">- (CGRect)frame</span><br><span class="line">&#123;</span><br><span class="line">  CGRect subnodeFrame <span class="operator">=</span> CGRectZero<span class="comment">;</span></span><br><span class="line">  CGPoint adjustedOrigin <span class="operator">=</span> _position<span class="comment">;</span></span><br><span class="line">  //.......</span><br><span class="line">  subnodeFrame.origin <span class="operator">=</span> adjustedOrigin<span class="comment">;</span></span><br><span class="line">  CGSize adjustedSize <span class="operator">=</span> _size<span class="comment">;</span></span><br><span class="line">  //......</span><br><span class="line">  subnodeFrame.size <span class="operator">=</span> adjustedSize<span class="comment">;</span></span><br><span class="line">  return subnodeFrame<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么是怎么触发_layoutSublayouts呢？我们看下ASDisplayNode.mm的__layout方法。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)__layout</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//......</span></span><br><span class="line">  <span class="type">BOOL</span> loaded = <span class="literal">NO</span>;</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    <span class="comment">// This method will confirm that the layout is up to date (and update if needed).</span></span><br><span class="line">    <span class="comment">// Importantly, it will also APPLY the layout to all of our subnodes if (unless parent is transitioning).</span></span><br><span class="line">    l.unlock();</span><br><span class="line">    <span class="comment">// 如果过期了就会重新计算，否则使用缓存的布局</span></span><br><span class="line">    [<span class="keyword">self</span> _u_measureNodeWithBoundsIfNecessary:bounds];</span><br><span class="line">    l.lock();</span><br><span class="line">    <span class="comment">//布局占位图</span></span><br><span class="line">    [<span class="keyword">self</span> _locked_layoutPlaceholderIfNecessary];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//调用_layoutSublayouts</span></span><br><span class="line">  [<span class="keyword">self</span> _layoutSublayouts];</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (loaded) &#123;</span><br><span class="line">    ASPerformBlockOnMainThread(^&#123;</span><br><span class="line">      [<span class="keyword">self</span> layout];</span><br><span class="line">      [<span class="keyword">self</span> _layoutClipCornersIfNeeded];</span><br><span class="line">      [<span class="keyword">self</span> _layoutDidFinish];</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">  [<span class="keyword">self</span> _fallbackUpdateSafeAreaOnChildren];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而__layout 是再layoutIfNeeded中调用的。</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">- (void)layoutIfNeeded</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//.......</span></span><br><span class="line">  if (shouldApply) &#123;</span><br><span class="line">    <span class="comment">// The node is loaded and we&#x27;re on main.</span></span><br><span class="line">    <span class="comment">// Message the view or layer which in turn will call __layout on us (see -[_ASDisplayLayer layoutSublayers]).</span></span><br><span class="line">    <span class="selector-attr">[viewOrLayer layoutIfNeeded]</span>;</span><br><span class="line">  &#125; else if (loaded == NO) &#123;</span><br><span class="line">    <span class="comment">// The node is not loaded and we&#x27;re not on main.</span></span><br><span class="line">    <span class="selector-attr">[self __layout]</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>提到layoutIfNeeded我们一定会联想到setNeedsLayout,再UIView中会将UIView标记为dirty需要布局。那么ASDisplayNode呢？</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">- (void)setNeedsLayout</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//.....</span></span><br><span class="line">  if (shouldApply) &#123;</span><br><span class="line">    <span class="comment">// The node is loaded and we&#x27;re on main.</span></span><br><span class="line">    <span class="comment">// Quite the opposite of setNeedsDisplay, we must call __setNeedsLayout before messaging</span></span><br><span class="line">    <span class="comment">// the view or layer to ensure that measurement and implicitly added subnodes have been handled.</span></span><br><span class="line">    <span class="selector-attr">[self __setNeedsLayout]</span>;</span><br><span class="line">    <span class="selector-attr">[viewOrLayer setNeedsLayout]</span>;</span><br><span class="line">  &#125; else if (loaded == NO) &#123;</span><br><span class="line">    <span class="comment">// The node is not loaded and we&#x27;re not on main.</span></span><br><span class="line">    <span class="selector-attr">[self __setNeedsLayout]</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">- (void)__setNeedsLayout</span><br><span class="line">&#123;</span><br><span class="line">  <span class="selector-attr">[self invalidateCalculatedLayout]</span>;</span><br><span class="line">&#125;</span><br><span class="line">- (void)invalidateCalculatedLayout</span><br><span class="line">&#123;</span><br><span class="line">  _layoutVersion++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看到了吧它只是将_layoutVersion加1，这样再使用的时候由于版本不对就将原来的布局过期处理。</p>
+<p>整个布局流程如下图所示：<br><img src="/2019/11/12/Texture-%E4%BA%94-Texture%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/11111.png"></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/11/15/Texture-六-Texture-的其他用法/" title="Texture 六 Texture 的其他用法">
+  <span>
+  Texture 六 Texture 的其他用法</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/11/10/Texture-二-基本使用Node及布局/"  title="Texture 二 基本使用Node及布局">
+ <span>Texture 二 基本使用Node及布局
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/11/12/Texture-五-Texture源码解析/" data-title="Texture 五 Texture源码解析" data-url="http://yoursite.com/2019/11/12/Texture-%E4%BA%94-Texture%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-Texture-%E5%BC%82%E6%AD%A5%E7%BB%98%E5%88%B6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">1. Texture 异步绘制源码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#1-1-%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 整体流程图</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#1-2-%E8%A7%A6%E5%8F%91%E5%BC%82%E6%AD%A5%E7%BB%98%E5%88%B6%E7%9A%84%E5%85%A5%E5%8F%A3%E7%82%B9"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 触发异步绘制的入口点</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#1-3-%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E7%B1%BB%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 几个重要类之间的关系</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#1-4-%E5%BC%82%E6%AD%A5%E7%BB%98%E5%88%B6%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">1.4 异步绘制流程</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#1-5-DisplayBlock-amp-amp-Complete-Block"><span class="toc-number">1.5.</span> <span class="toc-text">1.5 DisplayBlock  &amp;&amp; Complete Block</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-Texture-%E5%B8%83%E5%B1%80%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">1. Texture 布局源码分析</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

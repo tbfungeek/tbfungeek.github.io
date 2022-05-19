@@ -1,0 +1,778 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之多线程技术 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="我们很多人应该都知道在Android开发中有两种线程，一种是主线程又称为UI线程，另一个是子线程后称为后台工作线程，Android程序的有部分代码是必须执行在主线程的比如系统事件(例如设备屏幕发生旋转)，输入事件(例如用户点击滑动等)，程序回调服务，UI绘制以及闹钟事件等等。一旦我们在主线程里面添加了操作复杂的代码，或者线程阻塞的任务，这些代码就很可能阻碍主线程去响应交互事件，有可能倒置在16ms">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之多线程技术">
+<meta property="og:url" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="我们很多人应该都知道在Android开发中有两种线程，一种是主线程又称为UI线程，另一个是子线程后称为后台工作线程，Android程序的有部分代码是必须执行在主线程的比如系统事件(例如设备屏幕发生旋转)，输入事件(例如用户点击滑动等)，程序回调服务，UI绘制以及闹钟事件等等。一旦我们在主线程里面添加了操作复杂的代码，或者线程阻塞的任务，这些代码就很可能阻碍主线程去响应交互事件，有可能倒置在16ms">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/23.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/22.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/24.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/5.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/25.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/6.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/8.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/26.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/27.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/28.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/30.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/31.png">
+<meta property="og:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/34.png">
+<meta property="article:published_time" content="2016-07-06T13:10:14.000Z">
+<meta property="article:modified_time" content="2016-07-18T22:11:20.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android 多线程开发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/06/Android-进阶之多线程技术/" title="Android 进阶之多线程技术" itemprop="url">Android 进阶之多线程技术</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-06T13:10:14.000Z" itemprop="datePublished"> Published 2016-07-06</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>我们很多人应该都知道在Android开发中有两种线程，一种是主线程又称为UI线程，另一个是子线程后称为后台工作线程，Android程序的有部分代码是必须执行在主线程的比如系统事件(例如设备屏幕发生旋转)，输入事件(例如用户点击滑动等)，程序回调服务，UI绘制以及闹钟事件等等。一旦我们在主线程里面添加了操作复杂的代码，或者线程阻塞的任务，这些代码就很可能阻碍主线程去响应交互事件，有可能倒置在16ms内不能完成单次刷新的操作。导致掉帧的现象，用户就有可能感知到卡顿现象了。<br>在开发中为了让我们的Apk运行地更加流畅，我们往往需要使用多线程技术让耗时的操作运行在后台。</p>
+<p>一旦我们在主线程里面添加了操作复杂的代码，这些代码就很可能阻碍主线程去响应点击&#x2F;滑动事件，阻碍主线程的UI绘制等等。我们知道，为了让屏幕的刷新帧率达到60fps，我们需要确保16ms内完成单次刷新的操作。一旦我们在主线程里面执行的任务过于繁重就可能导致接收到刷新信号的时候因为资源被占用而无法完成这次刷新操作，这样就会产生掉帧的现象，刷新帧率自然也就跟着下降了(一旦刷新帧率降到20fps左右，用户就可以明显感知到卡顿不流畅了)。</p>
+<p>众所周知，Android程序的大多数代码操作都必须执行在主线程，例如系统事件(例如设备屏幕发生旋转)，输入事件(例如用户点击滑动等)，程序回调服务，UI绘制以及闹钟事件等等。那么我们在上述事件或者方法中插入的代码也将执行在主线程。</p>
+<h4 id="ANR"><a href="#ANR" class="headerlink" title="ANR"></a>ANR</h4><h6 id="什么是ANR"><a href="#什么是ANR" class="headerlink" title="什么是ANR"></a>什么是ANR</h6><p>ANR 是 Application  Not  Response的简称，当某个应用处于长期假死状态，Android系统会弹出如下窗口，显示XXX 无响应 并给出两个按钮，要求用户选择关闭应用，还是继续等待。<br><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/1.png"></p>
+<h6 id="在Android中对未响应定义如下："><a href="#在Android中对未响应定义如下：" class="headerlink" title="在Android中对未响应定义如下："></a>在Android中对未响应定义如下：</h6><p>Activity对一个输入事件在5秒内没有响应，<br>Broadcast Receiver在10秒内没有完成它的onReceiver处理程序.</p>
+<h6 id="造成ANR的原因及如何避免"><a href="#造成ANR的原因及如何避免" class="headerlink" title="造成ANR的原因及如何避免:"></a>造成ANR的原因及如何避免:</h6><p>所有的Android应用程序组件(包括Activity，Service，BroadCast Receiver)都在应用程序主线程中运行，因此任何组件中的费时操作都可能阻塞其他组件,为了确保应用程序能够快速响应应用程序交互或者系统事件，必须将所有的费时处理从应用程序主线程移动到子线程中。</p>
+<h4 id="Android多线程机制"><a href="#Android多线程机制" class="headerlink" title="Android多线程机制"></a>Android多线程机制</h4><p>为了避免产生ANR现象，在应用程序中通过创建工作线程，将耗时操作移动到工作线程中完成，但是在应用程序组件中Notification和Intent总是在GUI线程（主线程）中进行接收和处理，在GUI线程（主线程）中创建的View或者Toast的显示都应该在GUI线程（主线程）中完成。解决这个矛盾。Android采用了Handler机制来实现工作线程与GUI线程同步，从而更新UI。该模型如下图所示：线程通过Looper建立自己的消息循环，消息队列是一个先入先出的队列，工作线程可以往指定的Handler对象投递消息，主线程的Looper负责从消息队列中取出Message并分发到消息指定目标Handler对象进行处理。<br><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/2.png"></p>
+<h6 id="Handler-对象"><a href="#Handler-对象" class="headerlink" title="Handler 对象"></a>Handler 对象</h6><p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/23.png"><br>Handler负责往消息队列上添加消息，处理消息，一个线程可以有多个Handler，当消息队列循环到某个Message的时候，便调用对应Handler的handlerMessage()方法对其进行处理。<br>Handler可投递的对象有“消息对象”和“线程对象”，具体方法如下:</p>
+<ul>
+<li><p>投递消息：<br>sendMessage(runable)<br>sendMessageAtTime(runable,long)<br>sendMessageDelayed(runable,long)</p>
+</li>
+<li><p>将消息对象从消息队列中移除:<br>removeMessage(what)</p>
+</li>
+<li><p>投递线程对象：<br>post(runable)<br>postAtTime(runable,long)<br>postDelayed(runable,long)</p>
+</li>
+<li><p>将线程对象从消息队列中移除:<br>removeCallbacks(runable)<br>主线程从消息队列中取出线程对象后并未开启新的线程来完成线程对象中的任务，而是仍然在当前线程中执行，只是调用了线程对象的run方法。</p>
+</li>
+</ul>
+<h6 id="Looper-对象"><a href="#Looper-对象" class="headerlink" title="Looper 对象"></a>Looper 对象</h6><p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/22.png"><br>Looper是用来封装消息循环和消息队列的一个类，一个Looper对应一个消息队列，一个线程最多只能有一个Looper，默认情况下Android会为主线程创建Looper并开启消息循环，但是使用Thread创建的工作线程没有开启消息循环，所以，在主线程中，应用下面代码创建Handler对象时，就不会出错；而如果在新创建的非线程中，应用下面的代码就会产生异常。</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Handler</span>  <span class="keyword">handler</span> = <span class="built_in">new</span> <span class="keyword">Handler</span>();</span><br></pre></td></tr></table></figure>
+<p>如果想要在非主线程中创建Handler对象，首先需要使用Looper类的prepare()方法来初始化一个Looper对象，然后创建一个Handler对象，再使用Looper类的looper()方法启动Looper，从消息队列里获取和处理消息。写在Looper.loop()之后的代码不会被执行，这个函数的内部是一个循环，当调用Handler.getLooper().quit()方法之后，loop()方法才会终止，后面的代码才能运行。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">LooperThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void run() &#123;</span><br><span class="line">        <span class="comment">// 将当前线程初始化为Looper线程</span></span><br><span class="line">        <span class="type">Looper</span>.prepare();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ...其他处理，如实例化handler</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 开始循环处理消息队列</span></span><br><span class="line">        <span class="type">Looper</span>.loop();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Looper 有如下方法可以使用：<br><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/3.png"></p>
+<h6 id="Message-对象"><a href="#Message-对象" class="headerlink" title="Message 对象"></a>Message 对象</h6><p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/24.png"><br>在创建Looper对象的时候会创建一个消息队列来容纳消息，每个线程只可以拥有一个消息队列，其中的Message是由Looper来分发的，同时Message不能直接添加到消息队列中，只能通过与Looper关联的Handler来添加。<br><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/4.png"></p>
+<p>Messsage对象可以通过如下两类方法获取:</p>
+<ol>
+<li>通过Message构造方法新建一个Message对象</li>
+<li>通过Message.obtain方法或者Handle.obtainMessage方法来获取</li>
+</ol>
+<p>后者并不一定直接创建新的实例，而是查看消息池中是否有满足要求的Message实例，存在则直接取出并返回这个实例，如果没有，则使用给定的参数创建一个Message对象。</p>
+<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line">Message msg = handler.obtainMessage(<span class="params">...</span><span class="params">...</span><span class="params">...</span>..);</span><br><span class="line">msg.sendToTarget()；</span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Message msg = <span class="module-access"><span class="module"><span class="identifier">Message</span>.</span></span>obtain(........)；</span><br><span class="line">handler.send<span class="constructor">Message(<span class="params">msg</span>)</span>；</span><br><span class="line">Message msg = <span class="keyword">new</span> <span class="constructor">Message()</span>；</span><br><span class="line">handler.send<span class="constructor">Message(<span class="params">msg</span>)</span>；</span><br></pre></td></tr></table></figure>
+<p>除了使用arg1，arg2，obj作为数据载体外还可以使用bundle来携带数据</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Bundle bundle = <span class="keyword">new</span> <span class="constructor">Bundle()</span>;</span><br><span class="line">bundle.put<span class="constructor">String(<span class="string">&quot;title&quot;</span>,<span class="params">title</span>[<span class="params">index</span>])</span>;</span><br><span class="line">msg.set<span class="constructor">Data(<span class="params">bundle</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用Thread创建线程"><a href="#使用Thread创建线程" class="headerlink" title="使用Thread创建线程"></a>使用Thread创建线程</h4><ol>
+<li>通过Thread类的构造方法创建线程</li>
+</ol>
+<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Thread</span>  <span class="keyword">thread</span> = <span class="literal">new</span> <span class="keyword">Thread</span>(<span class="literal">new</span> Runnable()&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="literal">void</span> run()&#123;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">&#125;).start();</span><br></pre></td></tr></table></figure>
+<p>2.通过实现Runnable接口创建线程</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="title">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">	public void run()&#123;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h5 id="Thread-常用方法"><a href="#Thread-常用方法" class="headerlink" title="Thread 常用方法"></a>Thread 常用方法</h5><p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/5.png"></p>
+<h5 id="一个例子"><a href="#一个例子" class="headerlink" title="一个例子"></a>一个例子</h5><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MainActivity</span> <span class="keyword">extends</span> <span class="title class_">Activity</span> <span class="keyword">implements</span> <span class="title class_">OnClickListener</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAIN2WORK</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">WORK2MAIN</span> <span class="operator">=</span> <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Button</span> <span class="variable">mMain2workBtn</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Button</span> <span class="variable">mWork2mainBtn</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Handler</span> <span class="variable">mMainHandler</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">WorkThread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        mMain2workBtn = (Button) findViewById(R.id.main2workBtn);</span><br><span class="line">        mWork2mainBtn = (Button) findViewById(R.id.work2mainBtn);</span><br><span class="line">        mMain2workBtn.setOnClickListener(<span class="built_in">this</span>);</span><br><span class="line">        mWork2mainBtn.setOnClickListener(<span class="built_in">this</span>);</span><br><span class="line">        thread = <span class="keyword">new</span> <span class="title class_">WorkThread</span>();</span><br><span class="line">        thread.start();</span><br><span class="line">        mMainHandler = <span class="keyword">new</span> <span class="title class_">Handler</span>()&#123;</span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message msg)</span> &#123;</span><br><span class="line">                <span class="keyword">switch</span> (msg.what) &#123;</span><br><span class="line">                    <span class="keyword">case</span> WORK2MAIN:</span><br><span class="line">                        Log.i(<span class="string">&quot;MainActivity&quot;</span>,(String) msg.obj);</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                        <span class="keyword">default</span>:</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="built_in">super</span>.handleMessage(msg);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123;</span><br><span class="line">        <span class="keyword">switch</span> (v.getId()) &#123;</span><br><span class="line">            <span class="keyword">case</span> R.id.main2workBtn:</span><br><span class="line">                <span class="type">Message</span> <span class="variable">msgs</span> <span class="operator">=</span> Message.obtain();</span><br><span class="line">                msgs.what = MAIN2WORK;</span><br><span class="line">                <span class="type">Bundle</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bundle</span>();</span><br><span class="line">                b.putString(<span class="string">&quot;Message&quot;</span>,<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">                b.putString(<span class="string">&quot;From&quot;</span>,<span class="string">&quot;MainThread&quot;</span>);</span><br><span class="line">                msgs.setData(b);</span><br><span class="line">                thread.getmWorkThreadHandler().sendMessage(msgs);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> R.id.work2mainBtn:</span><br><span class="line">                <span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> mMainHandler.obtainMessage();</span><br><span class="line">                msg.what= WORK2MAIN;</span><br><span class="line">                <span class="type">String</span> <span class="variable">sayHi</span> <span class="operator">=</span> <span class="string">&quot;Hello This message is From WorkThread!&quot;</span>;</span><br><span class="line">                msg.obj = sayHi;</span><br><span class="line">                msg.sendToTarget();<span class="comment">//因为是从mMainHandler中获得的所以这里可以直接调用sendToTarget()</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">WorkThread</span> <span class="keyword">extends</span> <span class="title class_">Thread</span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAIN2WORK</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="type">Handler</span> <span class="variable">mWorkThreadHandler</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="built_in">super</span>.run();</span><br><span class="line">            Looper.prepare();</span><br><span class="line">            mWorkThreadHandler = <span class="keyword">new</span> <span class="title class_">Handler</span>()&#123;</span><br><span class="line">                <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message msg)</span> &#123;</span><br><span class="line">                    <span class="keyword">switch</span> (msg.what) &#123;</span><br><span class="line">                        <span class="keyword">case</span> MAIN2WORK:</span><br><span class="line">                        <span class="type">Bundle</span> <span class="variable">b</span> <span class="operator">=</span> msg.getData();</span><br><span class="line">                        Log.i(<span class="string">&quot;MainActivity&quot;</span>,b.getString(<span class="string">&quot;Message&quot;</span>)+<span class="string">&quot;:&quot;</span>+ b.getString(<span class="string">&quot;From&quot;</span>));</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                        <span class="keyword">default</span>:</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;   </span><br><span class="line">                &#125;;</span><br><span class="line">            &#125;;</span><br><span class="line">            Looper.loop();</span><br><span class="line">            Log.i(<span class="string">&quot;MainActivity&quot;</span>,<span class="string">&quot;这个字符串不会显示&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> Handler <span class="title function_">getmWorkThreadHandler</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> mWorkThreadHandler;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用HandlerThread创建线程"><a href="#使用HandlerThread创建线程" class="headerlink" title="使用HandlerThread创建线程"></a>使用HandlerThread创建线程</h4><p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/25.png"><br>HandlerThread用于创建线程，与Thread不同的是HandlerThread类能够创建一个含有Looper的线程<br>生成一个HandlerThread对象</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">HandlerThread task = <span class="keyword">new</span> <span class="constructor">HandlerThread(“<span class="params">thread</span>”)</span>;</span><br></pre></td></tr></table></figure>
+<p>在调用HandlerThread.getLooper方法前，必须调用该类的start方法，不然会报空指针</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">task.start()<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">looper = mHandlerThread.get<span class="constructor">Looper()</span>;</span><br><span class="line">mHandler = <span class="keyword">new</span> <span class="constructor">Handler(<span class="params">looper</span>)</span>&#123;</span><br><span class="line">	public void handle<span class="constructor">Message(Message <span class="params">msg</span>)</span> &#123;</span><br><span class="line">        super.handle<span class="constructor">Message(<span class="params">msg</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">Message msg <span class="operator">=</span> myHandler.obtainMessage()<span class="comment">;</span></span><br><span class="line">………………</span><br><span class="line">msg.sendtoTaget()；</span><br></pre></td></tr></table></figure>
+
+<h6 id="一个例子-1"><a href="#一个例子-1" class="headerlink" title="一个例子"></a>一个例子</h6><p>使用post提交Runable线程对象，在Runable线程对象的run方法中输出当前线程的ID。代码如下，通过该实验可以发现Handler只是调用Runable线程对象的run方法，所有的操作都在主线程中执行，并没有创建一个新的进程。要想让投递的方法在子线程中运行就要用到HandlerThread类。下一个实验所示。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> MainActivity extends Activity implements OnClickListener &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Button mPostRunableBtn = null;</span><br><span class="line">    <span class="keyword">private</span> Handler mHandler = null;</span><br><span class="line">    <span class="keyword">private</span> TextView mShowMainTV = null;</span><br><span class="line">    <span class="keyword">private</span> Runnable mRunableThread = <span class="keyword">new</span> <span class="constructor">Runnable()</span> &#123;</span><br><span class="line">        public void run<span class="literal">()</span> &#123;</span><br><span class="line">            <span class="module-access"><span class="module"><span class="identifier">Log</span>.</span></span>i(<span class="string">&quot;MainActivity&quot;</span>, <span class="string">&quot;当前线程名 :&quot;</span>+<span class="module-access"><span class="module"><span class="identifier">Thread</span>.</span></span>current<span class="constructor">Thread()</span>.get<span class="constructor">Name()</span>+<span class="string">&quot;   当前线程ID:&quot;</span></span><br><span class="line">                + <span class="module-access"><span class="module"><span class="identifier">Thread</span>.</span></span>current<span class="constructor">Thread()</span>.get<span class="constructor">Id()</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;</span><br><span class="line">    super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">        set<span class="constructor">ContentView(R.<span class="params">layout</span>.<span class="params">activity_main</span>)</span>;</span><br><span class="line">        mPostRunableBtn = (Button) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">postRunableBtn</span>)</span>;</span><br><span class="line">        mShowMainTV = (TextView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">showMainIDTV</span>)</span>;</span><br><span class="line">        mPostRunableBtn.set<span class="constructor">OnClickListener(<span class="params">this</span>)</span>;</span><br><span class="line">        mShowMainTV.set<span class="constructor">Text(<span class="string">&quot;主线程ID:&quot;</span> + Thread.<span class="params">currentThread</span>()</span>.get<span class="constructor">Id()</span>);</span><br><span class="line">        mHandler = <span class="keyword">new</span> <span class="constructor">Handler()</span> ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void on<span class="constructor">Click(View <span class="params">v</span>)</span> &#123;</span><br><span class="line">        switch (v.get<span class="constructor">Id()</span>) &#123;</span><br><span class="line">            case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.postRunableBtn:</span><br><span class="line">                mHandler.post(mRunableThread);</span><br><span class="line">            break;</span><br><span class="line">            default:</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/6.png"></p>
+<h6 id="另一个例子"><a href="#另一个例子" class="headerlink" title="另一个例子"></a>另一个例子</h6><p>使用post提交Runable线程对象，与上面的例子比较，不同的是该实验往HandlerThread投递。这时候Runable线程对象运行在新的线程上。代码如下，结果如下</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> MainActivity extends Activity implements OnClickListener &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Button mHandlerThreadBtn = null;</span><br><span class="line">    <span class="keyword">private</span> TextView mShowMainIDTV = null;</span><br><span class="line">    <span class="keyword">private</span> HandlerThread mHandlerThread = null;</span><br><span class="line">    <span class="keyword">private</span> Handler mHandler = null;</span><br><span class="line">    <span class="keyword">private</span> Looper loopers = null;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Runnable mRunableThread = <span class="keyword">new</span> <span class="constructor">Runnable()</span> &#123;</span><br><span class="line">        public void run<span class="literal">()</span> &#123;</span><br><span class="line">            <span class="module-access"><span class="module"><span class="identifier">Log</span>.</span></span>i(<span class="string">&quot;MainActivity&quot;</span>,<span class="string">&quot;当前线程名 :&quot;</span> + <span class="module-access"><span class="module"><span class="identifier">Thread</span>.</span></span>current<span class="constructor">Thread()</span>.get<span class="constructor">Name()</span></span><br><span class="line">                + <span class="string">&quot;   当前线程ID:&quot;</span> + <span class="module-access"><span class="module"><span class="identifier">Thread</span>.</span></span>current<span class="constructor">Thread()</span>.get<span class="constructor">Id()</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">        set<span class="constructor">ContentView(R.<span class="params">layout</span>.<span class="params">activity_main</span>)</span>;</span><br><span class="line">        mHandlerThreadBtn = (Button) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">handlerThreadBtn</span>)</span>;</span><br><span class="line">        mShowMainIDTV = (TextView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">showMainIDTV</span>)</span>;</span><br><span class="line">        mHandlerThreadBtn.set<span class="constructor">OnClickListener(<span class="params">this</span>)</span>;</span><br><span class="line">        mShowMainIDTV.set<span class="constructor">Text(<span class="string">&quot;主线程ID:  &quot;</span> + Thread.<span class="params">currentThread</span>()</span>.get<span class="constructor">Id()</span>);</span><br><span class="line">        mHandlerThread = <span class="keyword">new</span> <span class="constructor">HandlerThread(<span class="string">&quot;thread&quot;</span>)</span>;</span><br><span class="line">        mHandlerThread.start<span class="literal">()</span>;</span><br><span class="line">        loopers = mHandlerThread.get<span class="constructor">Looper()</span>;</span><br><span class="line">        mHandler = <span class="keyword">new</span> <span class="constructor">Handler(<span class="params">loopers</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    public void on<span class="constructor">Click(View <span class="params">v</span>)</span> &#123;</span><br><span class="line">        switch (v.get<span class="constructor">Id()</span>) &#123;</span><br><span class="line">            case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.handlerThreadBtn:</span><br><span class="line">                mHandler.post(mRunableThread);</span><br><span class="line">            break;</span><br><span class="line">            default:</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/8.png"></p>
+<h4 id="AsyncTask"><a href="#AsyncTask" class="headerlink" title="AsyncTask"></a>AsyncTask</h4><p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/26.png"><br>AsyncTask允许定义将在后台执行的操作，并提供了可以用来监控进度以及在GUI线程上发布结果的方法。<br>AsyncTask处理线程的创建，管理和同步等全部工作，它可以创建一个异步任务，该任务由两个部分组成，将在后台执行到处理以及在处理完成后执行到UI更新。对于生命周期较短并且需要在UI上显示进度和结果到后台操作是很好的解决方案。但是AsyncTask在设备的方向发生变化而导致Activity被摧毁和重新创建时候会被取消，因此对于生命周期较长的后台操作，使用Service比较合适.</p>
+<h6 id="使用AsyncTask进行异步处理"><a href="#使用AsyncTask进行异步处理" class="headerlink" title="使用AsyncTask进行异步处理"></a>使用AsyncTask进行异步处理</h6><ol>
+<li>继承AsyncTask:</li>
+</ol>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">Mytask</span> <span class="keyword">extends</span> <span class="title">AsyncTask&lt;输入变量类型，更新变量类型，结果值类型&gt;</span></span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>重写相关方法:</li>
+</ol>
+<ul>
+<li>doInBackground:这个方法将会在后台线程执行，可以把运行时间较长的代码放置到这里，而且不能试图在此处理程序中与UI对象交互，可以调用publishProcess方法以传递参数值给onProgressUpdate，当后台任务完成后，可以返回最终结果并作为参数传递给onPostExecute处理程序，在该处理程序中更新UI</li>
+<li>onProgressUpdate 当中间进度更新变化的时候更新UI，</li>
+<li>onPostExecute当doInBackground完成后该方法的放回值就会传入到这个事件处理程序中，在这个处理程序中可以更新UI</li>
+</ul>
+<ol start="3">
+<li>运行异步任务:</li>
+</ol>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">new <span class="built_in">Mytask</span>()<span class="selector-class">.execute</span>(Inputparam);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>判断AsyncTask是否正在运行<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">if</span><span class="params">(mTask!=null&amp;&amp;mTask.getStatus()</span></span> == AsyncTask<span class="selector-class">.Status</span>.RUNNING)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>取消AsyncTask：</li>
+</ol>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">mTask.cancel(true)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>一个AsyncTask只能使用一次，当你想再次使用的话，只能再new一个，否则会出现如下错误:</li>
+</ol>
+<figure class="highlight smali"><table><tr><td class="code"><pre><span class="line">java.lang.IllegalStateException: Cannot<span class="built_in"> execute </span>task: the task has already been executed (a task can be executed only once)</span><br></pre></td></tr></table></figure>
+
+<h6 id="AsyncTask使用时需要注意的问题："><a href="#AsyncTask使用时需要注意的问题：" class="headerlink" title="AsyncTask使用时需要注意的问题："></a>AsyncTask使用时需要注意的问题：</h6><ul>
+<li>默认情况下，AsyncTask任务都是被线性调度执行的，他们处在同一个任务队列当中，按顺序逐个执行。一旦其中的某个AsyncTask执行时间过长，队列中的其他剩余AsyncTask都处于阻塞状态，必须等到该任务执行完毕之后才能够有机会执行下一个任务。情况如下图所示：</li>
+</ul>
+<p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/27.png"></p>
+<p>为了解决上面提到的线性队列等待的问题，我们可以使用AsyncTask.executeOnExecutor()强制指定AsyncTask使用线程池并发调度任务。<br><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/28.png"></p>
+<ul>
+<li>在把AsyncTask写成Activity的内部类的时候就很容易因为AsyncTask生命周期的不确定而导致Activity发生泄漏。</li>
+</ul>
+<h4 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h4><p>我们在设计模式中在介绍享元模式的时候介绍了用池技术，在Android中也可以通过线程池将任务分解，并发执行，</p>
+<p>下面是来自胡凯博客上的一个例子，在这个例子宏我们需要一次性decode 40张图片，每个线程需要执行4ms的时间，如果我们使用专属单线程的方案，所有图片执行完毕会需要花费160ms(40*4)，但是如果我们创建10个线程，每个线程执行4个任务，那么我们就只需要16ms就能够把所有的图片处理完毕。<br><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/30.png"><br><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/31.png"><br>为了降低开发难度，系统为我们提供了ThreadPoolExecutor帮助类来简化实现。</p>
+<h4 id="线程优先级"><a href="#线程优先级" class="headerlink" title="线程优先级"></a>线程优先级</h4><p>默认情况下，新创建的线程的优先级和创建它的父线程保持一致。也就是说如果主UI线程创建出了十几个子线程，那么这些子线程的优先级也和默认和主线程保持一致，为了不让新创建的工作线程和主线程抢占CPU资源，需要把这些线程的优先级适当降低，从而提高主线程所能得到的系统资源。<br>在Android系统里面，我们可以通过android.os.Process.setThreadPriority(int)设置线程的优先级，参数范围从-20到24，数值越小优先级越高。同时也定义了一些特定的优先级供日常使用。</p>
+<p><img src="/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/34.png"></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-多线程开发/">Android 多线程开发</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/07/Android-进阶之JNI-开发-一/" title="Android 进阶之JNI 开发 一 概述">
+  <span>
+  Android 进阶之JNI 开发 一 概述</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/07/05/Android-进阶之Apk签名/"  title="Android 进阶之Apk签名">
+ <span>Android 进阶之Apk签名
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/07/06/Android-进阶之多线程技术/" data-title="Android 进阶之多线程技术" data-url="http://yoursite.com/2016/07/06/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#ANR"><span class="toc-number">1.</span> <span class="toc-text">ANR</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFANR"><span class="toc-number">1.0.1.</span> <span class="toc-text">什么是ANR</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%9C%A8Android%E4%B8%AD%E5%AF%B9%E6%9C%AA%E5%93%8D%E5%BA%94%E5%AE%9A%E4%B9%89%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="toc-number">1.0.2.</span> <span class="toc-text">在Android中对未响应定义如下：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E9%80%A0%E6%88%90ANR%E7%9A%84%E5%8E%9F%E5%9B%A0%E5%8F%8A%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D"><span class="toc-number">1.0.3.</span> <span class="toc-text">造成ANR的原因及如何避免:</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Android%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9C%BA%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">Android多线程机制</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#Handler-%E5%AF%B9%E8%B1%A1"><span class="toc-number">2.0.1.</span> <span class="toc-text">Handler 对象</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Looper-%E5%AF%B9%E8%B1%A1"><span class="toc-number">2.0.2.</span> <span class="toc-text">Looper 对象</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Message-%E5%AF%B9%E8%B1%A1"><span class="toc-number">2.0.3.</span> <span class="toc-text">Message 对象</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8Thread%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">使用Thread创建线程</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Thread-%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95"><span class="toc-number">3.1.</span> <span class="toc-text">Thread 常用方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="toc-number">3.2.</span> <span class="toc-text">一个例子</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8HandlerThread%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">使用HandlerThread创建线程</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90-1"><span class="toc-number">4.0.1.</span> <span class="toc-text">一个例子</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%8F%A6%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="toc-number">4.0.2.</span> <span class="toc-text">另一个例子</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AsyncTask"><span class="toc-number">5.</span> <span class="toc-text">AsyncTask</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8AsyncTask%E8%BF%9B%E8%A1%8C%E5%BC%82%E6%AD%A5%E5%A4%84%E7%90%86"><span class="toc-number">5.0.1.</span> <span class="toc-text">使用AsyncTask进行异步处理</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#AsyncTask%E4%BD%BF%E7%94%A8%E6%97%B6%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="toc-number">5.0.2.</span> <span class="toc-text">AsyncTask使用时需要注意的问题：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-number">6.</span> <span class="toc-text">线程池</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E4%BC%98%E5%85%88%E7%BA%A7"><span class="toc-number">7.</span> <span class="toc-text">线程优先级</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

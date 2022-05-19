@@ -1,0 +1,883 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS开源库之objection 源码解析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="开源库信息 objection  objection 是一个iOS &#x2F; MacOS X 平台上的一个基于注释的依赖注入库，能够支持类方式，协议方式，实例对象方式，名称方式绑定，如果接触过Android开发大家可能会比较熟悉Butterknife，两者的功能是一致的，确切地说两者在很多特性上也都存在很多共同点： 我们来看下objection有哪些特性： * &quot;Annotation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS开源库之objection 源码解析">
+<meta property="og:url" content="http://yoursite.com/2019/12/18/objection-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="开源库信息 objection  objection 是一个iOS &#x2F; MacOS X 平台上的一个基于注释的依赖注入库，能够支持类方式，协议方式，实例对象方式，名称方式绑定，如果接触过Android开发大家可能会比较熟悉Butterknife，两者的功能是一致的，确切地说两者在很多特性上也都存在很多共同点： 我们来看下objection有哪些特性： * &quot;Annotation">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/12/18/objection-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png">
+<meta property="article:published_time" content="2019-12-18T09:08:08.000Z">
+<meta property="article:modified_time" content="2019-12-19T14:45:58.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/18/objection-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/12/18/objection-源码解析/" title="iOS开源库之objection 源码解析" itemprop="url">iOS开源库之objection 源码解析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-12-18T09:08:08.000Z" itemprop="datePublished"> Published 2019-12-18</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="开源库信息"><a href="#开源库信息" class="headerlink" title="开源库信息"></a>开源库信息</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/atomicobject/objection">objection</a></li>
+</ul>
+<p>objection 是一个iOS &#x2F; MacOS X 平台上的一个基于注释的依赖注入库，能够支持类方式，协议方式，实例对象方式，名称方式绑定，如果接触过Android开发大家可能会比较熟悉Butterknife，两者的功能是一致的，确切地说两者在很多特性上也都存在很多共同点：</p>
+<p>我们来看下objection有哪些特性：</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">* <span class="string">&quot;Annotation&quot;</span> <span class="keyword">Based </span>Dependency Injection</span><br><span class="line">* Seamless support for integrating custom <span class="keyword">and </span><span class="keyword">external </span>dependencies</span><br><span class="line">    Custom Object Providers</span><br><span class="line">    Meta Class <span class="keyword">Bindings</span></span><br><span class="line"><span class="keyword"></span>    Protocol <span class="keyword">Bindings</span></span><br><span class="line"><span class="keyword"></span>    <span class="keyword">Instance </span><span class="keyword">Bindings</span></span><br><span class="line"><span class="keyword"></span>    Named <span class="keyword">Bindings</span></span><br><span class="line"><span class="keyword"></span>* Lazily <span class="keyword">instantiates </span>dependencies</span><br><span class="line">* Eager Singletons</span><br><span class="line">* Initializer Support</span><br><span class="line">    Default <span class="keyword">and </span>custom arguments</span><br></pre></td></tr></table></figure>
+
+<h4 id="objection用法"><a href="#objection用法" class="headerlink" title="objection用法"></a>objection用法</h4><p>要熟悉objection的用法可以从objection的测试用例中进行了解，我们在进行源码分析的时候先从这些测试用例入手了解下objection的各个用法：</p>
+<p><strong><strong>1.注入器的创建</strong></strong></p>
+<p>当我们需要一个对象的时候我们都是通过JSObjectionInjector来获取，我们可以创建多个JSObjectionInjector：</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">JSObjectionInjector *injector <span class="operator">=</span> [JSObjection createInjector]<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以创建一个JSObjectionInjector 并通过setDefaultInjector来将它作为默认的注入器：</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line"><span class="keyword">JSObjectionInjector </span>*injector = [<span class="keyword">JSObjection </span>createInjector];</span><br><span class="line">[<span class="keyword">JSObjection </span>setDefaultInjector:injector];</span><br></pre></td></tr></table></figure>
+<p>这种情况下任何地方就可以通过****[JSObjection defaultInjector]****来获取这个默认的注入器了。</p>
+<p>它支持getObject以及下标获取两类方式：</p>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">[injector getObject:AObject.<span class="built_in">class</span>];</span><br><span class="line">injector[AObject.<span class="built_in">class</span>];  </span><br><span class="line">[injector objectForKeyedSubscript:AObject.<span class="built_in">class</span>];</span><br></pre></td></tr></table></figure>
+
+
+<p><strong><strong>2.注册一个对象</strong></strong></p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">objection_register</span><span class="params">(XXXX)</span></span></span><br><span class="line"><span class="function"><span class="title">objection_register_singleton</span><span class="params">(XXXX)</span></span></span><br></pre></td></tr></table></figure>
+<p>objection 可以自动完成对象的注册，但是我们也可以显式地对某个对象进行注册，objection中对象的注入有上面两种方式，最后一个是注册一个单例对象使用到的。个人建议如果不是注册单例就不用显式注册了。<br>objection_register和objection_register_singleton的区别是如果一旦有某个类被标记为objection_register_singleton，那么任何地方从注册器取出来的对象都是同一个。而注册成非单例的对象每次创建的时候都会返回一个新的对象。</p>
+<p>还需要注意一点是这里的单例是针对单个注入器的，不同的注入器中返回的则是不同的对象，这点需要十分注意。</p>
+<blockquote>
+<p>will not return the same instance per injector if object is a singleton</p>
+</blockquote>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> <span class="attribute">Engine </span>: NSObject</span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@implementation</span> Engine</span><br><span class="line">objection_register(Engine)</span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> <span class="attribute">UnregisteredCar </span>: NSObject</span><br><span class="line"><span class="variable">@property</span>(nonatomic, strong) Engine *engine;</span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@implementation</span> UnregisteredCar</span><br><span class="line">objection_requires(@<span class="string">&quot;engine&quot;</span>)</span><br><span class="line"><span class="variable">@synthesize</span> engine;</span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">it(@<span class="string">&quot;correctly builds a registered object&quot;</span>, ^&#123;</span><br><span class="line">    id engine = <span class="literal">[[JSO<span class="identifier">bjection</span> <span class="identifier">defaultInjector</span>]</span> getObject:<span class="literal">[E<span class="identifier">ngine</span> <span class="identifier">class</span>]</span>];</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">engine</span>, <span class="params">isNot</span>(<span class="params">nilValue</span>()</span>));</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">it(@<span class="string">&quot;will auto register a class if it is not explicitly registered&quot;</span>, ^&#123;</span><br><span class="line">    UnregisteredCar *unregisteredCar = <span class="literal">[[JSO<span class="identifier">bjection</span> <span class="identifier">defaultInjector</span>]</span> getObject:<span class="literal">[U<span class="identifier">nregisteredCar</span> <span class="identifier">class</span>]</span>];</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">unregisteredCar</span>, <span class="params">is</span>(<span class="params">notNilValue</span>()</span>));</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">unregisteredCar</span>.<span class="params">engine</span>, <span class="params">is</span>(<span class="params">notNilValue</span>()</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>每次注入的时候都会执行awakeFromObjection</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Car</span></span></span><br><span class="line">objection_register(Car)</span><br><span class="line"></span><br><span class="line"><span class="keyword">@synthesize</span> engine, brakes, awake;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)awakeFromObjection &#123;</span><br><span class="line">  awake = <span class="literal">YES</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">it(@<span class="string">&quot;calls awakeFromObjection when injecting dependencies into properties of an existing instance&quot;</span>, ^&#123;</span><br><span class="line">    Car *car = <span class="literal">[[C<span class="identifier">ar</span> <span class="identifier">alloc</span>]</span> init];</span><br><span class="line">    <span class="literal">[[JSO<span class="identifier">bjection</span> <span class="identifier">defaultInjector</span>]</span> injectDependencies:car];</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">ThatBool([<span class="params">car</span> <span class="params">awake</span>], <span class="params">isTrue</span>()</span>);</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">ThatBool([<span class="params">car</span>.<span class="params">engine</span> <span class="params">awake</span>], <span class="params">isTrue</span>()</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>3. 属性注入</strong></strong></p>
+<p>如果我们需要的对象里面有其他的对象那么就需要objection_requires和objection_requires_sel指定当前类中哪些子属性需要注入了，直接看例子</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Car</span> : <span class="title">NSObject</span> </span>&#123;</span><br><span class="line">  Engine *engine;</span><br><span class="line">  Brakes *brakes;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) Engine *engine;</span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) Brakes *brakes;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Car</span></span></span><br><span class="line">objection_register(Car)</span><br><span class="line"><span class="keyword">@synthesize</span> engine, brakes, awake;</span><br><span class="line"></span><br><span class="line">objection_requires(<span class="string">@&quot;engine&quot;</span>, <span class="string">@&quot;brakes&quot;</span>)</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">it(@<span class="string">&quot;correctly builds and object with dependencies&quot;</span>, ^&#123;</span><br><span class="line">    Car *car = <span class="literal">[[JSO<span class="identifier">bjection</span> <span class="identifier">defaultInjector</span>]</span> getObject:<span class="literal">[C<span class="identifier">ar</span> <span class="identifier">class</span>]</span>];</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">car</span>, <span class="params">isNot</span>(<span class="params">nilValue</span>()</span>));</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">car</span>.<span class="params">engine</span>, <span class="params">isNot</span>(<span class="params">nilValue</span>()</span>));</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">car</span>.<span class="params">engine</span>, <span class="params">is</span>(<span class="params">instanceOf</span>([Engine <span class="params">class</span>])</span>));</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">car</span>.<span class="params">brakes</span>, <span class="params">isNot</span>(<span class="params">nilValue</span>()</span>));</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">car</span>.<span class="params">brakes</span>, <span class="params">is</span>(<span class="params">instanceOf</span>([Brakes <span class="params">class</span>])</span>));</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@interface</span> <span class="attribute">UnstoppableCar </span>: NSObject</span><br><span class="line"><span class="variable">@property</span>(nonatomic, strong) Engine *engine;</span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"></span><br><span class="line"><span class="variable">@implementation</span> UnstoppableCar</span><br><span class="line">objection_requires_sel(<span class="variable">@selector</span>(engine))</span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">it(@<span class="string">&quot;correctly builds objects with selector dependencies&quot;</span>, ^&#123;</span><br><span class="line">    UnstoppableCar *car = <span class="literal">[[JSO<span class="identifier">bjection</span> <span class="identifier">defaultInjector</span>]</span> getObject:<span class="literal">[U<span class="identifier">nstoppableCar</span> <span class="identifier">class</span>]</span>];</span><br><span class="line">    <span class="keyword">assert</span><span class="constructor">That(<span class="params">car</span>.<span class="params">engine</span>, <span class="params">is</span>(<span class="params">instanceOf</span>([Engine <span class="params">class</span>])</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这里个人建议使用objection_requires_sel，避免使用objection_requires这种以字符串作为参数的方式。</p>
+<p><strong><strong>4. 指定构造方法获取对象</strong></strong></p>
+<p>默认情况下getObject使用的是对象默认的构造方法来创建出注入的对象，但是一般情况下我们会使用不同的构造方法来创建对象，这种情况下我们要怎么处理呢？方法有两种：</p>
+<p>方式一：<br>通过<strong><strong>objection_initializer_sel</strong></strong></p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">objection_initializer_sel</span>(<span class="variable">@selector</span>(<span class="attribute">initWithfirstName</span>:<span class="attribute">secondName</span>:))</span><br></pre></td></tr></table></figure>
+
+<p>然后代码中可以通过如下几种方式的任意一种给构造方法指定参数：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line"><span class="symbol">JSObjectionInjector</span> *injector = [<span class="symbol">JSObjection</span> defaultInjector];</span><br><span class="line"><span class="symbol">JSObjectFactory</span> *factory = [injector getObject:[<span class="symbol">JSObjectFactory</span> class]];</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//self.dog = [factory getObjectWithArgs:[<span class="symbol">IDLDog</span> class], @<span class="string">&quot;Piter&quot;</span>, @<span class="string">&quot;Pop&quot;</span>,nil];</span><br><span class="line">//self.dog = [injector getObjectWithArgs:[<span class="symbol">IDLDog</span> class], @<span class="string">&quot;Piter&quot;</span>, @<span class="string">&quot;Pop&quot;</span>, nil];</span><br><span class="line">//self.dog = [injector getObject:[<span class="symbol">IDLDog</span> class] argumentList:@[@<span class="string">&quot;Piter&quot;</span>, @<span class="string">&quot;Pop&quot;</span>]];</span><br></pre></td></tr></table></figure>
+
+<p>方法二是通过在getObject的时候指定初始化方法：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line"><span class="symbol">IDLCar</span> *car = [[<span class="symbol">IDLCar</span> alloc] initWithName:@<span class="string">&quot;GTM&quot;</span>];</span><br><span class="line">self.dog = [injector getObject:[<span class="symbol">IDLDog</span> class] initializer:@selector(initWithCar:) argumentList:@[car]];</span><br></pre></td></tr></table></figure>
+
+<p>这种方式就不用<strong><strong>objection_initializer_sel</strong></strong>来注解了。</p>
+<p>个人比较偏向使用第二种方式，同时注意这里的参数类型可以是自定义的类型。</p>
+<p><strong><strong>5. JSObjectFactory</strong></strong></p>
+<p>JSObjectFactory和JSObjectionInjector处理的事情是一样的，实际上它内部持有JSObjectionInjector。所以这里在这块不做过多介绍。</p>
+<p><strong><strong>6. JSObjectionModule &amp;&amp;  JSObjectionProvider</strong></strong></p>
+<p>JSObjectionModule 和 JSObjectionProvider 为我们提供了一个数据集中绑定的场所。</p>
+<p>我们先来看下JSObjectionModule的用法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">MyModule</span> : <span class="title">JSObjectionModule</span> </span>&#123;</span><br><span class="line">  <span class="type">BOOL</span> _instrumentInvalidEagerSingleton;</span><br><span class="line">  <span class="type">BOOL</span> _instrumentInvalidMetaClass;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">weak</span>, <span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) Engine *engine;</span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">weak</span>, <span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="type">id</span>&lt;GearBox&gt; gearBox;</span><br><span class="line"><span class="keyword">@property</span>(<span class="keyword">nonatomic</span>, <span class="keyword">assign</span>) <span class="type">BOOL</span> instrumentInvalidEagerSingleton;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">assign</span>) <span class="type">BOOL</span> instrumentInvalidMetaClass;</span><br><span class="line"></span><br><span class="line">- (<span class="type">id</span>)initWithEngine:(Engine *)engine andGearBox:(<span class="type">id</span>&lt;GearBox&gt;)gearBox;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>重写configure方法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">MyModule</span></span></span><br><span class="line"><span class="keyword">@synthesize</span> engine = _engine;</span><br><span class="line"><span class="keyword">@synthesize</span> gearBox = _gearBox;</span><br><span class="line"><span class="keyword">@synthesize</span> instrumentInvalidEagerSingleton=_instrumentInvalidEagerSingleton;</span><br><span class="line"><span class="keyword">@synthesize</span> instrumentInvalidMetaClass = _instrumentInvalidMetaClass;</span><br><span class="line"></span><br><span class="line">- (<span class="type">id</span>)initWithEngine:(Engine *)engine andGearBox:(<span class="type">id</span>&lt;GearBox&gt;)gearBox &#123;</span><br><span class="line">  <span class="keyword">if</span> ((<span class="keyword">self</span> = [<span class="variable language_">super</span> init])) &#123;</span><br><span class="line">    _engine = engine;</span><br><span class="line">    _gearBox = gearBox;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)configure &#123;</span><br><span class="line"></span><br><span class="line">    [<span class="keyword">self</span> bind:_engine toClass:[Engine <span class="keyword">class</span>]];</span><br><span class="line">    [<span class="keyword">self</span> bind:_gearBox toProtocol:<span class="class"><span class="keyword">@protocol</span>(<span class="title">GearBox</span>)];</span></span><br><span class="line">    [<span class="keyword">self</span> bindClass:[VisaCCProcessor <span class="keyword">class</span>] toProtocol:<span class="class"><span class="keyword">@protocol</span>(<span class="title">CreditCardProcessor</span>)];</span></span><br><span class="line">    [<span class="keyword">self</span> bindClass:[VisaCCProcessor <span class="keyword">class</span>] toClass:[BaseCreditCardProcessor <span class="keyword">class</span>]];</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>.instrumentInvalidMetaClass) &#123;</span><br><span class="line">        [<span class="keyword">self</span> bindMetaClass:(<span class="type">id</span>)<span class="string">@&quot;sneaky&quot;</span> toProtocol:<span class="class"><span class="keyword">@protocol</span>(<span class="title">MetaCar</span>)];</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        [<span class="keyword">self</span> bindMetaClass:[Car <span class="keyword">class</span>] toProtocol:<span class="class"><span class="keyword">@protocol</span>(<span class="title">MetaCar</span>)];</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>.instrumentInvalidEagerSingleton) &#123;</span><br><span class="line">        [<span class="keyword">self</span> registerEagerSingleton:[Car <span class="keyword">class</span>]];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        [<span class="keyword">self</span> registerEagerSingleton:[EagerSingleton <span class="keyword">class</span>]];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先自定义的Module需要继承JSObjectionModule，并且重写configure方法，在configure方法中可以通过bind bindClass绑定，一个对象或者类可以绑定到Class和Protocol。</p>
+<p><strong><strong>-bind:</strong></strong> 和 <strong><strong>-bindClass:</strong></strong> 的区别是：前者通过注入器会获取同一个实例，就是你所绑定的实例，后者每次通过注入器获取的对象都是不同的，因为绑定的是类。</p>
+<p>通过Model方式和不通过Model方式的区别是在创建Injector的时候，使用model的时候需要在创建Injector的时候指定需要的Model:</p>
+<figure class="highlight inform7"><table><tr><td class="code"><pre><span class="line">module = <span class="comment">[<span class="comment">[MyModule alloc]</span> initWithEngine:engine andGearBox:gearBox]</span>;    </span><br><span class="line">JSObjectionInjector *injector = <span class="comment">[JSObjection createInjector:module]</span>;</span><br><span class="line"><span class="comment">[JSObjection setDefaultInjector:injector]</span>;</span><br></pre></td></tr></table></figure>
+
+<p>但是一般建议放在load方法中</p>
+<figure class="highlight inform7"><table><tr><td class="code"><pre><span class="line">+(void)load&#123;</span><br><span class="line">    JSObjectionInjector* injector = <span class="comment">[JSObjection defaultInjector]</span>;</span><br><span class="line">    injector = injector ? : <span class="comment">[JSObjection createInjector]</span>;</span><br><span class="line">    injector = <span class="comment">[injector withModule:<span class="comment">[self.class new]</span>]</span>;</span><br><span class="line">    <span class="comment">[JSObjection setDefaultInjector:injector]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>6.0 Eager Singleton</strong></strong></p>
+<p>一般Singleton会在使用的时候进行注入，但是被注册为Eager Singleton会在一开始的时候就进行注入：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">EagerSingleton</span> : <span class="title">NSObject</span></span></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">EagerSingleton</span></span></span><br><span class="line">objection_register_singleton(EagerSingleton)</span><br><span class="line">- (<span class="type">void</span>)awakeFromObjection &#123;</span><br><span class="line">  gEagerSingletonHook = <span class="literal">YES</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">[<span class="keyword">self</span> <span class="symbol">registerEagerSingleton:</span>[EagerSingleton <span class="class"><span class="keyword">class</span>]];</span></span><br></pre></td></tr></table></figure>
+
+<p>这里需要注意的是必须是使用objection_register_singleton注册为单例的类才能注册为Eager Singleton</p>
+<p><strong><strong>6.1 使用name区分同一类型的绑定</strong></strong></p>
+<p>当你绑定相同的 class&#x2F;protocol 时，之前的绑定会被覆盖，如果不希望被覆盖，可以使用 name 进行区分:</p>
+<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">[<span class="variable language_">self</span> <span class="symbol">bind:</span>_rightHeadlight <span class="symbol">toClass:</span>[Headlight <span class="keyword">class</span>] <span class="symbol">named:</span>@<span class="string">&quot;RightHeadlight&quot;</span>];</span><br><span class="line">[<span class="variable language_">self</span> <span class="symbol">bindClass:</span>[HIDHeadlight <span class="keyword">class</span>] <span class="symbol">toClass:</span>[Headlight <span class="keyword">class</span>] <span class="symbol">named:</span>@<span class="string">&quot;LeftHeadlight&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<p>接下来就可以在注解绑定中这样用：</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@implementation</span> ShinyCar</span><br><span class="line">objection_register(ShinyCar)</span><br><span class="line">objection_requires_names((@&#123;@<span class="string">&quot;LeftHeadlight&quot;</span>:@<span class="string">&quot;leftHeadlight&quot;</span>, @<span class="string">&quot;RightHeadlight&quot;</span>:@<span class="string">&quot;rightHeadlight&quot;</span>&#125;))</span><br><span class="line">objection_requires(@<span class="string">&quot;foglight&quot;</span>)</span><br><span class="line"><span class="variable">@synthesize</span> leftHeadlight, rightHeadlight, foglight;</span><br><span class="line"><span class="variable">@end</span></span><br></pre></td></tr></table></figure>
+<p>还可以在手动获取的时候这样用</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(id)</span>getObject:<span class="params">(id)</span>classOrProtocol named:<span class="params">(NSString*)</span>name;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>6.2 需要介入实例创建过程的情景</strong></strong></p>
+<p>如果需要介入实例的构建过程，可以使用 block 回调来配置你的实例对象：</p>
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="keyword">void</span>)<span class="keyword">configure</span> &#123;</span><br><span class="line">    [self bindBlock<span class="operator">:</span><span class="operator">^</span>(JSObjectionInjector <span class="operator">*</span>context) &#123;</span><br><span class="line">        Car <span class="operator">*</span>car <span class="operator">=</span> nil;</span><br><span class="line">        <span class="keyword">if</span> (_instrumentNilBlock) &#123;</span><br><span class="line">            car <span class="operator">=</span> [context getObject<span class="operator">:</span>[SixSpeedCar <span class="keyword">class</span>]];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            car <span class="operator">=</span> [context getObject<span class="operator">:</span>[FiveSpeedCar <span class="keyword">class</span>]];</span><br><span class="line">            car.engine <span class="operator">=</span> (<span class="built_in">id</span>)myEngine;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (<span class="built_in">id</span>)car;</span><br><span class="line">    &#125; toClass<span class="operator">:</span>[Car <span class="keyword">class</span>]];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>6.3 需要外部参数来创建实例的情景</strong></strong></p>
+<p>如果需要外部的一些参数来创建该实例的时候可以使用Provider:</p>
+<p>定义一个Provider遵循JSObjectionProvider协议，重写对应的方法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">DemoObjectProvider</span> : <span class="title">NSObject</span> &lt;<span class="title">JSObjectionProvider</span>&gt;</span></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">DemoObjectProvider</span></span></span><br><span class="line">-(<span class="type">id</span>)provide:(JSObjectionInjector *)context arguments:(<span class="built_in">NSArray</span> *)arguments&#123;</span><br><span class="line">    AObject* ob = AObject.new;</span><br><span class="line">    <span class="built_in">NSString</span>* name = arguments.firstObject;</span><br><span class="line">    ob.bj = [[BObject alloc] initWithName:name];</span><br><span class="line">    <span class="keyword">return</span> ob;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+<p>在Model中绑定Provider</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line">-(<span class="keyword">void</span>)configure &#123;</span><br><span class="line">    [<span class="meta">self bindProvider:[[DemoObjectProvider alloc</span>] <span class="keyword">init</span>] toClass:AObject.<span class="keyword">class</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么参数怎么传进来呢：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line"><span class="symbol">JSObjectionInjector</span>* injector = [<span class="symbol">JSObjection</span> defaultInjector];</span><br><span class="line"><span class="symbol">AObject</span>* ob1 = [injector getObject:<span class="symbol">AObject</span>.class argumentList:@[@<span class="string">&quot;linxiaohai&quot;</span>]];</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>6.4 指定绑定的作用域</strong></strong></p>
+<p>这个一般用在给单例绑定降级的时候使用</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Car</span></span></span><br><span class="line">objection_register(Car)</span><br><span class="line"><span class="keyword">@synthesize</span> engine, brakes, awake;</span><br><span class="line">- (<span class="type">void</span>)awakeFromObjection &#123;</span><br><span class="line">  awake = <span class="literal">YES</span>;</span><br><span class="line">&#125;</span><br><span class="line">objection_requires(<span class="string">@&quot;engine&quot;</span>, <span class="string">@&quot;brakes&quot;</span>)</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">VisaCCProcessor</span></span></span><br><span class="line">objection_register_singleton(VisaCCProcessor)</span><br><span class="line">objection_initializer(initWithCreditCardNumber:, <span class="string">@&quot;Default&quot;</span>)</span><br><span class="line">objection_requires(<span class="string">@&quot;validator&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">@synthesize</span> validator = _validator;</span><br><span class="line"><span class="keyword">@synthesize</span> CCNumber;</span><br><span class="line"></span><br><span class="line">- (<span class="type">id</span>)initWithCreditCardNumber:(<span class="built_in">NSString</span> *)aCCNumber &#123;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> = [<span class="variable language_">super</span> init])) &#123;</span><br><span class="line">        <span class="keyword">self</span>.CCNumber = aCCNumber;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line">- (<span class="type">void</span>)processNumber:(<span class="built_in">NSString</span> *)number &#123;</span><br><span class="line">    [<span class="variable language_">super</span> processNumber:number];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@implementation</span> ScopeModule</span><br><span class="line"></span><br><span class="line">- (void)configure &#123;</span><br><span class="line">    <span class="selector-attr">[self bindClass:[VisaCCProcessor class]</span> <span class="selector-tag">inScope</span>:<span class="selector-tag">JSObjectionScopeNormal</span>];</span><br><span class="line">    <span class="selector-attr">[self bindClass:[Car class]</span> <span class="selector-tag">inScope</span>:<span class="selector-tag">JSObjectionScopeSingleton</span>];</span><br><span class="line">    <span class="selector-attr">[self registerEagerSingleton:[Car class]</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>测试用例：</p>
+<figure class="highlight lua"><table><tr><td class="code"><pre><span class="line">it(@<span class="string">&quot;can bind a class in singleton scope&quot;</span>, ^&#123;</span><br><span class="line">    assertThat(injector<span class="string">[[Car class]]</span>, is(sameInstance(injector<span class="string">[[Car class]]</span>)));</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">it(@<span class="string">&quot;can bind a class in a normal scope&quot;</span>, ^&#123;</span><br><span class="line">    assertThat(injector<span class="string">[[VisaCCProcessor class]]</span>, isNot(sameInstance(injector<span class="string">[[VisaCCProcessor class]]</span>)));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>还可以在绑定Provider&#x2F;Block的时候指定作用域：</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@implementation</span> ProviderScopeModule</span><br><span class="line">- (void)configure &#123;</span><br><span class="line">    <span class="selector-attr">[self bindProvider:[[CarProvider alloc]</span> <span class="selector-tag">init</span>] <span class="selector-tag">toClass</span>:<span class="selector-attr">[Car class]</span> <span class="selector-tag">inScope</span>:<span class="selector-tag">JSObjectionScopeSingleton</span>];</span><br><span class="line">    <span class="selector-attr">[self bindProvider:[[GearBoxProvider alloc]</span> <span class="selector-tag">init</span>] <span class="selector-tag">toProtocol</span>:@<span class="selector-tag">protocol</span>(GearBox) <span class="selector-tag">inScope</span>:<span class="selector-tag">JSObjectionScopeNormal</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">@end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">it(@<span class="string">&quot;can bind a provider in singleton scope&quot;</span>, ^&#123;</span><br><span class="line">    assertThat(injector[[Car class]], is(sameInstance(injector[[Car class]])));</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">it</span>(@<span class="string">&quot;can bind a provider in a normal scope&quot;</span>, ^&#123;</span><br><span class="line">    <span class="selector-tag">assertThat</span>(injector[<span class="variable">@protocol</span>(GearBox)], isNot(sameInstance(injector[<span class="variable">@protocol</span>(GearBox)])));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@implementation</span> BlockScopeModule</span><br><span class="line"></span><br><span class="line">- (void)configure &#123;</span><br><span class="line">    [self bindBlock:^(JSObjectionInjector *context) &#123;</span><br><span class="line">        Car *car = [[Car alloc] <span class="keyword">init</span>];</span><br><span class="line">        <span class="keyword">return</span> (id)car;</span><br><span class="line">    &#125; toClass:[Car <span class="class"><span class="keyword">class</span>] <span class="title">inScope</span>:<span class="type">JSObjectionScopeSingleton];</span></span></span><br><span class="line"></span><br><span class="line">    [self bindBlock:^(JSObjectionInjector *context) &#123;</span><br><span class="line">        <span class="keyword">return</span> [[AfterMarketGearBox alloc] <span class="keyword">init</span>];</span><br><span class="line">    &#125; toProtocol:<span class="meta">@protocol(GearBox)</span> inScope:JSObjectionScopeNormal];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@end</span></span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>6.4 指定多个模块</strong></strong></p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 启用默认的注入器</span></span><br><span class="line">JSObjectionInjector* injector = [JSObjection defaultInjector];</span><br><span class="line">injector = injector ? : <span class="type"></span>[JSObjection createInjector];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加自定义的模块</span></span><br><span class="line">injector = [injector withModule:<span class="type">MyModule</span>.<span class="keyword">new</span><span class="type"></span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加更多的模块</span></span><br><span class="line">injector = [injector withModules:<span class="type">MyModule1</span>.<span class="keyword">new</span><span class="type"></span>, MyModule2.<span class="keyword">new</span><span class="type"></span>, nil];</span><br><span class="line">[JSObjection setDefaultInjector:<span class="type">injector</span>];</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line"><span class="section">-withModule:方法加入的模块，会将之前相同的绑定覆盖，如果你想更换甭定、作用域等等，就可以使用该方法加入新的绑定。</span></span><br><span class="line"><span class="section">既然能够加入，那么对应的，withoutModuleOfType: 将会移除之前的模块。</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h4><p>objection 源码不算复杂，整个思路还是蛮清晰的，下面是我重新对它目录结构进行组织后的结果：</p>
+<p><img src="/2019/12/18/objection-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png"></p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Entry/</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionEntry</span>.</span></span>h</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionProviderEntry</span>.</span></span>h</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionInjectorEntry</span>.</span></span>h</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionBindingEntry</span>.</span></span>h</span><br><span class="line">Module/</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionModule</span>.</span></span>h</span><br><span class="line">Factory/</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectFactory</span>.</span></span>h</span><br><span class="line">Injector/</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionInjector</span>.</span></span>h</span><br><span class="line">Utils/</span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionUtils</span>.</span></span>h</span><br></pre></td></tr></table></figure>
+<p>上面是几个重要的模块：</p>
+<ul>
+<li>Entry是一系列用于创建对象的入口</li>
+<li>Module用于绑定数据的地方，为Injector提供对象数据源</li>
+<li>Injector用于从对象源中取出依赖对象</li>
+<li>Factory 其实是对Injector的一个封装</li>
+<li>Utils 是整个代码底层的一个支持</li>
+</ul>
+<p><strong><strong>1. Injector的创建</strong></strong></p>
+<p>在使用Objection进行注入的时候需要先调用：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">+</span> (JSObjectionInjector <span class="emphasis">*)createInjector:(JSObjectionModule *</span>)module;</span><br></pre></td></tr></table></figure>
+
+<p>来创建Injector</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">+ (JSObjectionInjector *)createInjector:(JSObjectionModule *)module &#123;</span><br><span class="line">        <span class="built_in">pthread_mutex_lock</span>(&amp;gObjectionMutex);</span><br><span class="line">        <span class="keyword">@try</span> &#123;</span><br><span class="line">            return <span class="selector-attr">[[JSObjectionInjector alloc]</span> initWithContext:gObjectionContext andModule:module];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">@finally</span> &#123;</span><br><span class="line">            <span class="built_in">pthread_mutex_unlock</span>(&amp;gObjectionMutex); </span><br><span class="line">        &#125;</span><br><span class="line">        return nil;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>createInjector方法中会通过JSObjectionInjector 的 initWithContext:andModule:module来创建一个JSObjectionInjector返回，这里的Context在JSObjection的initialize方法中就完成了初始化。<br>一般我们会将createInjector创建的JSObjectionInjector 设置为默认的<strong><strong>gGlobalInjector</strong></strong>这样就可以在任何地方使用了。<br>那么传入的Context用来做什么用的？我们继续往下看：</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (instancetype)initWithContext:(<span class="type">NSDictionary</span> <span class="operator">*</span>)theGlobalContext andModule:(<span class="type">JSObjectionModule</span> <span class="operator">*</span>)theModule &#123;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> <span class="operator">=</span> [<span class="keyword">self</span> initWithContext:theGlobalContext])) &#123;</span><br><span class="line">        [<span class="keyword">self</span> configureModule:theModule];</span><br><span class="line">        [<span class="keyword">self</span> initializeEagerSingletons];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (instancetype)initWithContext:(<span class="type">NSDictionary</span> <span class="operator">*</span>)theGlobalContext &#123;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> <span class="operator">=</span> [<span class="keyword">super</span> <span class="keyword">init</span>])) &#123;</span><br><span class="line">        _globalContext <span class="operator">=</span> theGlobalContext;</span><br><span class="line">        _context <span class="operator">=</span> [[<span class="type">NSMutableDictionary</span> alloc] <span class="keyword">init</span>];</span><br><span class="line">        _modules <span class="operator">=</span> [[<span class="type">NSMutableArray</span> alloc] <span class="keyword">init</span>];</span><br><span class="line">        [<span class="keyword">self</span> configureDefaultModule];</span><br><span class="line">        [<span class="keyword">self</span> initializeEagerSingletons];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (void)configureDefaultModule &#123;</span><br><span class="line">    <span class="comment">//这里绑定有JSObjectFactory</span></span><br><span class="line">    __JSObjectionInjectorDefaultModule <span class="operator">*</span>module <span class="operator">=</span> [[__JSObjectionInjectorDefaultModule alloc] initWithInjector:<span class="keyword">self</span>];</span><br><span class="line">    <span class="comment">//将__JSObjectionInjectorDefaultModule添加到_modules，调用__JSObjectionInjectorDefaultModule的configure方法（__JSObjectionInjectorDefaultModule没有重写configure）。</span></span><br><span class="line">    <span class="comment">//将__JSObjectionInjectorDefaultModule中的eagerSingletons合并到_eagerSingletons</span></span><br><span class="line">    <span class="comment">//将__JSObjectionInjectorDefaultModule中的bindings添加到_context</span></span><br><span class="line">    [<span class="keyword">self</span> configureModule:module];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (void)initializeEagerSingletons &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">NSString</span> <span class="operator">*</span>eagerSingletonKey <span class="keyword">in</span> _eagerSingletons) &#123;</span><br><span class="line">        id entry <span class="operator">=</span> [_context objectForKey:eagerSingletonKey] <span class="operator">?</span>: [_globalContext objectForKey:eagerSingletonKey];</span><br><span class="line">        <span class="keyword">if</span> ([entry lifeCycle] <span class="operator">==</span> <span class="type">JSObjectionScopeSingleton</span>) &#123;</span><br><span class="line">            <span class="comment">//创建eagerSingletonKey对象</span></span><br><span class="line">            [<span class="keyword">self</span> getObject:<span class="type">NSClassFromString</span>(eagerSingletonKey)];      </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="meta">@throw</span> [<span class="type">NSException</span> exceptionWithName:@<span class="string">&quot;JSObjectionException&quot;</span> </span><br><span class="line">                                           reason:[<span class="type">NSString</span> stringWithFormat:@<span class="string">&quot;Unable to initialize eager singleton for the class &#x27;%@&#x27; because it was never registered as a singleton&quot;</span>, eagerSingletonKey] </span><br><span class="line">                                         userInfo:<span class="literal">nil</span>];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (void)configureModule:(<span class="type">JSObjectionModule</span> <span class="operator">*</span>)module &#123;</span><br><span class="line">    <span class="comment">//将model添加到_modules</span></span><br><span class="line">    [_modules addObject:module];</span><br><span class="line">    <span class="comment">//调用module的configure执行绑定</span></span><br><span class="line">    [module configure];</span><br><span class="line">    <span class="comment">//将当前的model的eagerSingletons合并到_eagerSingletons</span></span><br><span class="line">    <span class="type">NSSet</span> <span class="operator">*</span>mergedSet <span class="operator">=</span> [module.eagerSingletons setByAddingObjectsFromSet:_eagerSingletons];</span><br><span class="line">    _eagerSingletons <span class="operator">=</span> mergedSet;</span><br><span class="line">    <span class="comment">//将当前model的module.bindings添加到_context</span></span><br><span class="line">    [_context addEntriesFromDictionary:module.bindings];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>JSObjectionInjector初始化方法中有几个比较重要的对象_globalContext，_context，_modules<br>_globalContext用于存储全局的绑定信息，_context存储的是当前injector的绑定信息，_modules 存储的是该injector所包含的JSObjectionModule。</p>
+<p>在初始化JSObjectionInjector的阶段，主要完成如下工作：</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>. 将<span class="variable">_JSObjectionInjectorDefaultModule</span>以及外部注入的module添加到<span class="variable">_modules</span>，并调用configure 执行绑定</span><br><span class="line"><span class="number">2</span>. 将<span class="variable">_JSObjectionInjectorDefaultModule</span> 以及外部注入的module中的eagerSingletons 添加到<span class="variable">_eagerSingletons</span></span><br><span class="line"><span class="number">3</span>. 将module中的绑定信息添加到<span class="variable">_context</span></span><br><span class="line"><span class="number">4</span>. 完成EagerSingletons的初始化</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>2. JSObjectionModule</strong></strong></p>
+<p>JSObjectionModule中有两个对象_bindings，_eagerSingletons 一个用于存放所有的绑定信息，后面用于存放Eager Singletons的。</p>
+<p>JSObjectionModule中的所有注册绑定信息都存放在_bindings,大致归纳了下无非就只有如下几种：</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>bindMetaClass:<span class="params">(Class)</span>metaClass toProtocol:<span class="params">(Protocol *)</span>aProtocol</span><br><span class="line">- <span class="params">(void)</span>bind:<span class="params">(id)</span>instance toProtocol:<span class="params">(Protocol *)</span>aProtocol named:<span class="params">(NSString *)</span>name</span><br><span class="line">- <span class="params">(void)</span>bind:<span class="params">(id)</span>instance toClass:<span class="params">(Class)</span>aClass named:<span class="params">(NSString *)</span>name </span><br><span class="line">- <span class="params">(void)</span>bindClass:<span class="params">(Class)</span>aClass toClass:<span class="params">(Class)</span>toClass inScope:<span class="params">(JSObjectionScope)</span>scope named:<span class="params">(NSString*)</span>name </span><br><span class="line">- <span class="params">(void)</span>bindClass:<span class="params">(Class)</span>aClass toProtocol:<span class="params">(Protocol *)</span>aProtocol inScope:<span class="params">(JSObjectionScope)</span>scope named:<span class="params">(NSString*)</span>name</span><br><span class="line">- <span class="params">(void)</span>bindProvider:<span class="params">(id &lt;JSObjectionProvider&gt;)</span>provider toClass:<span class="params">(Class)</span>aClass inScope:<span class="params">(JSObjectionScope)</span>scope named:<span class="params">(NSString *)</span>name</span><br><span class="line">- <span class="params">(void)</span>bindProvider:<span class="params">(id &lt;JSObjectionProvider&gt;)</span>provider toProtocol:<span class="params">(Protocol *)</span>aProtocol inScope:<span class="params">(JSObjectionScope)</span>scope named:<span class="params">(NSString *)</span>name</span><br><span class="line">- <span class="params">(void)</span>bindBlock:<span class="params">(id (^)</span><span class="params">(JSObjectionInjector *context)</span>)block toClass:<span class="params">(Class)</span>aClass inScope:<span class="params">(JSObjectionScope)</span>scope named:<span class="params">(NSString *)</span>name</span><br><span class="line">- <span class="params">(void)</span>bindBlock:<span class="params">(id (^)</span><span class="params">(JSObjectionInjector *context)</span>)block toProtocol:<span class="params">(Protocol *)</span>aProtocol inScope:<span class="params">(JSObjectionScope)</span>scope named:<span class="params">(NSString *)</span>name</span><br></pre></td></tr></table></figure>
+
+<p>绑定实例对象，绑定类，绑定Provider,绑定block，绑定MetaClass。 绑定的目标对象主要有两类一个是Class 一个是Protocol。</p>
+<p>_bindings的key有两类如果目标对象是Class则key通过方法：</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">- (NSString *)classKey:(<span class="keyword">Class</span>)aClass withName:(NSString*)<span class="type">name</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> [NSString stringWithFormat:@&quot;%@%@%@&quot;, NSStringFromClass(aClass), <span class="type">name</span> ? @&quot;:&quot; : @&quot;&quot;, <span class="type">name</span> ? <span class="type">name</span> : @&quot;&quot;];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>比如class名为IDLDog name为animalDomain,那么key就是@”IDLDog:animalDomain”</p>
+<p>如果目标对象是Protocol则key通过方法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">NSString</span> *)protocolKey:(Protocol *)aProtocol withName:(<span class="built_in">NSString</span>*)name&#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@&quot;&lt;%@&gt;%@%@&quot;</span>, <span class="built_in">NSStringFromProtocol</span>(aProtocol), name ? <span class="string">@&quot;:&quot;</span> : <span class="string">@&quot;&quot;</span>, name ? name : <span class="string">@&quot;&quot;</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>比如Protocol名为IDLDogProtocol name为animalDomain,那么key就是@”<IDLDogProtocol>:animalDomain”</IDLDogProtocol></p>
+<p>而value值是用于生成对象的Entry</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">bindMetaClass</span> ---&gt;</span> JSObjectionBindingEntry</span><br><span class="line"><span class="function"><span class="title">bind</span>          ---&gt;</span> JSObjectionBindingEntry</span><br><span class="line"><span class="function"><span class="title">bindClass</span>     ---&gt;</span> __JSC<span class="function"><span class="title">lassProvider</span> ---&gt;</span> JSObjectionProviderEntry</span><br><span class="line"><span class="function"><span class="title">bindProvider</span>  ---&gt;</span> JSObjectionProviderEntry</span><br><span class="line"><span class="function"><span class="title">bindBlock</span>     ---&gt;</span> JSObjectionProviderEntry</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>3. getObject 向依赖注入器中获取对象</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">id</span>)getObject:(<span class="type">id</span>)classOrProtocol named:(<span class="built_in">NSString</span>*)name initializer:(SEL)selector argumentList:(<span class="built_in">NSArray</span> *)argumentList &#123;</span><br><span class="line">    <span class="keyword">@synchronized</span>(<span class="keyword">self</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//获取key</span></span><br><span class="line">        <span class="keyword">if</span> (!classOrProtocol) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">NSString</span> *key = <span class="literal">nil</span>;</span><br><span class="line">        <span class="type">BOOL</span> isClass = class_isMetaClass(object_getClass(classOrProtocol));</span><br><span class="line">        <span class="keyword">if</span> (isClass) &#123;</span><br><span class="line">            key = <span class="built_in">NSStringFromClass</span>(classOrProtocol);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            key = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@&quot;&lt;%@&gt;&quot;</span>, <span class="built_in">NSStringFromProtocol</span>(classOrProtocol)];</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (name) &#123;</span><br><span class="line">            key = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@&quot;%@:%@&quot;</span>,key,name];</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//从_context中获取对应的Entry</span></span><br><span class="line">        <span class="type">id</span>&lt;JSObjectionEntry&gt; injectorEntry = [_context objectForKey:key];</span><br><span class="line">        injectorEntry.injector = <span class="keyword">self</span>;</span><br><span class="line">        <span class="keyword">if</span> (!injectorEntry) &#123;</span><br><span class="line">            <span class="comment">//如果没有JSObjectionEntry 则 从_globalContext中获取</span></span><br><span class="line">            <span class="type">id</span>&lt;JSObjectionEntry&gt; entry = [_globalContext objectForKey:key];</span><br><span class="line">            <span class="keyword">if</span> (entry) &#123;</span><br><span class="line">                injectorEntry = [[entry <span class="keyword">class</span>] entryWithEntry:entry];</span><br><span class="line">                injectorEntry.injector = <span class="keyword">self</span>;</span><br><span class="line">                [_context setObject:injectorEntry forKey:key];</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span>(isClass) &#123;</span><br><span class="line">                injectorEntry = [JSObjectionInjectorEntry entryWithClass:classOrProtocol scope:JSObjectionScopeNormal];</span><br><span class="line">                injectorEntry.injector = <span class="keyword">self</span>;</span><br><span class="line">                [_context setObject:injectorEntry forKey:key];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (classOrProtocol &amp;&amp; injectorEntry) &#123;</span><br><span class="line">            <span class="keyword">if</span> ([injectorEntry respondsToSelector:<span class="keyword">@selector</span>(extractObject:initializer:)]) &#123;</span><br><span class="line">                <span class="comment">//调用extractObject获取对象</span></span><br><span class="line">                <span class="keyword">return</span> [injectorEntry extractObject:argumentList initializer:selector];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> [injectorEntry extractObject:argumentList];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>getObject方法比较简单，就是通过classOrProtocol，name 来构建出key。先从_context中获取如果没有则从_globalContext中获取对应的JSObjectionEntry。然后通过extractObject:initializer:或者extractObject:来获取。</p>
+<p><strong><strong>4. Entrys 构建对象</strong></strong></p>
+<p>我们上面归纳了bind方法与JSObjectionEntry之间的对应关系：</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">bindMetaClass</span> ---&gt;</span> JSObjectionBindingEntry</span><br><span class="line"><span class="function"><span class="title">bind</span>          ---&gt;</span> JSObjectionBindingEntry</span><br><span class="line"><span class="function"><span class="title">bindClass</span>     ---&gt;</span> __JSC<span class="function"><span class="title">lassProvider</span> ---&gt;</span> JSObjectionProviderEntry</span><br><span class="line"><span class="function"><span class="title">bindProvider</span>  ---&gt;</span> JSObjectionProviderEntry</span><br><span class="line"><span class="function"><span class="title">bindBlock</span>     ---&gt;</span> JSObjectionProviderEntry</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>JSObjectionBindingEntry</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">JSObjectionBindingEntry</span></span></span><br><span class="line">- (<span class="keyword">instancetype</span>)initWithObject:(<span class="type">id</span>)theObject &#123;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> = [<span class="variable language_">super</span> init])) &#123;</span><br><span class="line">        _instance = theObject;    </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">id</span>)extractObject:(<span class="built_in">NSArray</span> *)arguments &#123;</span><br><span class="line">    <span class="keyword">return</span> _instance;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (JSObjectionScope)lifeCycle &#123;</span><br><span class="line">    <span class="keyword">return</span> JSObjectionScopeSingleton;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)dealloc &#123;</span><br><span class="line">     _instance = <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>JSObjectionBindingEntry 中用于绑定已经创建好的对象，extractObject方法实际上返回的就是最初传入的_instance</p>
+<p><strong><strong>JSObjectionProviderEntry</strong></strong></p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="meta">@implementation</span> <span class="type">JSObjectionProviderEntry</span></span><br><span class="line"><span class="meta">@synthesize</span> lifeCycle <span class="operator">=</span> _lifeCycle;</span><br><span class="line"><span class="operator">-</span> (id)initWithProvider:(id<span class="operator">&lt;</span><span class="type">JSObjectionProvider</span><span class="operator">&gt;</span>)theProvider lifeCycle:(<span class="type">JSObjectionScope</span>)theLifeCycle &#123;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> <span class="operator">=</span> [<span class="keyword">super</span> <span class="keyword">init</span>])) &#123;</span><br><span class="line">        _provider <span class="operator">=</span> theProvider;</span><br><span class="line">        _lifeCycle <span class="operator">=</span> theLifeCycle;</span><br><span class="line">        _storageCache <span class="operator">=</span> <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (id)initWithBlock:(id(<span class="operator">^</span>)(<span class="type">JSObjectionInjector</span> <span class="operator">*</span>context))theBlock lifeCycle:(<span class="type">JSObjectionScope</span>)theLifeCycle &#123;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> <span class="operator">=</span> [<span class="keyword">super</span> <span class="keyword">init</span>])) &#123;</span><br><span class="line">        _block <span class="operator">=</span> [theBlock copy];</span><br><span class="line">        _lifeCycle <span class="operator">=</span> theLifeCycle;</span><br><span class="line">        _storageCache <span class="operator">=</span> <span class="literal">nil</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (id)extractObject:(<span class="type">NSArray</span> <span class="operator">*</span>)arguments &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>.lifeCycle <span class="operator">==</span> <span class="type">JSObjectionScopeNormal</span> <span class="operator">||</span> <span class="operator">!</span>_storageCache) &#123;</span><br><span class="line">        <span class="keyword">return</span> [<span class="keyword">self</span> buildObject:arguments];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> _storageCache;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (void)dealloc &#123;</span><br><span class="line">    _storageCache <span class="operator">=</span> <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="operator">-</span> (id)buildObject:(<span class="type">NSArray</span> <span class="operator">*</span>)arguments &#123;</span><br><span class="line">    id objectUnderConstruction <span class="operator">=</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">if</span> (_block) &#123;</span><br><span class="line">        objectUnderConstruction <span class="operator">=</span> _block(<span class="keyword">self</span>.injector);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        objectUnderConstruction <span class="operator">=</span> [_provider provide:<span class="keyword">self</span>.injector arguments:arguments];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>.lifeCycle <span class="operator">==</span> <span class="type">JSObjectionScopeSingleton</span>) &#123;</span><br><span class="line">        _storageCache <span class="operator">=</span> objectUnderConstruction;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> objectUnderConstruction;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>JSObjectionProviderEntry 有两种构造方法，一种是通过Provider,一种是通过Block,JSObjectionProviderEntry 内部会缓存一个_storageCache，在生命周期为JSObjectionScopeSingleton<br>的情况下extractObject会使用_storageCache 否则会在buildObject中通过_block或者_provider创建创建对象返回。</p>
+<p><strong><strong>5.宏定义</strong></strong></p>
+<p><strong><strong>5.1 注册依赖</strong></strong></p>
+<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">#define objection_register(value)			\</span></span><br><span class="line">    + (<span class="literal">void</span>)initialize &#123; <span class="string">\</span></span><br><span class="line">        <span class="keyword">if</span> (self == [value <span class="keyword">class</span>]) &#123; <span class="string">\</span></span><br><span class="line">            [JSObjection registerClass:[value <span class="keyword">class</span>] scope: JSObjectionScopeNormal]; <span class="string">\</span></span><br><span class="line">        &#125; <span class="string">\</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#define objection_register_singleton(value) \</span></span><br><span class="line">    + (<span class="literal">void</span>)initialize &#123; <span class="string">\</span></span><br><span class="line">        <span class="keyword">if</span> (self == [value <span class="keyword">class</span>]) &#123; <span class="string">\</span></span><br><span class="line">            [JSObjection registerClass:[value <span class="keyword">class</span>] scope: JSObjectionScopeSingleton]; <span class="string">\</span></span><br><span class="line">        &#125; <span class="string">\</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们上面提到了注册依赖可以通过objection_register以及objection_register_singleton前者用于注册正常的类，后者用于注册单例，但是底层都是通过：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">JSObjection registerClass<span class="selector-pseudo">:scope</span>:</span><br></pre></td></tr></table></figure>
+<p>来注册的只不过作用域参数不一样罢了。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">+ (void)registerClass:(Class)theClass scope:(JSObjectionScope)scope &#123;</span><br><span class="line">    pthread<span class="constructor">_mutex_lock(&amp;<span class="params">gObjectionMutex</span>)</span>;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="keyword">if</span> (theClass<span class="operator"> &amp;&amp; </span><span class="literal">[<span class="identifier">gObjectionContext</span> <span class="identifier">objectForKey</span>:NSS<span class="identifier">tringFromClass</span>(<span class="identifier">theClass</span>)]</span><span class="operator"> == </span>nil) &#123;</span><br><span class="line">        <span class="literal">[<span class="identifier">gObjectionContext</span> <span class="identifier">setObject</span>:[JSO<span class="identifier">bjectionInjectorEntry</span> <span class="identifier">entryWithClass</span>:<span class="identifier">theClass</span> <span class="identifier">scope</span>:<span class="identifier">scope</span>]</span> forKey:<span class="constructor">NSStringFromClass(<span class="params">theClass</span>)</span>];</span><br><span class="line">    &#125; </span><br><span class="line">    pthread<span class="constructor">_mutex_unlock(&amp;<span class="params">gObjectionMutex</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种情况下的Entry和上面的就不大一样了它是<strong><strong>JSObjectionInjectorEntry</strong></strong>。被添加到gObjectionContext。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">@implementation JSObjectionInjectorEntry</span><br><span class="line"></span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"></span><br><span class="line">#pragma mark - Instance Methods</span><br><span class="line"></span><br><span class="line"><span class="comment">//.....</span></span><br><span class="line"></span><br><span class="line">- (instancetype) extractObject:(NSArray *)arguments <span class="keyword">initializer</span>:(SEL)<span class="keyword">initializer</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (self.lifeCycle<span class="operator"> == </span>JSObjectionScopeNormal<span class="operator"> || </span>!_storageCache) &#123;</span><br><span class="line">        return <span class="literal">[<span class="identifier">self</span> <span class="identifier">buildObject</span>:<span class="identifier">arguments</span> <span class="identifier">initializer</span>: <span class="identifier">initializer</span>]</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    return _storageCache;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">#pragma mark - Private Methods</span><br><span class="line"></span><br><span class="line">- (id)buildObject:(NSArray *)arguments <span class="keyword">initializer</span>: (SEL) <span class="keyword">initializer</span> &#123;</span><br><span class="line">    </span><br><span class="line">    id objectUnderConstruction = nil;</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">initializer</span> != nil) &#123;</span><br><span class="line">        objectUnderConstruction = <span class="module-access"><span class="module"><span class="identifier">JSObjectionUtils</span>.</span></span>build<span class="constructor">ObjectWithInitializer(<span class="params">self</span>.<span class="params">classEntry</span>, <span class="params">initializer</span>, <span class="params">arguments</span>)</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="literal">[<span class="identifier">self</span>.<span class="identifier">classEntry</span> <span class="identifier">respondsToSelector</span>:@<span class="identifier">selector</span>(<span class="identifier">objectionInitializer</span>)]</span>) &#123;</span><br><span class="line">        objectUnderConstruction = <span class="module-access"><span class="module"><span class="identifier">JSObjectionUtils</span>.</span></span>build<span class="constructor">ObjectWithInitializer(<span class="params">self</span>.<span class="params">classEntry</span>, [<span class="params">self</span> <span class="params">initializerForObject</span>], [<span class="params">self</span> <span class="params">argumentsForObject</span>:<span class="params">arguments</span>])</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        objectUnderConstruction = <span class="literal">[[<span class="identifier">self</span>.<span class="identifier">classEntry</span> <span class="identifier">alloc</span>]</span> init];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (self.lifeCycle<span class="operator"> == </span>JSObjectionScopeSingleton) &#123;</span><br><span class="line">        _storageCache = objectUnderConstruction;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="module-access"><span class="module"><span class="identifier">JSObjectionUtils</span>.</span></span>inject<span class="constructor">DependenciesIntoProperties(<span class="params">self</span>.<span class="params">injector</span>, <span class="params">self</span>.<span class="params">classEntry</span>, <span class="params">objectUnderConstruction</span>)</span>;</span><br><span class="line">    </span><br><span class="line">    return objectUnderConstruction;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (SEL)initializerForObject &#123;</span><br><span class="line">    return <span class="constructor">NSSelectorFromString([[<span class="params">self</span>.<span class="params">classEntry</span> <span class="params">objectionInitializer</span>] <span class="params">objectForKey</span>:JSObjectionInitializerKey])</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (NSArray *)argumentsForObject:(NSArray *)givenArguments &#123;</span><br><span class="line">    return givenArguments.count &gt; <span class="number">0</span> ? givenArguments : <span class="literal">[[<span class="identifier">self</span>.<span class="identifier">classEntry</span> <span class="identifier">objectionInitializer</span>]</span> objectForKey:JSObjectionDefaultArgumentsKey];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#pragma mark - Class Methods</span><br><span class="line"></span><br><span class="line">+ (id)entryWithClass:(Class)theClass scope:(JSObjectionScope)theLifeCycle  &#123;</span><br><span class="line">    return <span class="literal">[[JSO<span class="identifier">bjectionInjectorEntry</span> <span class="identifier">alloc</span>]</span> initWithClass:theClass lifeCycle:theLifeCycle];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (id)entryWithEntry:(JSObjectionInjectorEntry *)entry &#123;</span><br><span class="line">    return <span class="literal">[[JSO<span class="identifier">bjectionInjectorEntry</span> <span class="identifier">alloc</span>]</span> initWithClass:entry.classEntry lifeCycle:entry.lifeCycle];  </span><br><span class="line">&#125;</span><br><span class="line">@<span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面最关键的代码在buildObject中如果没有指定参数则调用：</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">objectUnderConstruction</span> <span class="operator">=</span> [[self.classEntry alloc] init]<span class="comment">; </span></span><br></pre></td></tr></table></figure>
+<p>也就是走默认构造方法。</p>
+<p>如果有指定构造方法则走下面方法：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">JSObjectionUtils</span>.</span></span>build<span class="constructor">ObjectWithInitializer(<span class="params">self</span>.<span class="params">classEntry</span>, <span class="params">initializer</span>, <span class="params">arguments</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当然还可以实现objectionInitializer方法来指定对应的构造方法。</p>
+<p>JSObjectionUtils.buildObjectWithInitializer 方法很简单就是通过消息分发机制调用构造方法:</p>
+<figure class="highlight smali"><table><tr><td class="code"><pre><span class="line">static id BuildObjectWithInitializer(Class klass, SEL initializer, NSArray *arguments) &#123;</span><br><span class="line">	NSMethodSignature *signature = [klass methodSignatureForSelector:initializer];</span><br><span class="line">	__autoreleasing id<span class="built_in"> instance </span>= nil;</span><br><span class="line">    BOOL isClassMethod = signature != nil &amp;&amp; initializer != @selector(init);</span><br><span class="line">    </span><br><span class="line"><span class="built_in">	if </span>(!isClassMethod) &#123;</span><br><span class="line">	<span class="built_in">	instance </span>= [klass alloc];</span><br><span class="line">		signature = [klass instanceMethodSignatureForSelector:initializer];</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">   <span class="built_in"> if </span>(signature) &#123;</span><br><span class="line">        NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];</span><br><span class="line">        [invocation setTarget:isClassMethod ? klass<span class="keyword"> :</span> instance];</span><br><span class="line">        [invocation setSelector:initializer];</span><br><span class="line">        for (int i = 0; i &lt; arguments.count; i++) &#123;</span><br><span class="line">            __unsafe_unretained id argument = [arguments objectAtIndex:i];</span><br><span class="line">            [invocation setArgument:&amp;argument atIndex:i + 2];</span><br><span class="line">        &#125;</span><br><span class="line">        [invocation invoke];</span><br><span class="line">		[invocation getReturnValue:&amp;instance];</span><br><span class="line">       <span class="built_in"> return </span>instance;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        @throw [NSException exceptionWithName:JSObjectionException reason:[NSString stringWithFormat:@<span class="string">&quot;Could not find initializer &#x27;%@&#x27; on %@&quot;</span>, NSStringFromSelector(initializer), NSStringFromClass(klass)] userInfo:nil]; </span><br><span class="line">    &#125;</span><br><span class="line">   <span class="built_in"> return </span>nil;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>构造完需要的对象后还需要通过JSObjectionUtils.injectDependenciesIntoProperties 来使用依赖对属性进行注入：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">static void <span class="constructor">InjectDependenciesIntoProperties(JSObjectionInjector <span class="operator">*</span><span class="params">injector</span>, Class <span class="params">klass</span>, <span class="params">id</span> <span class="params">object</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//如果当前有通过objectionRequires指定需要注入的属性</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">[<span class="identifier">klass</span> <span class="identifier">respondsToSelector</span>:@<span class="identifier">selector</span>(<span class="identifier">objectionRequires</span>)]</span>) &#123;</span><br><span class="line">        NSSet *properties = <span class="literal">[<span class="identifier">klass</span> <span class="identifier">objectionRequires</span>]</span>;</span><br><span class="line">        NSMutableDictionary *propertiesDictionary = <span class="literal">[NSM<span class="identifier">utableDictionary</span> <span class="identifier">dictionaryWithCapacity</span>:<span class="identifier">properties</span>.<span class="identifier">count</span>]</span>;</span><br><span class="line">        <span class="keyword">for</span> (NSString *propertyName <span class="keyword">in</span> properties) &#123;</span><br><span class="line">            JSObjectionPropertyInfo propertyInfo;</span><br><span class="line">            id desiredClassOrProtocol;</span><br><span class="line">            <span class="constructor">_getPropertyInfo(<span class="params">klass</span>, <span class="params">propertyName</span>, &amp;<span class="params">propertyInfo</span>, &amp;<span class="params">desiredClassOrProtocol</span>)</span>;</span><br><span class="line">            id theObject = <span class="literal">[<span class="identifier">injector</span> <span class="identifier">getObject</span>:<span class="identifier">desiredClassOrProtocol</span>]</span>;</span><br><span class="line">            <span class="constructor">_validateObjectReturnedFromInjector(&amp;<span class="params">theObject</span>, <span class="params">propertyInfo</span>, <span class="params">desiredClassOrProtocol</span>, <span class="params">propertyName</span>)</span>;</span><br><span class="line">            <span class="literal">[<span class="identifier">propertiesDictionary</span> <span class="identifier">setObject</span>:<span class="identifier">theObject</span> <span class="identifier">forKey</span>:<span class="identifier">propertyName</span>]</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="literal">[<span class="identifier">object</span> <span class="identifier">setValuesForKeysWithDictionary</span>:<span class="identifier">propertiesDictionary</span>]</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果当前有通过objectionRequiresNames指定需要注入的属性</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">[<span class="identifier">klass</span> <span class="identifier">respondsToSelector</span>:@<span class="identifier">selector</span>(<span class="identifier">objectionRequiresNames</span>)]</span>) &#123;</span><br><span class="line">        NSDictionary *namedProperties = <span class="literal">[<span class="identifier">klass</span> <span class="identifier">objectionRequiresNames</span>]</span>;</span><br><span class="line">        NSMutableDictionary *propertiesDictionary = <span class="literal">[NSM<span class="identifier">utableDictionary</span> <span class="identifier">dictionaryWithCapacity</span>:<span class="identifier">namedProperties</span>.<span class="identifier">count</span>]</span>;</span><br><span class="line">        <span class="keyword">for</span> (NSString *namedPropertyKey <span class="keyword">in</span> <span class="literal">[<span class="identifier">namedProperties</span> <span class="identifier">allKeys</span>]</span>) &#123;</span><br><span class="line">            NSString* propertyName = <span class="literal">[<span class="identifier">namedProperties</span> <span class="identifier">valueForKey</span>:<span class="identifier">namedPropertyKey</span>]</span>;</span><br><span class="line">            JSObjectionPropertyInfo propertyInfo;</span><br><span class="line">            id desiredClassOrProtocol;</span><br><span class="line">            <span class="constructor">_getPropertyInfo(<span class="params">klass</span>, <span class="params">propertyName</span>, &amp;<span class="params">propertyInfo</span>, &amp;<span class="params">desiredClassOrProtocol</span>)</span>;</span><br><span class="line">            id theObject = <span class="literal">[<span class="identifier">injector</span> <span class="identifier">getObject</span>:<span class="identifier">desiredClassOrProtocol</span> <span class="identifier">named</span>:<span class="identifier">namedPropertyKey</span>]</span>;</span><br><span class="line">            <span class="constructor">_validateObjectReturnedFromInjector(&amp;<span class="params">theObject</span>, <span class="params">propertyInfo</span>, <span class="params">desiredClassOrProtocol</span>, <span class="params">propertyName</span>)</span>;</span><br><span class="line">            <span class="literal">[<span class="identifier">propertiesDictionary</span> <span class="identifier">setObject</span>:<span class="identifier">theObject</span> <span class="identifier">forKey</span>:<span class="identifier">propertyName</span>]</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 添加属性</span></span><br><span class="line">        <span class="literal">[<span class="identifier">object</span> <span class="identifier">setValuesForKeysWithDictionary</span>:<span class="identifier">propertiesDictionary</span>]</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//调用awakeFromObjection</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">[<span class="identifier">object</span> <span class="identifier">respondsToSelector</span>:@<span class="identifier">selector</span>(<span class="identifier">awakeFromObjection</span>)]</span>) &#123;</span><br><span class="line">        <span class="literal">[<span class="identifier">object</span> <span class="identifier">awakeFromObjection</span>]</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>5.2 属性依赖</strong></strong></p>
+<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">#define objection_requires(args...) \</span></span><br><span class="line">    + (NSSet *)objectionRequires &#123; <span class="string">\</span></span><br><span class="line">        NSSet *requirements = [NSSet setWithObjects: args, nil]; <span class="string">\</span></span><br><span class="line">        <span class="keyword">return</span> JSObjectionUtils.buildDependenciesForClass(self, requirements); <span class="string">\</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#define objection_requires_sel(args...) \</span></span><br><span class="line">    + (NSSet *)objectionRequires &#123; <span class="string">\</span></span><br><span class="line">        SEL selectors[] = &#123;args&#125;; <span class="string">\</span></span><br><span class="line">        NSMutableSet *requirements = [NSMutableSet set]; <span class="string">\</span></span><br><span class="line">        <span class="keyword">for</span> (NSUInteger j = <span class="number">0</span>; j &lt; sizeof(selectors)/ sizeof(SEL); j++) &#123; <span class="string">\</span></span><br><span class="line">            SEL selector = selectors[j]; <span class="string">\</span></span><br><span class="line">            [requirements addObject:NSStringFromSelector(selector)]; <span class="string">\</span></span><br><span class="line">        &#125; <span class="string">\</span></span><br><span class="line">        <span class="keyword">return</span> JSObjectionUtils.buildDependenciesForClass(self, requirements); <span class="string">\</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#define objection_requires_names(namedDependencies) \</span></span><br><span class="line">    + (NSDictionary *)objectionRequiresNames &#123; <span class="string">\</span></span><br><span class="line">        <span class="keyword">return</span> JSObjectionUtils.buildNamedDependenciesForClass(self, namedDependencies); <span class="string">\</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里就是上面提到的用于指定需要属性注入的方法，不做展开介绍了。</p>
+<p><strong><strong>5.3 指定初始化方法</strong></strong></p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">#define objection<span class="constructor">_initializer_sel(<span class="params">selectorSymbol</span>, <span class="params">args</span><span class="operator">...</span>)</span> \</span><br><span class="line">    + (NSDictionary *)objectionInitializer &#123; \</span><br><span class="line">        id objs<span class="literal">[]</span> = &#123;args&#125;; \</span><br><span class="line">        NSArray *defaultArguments = <span class="literal">[NSA<span class="identifier">rray</span> <span class="identifier">arrayWithObjects</span>: <span class="identifier">objs</span> <span class="identifier">count</span>:<span class="identifier">sizeof</span>(<span class="identifier">objs</span>)<span class="operator">/</span><span class="identifier">sizeof</span>(<span class="identifier">id</span>)]</span>; \</span><br><span class="line">        return <span class="module-access"><span class="module"><span class="identifier">JSObjectionUtils</span>.</span></span>build<span class="constructor">Initializer(<span class="params">selectorSymbol</span>, <span class="params">defaultArguments</span>)</span>; \</span><br><span class="line">    &#125;  </span><br></pre></td></tr></table></figure>
+
+<p>这个也是为了buildObject提供的。用于指定构造方法，细节可以看buildObject中。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/12/20/fishhook-源码解析/" title="iOS开源库之fishhook 概述">
+  <span>
+  iOS开源库之fishhook 概述</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/12/14/iOS-开源库源码解析-组件化BeeHive/"  title="iOS 开源库源码解析- 组件化BeeHive">
+ <span>iOS 开源库源码解析- 组件化BeeHive
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/12/18/objection-源码解析/" data-title="iOS开源库之objection 源码解析" data-url="http://yoursite.com/2019/12/18/objection-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%E5%BA%93%E4%BF%A1%E6%81%AF"><span class="toc-number">1.</span> <span class="toc-text">开源库信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#objection%E7%94%A8%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">objection用法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">源码解析</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

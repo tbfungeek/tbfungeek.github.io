@@ -1,0 +1,723 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 初步之Android 安全机制 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="概述Android 是一个多任务的系统,所以安全成了一个系统中一大重要的课题，为了保证应用的数据安全采用了应用签名，沙箱机制，权限机制等三种机制，在Android系统中用户在安装了一个应用程序后，操作系统为该应用程序创建一个与之关联的新的用户配置文件，每个应用程序都作为不同的用户运行，它在文件系统中拥有自己的文件，用户ID和一个安全的操作环境。应用程序在操作系统上使用自己的用户ID，自己的Dalv">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 初步之Android 安全机制">
+<meta property="og:url" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="概述Android 是一个多任务的系统,所以安全成了一个系统中一大重要的课题，为了保证应用的数据安全采用了应用签名，沙箱机制，权限机制等三种机制，在Android系统中用户在安装了一个应用程序后，操作系统为该应用程序创建一个与之关联的新的用户配置文件，每个应用程序都作为不同的用户运行，它在文件系统中拥有自己的文件，用户ID和一个安全的操作环境。应用程序在操作系统上使用自己的用户ID，自己的Dalv">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/5.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/6.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/8.png">
+<meta property="article:published_time" content="2016-04-06T11:51:27.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:30:36.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/06/Android-初步之Android-安全机制/" title="Android 初步之Android 安全机制" itemprop="url">Android 初步之Android 安全机制</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-06T11:51:27.000Z" itemprop="datePublished"> Published 2016-04-06</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>Android 是一个多任务的系统,所以安全成了一个系统中一大重要的课题，为了保证应用的数据安全采用了应用签名，沙箱机制，权限机制等三种机制，在Android系统中用户在安装了一个应用程序后，操作系统为该应用程序创建一个与之关联的新的用户配置文件，每个应用程序都作为不同的用户运行，它在文件系统中拥有自己的文件，用户ID和一个安全的操作环境。应用程序在操作系统上使用自己的用户ID，自己的Dalvik虚拟机实例运行在自己的进程内。要访问系统上的共享资源，Android应用程序需要注册所需的权限，同时可以将自己的权限声明为可供其他程序使用，也可以为了更加精细得控制应程序而声明任意数量的不同权限，如只读，读写权限。作为内容提供的应用程序也可能需要为其他应用程序提供即时的权限，以共享特定的信息，这可以通过使用URI来进行临时的授权与撤销。应用程序通过签名建立用户信任，所有的Android应用程序包都使用证书进行了签名，这样用户可以了解应用程序的可靠性。证书的私钥为开发人员所有，这有助于在开发人员和用户之间建立一种信任关系。要在Android市场上发布应用程序，开发人员需要创建一个账号，Android市场管理非常严密，不允许出现任何的恶意软件。Android平台上没有本地应用和开发人员创建的第三方应用程序的区别，在为应用程序提供适当授权后，所有的应用程序都具有对核心库和底层硬件接口的访问权。</p>
+<p><img src="/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/1.png"></p>
+<p><img src="/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/2.png"></p>
+<h4 id="沙箱机制"><a href="#沙箱机制" class="headerlink" title="沙箱机制"></a>沙箱机制</h4><p>应用的签名已经在之前的博客中已经做了介绍，这里就不再详细展开。</p>
+<p>下面重点介绍沙箱机制和权限机制：</p>
+<p>上面介绍过Linux内核给每个用户分配一个UID，用户可同时拥有多个运行进程，每个进程都运行于各自独立的内存空间，进程与进程之前无法进行数据访问，Android为每个应用程序分配一个UID，通过这种方式将每一个应用程序置于“沙箱”之内，实现应用程序之间的隔离，通过权限限制API调用及数据访问</p>
+<p>不同数据之间数据是不能相互访问是，而同一个UID的应用之间可以共享数据，如下图所示：</p>
+<p><img src="/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/3.png"><br><img src="/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/4.png"></p>
+<p>要想两个应用通过UID共享数据需要在在Manifest节点中增加相同的android:sharedUserId属性，并确保共享数据的两个应用拥有相同的签名</p>
+<h4 id="Android系统权限机制"><a href="#Android系统权限机制" class="headerlink" title="Android系统权限机制"></a>Android系统权限机制</h4><p>系统已定义的权限，我们可以通过执行</p>
+<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line"><span class="variable">$ </span>adb shell pm list permissions查看</span><br></pre></td></tr></table></figure>
+
+<p>我们可以通过在应用的Manifest使用这些权限来达到访问被保护的API或资源的目的，但并不是使用了就一定能够访问的，需要看指定权限的保护级别。</p>
+<h5 id="定义权限："><a href="#定义权限：" class="headerlink" title="定义权限："></a>定义权限：</h5><p>在应用中自定义权限，我们可以在应用的Manifest文件中进行权限声明，基本格式如下：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">permission</span>       </span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;com.tct.permission.START_JIMMY_ACTIVITY&quot;</span>        </span></span><br><span class="line"><span class="tag">    <span class="attr">android:protectionLevel</span>=<span class="string">&quot;normal&quot;</span>        </span></span><br><span class="line"><span class="tag">    <span class="attr">android:label</span>=<span class="string">&quot;@string/lable_start_Act&quot;</span>        </span></span><br><span class="line"><span class="tag">    <span class="attr">android:description</span>=<span class="string">&quot;@string/permdesc_startAct&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">permission</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>定义权限的四个关键属性如下所示：</p>
+<p><img src="/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/5.png"><br><img src="/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/6.png"><br><img src="/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/8.png"></p>
+<p>权限的使用方式，通过在Manifest文件中声明<uses-permission>标签来使用已定义的权限，从而达到访问受保护数据的目的：</uses-permission></p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">&lt;uses-permission android:<span class="attribute">name</span>=<span class="string">&quot;com.idealist.permission.START_JIMMY_ACTIVITY&quot;</span>/&gt;</span><br><span class="line">&lt;uses-permission android:<span class="attribute">name</span>=<span class="string">&quot;com.idealist.permission.WRITE_CONTENTPROVIDER&quot;</span>/&gt;</span><br><span class="line">&lt;uses-permission android:<span class="attribute">name</span>=<span class="string">&quot;com.idealist.permission.READ_CONTENTPROVIDER&quot;</span>/&gt;</span><br></pre></td></tr></table></figure>
+
+<p>下面是几个比较典型的例子：</p>
+<h5 id="从一个应用的Activity启动另一个应用中的Activity"><a href="#从一个应用的Activity启动另一个应用中的Activity" class="headerlink" title="从一个应用的Activity启动另一个应用中的Activity"></a>从一个应用的Activity启动另一个应用中的Activity</h5><figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line">ComponentName componentName = <span class="keyword">new</span> <span class="type">ComponentName</span>(</span><br><span class="line"><span class="string">&quot;com.idealist.test.activity&quot;</span>,<span class="comment">/*包路径*/</span></span><br><span class="line"><span class="string">&quot;com.idealist.test.activity.DemoActivity&quot;</span><span class="comment">/*Activity类*/</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">Intent intent = <span class="keyword">new</span> <span class="type">Intent</span>();</span><br><span class="line">Bundle bundle = <span class="keyword">new</span> <span class="type">Bundle</span>();</span><br><span class="line">bundle.putString(<span class="string">&quot;resUrl&quot;</span>, resurl);</span><br><span class="line">bundle.putSerializable(<span class="string">&quot;picUrlList&quot;</span>, picurllist);</span><br><span class="line">intent.putExtras(bundle);</span><br><span class="line">intent.setComponent(componentName);</span><br><span class="line">startActivity(intent);</span><br></pre></td></tr></table></figure>
+
+<h5 id="从一个应用中控制另一个应用中的服务"><a href="#从一个应用中控制另一个应用中的服务" class="headerlink" title="从一个应用中控制另一个应用中的服务"></a>从一个应用中控制另一个应用中的服务</h5><p>首先需要在声明服务的时候将enable和exported设置为true</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">&lt;service Android:<span class="attribute">name</span>=<span class="string">&quot;.xxxService&quot;</span> android:<span class="attribute">enabled</span>=<span class="string">&quot;true&quot;</span> android:<span class="attribute">exported</span>=<span class="string">&quot;true&quot;</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>然后和上一个例子一样使用完整的包名来设置component</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Intent  testIntent = <span class="keyword">new</span><span class="constructor">Intent()</span>;</span><br><span class="line">testIntent.set<span class="constructor">Component(<span class="params">new</span> ComponentName(<span class="string">&quot;包名&quot;</span>,<span class="string">&quot;包名.xxxService&quot;</span>)</span>);</span><br><span class="line">booleanisbind=bind<span class="constructor">Service(<span class="params">testIntent</span>,<span class="params">serviceConnection</span>,Context.BIND_AUTO_CREATE)</span>;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="发送带权限的广播以及给广播接收器添加权限"><a href="#发送带权限的广播以及给广播接收器添加权限" class="headerlink" title="发送带权限的广播以及给广播接收器添加权限"></a>发送带权限的广播以及给广播接收器添加权限</h5><ul>
+<li>权限定义，并且使用自定义权限</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;com.idealist.permissions.MY_BROADCAST&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">permission</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;com.idealist.permissions.MY_BROADCAST&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:protectionLevel</span>=<span class="string">&quot;signature&quot;</span> &gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">permission</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li>自定义并注册广播</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">BROADCAST_PERMISSION_DISC</span> <span class="operator">=</span> <span class="string">&quot;com.idealist.permissions.MY_BROADCAST&quot;</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">BROADCAST_ACTION_DISC</span> <span class="operator">=</span> <span class="string">&quot;com.idealist.permissions.my_broadcast&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    setContentView(R.layout.test_permissions_activity);</span><br><span class="line">    <span class="comment">//......................................</span></span><br><span class="line">    <span class="comment">// 注册广播接收</span></span><br><span class="line">    <span class="type">BroadcastReceiver</span> <span class="variable">receiveBroadCast</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReceiveBroadCast</span>();</span><br><span class="line">    <span class="type">IntentFilter</span> <span class="variable">filter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">IntentFilter</span>();</span><br><span class="line">    filter.addAction(BROADCAST_ACTION_DISC); </span><br><span class="line">    registerReceiver(receiveBroadCast, filter,BROADCAST_PERMISSION_DISC,<span class="literal">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReceiveBroadCast</span> <span class="keyword">extends</span> <span class="title class_">BroadcastReceiver</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onReceive</span><span class="params">(Context context, Intent intent)</span> &#123;</span><br><span class="line">        Toast.makeText(BroadcastPermissionsActivity.<span class="built_in">this</span>,</span><br><span class="line">                <span class="string">&quot;Hello!&quot;</span>, <span class="number">0</span>).show();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注册一个广播，并且申明，这个广播需要BROADCAST_PERMISSION_DISC权限才能收到消息。但是我们应用程序已经注册了这个权限。所以是有这个权限的。</p>
+<ul>
+<li>发送广播<br>发送广播的函数有好几个，其中一个是sendBroadcast(Intent intent, String receiverPermission)。使用这个函数发送广播之后，接收器需要先注册权限才可以接收的。<figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> void sendBroadcastWithPermissions() &#123;</span><br><span class="line">    <span class="keyword">Intent</span> <span class="keyword">intent</span> = new <span class="keyword">Intent</span>();  </span><br><span class="line">    <span class="keyword">intent</span>.setAction(BROADCAST_ACTION_DISC);   </span><br><span class="line">    sendBroadcast(<span class="keyword">intent</span>,BROADCAST_PERMISSION_DISC);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="给Content-Provider设置权限"><a href="#给Content-Provider设置权限" class="headerlink" title="给Content Provider设置权限"></a>给Content Provider设置权限</h5><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">provider</span></span></span><br><span class="line"><span class="tag">     <span class="attr">android:name</span>=<span class="string">&quot;com.example.activityplancontentprovider.contentprovider.CustomProvider&quot;</span></span></span><br><span class="line"><span class="tag">     <span class="attr">android:authorities</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider&quot;</span></span></span><br><span class="line"><span class="tag">     <span class="attr">android:exported</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">     <span class="attr">android:readPermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.READPROVIDER&quot;</span></span></span><br><span class="line"><span class="tag">     <span class="attr">android:writePermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.WRITEPROVIDER&quot;</span> &gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">path-permission</span> </span></span><br><span class="line"><span class="tag">        <span class="attr">android:pathPattern</span>=<span class="string">&quot;/activity&quot;</span> <span class="attr">android:readPermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.READACTIVITY_PROVIDER&quot;</span> /&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">path-permission</span> </span></span><br><span class="line"><span class="tag">        <span class="attr">android:pathPattern</span>=<span class="string">&quot;/attend_person&quot;</span> <span class="attr">android:readPermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.READATTEND_PEOPLE_PROVIDER&quot;</span> /&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">provider</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>上面的例子中为整个数据库的写入设置了<br>android:writePermission&#x3D;”com.example.provider.activityplancontentprovider.permission.WRITEPROVIDER”权限，<br>为整个数据库的读设置了<br>android:readPermission&#x3D;”com.example.provider.activityplancontentprovider.permission.READPROVIDER”权限<br>为activity表格设置了<br>android:readPermission&#x3D;”com.example.provider.activityplancontentprovider.permission.READACTIVITY_PROVIDER”权限<br>为attend_person表格设置了<br>android:readPermission&#x3D;”com.example.provider.activityplancontentprovider.permission.READATTEND_PEOPLE_PROVIDER”权限</p>
+<h5 id="将权限临时赋予另一个没有权限的Activity"><a href="#将权限临时赋予另一个没有权限的Activity" class="headerlink" title="将权限临时赋予另一个没有权限的Activity"></a>将权限临时赋予另一个没有权限的Activity</h5><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">provider</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:name</span>=<span class="string">&quot;com.example.activityplancontentprovider.contentprovider.CustomProvider&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:authorities</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:exported</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:readPermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.READPROVIDER&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:writePermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.WRITEPROVIDER&quot;</span> &gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">path-permission</span> </span></span><br><span class="line"><span class="tag">                <span class="attr">android:pathPattern</span>=<span class="string">&quot;/activity&quot;</span> <span class="attr">android:readPermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.READACTIVITY_PROVIDER&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">path-permission</span> </span></span><br><span class="line"><span class="tag">                <span class="attr">android:pathPattern</span>=<span class="string">&quot;/attend_person&quot;</span> <span class="attr">android:readPermission</span>=<span class="string">&quot;com.example.provider.activityplancontentprovider.permission.READATTEND_PEOPLE_PROVIDER&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">grant-uri-permission</span> <span class="attr">android:pathPrefix</span>=<span class="string">&quot;/activity&quot;</span> /&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">provider</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>假设ActivityWithNoPermission中没有访问活动表格的权限，但是在ActivityPlans启动ActivityWithNoPermission的时候使用<br>startActivityIntent.setData(Uri.parse(“content:&#x2F;&#x2F;com.example.provider.activityplancontentprovider&#x2F;activity”));<br>startActivityIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);<br>自己拥有的访问活动表格的权限通过Intent赋予ActivityWithNoPermission，这样在ActivityWithNoPermission就可以使用临时的访问权限，以及传递过来的Uri访问活动表格。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E5%88%9D%E6%AD%A5/">Android初步</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android基础/">Android基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/04/07/Android-初步之剪贴板/" title="Android 初步之剪贴板">
+  <span>
+  Android 初步之剪贴板</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/04/05/Android-studio-下使用JNI/"  title="Android studio 下使用JNI">
+ <span>Android studio 下使用JNI
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/04/06/Android-初步之Android-安全机制/" data-title="Android 初步之Android 安全机制" data-url="http://yoursite.com/2016/04/06/Android-%E5%88%9D%E6%AD%A5%E4%B9%8BAndroid-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B2%99%E7%AE%B1%E6%9C%BA%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">沙箱机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Android%E7%B3%BB%E7%BB%9F%E6%9D%83%E9%99%90%E6%9C%BA%E5%88%B6"><span class="toc-number">3.</span> <span class="toc-text">Android系统权限机制</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E6%9D%83%E9%99%90%EF%BC%9A"><span class="toc-number">3.1.</span> <span class="toc-text">定义权限：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BB%8E%E4%B8%80%E4%B8%AA%E5%BA%94%E7%94%A8%E7%9A%84Activity%E5%90%AF%E5%8A%A8%E5%8F%A6%E4%B8%80%E4%B8%AA%E5%BA%94%E7%94%A8%E4%B8%AD%E7%9A%84Activity"><span class="toc-number">3.2.</span> <span class="toc-text">从一个应用的Activity启动另一个应用中的Activity</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BB%8E%E4%B8%80%E4%B8%AA%E5%BA%94%E7%94%A8%E4%B8%AD%E6%8E%A7%E5%88%B6%E5%8F%A6%E4%B8%80%E4%B8%AA%E5%BA%94%E7%94%A8%E4%B8%AD%E7%9A%84%E6%9C%8D%E5%8A%A1"><span class="toc-number">3.3.</span> <span class="toc-text">从一个应用中控制另一个应用中的服务</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%8F%91%E9%80%81%E5%B8%A6%E6%9D%83%E9%99%90%E7%9A%84%E5%B9%BF%E6%92%AD%E4%BB%A5%E5%8F%8A%E7%BB%99%E5%B9%BF%E6%92%AD%E6%8E%A5%E6%94%B6%E5%99%A8%E6%B7%BB%E5%8A%A0%E6%9D%83%E9%99%90"><span class="toc-number">3.4.</span> <span class="toc-text">发送带权限的广播以及给广播接收器添加权限</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%BB%99Content-Provider%E8%AE%BE%E7%BD%AE%E6%9D%83%E9%99%90"><span class="toc-number">3.5.</span> <span class="toc-text">给Content Provider设置权限</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%B0%86%E6%9D%83%E9%99%90%E4%B8%B4%E6%97%B6%E8%B5%8B%E4%BA%88%E5%8F%A6%E4%B8%80%E4%B8%AA%E6%B2%A1%E6%9C%89%E6%9D%83%E9%99%90%E7%9A%84Activity"><span class="toc-number">3.6.</span> <span class="toc-text">将权限临时赋予另一个没有权限的Activity</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

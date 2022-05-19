@@ -1,0 +1,1307 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Android | 全栈工程师">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Edgar&#39;s Blog">
+<meta property="og:url" content="http://yoursite.com/page/23/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Android | 全栈工程师">
+<meta property="og:locale">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/30/Android-进阶之设计模式-三-MVVM模式/" title="Android 进阶之设计模式 三 MVVM模式" itemprop="url">Android 进阶之设计模式 三 MVVM模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-30T05:12:27.000Z" itemprop="datePublished"> Published 2016-04-30</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>前面介绍了MVC，MVP两种架构模式，使用MVC开发中Android应用的时候，Activity、Fragment相当于控制层, 布局视图归于视图层, 数据库等数据模型相当于数据层。<br>这种方式一般控制层不仅仅只是处理业务逻辑，还负责View的展示等，并且数据层和视图层是有交互的，不利于解耦。<br>而MVP则是使用Presenter层将数据层和视图层完全隔离开来，比如下图作为例子：<br>(图来自<a target="_blank" rel="noopener" href="http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/">http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/</a>)<br>视图层与用户交互的时候用户请求loadUser命令，这时候视图层并不直接处理这个任务，而是将其传递给Presenter层，紧接着，presenter层，将showLoading请求发送到View层，并请求<br>数据层从数据库中获取用户信息，通常情况下数据层也会通过设置回调的方式持有Presenter引用，在Presenter接收到数据加载结束的时候，请求View层调用showUsers方法，显示用户信息。<br>整个结构十分清晰，但是它有个很大问题就是会照成Presenter层会变得十分庞大，并且Presenter层类会变得繁多。<br><img src="/2016/04/30/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%89-MVVM%E6%A8%A1%E5%BC%8F/2.png"></p>
+<p>下图是上面例子用MVVM替代后的架构图，在用户发送请求的时候，View会将事件发送给ViewModule，ViewModel从Module层获取数据，在数据获取完后只要改变Bean对象ViewModule就可以直接将数据呈现在View上。<br>整个结构的核心层是ViewModule层，在Android开发中我们使用的是DataBinding机制来实现这层：这样的好处显而易见，整个框架少了更新View的逻辑，也就是少了MVP模式中的showXXXX方法。只要数据一变视图层就立刻改变类了。<br><img src="/2016/04/30/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%89-MVVM%E6%A8%A1%E5%BC%8F/3.png"></p>
+<p>[Reference]</p>
+<blockquote>
+<p>blog.csdn.net&#x2F;jdsjlzx&#x2F;article&#x2F;details&#x2F;51174396<br><a target="_blank" rel="noopener" href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0603/2992.html">http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0603/2992.html</a><br><a target="_blank" rel="noopener" href="https://www.aswifter.com/2015/07/11/android-data-binding-example/">https://www.aswifter.com/2015/07/11/android-data-binding-example/</a><br><a target="_blank" rel="noopener" href="http://www.tuicool.com/articles/7Zz6J3r">http://www.tuicool.com/articles/7Zz6J3r</a><br><a target="_blank" rel="noopener" href="http://www.zhihu.com/question/30976423">http://www.zhihu.com/question/30976423</a><br><a target="_blank" rel="noopener" href="http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/">http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/fancylovejava/article/details/50821616">http://blog.csdn.net/fancylovejava/article/details/50821616</a><br><a target="_blank" rel="noopener" href="http://www.zhihu.com/question/33538477?sort=created">http://www.zhihu.com/question/33538477?sort=created</a><br><a target="_blank" rel="noopener" href="http://hannesdorfmann.com/categories/">http://hannesdorfmann.com/categories/</a><br><a target="_blank" rel="noopener" href="http://hannesdorfmann.com/android/mosby">http://hannesdorfmann.com/android/mosby</a><br><a target="_blank" rel="noopener" href="http://hannesdorfmann.com/mosby/first-app/">http://hannesdorfmann.com/mosby/first-app/</a><br><a target="_blank" rel="noopener" href="http://hannesdorfmann.com/android/mosby-playbook">http://hannesdorfmann.com/android/mosby-playbook</a><br><a target="_blank" rel="noopener" href="https://github.com/konmik/nucleus">https://github.com/konmik/nucleus</a><br><a target="_blank" rel="noopener" href="https://github.com/square/mortar">https://github.com/square/mortar</a><br><a target="_blank" rel="noopener" href="https://github.com/inloop/AndroidViewModel">https://github.com/inloop/AndroidViewModel</a><br><a target="_blank" rel="noopener" href="https://github.com/Nilzor/mvp-to-mvvm-transition">https://github.com/Nilzor/mvp-to-mvvm-transition</a></p>
+</blockquote>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/30/Android-进阶之设计模式-三-MVVM模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/30/Android-进阶之设计模式-三-MVVM模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/29/Android-进阶之设计模式-二-MVP模式/" title="Android 进阶之设计模式 二 MVP模式" itemprop="url">Android 进阶之设计模式 二 MVP模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-29T05:12:04.000Z" itemprop="datePublished"> Published 2016-04-29</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="MVP-引入的必要性"><a href="#MVP-引入的必要性" class="headerlink" title="MVP 引入的必要性"></a>MVP 引入的必要性</h4><p>在上一篇博文结束的时候提到了MVC模式的缺点–View层和Module层会产生直接交互，这有何不可？我们知道一般View层都是一些Activity和Fragment，如果采用MVC模式就会导致整个Activity的臃肿。因为View层和Module层之间大部分时候是有业务逻辑的，拿回来的数据不一定就能直接展示，这就导致<br>Activity不但需要负责与用户之间的交互，又引入了大量的逻辑代码。为了解决这个问题，我们引入了MVP模式。</p>
+<h3 id="MVP的简介"><a href="#MVP的简介" class="headerlink" title="MVP的简介"></a>MVP的简介</h3><p>MVP 实际上是从MVC模式演变过来的，它使用Presenter层将Module层和View层隔离开。它也是由三层结构组成：<br>下面是MVP模式下各层的划分规则：<br>View层：<br>View层通常是一些Activity、Fragment，以及各种View，它负责显示和处理和相应用户的交互事件，并且每个View中往往会包含一个或多个Presenter的引用。每个Presenter一般与一个Module相关，View层和Presenter层的交互是双向的，即View层可以调用Presenter的逻辑方法，Presenter也可以控制View层的信息展示。<br>Presenter层：<br>Presenter是Model层和View层的桥梁，在MVC模式中M，V是直接耦合的，而在MVP模式中通过Presenter将二者隔离开来，它负责从Model拿到数据进行处理并返回给View。Presenter和View层以及Modle层之间是通过接口进行交互的<br>Model层：<br>和MVC一样，只包含数据的模型以及数据模型的操作处理,它也可以包含两个部分dao和bean<br>总而言之：View层负责显示，Presenter负责逻辑处理，Model提供数据以及数据处理操作。下面是MVC和MVP之间结构的示例图：<br><img src="/2016/04/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%8C-MVP%E6%A8%A1%E5%BC%8F/1.png"><br>二者的最大区别集中在控制层上，MVC的控制层相对分散，并且仅仅相当于一个转发其的作用，而在MVP模式下控制层的占的比重更大，也更加集中。使用MVP可以将Activty中包含的大量逻辑操作放到控制层中，从而避免Activity的臃肿。</p>
+<p>下面是一个简单的例子：<br>读出和存入用户信息<br>首先实现Module层：</p>
+<ul>
+<li><p>创建用于封装用户信息的bean对象：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserBean</span> &#123;  </span><br><span class="line">    </span><br><span class="line">     <span class="keyword">private</span> <span class="title class_">String</span> mFirstName;  </span><br><span class="line">     <span class="keyword">private</span> <span class="title class_">String</span> mLastName;  </span><br><span class="line">  </span><br><span class="line">     <span class="keyword">public</span> <span class="title class_">UserBean</span>(<span class="title class_">String</span> firstName, <span class="title class_">String</span> lastName) &#123;  </span><br><span class="line">            <span class="variable language_">this</span>. mFirstName = firstName;  </span><br><span class="line">            <span class="variable language_">this</span>. mLastName = lastName;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="keyword">public</span> <span class="title class_">String</span> <span class="title function_">getFirstName</span>(<span class="params"></span>) &#123;  </span><br><span class="line">            <span class="keyword">return</span> mFirstName;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     <span class="keyword">public</span> <span class="title class_">String</span> <span class="title function_">getLastName</span>(<span class="params"></span>) &#123;  </span><br><span class="line">            <span class="keyword">return</span> mLastName;  </span><br><span class="line">     &#125;  </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure></li>
+<li><p>创建操作bean对象的dao 对象，这里用于将用户信息存储到数据库中，这里仅仅给出接口信息，具体实现不是该博文的重点。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">IUserDao</span> &#123;  </span><br><span class="line">     <span class="keyword">public</span> UserBean <span class="title function_">load</span><span class="params">(<span class="type">int</span> id)</span>;</span><br><span class="line">     <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">saveUser</span><span class="params">(<span class="type">int</span> id, String firstName, String lastName)</span>； </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<p>我们先看下上面的Module层，它的特点很明显，十分灵活，目前是将数据存储到数据库中，如果要将数据存储到远程服务器或者以其他形式存储，只要实现IUserDao，并根据需求覆写load 和 saveUser方法即可。</p>
+</li>
+<li><p>创建view层 这里仅仅列出接口，它的特点也是上述提到的十分灵活，要实现那种方式展示直接实现IUserView接口，并覆写这些方法即可。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> interface IUserView &#123;  </span><br><span class="line">     <span class="function"><span class="type">int</span> <span class="title">getID</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="type">String</span> <span class="title">getFristName</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="type">String</span> <span class="title">getLastName</span><span class="params">()</span></span>;  </span><br><span class="line">     <span class="function"><span class="type">void</span> <span class="title">setFirstName</span><span class="params">(<span class="type">String</span> firstName)</span></span>;  </span><br><span class="line">     <span class="function"><span class="type">void</span> <span class="title">setLastName</span><span class="params">(<span class="type">String</span> lastName)</span></span>;  </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure></li>
+<li><p>创建presenter 通过IUserView和IUserDao接口操作model层和view层，Activity可以把所有逻辑转交给presenter处理，从而将逻辑从activity中分离出来，从而避免Activity的臃肿。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> UserPresenter &#123;  </span><br><span class="line">    </span><br><span class="line">     <span class="keyword">private</span> IUserView mUserView;  </span><br><span class="line">     <span class="keyword">private</span> IUserDao mUserModel;  </span><br><span class="line">  </span><br><span class="line">     public <span class="constructor">UserPresenter(IUserView <span class="params">view</span>)</span> &#123;  </span><br><span class="line">            mUserView = view;  </span><br><span class="line">            mUserModel = <span class="keyword">new</span> <span class="constructor">UserDao()</span>;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     public void save<span class="constructor">User( <span class="params">int</span> <span class="params">id</span>, String <span class="params">firstName</span>, String <span class="params">lastName</span>)</span> &#123;  </span><br><span class="line">            mUserModel.save<span class="constructor">User(<span class="params">id</span>, <span class="params">firstName</span>, <span class="params">lastName</span>)</span>； </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     public void load<span class="constructor">User( <span class="params">int</span> <span class="params">id</span>)</span> &#123;  </span><br><span class="line">            UserBean user = mUserModel.load(id);  </span><br><span class="line">            mUserView.set<span class="constructor">FirstName(<span class="params">user</span>.<span class="params">getFirstName</span>()</span>); </span><br><span class="line">            mUserView.set<span class="constructor">LastName(<span class="params">user</span>.<span class="params">getLastName</span>()</span>);  </span><br><span class="line">     &#125;  </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Activity中实现IUserView接口，在其中操作view，实例化一个presenter变量,将Activity的逻辑转移给它。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> MainActivity extends Activity implements OnClickListener,IUserView &#123;  </span><br><span class="line">  </span><br><span class="line">     UserPresenter presenter;  </span><br><span class="line">     EditText id,first,last;  </span><br><span class="line">     @Override  </span><br><span class="line">     protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;  </span><br><span class="line">            super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;  </span><br><span class="line">           set<span class="constructor">ContentView(R.<span class="params">layout</span>. <span class="params">activity_main</span>)</span>;  </span><br><span class="line">             </span><br><span class="line">           find<span class="constructor">ViewById(R.<span class="params">id</span>. <span class="params">save</span>)</span>.set<span class="constructor">OnClickListener( <span class="params">this</span>)</span>;  </span><br><span class="line">           find<span class="constructor">ViewById(R.<span class="params">id</span>. <span class="params">load</span>)</span>.set<span class="constructor">OnClickListener( <span class="params">this</span>)</span>;  </span><br><span class="line">            id = (EditText) find<span class="constructor">ViewById(R.<span class="params">id</span>. <span class="params">id</span>)</span>;  </span><br><span class="line">            first = (EditText) find<span class="constructor">ViewById(R.<span class="params">id</span>. <span class="params">first</span>)</span>;  </span><br><span class="line">            last = (EditText) find<span class="constructor">ViewById(R.<span class="params">id</span>. <span class="params">last</span>)</span>;  </span><br><span class="line">             </span><br><span class="line">            presenter = <span class="keyword">new</span> <span class="constructor">UserPresenter( <span class="params">this</span>)</span>;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     @Override  </span><br><span class="line">     public void on<span class="constructor">Click(View <span class="params">v</span>)</span> &#123;  </span><br><span class="line">            switch (v.get<span class="constructor">Id()</span>) &#123;  </span><br><span class="line">            case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id. save:  </span><br><span class="line">                 presenter.save<span class="constructor">User(<span class="params">getID</span>()</span>, get<span class="constructor">FristName()</span>, get<span class="constructor">LastName()</span>);  </span><br><span class="line">                 break;  </span><br><span class="line">            case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id. load:  </span><br><span class="line">                 presenter.load<span class="constructor">User(<span class="params">getID</span>()</span>);  </span><br><span class="line">                 break;  </span><br><span class="line">            default:  </span><br><span class="line">                 break;  </span><br><span class="line">           &#125;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     @Override  </span><br><span class="line">     public <span class="built_in">int</span> get<span class="constructor">ID()</span> &#123;  </span><br><span class="line">            return <span class="keyword">new</span> <span class="constructor">Integer( <span class="params">id</span>.<span class="params">getText</span>()</span>.<span class="keyword">to</span><span class="constructor">String()</span>);  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     @Override  </span><br><span class="line">     public String get<span class="constructor">FristName()</span> &#123;  </span><br><span class="line">            return first.get<span class="constructor">Text()</span>.<span class="keyword">to</span><span class="constructor">String()</span>;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     @Override  </span><br><span class="line">     public String get<span class="constructor">LastName()</span> &#123;  </span><br><span class="line">            return last.get<span class="constructor">Text()</span>.<span class="keyword">to</span><span class="constructor">String()</span>;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     @Override  </span><br><span class="line">     public void set<span class="constructor">FirstName(String <span class="params">firstName</span>)</span> &#123;  </span><br><span class="line">            first.set<span class="constructor">Text(<span class="params">firstName</span>)</span>;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">     @Override  </span><br><span class="line">     public void set<span class="constructor">LastName(String <span class="params">lastName</span>)</span> &#123;  </span><br><span class="line">            last.set<span class="constructor">Text(<span class="params">lastName</span>)</span>;  </span><br><span class="line">     &#125;  </span><br><span class="line">  </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<p>有的时候比如Moduel存储结束后需要通知给Presenter，这个可以将presenter也抽出一个接口，并在调用Model层的Dao的时候将这个接口传入，在Module层操作完后，回调这个接口中的对应方法即可。</p>
+</li>
+</ul>
+<p>最后给大家泼点冷水，虽然MVP是很好的框架模式，但是在实际项目由于是多人开发维护的所以有时候并不是每个人都会遵守这个模式，特别是项目紧张的时候，所以很多时候会看到四不像的MVP。如果逻辑耦合性不是很强的话尚可重构，<br>如果耦合性大的话，就十分无奈了，并且一般经过测试的代码，大家都很“敬畏”，生怕动了一点引起了其他不容易发现的问题，所以很经常看到这种情况，也只能呵呵了。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/29/Android-进阶之设计模式-二-MVP模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/29/Android-进阶之设计模式-二-MVP模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/29/Android-进阶之设计模式-一-MVC模式/" title="Android 进阶之设计模式 一 MVC模式" itemprop="url">Android 进阶之设计模式 一 MVC模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-29T05:11:02.000Z" itemprop="datePublished"> Published 2016-04-29</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>由于并非计算机科班出生，并且之前都是搞嵌入式的，使用的大多数是C语音，大家都知道C语音是面向过程的语言在设计模式方面强调得比较弱，其实在嵌入式设计中也有对应的设计模式，但是和这里要讲解的设计模式有较大的区别，在嵌入式设计中记得最深的就是策略与实现分开，这也是为什么需要有HAL层的原因，HAL层之上都是一些策略相关的东西，而HAL层之下则是一些与实际硬件相关的接口，HAL层通过一些接口将策略与实现结合起来。如果有兴趣了解这部分思想的话，大家可以看下实时嵌入式系统FreeRTOS，它是一个可以移植到各种嵌入式主控芯片上的操作系统，代码不多，但是麻雀虽小五脏俱全。之前研究生作项目的时候用的就是它。<br>好像扯远了，其实设计模式要解决的是如何尽可能得复用现有代码，如何使得框架以不变应万变。接下来的这几个专题将会介绍23种设计模式，MVC,MVP,MVVM等。在介绍这些内容之前我在这里先推荐几本自己觉得不错的书籍，干我们这行的基本都熟悉这几本书。</p>
+<p><img src="/2016/04/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%80-MVC%E6%A8%A1%E5%BC%8F/1.png"><br>豆瓣链接：<a target="_blank" rel="noopener" href="https://book.douban.com/subject/4260618/">https://book.douban.com/subject/4260618/</a></p>
+<p><img src="/2016/04/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%80-MVC%E6%A8%A1%E5%BC%8F/2.png"><br>豆瓣链接：<a target="_blank" rel="noopener" href="https://book.douban.com/subject/5343318/">https://book.douban.com/subject/5343318/</a></p>
+<p><img src="/2016/04/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%80-MVC%E6%A8%A1%E5%BC%8F/3.png"><br>豆瓣链接：<a target="_blank" rel="noopener" href="https://book.douban.com/subject/26644935/">https://book.douban.com/subject/26644935/</a><br>买这本书有种失望的感觉，可能是我对它的要求太高了，个人觉得就是一本  设计之禪 + 源码解析，不过还是十分值得一读的。</p>
+<p><img src="/2016/04/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%80-MVC%E6%A8%A1%E5%BC%8F/4.png"><br>豆瓣链接：<a target="_blank" rel="noopener" href="https://book.douban.com/subject/1052241/">https://book.douban.com/subject/1052241/</a><br>这边书我坦白说我没买过，大家都说好。有空的时候准备入手一本看看。</p>
+<p>还有Head First 设计模式，大话设计模式，等等等等，反正豆瓣上一搜一大把，不过建议大家选一两本认认真真看下，空余时间找找博客看下就OK了，这些书看多了都一个样，无非就是介绍设计模式的时候背景故事换了一下，被字句换成把字句，把字句换成被字句罢了。<br>之前自己就是花了好长时间浪费在找书上面，但是学习这东西就像吃饭一样，不能说第3碗吃饱了，就否定前两份的价值，这东西说不准，大家实在这些书都觉得看不下去的时候可以到豆瓣上翻翻，然后下载电子档看下。</p>
+<p>好了正式进入正题，介绍下MVC模式：</p>
+<h4 id="MVC模型"><a href="#MVC模型" class="headerlink" title="MVC模型"></a>MVC模型</h4><p>MVC模型分成三层  业务模型层－视图层（用户界面等信息展示部分）－控制层（控制器）是一种用业务逻辑、数据、界面显示分离的方法组织代码。<br>使用MVC的目的是将M（业务模型）和V（信息展示层）的实现代码分离，从而使同一个程序可以使用不同的表现形式。通过控制层来确保M和V的同步，一旦M改变，V能够同步更新。<br>下面是具体的职责分布：</p>
+<ul>
+<li>Model：是应用程序中用于封装与业务逻辑相关的数据以及对这些数据的处理方法。通常负责在数据库中存取数据。它对数据具有直接访问的权力，Module层不依赖视图层和控制层，换句话说，Module不关心它会被如何显示或如何被操作。它只负责接收存取数据的请求，一般而言Module中数据一旦发生变化都会通过消息机制发布。那些需要监听此模型的部分必须事先在此模型上注册监听事件，这种监听最常见的就是通过观察着模式来完成。<br>一般在项目中如果使用MVC模式的话都将为Model层分配两个package，一个是bean 用于封装数据模型，一个是Dao，用于封装对bean包数据模型的操作，最常见的就是从数据库中读出数据放到bean中，或者将bean数据写入到数据库，当然还有网络操作。</li>
+<li>View：是应用程序中处理数据展示的部分。通常视图是依据模型数据创建的，依赖于数据模型。一般不在视图层中进行业务逻辑处理，业务逻辑处理一般放在控制层。为了实现视图层的实时刷新，视图层需要实时监听数据模型的变化</li>
+<li>Controller：是应用程序中处理用户交互的部分。通常控制器负责从视图读取数据，控制用户输入，并向模型发送数据，实际上是View层与Module层的衔接。<br><img src="/2016/04/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%80-MVC%E6%A8%A1%E5%BC%8F/6.png"></li>
+</ul>
+<p>视图层View 与用户交互，在接收到用户的请求后，传送指令到控制层，在控制层当中完成业务逻辑处理，然后再发送请求到 Model 层要求改变状态，Model层接收到请求后将新的数据发送到视图层，视图层根据要求做对应的更新，并将数据展示给用户。</p>
+<p>下面是在Android开发中较为常用的MVC模式：<br>我们以最简单的用户登入为例子，如果使用MVC模式开发，那么整个事件流如下，用户在登入界面上输入用户名和密码，然后点击登录按钮，这时候事件流到控制层，控制层对用户名和密码作初步处理后，将请求发送给Module层中的Dao，<br>Dao 通过网络发送登入请求，View同时通过观察着模式等方式监听Module中的变化，当Dao 从网络中获取到数据后封装到bean，然后通知View层来获取这个Bean，View层接收到这个事件后，取走bean，使用获取到的数据更新界面。<br>从下图中看到MVC的不足没？View与Model会有一定的交互。并且返回的数据并不通过Control层，如果需要在返回数据后需要做一些处理再更新View呢？是吧，所以就有了下一个博文所要介绍的MVP模式。<br><img src="/2016/04/29/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%B8%80-MVC%E6%A8%A1%E5%BC%8F/7.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-设计模式/">Android 设计模式</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/29/Android-进阶之设计模式-一-MVC模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/29/Android-进阶之设计模式-一-MVC模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/27/Android-进阶之自定义View-四-自定义ViewGroup/" title="Android 进阶之自定义View 四 自定义ViewGroup" itemprop="url">Android 进阶之自定义View 四 自定义ViewGroup</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-27T13:26:57.000Z" itemprop="datePublished"> Published 2016-04-27</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>和自定义View一样ViewGroup的自定义也分成测量和绘制两个部分：</p>
+<h4 id="ViewGroup-的测量："><a href="#ViewGroup-的测量：" class="headerlink" title="ViewGroup 的测量："></a>ViewGroup 的测量：</h4><p>在ViewGroup大小设置为wrap_content 的时候，ViewGroup就需要知道子View的大小，从而确定自己的大小。获得子View的大小是通过遍历子View调用子View的Measure方法来实现的。<br>和自定义View不同的是自定义ViewGroup最重要的任务就是确定如何放置子View，这个就是View的Layout过程。Layout过程是通过遍历来来调用子View的Layout方法，并指定其具体显示的位置，从而来决定其布局位置。这个工作是在onLayout方法中完成的。<br>所以在自定义ViewGroup的时候一般都会去覆写onLayout方法。</p>
+<p>总而言之，言而总之：<br>一般都会覆写onLayout方法，并覆写onMeasure方法，因为很少布局不支持wrap_content属性。</p>
+<h4 id="ViewGroup-的绘制："><a href="#ViewGroup-的绘制：" class="headerlink" title="ViewGroup 的绘制："></a>ViewGroup 的绘制：</h4><p>在ViewGroup本身没有什么内容可以绘制的，它只是一个容器，要呈现的内容都是由其子类来提供的，在ViewGroup中会调用dispachDraw方法来绘制子View。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-自定义View进阶/">Android 自定义View进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/27/Android-进阶之自定义View-四-自定义ViewGroup/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/27/Android-进阶之自定义View-四-自定义ViewGroup/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/26/Android-进阶之自定义View-二-实现自定义View的方式/" title="Android-进阶之自定义View 三 实现自定义View的方式" itemprop="url">Android-进阶之自定义View 三 实现自定义View的方式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-25T17:18:41.000Z" itemprop="datePublished"> Published 2016-04-26</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>自定义View有如下三种途径：</p>
+<ul>
+<li>继承现有控件，对现有控件进行扩展<br>这种方式主要用于在现有的控件基础上通过覆写onDraw方法来改变现有View的外观。通过这种方式还可以添加新的属性，以及添加新的交互事件等。</li>
+<li>通过将几个控件组合在一起形成一个新的控件<br>这种方式一般通过继承一个ViewGroup，将一些现有控件添加到容器中，从而组合成新的复合控件。<br>在这种情况下一般有如下步骤：<ul>
+<li>新建子View，为子View设置对应的属性</li>
+<li>新建LayoutParams以及调用LayoutParams.addRule创建布局属性</li>
+<li>调用addView并传入子View，以及上述创建的LayoutParams来确定其位置</li>
+</ul>
+</li>
+<li>从头到尾重新实现一个View<br>这种方式见之前总结的自定义View的博文。</li>
+</ul>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-自定义View进阶/">Android 自定义View进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/26/Android-进阶之自定义View-二-实现自定义View的方式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/26/Android-进阶之自定义View-二-实现自定义View的方式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/25/Android-进阶之自定义View-二-View的刷新模式/" title="Android-进阶之自定义View 二 View的刷新模式" itemprop="url">Android-进阶之自定义View 二 View的刷新模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-24T17:04:45.000Z" itemprop="datePublished"> Published 2016-04-25</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>自定义的View一般都不是静态的，所以都需要对其进行刷新：<br>根据实际使用的不同场合需要采用不同的刷新策略，下面是三种常用的刷新方式：</p>
+<ul>
+<li><p>不使用多线程和双缓冲<br>这种情况一般使用在不需要频繁刷新的情况下，只需显式地调用View中的invalidate()方法系统会自动调用View的onDraw()方法。 </p>
+</li>
+<li><p>使用多线程但不使用双缓冲<br>这种情况需要开启新的线程，但是我们知道如果在非UI线程中访问View对象就会报如下错误：</p>
+<figure class="highlight cos"><table><tr><td class="code"><pre><span class="line">android.<span class="keyword">view</span>.ViewRoot<span class="built_in">$CalledFromWrongThreadException</span>：</span><br><span class="line">Only the original thread that created a <span class="keyword">view</span> hierarchy can touch its views. </span><br></pre></td></tr></table></figure>
+<p>这时候就需要结合Handler来处理了，只要新建一个Handler，在新线程创建并发送一个Message，然后再主线程中捕获、处理该消息。</p>
+</li>
+<li><p>使用多线程和双缓冲<br>这个就是通过SurfaceView来实现的，我们在绘图专题中已经对SurfaceView进行介绍了，大家可以翻阅之前的博文，查看。</p>
+</li>
+</ul>
+<p>Android中实现view的更新有两组方法，一组是invalidate，另一组是postInvalidate，其中前者是在UI线程自身中使用，而后者在非UI线程中使用。<br>Android提供了Invalidate方法实现界面刷新，但是Invalidate不能直接在线程中调用，因为他是违背了单线程模型：Android UI操作并不是线程安全的，并且这些操作必须在UI线程中调用。<br>Android程序中可以使用的界面刷新方法有两种，分别是利用Handler和利用postInvalidate()来实现在线程中刷新界面。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-自定义View进阶/">Android 自定义View进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/25/Android-进阶之自定义View-二-View的刷新模式/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/25/Android-进阶之自定义View-二-View的刷新模式/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/24/Android-进阶之自定义View/" title="Android-进阶之自定义View 一 自定义View 流程" itemprop="url">Android-进阶之自定义View 一 自定义View 流程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-24T14:15:24.000Z" itemprop="datePublished"> Published 2016-04-24</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，<br>但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一个专题专门将工作这段时间所实现的一些比较好玩的自定义View。</p>
+<p>在开始本篇博文之前，需要介绍下Android 控件的整体架构，这样对整个流程的介绍会更清晰：</p>
+<h4 id="Android-控件的整体架构"><a href="#Android-控件的整体架构" class="headerlink" title="Android 控件的整体架构"></a>Android 控件的整体架构</h4><p>Android中的所有可视化组件都是从View派生出来的，这些可视化组件通常被称为控件或者小组件，ViewGroup类是对View类的扩展，它用来包含多个视图，ViewGroup主要用于管理子视图布局和创建可重用的复合组件。它是View的容器，可以存放View 还可以存放ViewGroup，从而形成树状结构。<br>每个控件树都有一个ViewParent，它负责所有交互事件的调度和分配，并且顺着控件树，上层的控件负责下层空间的测量与绘制，每个View占据屏幕上的一个矩形区域，每个View对象负责这个矩形区域的测度、布局、绘图、焦点改变、滚动、触摸，手势等交互事件的处理。<br>根节点要求它的孩子节点绘制它自己，每个ViewGroup节点要求调用自己的子视图绘制自己。子视图可以往父视图中请求指定的尺寸数据，但是每个子视图的父视图对象对子视图的尺寸有最终决定权，也就是说子视图可以告诉乎视图要求多大的空间，但是父视图会纵观全局来决定实际分配给每个子视图的大小。如果元素有重叠的地方，重叠部分后面绘制的将在之前绘制的上面。经过上述过程至顶向下的绘制最终绘制出整个页面；<br><img src="/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/1.png"><br>每个Activity都持有一个Window对象，它是一个抽象类，它有一个子类PhoneWindow是Window类的具体实现，可以通过PhoneWindow具体去绘制窗口。<br>DecorView 是PhoneWindow类的内部类，它是窗口界面的顶层视图，是所有应用窗口的根View。大部分事件都是由它传递给view，一般情况下它有上下两部分组成，它将要显示的内容呈现在PhoneWindow上。如下图所示，一个是TitleView，一个是ContentView，我们可以通过setContentView来将布局添加到ContentView中。<br><img src="/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/2.png"></p>
+<h4 id="View以及ViewGroup的测量"><a href="#View以及ViewGroup的测量" class="headerlink" title="View以及ViewGroup的测量"></a>View以及ViewGroup的测量</h4><p>为什么需要测量，这是因为在绘制一个View的时候不仅需要知道它的形状等信息，还需要知道它的大小信息。View的绘制工作在onMeasure方法中进行，通过这个方法可以指定该控件在屏幕上的大小，重写该方法时需要计算控件的实际大小，然后调用setMeasuredDimension(int, int)将确定尺寸数值设置为控件的实际大小。<br>onMeasure被调用的时候传入两个参数widthMeasureSpec和heightMeasureSpec。每个都是一个32位的int值它分成两个部分高两位为测量模式，低30位为测量的大小。<br>我们可以通过：<br>int mode &#x3D; MeasureSpec.getMode(xxxxxxx)获取到模式，<br>int size &#x3D; MeasureSpec.getSize(xxxxxxx)获取到尺寸数值。</p>
+<p>测量模式有三种：<br>EXACTLY：精确模式，当我们将layout_height以及layout_width设置为具体数值时，或者设置为match_parent的时候，使用的是这种模式<br>AT_MOST:最大值模式，当控件的layout_height以及layout_width被设置为wrap_content属性的时候，使用的是这种模式，这种模式下控件的尺寸只要不超过父控件允许的最大尺寸即可。<br>UNSPECIFIED：这种情况我见得不是很多，基本上没有用到。</p>
+<p>View 默认情况下支持EXACTLY模式，因此如果不重写onMeasure方法时，只能使用EXACTLY模式，所定义的View只能指定具体尺寸，或者是match_parent，而不能是wrap_content.如果需要支持wrap_content就必须重写onMeasure方法。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">@Override    </span><br><span class="line">protected void on<span class="constructor">Measure(<span class="params">int</span> <span class="params">widthMeasureSpec</span>, <span class="params">int</span> <span class="params">heightMeasureSpec</span>)</span> &#123;    </span><br><span class="line">    </span><br><span class="line">    <span class="built_in">int</span> finalWidth = get<span class="constructor">MeasuredLength(<span class="params">widthMeasureSpec</span>, <span class="params">true</span>)</span>;</span><br><span class="line">    <span class="built_in">int</span> finalHeight = get<span class="constructor">MeasuredLength(<span class="params">heightMeasureSpec</span>, <span class="params">false</span>)</span>;</span><br><span class="line">    set<span class="constructor">MeasuredDimension(<span class="params">finalWidth</span>, <span class="params">finalHeight</span>)</span>;    </span><br><span class="line">&#125;    </span><br><span class="line">     </span><br><span class="line"><span class="keyword">private</span> <span class="built_in">int</span> get<span class="constructor">MeasuredLength(<span class="params">int</span> <span class="params">length</span>, <span class="params">boolean</span> <span class="params">isWidth</span>)</span> &#123;    </span><br><span class="line">    <span class="built_in">int</span> specMode = <span class="module-access"><span class="module"><span class="identifier">MeasureSpec</span>.</span></span>get<span class="constructor">Mode(<span class="params">length</span>)</span>;    </span><br><span class="line">    <span class="built_in">int</span> specSize = <span class="module-access"><span class="module"><span class="identifier">MeasureSpec</span>.</span></span>get<span class="constructor">Size(<span class="params">length</span>)</span>;    </span><br><span class="line">    <span class="built_in">int</span> size;    </span><br><span class="line">    <span class="built_in">int</span> padding = isWidth ? get<span class="constructor">PaddingLeft()</span> + get<span class="constructor">PaddingRight()</span> : get<span class="constructor">PaddingTop()</span> + get<span class="constructor">PaddingBottom()</span>;    </span><br><span class="line">    <span class="keyword">if</span> (specMode<span class="operator"> == </span>MeasureSpec.EXACTLY) &#123;    </span><br><span class="line">        size = specSize;    </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;    </span><br><span class="line">        size = isWidth ? padding + DEFAULT_WIDTH  : DEFAULT_HEIGHT + padding;<span class="comment">//提供一个默认的值    </span></span><br><span class="line">        <span class="keyword">if</span> (specMode<span class="operator"> == </span>MeasureSpec.AT_MOST) &#123;    </span><br><span class="line">            size = <span class="module-access"><span class="module"><span class="identifier">Math</span>.</span></span>min(size, specSize);    </span><br><span class="line">        &#125;    </span><br><span class="line">    &#125;    </span><br><span class="line">    return size;    </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+
+<h4 id="View的绘制："><a href="#View的绘制：" class="headerlink" title="View的绘制："></a>View的绘制：</h4><p>我们知道自定义一个View需要继承自View并重写构造方法以及onDraw方法。</p>
+<ul>
+<li><h5 id="覆写构造方法"><a href="#覆写构造方法" class="headerlink" title="覆写构造方法"></a>覆写构造方法</h5>一般我们在Android Studio创建一个View的时候，会要求复写构造方法，默认情况下会有三个构造函数：</li>
+</ul>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">CustomView</span><span class="params">(Context context)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs, <span class="type">int</span> defStyle)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>第一个构造函数用在代码中动态创建对象时使用的，如果只打算在代码中动态创建一个view而不使用布局文件xml，那么就直接实现这个构造方法就可以了，但是一般都不这么做，因为难保证后面不会用在layout布局中，虽然后面使用的时候添加一个也很容易，但是一般项目代码都很庞大<br>。如果没有遵守这个规则的话，后面谁来在你的平台上开发的话，将其用在XML布局文件中，就会引起问题，虽然这种错误很好排查，但是如果遇到这种情况一般都会问候下原先维护这个代码的那个人。所以如果不想在离职后还被别人挂念还是继续实现后面两个构造方法吧。</p>
+<p>第二个构造方法比第一个构造方法多了一个AttributeSet类型的参数，通过布局文件xml创建一个view时，这个参数会将xml里设定的属性传递给构造函数。如果采用xml方法却没有实现这种构造方法，那么虽然编译的时候会顺利通过但是运行时就会报错。</p>
+<p>第三个构造方法比第二个构造方法多了一个defStyle的参数，这个参数用来指定view的默认style，如果为0将不会应用任何默认的style。那么这个值又是从哪里传过来的呢？<br>一般这个系统是不调用的，一般用于提供给第二个构造方法使用的，在第二个构造方法中会传给第三个构造方法一个默认的style id。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">CustomView</span> <span class="keyword">extends</span> <span class="title">View</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs) &#123;</span><br><span class="line">        <span class="keyword">this</span>(context, attrs, <span class="type">R</span>.attr.<span class="type">CustomizeStyleRef</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs, int defStyle) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs, defStyle);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h5 id="自定义属性"><a href="#自定义属性" class="headerlink" title="自定义属性"></a>自定义属性</h5></li>
+</ul>
+<ol>
+<li>定义属性</li>
+</ol>
+<p>在res&#x2F;values&#x2F;attrs.xml文件中为添加自定义的属性的定义</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line">    &lt;<span class="keyword">declare</span>-styleable <span class="type">name</span>=&quot;Customize&quot;&gt;</span><br><span class="line">        &lt;attr <span class="type">name</span>=&quot;attr_1&quot; <span class="keyword">format</span>=&quot;string&quot; /&gt;</span><br><span class="line">        &lt;attr <span class="type">name</span>=&quot;attr_2&quot; <span class="keyword">format</span>=&quot;string&quot; /&gt;</span><br><span class="line">    &lt;/<span class="keyword">declare</span>-styleable&gt;</span><br><span class="line">    &lt;attr <span class="type">name</span>=&quot;CustomizeStyle&quot; <span class="keyword">format</span>=&quot;reference&quot; /&gt;</span><br><span class="line">&lt;/resources&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要了解下属性的类型有哪些：</p>
+<ul>
+<li>reference：引用某一资源ID。<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line">定义： </span><br><span class="line">&lt;attr name = <span class="string">&quot;background&quot;</span> <span class="keyword">format</span> = <span class="string">&quot;reference&quot;</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:background = <span class="string">&quot;@drawable/图片ID&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>color：颜色值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="type">name</span> = &quot;textColor&quot; <span class="keyword">format</span> = &quot;color&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:textColor = &quot;#00FF00&quot;</span><br></pre></td></tr></table></figure></li>
+<li>boolean：布尔值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">  &lt;attr <span class="type">name</span> = &quot;focusable&quot; <span class="keyword">format</span> = &quot;boolean&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:focusable = &quot;true&quot;</span><br></pre></td></tr></table></figure></li>
+<li>dimension：尺寸值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="type">name</span> = &quot;layout_width&quot; <span class="keyword">format</span> = &quot;dimension&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:layout_width = &quot;42dip&quot;</span><br></pre></td></tr></table></figure></li>
+<li>float：浮点值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;fromAlpha&quot; <span class="keyword">format</span> = &quot;float&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:fromAlpha = &quot;1.0&quot;</span><br></pre></td></tr></table></figure></li>
+<li>integer：整型值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;framesCount&quot; <span class="keyword">format</span>=&quot;integer&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:frameDuration = &quot;100&quot;</span><br></pre></td></tr></table></figure></li>
+<li>string：字符串。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;apiKey&quot; <span class="keyword">format</span> = &quot;string&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:apiKey = &quot;0jOkQ80oD1JL9C6HAja99uGXCRiS2CGjKO_bc_g&quot;</span><br></pre></td></tr></table></figure></li>
+<li>fraction：百分数。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;pivotX&quot; <span class="keyword">format</span> = &quot;fraction&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:pivotY = &quot;300%&quot;</span><br></pre></td></tr></table></figure></li>
+<li>enum：枚举值。<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> <span class="language-xml"><span class="tag">&lt;<span class="name">attr</span> <span class="attr">name</span>=<span class="string">&quot;orientation&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">enum</span> <span class="attr">name</span>=<span class="string">&quot;horizontal&quot;</span> <span class="attr">value</span>=<span class="string">&quot;0&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">enum</span> <span class="attr">name</span>=<span class="string">&quot;vertical&quot;</span> <span class="attr">value</span>=<span class="string">&quot;1&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">attr</span>&gt;</span></span>       </span><br><span class="line">属性使用：</span><br><span class="line">android:orientation = <span class="string">&quot;vertical&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>flag：位或运算。<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="built_in">name</span>=<span class="string">&quot;windowSoftInputMode&quot;</span>&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateUnspecified&quot;</span> value = <span class="string">&quot;0&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateUnchanged&quot;</span> value = <span class="string">&quot;1&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateHidden&quot;</span> value = <span class="string">&quot;2&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateAlwaysHidden&quot;</span> value = <span class="string">&quot;3&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateVisible&quot;</span> value = <span class="string">&quot;4&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateAlwaysVisible&quot;</span> value = <span class="string">&quot;5&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustUnspecified&quot;</span> value = <span class="string">&quot;0x00&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustResize&quot;</span> value = <span class="string">&quot;0x10&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustPan&quot;</span> value = <span class="string">&quot;0x20&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustNothing&quot;</span> value = <span class="string">&quot;0x30&quot;</span> /&gt;</span><br><span class="line"> &lt;/attr&gt;          </span><br><span class="line">属性使用：</span><br><span class="line">android:windowSoftInputMode = <span class="string">&quot;stateUnspecified | stateUnchanged　|　stateHidden&quot;</span>&gt;</span><br></pre></td></tr></table></figure>
+属性定义时可以指定多种类型值。<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line">&lt;attr name = <span class="string">&quot;background&quot;</span> <span class="keyword">format</span> = <span class="string">&quot;reference|color&quot;</span> /&gt;</span><br><span class="line">android:background = <span class="string">&quot;@drawable/图片ID|#00FF00&quot;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>2.在xml中为相应的属性声明属性值</p>
+<ul>
+<li>直接在layout中使用属性：这个就不做介绍了，一般布局很多都是这种方式 custom:attr_1&#x3D;”attr one”</li>
+<li>设置style并在style中设置属性<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">    </span><span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;DirectStyle&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        </span><span class="language-xml"><span class="language-xml"><span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from DirectStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">        </span><span class="language-xml"><span class="language-xml"><span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_2&quot;</span>&gt;</span>attr two from DirectStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">使用方式：</span><br><span class="line">style=<span class="string">&quot;@style/DirectStyle&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>在主题中指定在当前Application或Activity中属性的默认值<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;AppTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;AppBaseTheme&quot;</span>&gt;</span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from Theme<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;CustomizeStyleRef&quot;</span>&gt;</span>@style/CustomizeStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>在defStyle提供默认值</li>
+</ul>
+<p>它们的顺序如下：</p>
+<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line"><span class="built_in">XML</span>中定义&gt;style定义&gt;由defStyle提供默认值&gt;在Theme中指定的值</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面是个人实现自定义View为View添加属性时候的固定步骤：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;AppBaseTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;android:Theme.Light&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line">   </span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;AppTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;AppBaseTheme&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        //1 定义一个Style引用</span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;CustomizeStyleRef&quot;</span>&gt;</span>@style/CustomizeStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//定义一个Style  CustomizeStyleRef 指向它，这个是为主题提供默认的属性值</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;CustomizeStyle&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    //Style项</span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from CustomizeStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//2 定义一个默认的style用于提供默认值，这个在defStyle提供默认值</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;DefaultCustomizeStyle&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from defalut style<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//3 这个用于直接在xml通过style方式提供属性值</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;DirectStyle&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from DirectStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">&lt;/resources&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h5 id="如何获得属性值"><a href="#如何获得属性值" class="headerlink" title="如何获得属性值"></a>如何获得属性值</h5><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="constructor">CustomView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>)</span> &#123;</span><br><span class="line">    this(context, attrs, <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>attr.CustomizeStyleRef);<span class="comment">//注意这里是从attr获取</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public <span class="constructor">CustomTextView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>, <span class="params">int</span> <span class="params">defStyle</span>)</span> &#123;</span><br><span class="line">    super(context, attrs, defStyle);</span><br><span class="line">    TypedArray a = context.obtain<span class="constructor">StyledAttributes(<span class="params">attrs</span>, R.<span class="params">styleable</span>.Customize, <span class="params">defStyle</span>,R.<span class="params">style</span>.DefaultCustomizeStyle)</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        attr_1 = a.get<span class="constructor">String(R.<span class="params">styleable</span>.Customize_attr_1)</span>;<span class="comment">//注意这里！！！！！格式是定义属性名_属性名</span></span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        a.recycle<span class="literal">()</span>;<span class="comment">//TypedArry是一个共享的资源，使用完毕必须回收它。</span></span><br><span class="line">    &#125;<span class="operator"></span></span><br><span class="line"><span class="operator">    ...</span></span><br><span class="line"><span class="operator"></span>&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><h5 id="覆写onDraw方法绘制View"><a href="#覆写onDraw方法绘制View" class="headerlink" title="覆写onDraw方法绘制View"></a>覆写onDraw方法绘制View</h5><p>[见绘图部分]</p>
+</li>
+<li><h5 id="覆写onTouch等事件相应方法"><a href="#覆写onTouch等事件相应方法" class="headerlink" title="覆写onTouch等事件相应方法"></a>覆写onTouch等事件相应方法</h5><p>[见事件部分]</p>
+</li>
+<li><h5 id="设置控件的回调接口"><a href="#设置控件的回调接口" class="headerlink" title="设置控件的回调接口"></a>设置控件的回调接口</h5></li>
+</ul>
+<hr>
+<h3 id="自定义View步骤总结："><a href="#自定义View步骤总结：" class="headerlink" title="自定义View步骤总结："></a>自定义View步骤总结：</h3><ol>
+<li>继承View或继承View的子类</li>
+<li>在res&#x2F;values&#x2F;attrs.xm 中新增<declare-styleable>节点定义自定义属性</declare-styleable></li>
+<li>将自定义View放到布局文件中，注意命名空间名的格式为<a target="_blank" rel="noopener" href="http://schemas.android.com/apk/res/[%E8%87%AA%E5%AE%9A%E4%B9%89View%E6%89%80%E5%9C%A8%E7%9A%84%E5%8C%85%E8%B7%AF%E5%BE%84]">http://schemas.android.com/apk/res/[自定义View所在的包路径]</a> 比如<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:custom</span>=<span class="string">&quot;http://schemas.android.com/apk/res/com.example.customviews&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">com.example.customviews.CustomView</span></span></span><br><span class="line"><span class="tag">    <span class="attr">custom:attr_1</span>=<span class="string">&quot;dddddddddddd&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>在XML布局中设定指定属性的值</li>
+<li>在CustomView 中获取对应的属性值并覆写构造方法以及onDraw方法</li>
+<li>覆写onTouch等事件相应方法</li>
+</ol>
+<p>自定义View过程中除了上述介绍的onMeasue方法还有如下重要的回调方法：</p>
+<p>onFinishInflate()  从XML加载组件后调用<br>onMeasure()        调用该方法进行测量<br>onLayout()         调用该方法确定显示的位置<br>onSizeChange()     组件大小改变的时候这个方法会被掉用<br>onTouchEvent       当触摸事件来临时被调用</p>
+<p>自定义View是一个需要很长时间实践才能掌握的技术，上面进阶是一些死东西，活的东西需要在实践中不断积累，多看别人的作品，并多实践是掌握自定义View的不二法则，下面是一些我之前收集的一些较好的博文，推荐给大家。<br>[推荐博文]</p>
+<blockquote>
+<p>blog.csdn.net&#x2F;jdsjlzx&#x2F;article&#x2F;details&#x2F;41113969<br><a target="_blank" rel="noopener" href="http://blog.csdn.net/lmj623565791/article/details/24252901">http://blog.csdn.net/lmj623565791/article/details/24252901</a><br><a target="_blank" rel="noopener" href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0606/3001.html">http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0606/3001.html</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/feelang/article/details/45035759">http://blog.csdn.net/feelang/article/details/45035759</a><br><a target="_blank" rel="noopener" href="http://www.zhihu.com/question/41101031">http://www.zhihu.com/question/41101031</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/singwhatiwanna/article/details/38168103">http://blog.csdn.net/singwhatiwanna/article/details/38168103</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/aigestudio/article/details/41447349">http://blog.csdn.net/aigestudio/article/details/41447349</a></p>
+</blockquote>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-自定义View进阶/">Android 自定义View进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/24/Android-进阶之自定义View/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/24/Android-进阶之自定义View/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/23/Android-进阶之动画-七-插值器/" title="Android 进阶之动画 七 插值器" itemprop="url">Android 进阶之动画 七 插值器</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-22T16:26:18.000Z" itemprop="datePublished"> Published 2016-04-23</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>插值器用于控制每个阶段动画速度的变化速率，Android默认有八种动画插值器，下面分别介绍它的变化规律以及变化曲线：</p>
+<h5 id="AccelerateDecelerateInterpolator"><a href="#AccelerateDecelerateInterpolator" class="headerlink" title="AccelerateDecelerateInterpolator"></a>AccelerateDecelerateInterpolator</h5><p>在开始和结束时刻速度变化比较慢，在中间时刻加速：<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/1.png"></p>
+<h5 id="AccelerateInterpolator"><a href="#AccelerateInterpolator" class="headerlink" title="AccelerateInterpolator"></a>AccelerateInterpolator</h5><p>开始变化的时候缓慢，在中间时刻加速：<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/2.png"></p>
+<h5 id="AnticipateInterpolator"><a href="#AnticipateInterpolator" class="headerlink" title="AnticipateInterpolator"></a>AnticipateInterpolator</h5><p>开始的时候向后，然后向前急冲<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/3.png"></p>
+<h5 id="AnticipateOvershootInterpolator"><a href="#AnticipateOvershootInterpolator" class="headerlink" title="AnticipateOvershootInterpolator"></a>AnticipateOvershootInterpolator</h5><p>开始的时候向后，然后向前急冲到一定值后，最后回到终点<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/4.png"></p>
+<h5 id="BounceInterpolator"><a href="#BounceInterpolator" class="headerlink" title="BounceInterpolator"></a>BounceInterpolator</h5><p>动画结束的时候弹起<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/5.png"></p>
+<h5 id="DecelerateInterpolator"><a href="#DecelerateInterpolator" class="headerlink" title="DecelerateInterpolator"></a>DecelerateInterpolator</h5><p>开始的时候速度变化很快，然后减速<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/6.png"></p>
+<h5 id="LinearInterpolator"><a href="#LinearInterpolator" class="headerlink" title="LinearInterpolator"></a>LinearInterpolator</h5><p>匀速变化<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/7.png"></p>
+<h5 id="OvershootInterpolator"><a href="#OvershootInterpolator" class="headerlink" title="OvershootInterpolator"></a>OvershootInterpolator</h5><p>开始向前急冲，超过最终值后回来<br><img src="/2016/04/23/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%83-%E6%8F%92%E5%80%BC%E5%99%A8/8.png"></p>
+<p>如何设置到动画上？</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">setInterpolator</span><span class="params">(xxxxxxx)</span></span></span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/23/Android-进阶之动画-七-插值器/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/23/Android-进阶之动画-七-插值器/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/22/Android-进阶之动画-六-动画事件/" title="Android 进阶之动画 六 动画事件" itemprop="url">Android 进阶之动画 六 动画事件</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-22T14:43:59.000Z" itemprop="datePublished"> Published 2016-04-22</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>我们在介绍动画集合的时候，介绍到有两个动画集合分别是AnimationSet和AnimatorSet，它们分别继承自Animation和Animator，同样动画事件也分为两类，一种用于监听Animation动画，一种用于监听Animator动画<br>这些动画的监听方法意义都很简单，从名字就可以看出，这里就不展开介绍了：</p>
+<p>AnimationListener</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">myAnimation</span><span class="selector-class">.setAnimationListener</span>(new Animation.AnimationListener() &#123;</span><br><span class="line">    <span class="variable">@Override</span></span><br><span class="line">    public void onAnimationStart(Animation animation) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Override</span></span><br><span class="line">    public void onAnimationEnd(Animation animation) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Override</span></span><br><span class="line">    public void onAnimationRepeat(Animation animation) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>AnimatorListener</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">animator</span><span class="selector-class">.addListener</span>(new Animator.AnimatorListener() &#123;</span><br><span class="line">    <span class="variable">@Override</span></span><br><span class="line">    public void onAnimationStart(Animator animation) &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Override</span></span><br><span class="line">    public void onAnimationEnd(Animator animation) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Override</span></span><br><span class="line">    public void onAnimationCancel(Animator animation) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">@Override</span></span><br><span class="line">    public void onAnimationRepeat(Animator animation) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/22/Android-进阶之动画-六-动画事件/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/22/Android-进阶之动画-六-动画事件/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/21/Android-进阶之动画-五-动画集合/" title="Android 进阶之动画 五 动画集合" itemprop="url">Android 进阶之动画 五 动画集合</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-21T14:43:29.000Z" itemprop="datePublished"> Published 2016-04-21</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>Android 动画集合有两类，AnimationSet以及AnimatorSet，下面是在网上找的它们两者的区别：</p>
+<blockquote>
+<p>AnimationSet 我们最常用的是调用其 addAnimation 将一个个不一样的动画组织到一起来，然后调用view的startAnimation方法触发这些动画执行。功能较弱不能做到把集合中的动画按一定顺序进行组织然后在执行的定制。<br>AnimatorSet  我们最常用的是调用其play、before、with、after 等方法设置动画的执行顺序，然后调用其start 触发动画执行。<br>AnimationSet 与 AnimatorSet 最大的不同在于，AnimationSet 使用的是 Animation 子类、AnimatorSet 使用的是 Animator 的子类。</p>
+</blockquote>
+<p>一般而言我们AnimationSet使用在将多个视图动画组合在一起形成一个动画集合，而AnimatorSet用于将多个属性动画集合在一起，实现有序得播放。</p>
+<p>下面是两个的常用方式：</p>
+<p>AnimationSet 用法：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">AnimationSet set = <span class="keyword">new</span> <span class="constructor">AnimationSet(<span class="params">true</span>)</span>;</span><br><span class="line">AlphaAnimation alphaAnimation = <span class="keyword">new</span> <span class="constructor">AlphaAnimation(1.0f,0f)</span>;</span><br><span class="line">ScaleAnimation scaleAnimation = <span class="keyword">new</span> <span class="constructor">ScaleAnimation(100.0f, 200.0f, 300.0f, 400.0f)</span>;</span><br><span class="line">set.add<span class="constructor">Animation(<span class="params">alphaAnimation</span>)</span>;</span><br><span class="line">set.add<span class="constructor">Animation(<span class="params">scaleAnimation</span>)</span>;</span><br><span class="line">view.start<span class="constructor">Animation(<span class="params">set</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>AnimatorSet 用法</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">AnimatorSet animatorSet <span class="operator">=</span> new AnimatorSet()<span class="comment">;</span></span><br><span class="line">animatorSet.start()<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>设置播放顺序的方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> Builder <span class="title function_">play</span><span class="params">(Animator anim)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">playTogether</span><span class="params">(Animator... items)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">playSequentially</span><span class="params">(Animator... items)</span></span><br><span class="line"><span class="keyword">public</span> Builder <span class="title function_">with</span><span class="params">(Animator anim)</span> </span><br><span class="line"><span class="keyword">public</span> Builder <span class="title function_">before</span><span class="params">(Animator anim)</span></span><br><span class="line"><span class="keyword">public</span> Builder <span class="title function_">after</span><span class="params">(Animator anim)</span></span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/21/Android-进阶之动画-五-动画集合/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/21/Android-进阶之动画-五-动画集合/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/22/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="page-number" href="/page/22/">22</a><span class="page-number current">23</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="extend next" rel="next" href="/page/24/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

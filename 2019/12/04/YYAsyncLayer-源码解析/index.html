@@ -1,0 +1,714 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>YYAsyncLayer 源码解析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="开源库信息 开源地址: YYAsyncLayer  源码解析我们在分析代码之前先看下YYAsyncLayer应用层的用法，下面是官网上给出的一个例子： @implementation YYLabel- (void)setText:(NSString *)text &amp;#123;    _text &#x3D; text.copy;    [[YYTransaction transactionWithTarge">
+<meta property="og:type" content="article">
+<meta property="og:title" content="YYAsyncLayer 源码解析">
+<meta property="og:url" content="http://yoursite.com/2019/12/04/YYAsyncLayer-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="开源库信息 开源地址: YYAsyncLayer  源码解析我们在分析代码之前先看下YYAsyncLayer应用层的用法，下面是官网上给出的一个例子： @implementation YYLabel- (void)setText:(NSString *)text &amp;#123;    _text &#x3D; text.copy;    [[YYTransaction transactionWithTarge">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-12-03T18:08:30.000Z">
+<meta property="article:modified_time" content="2019-12-19T13:34:38.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/12/04/YYAsyncLayer-源码解析/" title="YYAsyncLayer 源码解析" itemprop="url">YYAsyncLayer 源码解析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-12-03T18:08:30.000Z" itemprop="datePublished"> Published 2019-12-04</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="开源库信息"><a href="#开源库信息" class="headerlink" title="开源库信息"></a>开源库信息</h5><ul>
+<li>开源地址: <a target="_blank" rel="noopener" href="https://github.com/ibireme/YYAsyncLayer">YYAsyncLayer</a></li>
+</ul>
+<h5 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h5><p>我们在分析代码之前先看下YYAsyncLayer应用层的用法，下面是官网上给出的一个例子：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">YYLabel</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)setText:(<span class="built_in">NSString</span> *)text &#123;</span><br><span class="line">    _text = text.copy;</span><br><span class="line">    [[YYTransaction transactionWithTarget:<span class="keyword">self</span> selector:<span class="keyword">@selector</span>(contentsNeedUpdated)] commit];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)layoutSubviews &#123;</span><br><span class="line">    [<span class="variable language_">super</span> layoutSubviews];</span><br><span class="line">    [[YYTransaction transactionWithTarget:<span class="keyword">self</span> selector:<span class="keyword">@selector</span>(contentsNeedUpdated)] commit];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)contentsNeedUpdated &#123;</span><br><span class="line">    [<span class="keyword">self</span>.layer setNeedsDisplay];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> mark - YYAsyncLayer</span></span><br><span class="line"></span><br><span class="line">+ (Class)layerClass &#123;</span><br><span class="line">    <span class="keyword">return</span> YYAsyncLayer.class;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (YYAsyncLayerDisplayTask *)newAsyncDisplayTask &#123;</span><br><span class="line"></span><br><span class="line">    YYAsyncLayerDisplayTask *task = [YYAsyncLayerDisplayTask new];</span><br><span class="line">    task.willDisplay = ^(<span class="built_in">CALayer</span> *layer) &#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    task.display = ^(<span class="built_in">CGContextRef</span> context, <span class="built_in">CGSize</span> size, <span class="type">BOOL</span>(^isCancelled)(<span class="type">void</span>)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (isCancelled()) <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//.......</span></span><br><span class="line">        这里完成界面的绘制</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    task.didDisplay = ^(<span class="built_in">CALayer</span> *layer, <span class="type">BOOL</span> finished) &#123;</span><br><span class="line">        <span class="keyword">if</span> (finished) &#123;</span><br><span class="line">            <span class="comment">// finished</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// cancelled</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">return</span> task;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>在每个需要更新界面的地方，都需要调用：</p>
+<figure class="highlight oxygene"><table><tr><td class="code"><pre><span class="line">[[YYTransaction transactionWithTarget:<span class="keyword">self</span> <span class="keyword">selector</span>:@<span class="keyword">selector</span>(contentsNeedUpdated)] commit]<span class="punctuation">;</span></span><br></pre></td></tr></table></figure>
+
+<p>contentsNeedUpdated方法如下:</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">void</span>)contentsNeedUpdated &#123;</span><br><span class="line"><span class="string">    [self.layer setNeedsDisplay]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它会调用setNeedsDisplay触发layer的绘制。而我们要绘制的内容都放在<strong><strong>newAsyncDisplayTask</strong></strong>方法中，在<strong><strong>newAsyncDisplayTask</strong></strong>方法中返回一个新建的YYAsyncLayerDisplayTask。在YYAsyncLayerDisplayTask的willDisplay，display，didDisplay中分别覆写对应的block在整个绘制过程中插入操作：</p>
+<figure class="highlight verilog"><table><tr><td class="code"><pre><span class="line">- (YYAsyncLayerDisplayTask *)newAsyncDisplayTask &#123;</span><br><span class="line"></span><br><span class="line">    YYAsyncLayerDisplayTask *<span class="keyword">task</span> = [YYAsyncLayerDisplayTask <span class="keyword">new</span>];</span><br><span class="line">    <span class="keyword">task</span><span class="variable">.willDisplay</span> = ^(CALayer *layer) &#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">task</span><span class="variable">.display</span> = ^(CGContextRef <span class="keyword">context</span>, CGSize size, BOOL(^isCancelled)(<span class="keyword">void</span>)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (isCancelled()) <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//.......</span></span><br><span class="line">        这里完成界面的绘制</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">task</span><span class="variable">.didDisplay</span> = ^(CALayer *layer, BOOL finished) &#123;</span><br><span class="line">        <span class="keyword">if</span> (finished) &#123;</span><br><span class="line">            <span class="comment">// finished</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// cancelled</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">task</span>;</span><br><span class="line">&#125;</span><br><span class="line">@<span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>YYAsyncLayer代码量不多，我们下面就顺着上面的例子过下整个源码，整个过程分成两部分：YYTransaction的提交，以及异步绘制过程。</p>
+<h5 id="1-YYTransaction的提交"><a href="#1-YYTransaction的提交" class="headerlink" title="1.YYTransaction的提交"></a>1.YYTransaction的提交</h5><p>首先是YYTransaction的创建，每个YYTransaction代表一个提交的操作，它有两个属性target，selector，这个不用过多解释吧，用于指定当前提交的操作是哪个对象中的哪个操作。</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line">+ (YYTransaction *)transactionWithTarget:(id)<span class="keyword">target</span> selector:(SEL)selector&#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">target</span> || !selector) <span class="keyword">return</span> nil;</span><br><span class="line">    YYTransaction *t = [YYTransaction <span class="keyword">new</span>];</span><br><span class="line">    t.<span class="keyword">target</span> = <span class="keyword">target</span>;</span><br><span class="line">    t.selector = selector;</span><br><span class="line">    <span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们最关键的是要了解这些操作是提交到哪里？会在什么时候触发。我们继续往下看：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)commit &#123;</span><br><span class="line">    <span class="keyword">if</span> (!_target || !_selector) <span class="keyword">return</span>;</span><br><span class="line">    YYTransactionSetup();</span><br><span class="line">    [transactionSet addObject:<span class="keyword">self</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="type">void</span> YYTransactionSetup() &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">        transactionSet = [<span class="built_in">NSMutableSet</span> new];</span><br><span class="line">        <span class="built_in">CFRunLoopRef</span> runloop = <span class="built_in">CFRunLoopGetMain</span>();</span><br><span class="line">        <span class="built_in">CFRunLoopObserverRef</span> observer;</span><br><span class="line">        observer = <span class="built_in">CFRunLoopObserverCreate</span>(<span class="built_in">CFAllocatorGetDefault</span>(),</span><br><span class="line">                                           kCFRunLoopBeforeWaiting | kCFRunLoopExit,</span><br><span class="line">                                           <span class="literal">true</span>,      <span class="comment">// repeat</span></span><br><span class="line">                                           <span class="number">0xFFFFFF</span>,  <span class="comment">// after CATransaction(2000000)</span></span><br><span class="line">                                           YYRunLoopObserverCallBack, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="built_in">CFRunLoopAddObserver</span>(runloop, observer, kCFRunLoopCommonModes);</span><br><span class="line">        <span class="built_in">CFRelease</span>(observer);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看过之前介绍RunLoop的文章会对上面的代码比较熟悉，<strong><strong>YYTransactionSetup</strong></strong>方法中，向主RunLoop中注册了一个Observer，在主RunLoop 进入休眠之前（<strong><strong>kCFRunLoopBeforeWaiting</strong></strong>）以及 主RunLoop退出（<strong><strong>kCFRunLoopExit</strong></strong>）之前会回调YYRunLoopObserverCallBack，这个observer的优先级为0xFFFFFF，CATransaction为2000000，也就是在CATransaction之后。我们看YYRunLoopObserverCallBack中的任务吧：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="type">void</span> YYRunLoopObserverCallBack(<span class="built_in">CFRunLoopObserverRef</span> observer, <span class="built_in">CFRunLoopActivity</span> activity, <span class="type">void</span> *info) &#123;</span><br><span class="line">    <span class="keyword">if</span> (transactionSet.count == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="built_in">NSSet</span> *currentSet = transactionSet;</span><br><span class="line">    transactionSet = [<span class="built_in">NSMutableSet</span> new];</span><br><span class="line">    [currentSet enumerateObjectsUsingBlock:^(YYTransaction *transaction, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> clang diagnostic push</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> clang diagnostic ignored <span class="string">&quot;-Warc-performSelector-leaks&quot;</span></span></span><br><span class="line">        [transaction.target performSelector:transaction.selector];</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> clang diagnostic pop</span></span><br><span class="line">    &#125;];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><strong>YYRunLoopObserverCallBack</strong></strong> 方法中会遍历transactionSet中每个YYTransaction，通过performSelector执行提交的selector。<br>也就是在主RunLoop进入休眠，退出之前会将遍历当前提交的所有YYTransaction，执行里面的selector。在上面的例子中我们在selector中调用了[self.layer setNeedsDisplay]，也就是启动了layer的绘制，我们来看下绘制过程。</p>
+<h5 id="2-异步绘制过程"><a href="#2-异步绘制过程" class="headerlink" title="2.异步绘制过程"></a>2.异步绘制过程</h5><p>在UIKit 中界面渲染是发生在主线程的，我们来看下YYAsyncLayer的异步绘制过程：</p>
+<p>我们上面提到了在主RunLoop进入休眠，退出之前会将遍历当前提交的所有YYTransaction，执行里面的selector从而调用[self.layer setNeedsDisplay]，在YYAsyncLayer方法中覆写了setNeedsDisplay，它在调用父类的setNeedsDisplay之前，会调用****_cancelAsyncDisplay****：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">void</span>)setNeedsDisplay &#123;</span><br><span class="line"><span class="string">    [self _cancelAsyncDisplay]</span>;</span><br><span class="line"><span class="string">    [super setNeedsDisplay]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>_cancelAsyncDisplay 只有一行代码：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">void</span>)_cancelAsyncDisplay &#123;</span><br><span class="line"><span class="string">    [_sentinel increase]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>_sentinel其实是用来标记每次操作，增加了这个值之前的所有操作都会失效。在绘制代码中有如下的一行代码：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">YYSentinel</span> *sentinel = _sentinel;</span><br><span class="line">int32_t value = sentinel.<span class="property">value</span>;</span><br><span class="line"><span class="variable constant_">BOOL</span> (^isCancelled)(<span class="keyword">void</span>) = ^<span class="title function_">BOOL</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> value != sentinel.<span class="property">value</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>所以每次调用_cancelAsyncDisplay 就会导致 <strong><strong>value !&#x3D; sentinel.value</strong></strong>。从而isCancelled是YES,就会取消过期的操作。</p>
+<p>我们继续往下看，在[super setNeedsDisplay]之后，会触发绘制过程：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">void</span>)display &#123;</span><br><span class="line">    <span class="keyword">super</span>.contents = <span class="keyword">super</span>.contents;</span><br><span class="line"><span class="string">    [self _displayAsync:_displaysAsynchronously]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>display方法中会调用_displayAsync：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">- (void)_displayAsync:(BOOL)async &#123;</span><br><span class="line">    __strong id&lt;YYAsyncLayerDelegate&gt; delegate = (id)self.delegate;</span><br><span class="line">    YYAsyncLayerDisplayTask *task = <span class="literal">[<span class="identifier">delegate</span> <span class="identifier">newAsyncDisplayTask</span>]</span>;</span><br><span class="line">    <span class="keyword">if</span> (!task.display) &#123;</span><br><span class="line">        <span class="keyword">if</span> (task.willDisplay) task.will<span class="constructor">Display(<span class="params">self</span>)</span>;</span><br><span class="line">        self.contents = nil;</span><br><span class="line">        <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, YES)</span>;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (async) &#123;</span><br><span class="line">        <span class="keyword">if</span> (task.willDisplay) task.will<span class="constructor">Display(<span class="params">self</span>)</span>;</span><br><span class="line">        YYSentinel *sentinel = _sentinel;</span><br><span class="line">        int32_t value = sentinel.value;</span><br><span class="line">        BOOL (^isCancelled)(void) = ^<span class="constructor">BOOL()</span> &#123;</span><br><span class="line">            return value != sentinel.value;</span><br><span class="line">        &#125;;</span><br><span class="line">        CGSize size = self.bounds.size;</span><br><span class="line">        BOOL opaque = self.opaque;</span><br><span class="line">        CGFloat scale = self.contentsScale;</span><br><span class="line">        CGColorRef backgroundColor = (opaque<span class="operator"> &amp;&amp; </span>self.backgroundColor) ? <span class="constructor">CGColorRetain(<span class="params">self</span>.<span class="params">backgroundColor</span>)</span> : NULL;</span><br><span class="line">        <span class="keyword">if</span> (size.width &lt; <span class="number">1</span><span class="operator"> || </span>size.height &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            CGImageRef image = (__bridge_retained CGImageRef)(self.contents);</span><br><span class="line">            self.contents = nil;</span><br><span class="line">            <span class="keyword">if</span> (image) &#123;</span><br><span class="line">                dispatch<span class="constructor">_async(YYAsyncLayerGetReleaseQueue()</span>, ^&#123;</span><br><span class="line">                    <span class="constructor">CFRelease(<span class="params">image</span>)</span>;</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, YES)</span>;</span><br><span class="line">            <span class="constructor">CGColorRelease(<span class="params">backgroundColor</span>)</span>;</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        dispatch<span class="constructor">_async(YYAsyncLayerGetDisplayQueue()</span>, ^&#123;</span><br><span class="line">            <span class="keyword">if</span> (is<span class="constructor">Cancelled()</span>) &#123;</span><br><span class="line">                <span class="constructor">CGColorRelease(<span class="params">backgroundColor</span>)</span>;</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="constructor">UIGraphicsBeginImageContextWithOptions(<span class="params">size</span>, <span class="params">opaque</span>, <span class="params">scale</span>)</span>;</span><br><span class="line">            CGContextRef context = <span class="constructor">UIGraphicsGetCurrentContext()</span>;</span><br><span class="line">            <span class="keyword">if</span> (opaque) &#123;</span><br><span class="line">                <span class="constructor">CGContextSaveGState(<span class="params">context</span>)</span>; &#123;</span><br><span class="line">                    <span class="keyword">if</span> (!backgroundColor<span class="operator"> || </span><span class="constructor">CGColorGetAlpha(<span class="params">backgroundColor</span>)</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">                        <span class="constructor">CGContextSetFillColorWithColor(<span class="params">context</span>, [UIColor <span class="params">whiteColor</span>].CGColor)</span>;</span><br><span class="line">                        <span class="constructor">CGContextAddRect(<span class="params">context</span>, CGRectMake(0, 0, <span class="params">size</span>.<span class="params">width</span> <span class="operator">*</span> <span class="params">scale</span>, <span class="params">size</span>.<span class="params">height</span> <span class="operator">*</span> <span class="params">scale</span>)</span>);</span><br><span class="line">                        <span class="constructor">CGContextFillPath(<span class="params">context</span>)</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (backgroundColor) &#123;</span><br><span class="line">                        <span class="constructor">CGContextSetFillColorWithColor(<span class="params">context</span>, <span class="params">backgroundColor</span>)</span>;</span><br><span class="line">                        <span class="constructor">CGContextAddRect(<span class="params">context</span>, CGRectMake(0, 0, <span class="params">size</span>.<span class="params">width</span> <span class="operator">*</span> <span class="params">scale</span>, <span class="params">size</span>.<span class="params">height</span> <span class="operator">*</span> <span class="params">scale</span>)</span>);</span><br><span class="line">                        <span class="constructor">CGContextFillPath(<span class="params">context</span>)</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="constructor">CGContextRestoreGState(<span class="params">context</span>)</span>;</span><br><span class="line">                <span class="constructor">CGColorRelease(<span class="params">backgroundColor</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            task.display(context, size, isCancelled);</span><br><span class="line">            <span class="keyword">if</span> (is<span class="constructor">Cancelled()</span>) &#123;</span><br><span class="line">                <span class="constructor">UIGraphicsEndImageContext()</span>;</span><br><span class="line">                dispatch<span class="constructor">_async(<span class="params">dispatch_get_main_queue</span>()</span>, ^&#123;</span><br><span class="line">                    <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, NO)</span>;</span><br><span class="line">                &#125;);</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            UIImage *image = <span class="constructor">UIGraphicsGetImageFromCurrentImageContext()</span>;</span><br><span class="line">            <span class="constructor">UIGraphicsEndImageContext()</span>;</span><br><span class="line">            <span class="keyword">if</span> (is<span class="constructor">Cancelled()</span>) &#123;</span><br><span class="line">                dispatch<span class="constructor">_async(<span class="params">dispatch_get_main_queue</span>()</span>, ^&#123;</span><br><span class="line">                    <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, NO)</span>;</span><br><span class="line">                &#125;);</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            dispatch<span class="constructor">_async(<span class="params">dispatch_get_main_queue</span>()</span>, ^&#123;</span><br><span class="line">                <span class="keyword">if</span> (is<span class="constructor">Cancelled()</span>) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, NO)</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    self.contents = (__bridge id)(image.CGImage);</span><br><span class="line">                    <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, YES)</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//..........</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>_displayAsync 代码很长我们只看异步绘制的情况：</p>
+<figure class="highlight fsharp"><table><tr><td class="code"><pre><span class="line">__strong <span class="built_in">id</span><span class="operator">&lt;</span>YYAsyncLayerDelegate<span class="operator">&gt;</span> <span class="keyword">delegate</span> <span class="operator">=</span> (<span class="built_in">id</span>)self.<span class="keyword">delegate</span>;</span><br><span class="line">YYAsyncLayerDisplayTask <span class="operator">*</span>task <span class="operator">=</span> [<span class="keyword">delegate</span> newAsyncDisplayTask];</span><br></pre></td></tr></table></figure>
+
+<p>在_displayAsync的开始会调用上层的newAsyncDisplayTask，来创建一个<strong><strong>YYAsyncLayerDisplayTask</strong></strong></p>
+<p>接下来就进行异步绘制：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">dispatch<span class="constructor">_async(YYAsyncLayerGetDisplayQueue()</span>, ^&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (is<span class="constructor">Cancelled()</span>) &#123;</span><br><span class="line">        <span class="comment">//取消绘制</span></span><br><span class="line">        <span class="constructor">CGColorRelease(<span class="params">backgroundColor</span>)</span>;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建绘制上下文</span></span><br><span class="line">    <span class="constructor">UIGraphicsBeginImageContextWithOptions(<span class="params">size</span>, <span class="params">opaque</span>, <span class="params">scale</span>)</span>;</span><br><span class="line">    CGContextRef context = <span class="constructor">UIGraphicsGetCurrentContext()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (opaque<span class="comment">/*不透明*/</span>) &#123;</span><br><span class="line">        <span class="comment">//背景绘制</span></span><br><span class="line">        <span class="constructor">CGContextSaveGState(<span class="params">context</span>)</span>; &#123;</span><br><span class="line">            <span class="keyword">if</span> (!backgroundColor<span class="operator"> || </span><span class="constructor">CGColorGetAlpha(<span class="params">backgroundColor</span>)</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="constructor">CGContextSetFillColorWithColor(<span class="params">context</span>, [UIColor <span class="params">whiteColor</span>].CGColor)</span>;</span><br><span class="line">                <span class="constructor">CGContextAddRect(<span class="params">context</span>, CGRectMake(0, 0, <span class="params">size</span>.<span class="params">width</span> <span class="operator">*</span> <span class="params">scale</span>, <span class="params">size</span>.<span class="params">height</span> <span class="operator">*</span> <span class="params">scale</span>)</span>);</span><br><span class="line">                <span class="constructor">CGContextFillPath(<span class="params">context</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (backgroundColor) &#123;</span><br><span class="line">                <span class="constructor">CGContextSetFillColorWithColor(<span class="params">context</span>, <span class="params">backgroundColor</span>)</span>;</span><br><span class="line">                <span class="constructor">CGContextAddRect(<span class="params">context</span>, CGRectMake(0, 0, <span class="params">size</span>.<span class="params">width</span> <span class="operator">*</span> <span class="params">scale</span>, <span class="params">size</span>.<span class="params">height</span> <span class="operator">*</span> <span class="params">scale</span>)</span>);</span><br><span class="line">                <span class="constructor">CGContextFillPath(<span class="params">context</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="constructor">CGContextRestoreGState(<span class="params">context</span>)</span>;</span><br><span class="line">        <span class="constructor">CGColorRelease(<span class="params">backgroundColor</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//将绘制上下文传递出去调用YYAsyncLayerDisplayTask的display方法在上下文进行绘制</span></span><br><span class="line">    task.display(context, size, isCancelled);</span><br><span class="line">    <span class="comment">//.........</span></span><br><span class="line">    <span class="comment">//取出task.display绘制的图片image</span></span><br><span class="line">    UIImage *image = <span class="constructor">UIGraphicsGetImageFromCurrentImageContext()</span>;</span><br><span class="line">    <span class="constructor">UIGraphicsEndImageContext()</span>;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">    dispatch<span class="constructor">_async(<span class="params">dispatch_get_main_queue</span>()</span>, ^&#123;</span><br><span class="line">        <span class="keyword">if</span> (is<span class="constructor">Cancelled()</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, NO)</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//在主线程中将image内容设置到self.contents</span></span><br><span class="line">            self.contents = (__bridge id)(image.CGImage);</span><br><span class="line">            <span class="keyword">if</span> (task.didDisplay) task.did<span class="constructor">Display(<span class="params">self</span>, YES)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码中绘制部分都放在<strong><strong>YYAsyncLayerGetDisplayQueue</strong></strong>队列中完成，具体绘制的部分看上面的注释，最后在<strong><strong>dispatch_get_main_queue</strong></strong>队列中将绘制的界面image设置到self.contents。</p>
+<p>那YYAsyncLayerGetDisplayQueue又是怎么组织的呢？</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="built_in">dispatch_queue_t</span> YYAsyncLayerGetDisplayQueue() &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> YYDispatchQueuePool_h</span></span><br><span class="line">    <span class="keyword">return</span> YYDispatchQueueGetForQOS(<span class="built_in">NSQualityOfServiceUserInitiated</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_QUEUE_COUNT 16</span></span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> queueCount;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_queue_t</span> queues[MAX_QUEUE_COUNT];</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</span><br><span class="line">    <span class="keyword">static</span> int32_t counter = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">        <span class="comment">//队列长度设置为处理器的数量</span></span><br><span class="line">        queueCount = (<span class="type">int</span>)[<span class="built_in">NSProcessInfo</span> processInfo].activeProcessorCount;</span><br><span class="line">        queueCount = queueCount &lt; <span class="number">1</span> ? <span class="number">1</span> : queueCount &gt; MAX_QUEUE_COUNT ? MAX_QUEUE_COUNT : queueCount;</span><br><span class="line">        <span class="keyword">if</span> ([<span class="built_in">UIDevice</span> currentDevice].systemVersion.floatValue &gt;= <span class="number">8.0</span>) &#123;</span><br><span class="line">            <span class="comment">// 比如我们电脑是四核的那么就创建四个串行dispatch_queue。</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="built_in">NSUInteger</span> i = <span class="number">0</span>; i &lt; queueCount; i++) &#123;</span><br><span class="line">                dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, <span class="number">0</span>);</span><br><span class="line">                queues[i] = dispatch_queue_create(<span class="string">&quot;com.ibireme.yykit.render&quot;</span>, attr);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    int32_t cur = OSAtomicIncrement32(&amp;counter);</span><br><span class="line">    <span class="keyword">if</span> (cur &lt; <span class="number">0</span>) cur = -cur;</span><br><span class="line">    <span class="comment">//每次在取队列的时候就会从queues[0]，queues[1]，queues[2]，queues[3] 选择一个串行队列返回，在上面完成绘制。</span></span><br><span class="line">    <span class="keyword">return</span> queues[(cur) % queueCount];</span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> MAX_QUEUE_COUNT</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里其实可以使用YYDispatchQueuePool，但是我们这里先看下不使用YYDispatchQueuePool的情景。上面代码中创建了和处理器数量相同的串行queues。每次会循环从这些队列中取出一个queues，在上面完成绘制，这样的好处是为了避免某些时候某些线程卡住了，导致不断为后来任务不断创建新的线程，导致线程爆炸。这个问题会在YYDispatchQueuePool中进行详细介绍。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/12/05/Tencent-Mars-源码解析/" title="Tencent Mars 源码解析">
+  <span>
+  Tencent Mars 源码解析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/12/02/SRWebSocket介绍/"  title="iOS开源库之SRWebSocket源码分析">
+ <span>iOS开源库之SRWebSocket源码分析
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/12/04/YYAsyncLayer-源码解析/" data-title="YYAsyncLayer 源码解析" data-url="http://yoursite.com/2019/12/04/YYAsyncLayer-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%E5%BA%93%E4%BF%A1%E6%81%AF"><span class="toc-number">1.</span> <span class="toc-text">开源库信息</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">源码解析</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-YYTransaction%E7%9A%84%E6%8F%90%E4%BA%A4"><span class="toc-number">3.</span> <span class="toc-text">1.YYTransaction的提交</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E5%BC%82%E6%AD%A5%E7%BB%98%E5%88%B6%E8%BF%87%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">2.异步绘制过程</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

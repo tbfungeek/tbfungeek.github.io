@@ -1,0 +1,878 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS 推送总结 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="开篇叨叨目前推送已经成为了大多数应用的标配，通过推送能够及时地将信息送达到用户手中，可以说极大多数的产品运营都会借助推送功能来提升产品的打开率、使用率、存活率。 该篇博客将从如下几个方面对推送进行比较细致得介绍：  推送的种类 本地推送和远程推送 远程推送的服务扩展和内容扩展  推送的种类在iOS开发中一般会遇到如下的三种推送类型：  在线推送：在线推送一般指的是消息通过应用自建的网络长链接通道推">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 推送总结">
+<meta property="og:url" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="开篇叨叨目前推送已经成为了大多数应用的标配，通过推送能够及时地将信息送达到用户手中，可以说极大多数的产品运营都会借助推送功能来提升产品的打开率、使用率、存活率。 该篇博客将从如下几个方面对推送进行比较细致得介绍：  推送的种类 本地推送和远程推送 远程推送的服务扩展和内容扩展  推送的种类在iOS开发中一般会遇到如下的三种推送类型：  在线推送：在线推送一般指的是消息通过应用自建的网络长链接通道推">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00001.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00005.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00007.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00009.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00008.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/000010.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/000011.png">
+<meta property="article:published_time" content="2019-08-27T18:00:39.000Z">
+<meta property="article:modified_time" content="2019-12-19T12:54:58.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 理论基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/08/28/iOS-推送总结/" title="iOS 推送总结" itemprop="url">iOS 推送总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-08-27T18:00:39.000Z" itemprop="datePublished"> Published 2019-08-28</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="开篇叨叨"><a href="#开篇叨叨" class="headerlink" title="开篇叨叨"></a>开篇叨叨</h5><p>目前推送已经成为了大多数应用的标配，通过推送能够及时地将信息送达到用户手中，可以说极大多数的产品运营都会借助推送功能来提升产品的打开率、使用率、存活率。 该篇博客将从如下几个方面对推送进行比较细致得介绍：</p>
+<ol>
+<li>推送的种类</li>
+<li>本地推送和远程推送</li>
+<li>远程推送的服务扩展和内容扩展</li>
+</ol>
+<h5 id="推送的种类"><a href="#推送的种类" class="headerlink" title="推送的种类"></a>推送的种类</h5><p>在iOS开发中一般会遇到如下的三种推送类型：</p>
+<ul>
+<li><p>在线推送：在线推送一般指的是消息通过应用自建的网络长链接通道推送到应用本身。这种推送是应用自身的行为与苹果系统无关，与设置中是否打开“通知”无关，是基于自建的长链接来实现的，这个不是这篇文章的重点。后续如果有机会会另外开一篇博客专门介绍在线推送的细节。</p>
+</li>
+<li><p>本地推送：这种推送是应用自身行为，不需要设备联网，也不经过APNs，但是它需要设备打开”通知”设置，比较常见的比如闹钟通知，待办事项提醒等。</p>
+</li>
+<li><p>远程推送：远程推送是这篇博客的重心，它需要开启“通知”设置，并且需要联网状态，因为它需要设备与APNs保持着长链接。远程推送又成为离线推送，当APP在离线状体（kill掉进程、切到后台、锁屏）时可以正常收到推送的消息。</p>
+</li>
+</ul>
+<p>远程推送还可以细分为两种类型：普通远程推送和静默远程推送：<br>普通远程推送在收到推送的时候有文字和声音，点开通知，进入应用后才会执行：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="string">[UNUserNotificationCenterDelegate didReceiveNotificationResponse:withCompletionHandler:]</span></span><br></pre></td></tr></table></figure>
+<p>而静默推送是没有文字和声音的，在不点开通知，不打开应用的情况下就能执行,用户完全感知不到。</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="string">[UIApplicationDelegate application:didReceiveRemoteNotification:fetchCompletionHandler:]</span> </span><br></pre></td></tr></table></figure>
+
+<p>下面是几种推送的简要对比：</p>
+<p>|推送类型|是否需要打开“通知”|是否需要APNs|是否需要在前台|<br>|-|-|-|-|-|<br>|在线推送|不需要|不需要|需要|<br>|远程推送|需要|需要|不需要|<br>|本地推送|需要|不需要|不需要|</p>
+<h5 id="本地推送"><a href="#本地推送" class="headerlink" title="本地推送"></a>本地推送</h5><ul>
+<li>发送本地推送:</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (void)sendLocalNotification &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="type">NSString</span> <span class="operator">*</span>title <span class="operator">=</span> @<span class="string">&quot;本地推送通知-title&quot;</span>;</span><br><span class="line">    <span class="type">NSString</span> <span class="operator">*</span>subtitle <span class="operator">=</span> @<span class="string">&quot;本地推送通知-subtitle&quot;</span>;</span><br><span class="line">    <span class="type">NSString</span> <span class="operator">*</span>body <span class="operator">=</span> @<span class="string">&quot;这是一条本地推送通知，请查收&quot;</span>;</span><br><span class="line">    <span class="type">NSInteger</span> badge <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">    <span class="type">NSInteger</span> timeInteval <span class="operator">=</span> <span class="number">5</span>;</span><br><span class="line">    <span class="type">NSDictionary</span> <span class="operator">*</span>userInfo <span class="operator">=</span> @&#123;@<span class="string">&quot;userid&quot;</span>: @<span class="string">&quot;123456&quot;</span>&#125;;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">@available</span>(<span class="keyword">iOS</span> <span class="number">10.0</span>, <span class="operator">*</span>)) &#123;</span><br><span class="line">        <span class="comment">// 1.创建通知内容</span></span><br><span class="line">        <span class="type">UNMutableNotificationContent</span> <span class="operator">*</span>content <span class="operator">=</span> [[<span class="type">UNMutableNotificationContent</span> alloc] <span class="keyword">init</span>];</span><br><span class="line">        content.sound <span class="operator">=</span> [<span class="type">UNNotificationSound</span> defaultSound];<span class="comment">//通知的声音时长必须在30s内，否则将被默认声音替换，并且需要注意声音文件必须放到main bundle中</span></span><br><span class="line">        content.title <span class="operator">=</span> title;</span><br><span class="line">        content.subtitle <span class="operator">=</span> subtitle;</span><br><span class="line">        content.body <span class="operator">=</span> body;</span><br><span class="line">        content.badge <span class="operator">=</span> @(badge);</span><br><span class="line">        content.userInfo <span class="operator">=</span> userInfo;</span><br><span class="line">        <span class="comment">// 2.设置通知附件内容</span></span><br><span class="line">        <span class="type">NSError</span> <span class="operator">*</span>error <span class="operator">=</span> <span class="literal">nil</span>;</span><br><span class="line">        <span class="type">NSString</span> <span class="operator">*</span>path <span class="operator">=</span> [[<span class="type">NSBundle</span> mainBundle] pathForResource:@<span class="string">&quot;testImage&quot;</span> ofType:@<span class="string">&quot;png&quot;</span>];</span><br><span class="line">        <span class="type">UNNotificationAttachment</span> <span class="operator">*</span>attr <span class="operator">=</span> [<span class="type">UNNotificationAttachment</span> attachmentWithIdentifier:@<span class="string">&quot;attr&quot;</span> <span class="type">URL</span>:[<span class="type">NSURL</span> fileURLWithPath:path] options:<span class="literal">nil</span> error:<span class="operator">&amp;</span>error];</span><br><span class="line">        <span class="keyword">if</span> (error) &#123;</span><br><span class="line">            <span class="comment">//附件添加错误</span></span><br><span class="line">        &#125;</span><br><span class="line">        content.attachments <span class="operator">=</span> @[attr];</span><br><span class="line">        content.launchImageName <span class="operator">=</span> @<span class="string">&quot;icon_launch&quot;</span>;</span><br><span class="line">        <span class="comment">// 3.触发模式</span></span><br><span class="line">        <span class="type">UNTimeIntervalNotificationTrigger</span> <span class="operator">*</span>trigger <span class="operator">=</span> [<span class="type">UNTimeIntervalNotificationTrigger</span> triggerWithTimeInterval:timeInteval repeats:<span class="type">NO</span>];</span><br><span class="line">        <span class="comment">// 4.设置UNNotificationRequest</span></span><br><span class="line">        <span class="type">UNNotificationRequest</span> <span class="operator">*</span>request <span class="operator">=</span> [<span class="type">UNNotificationRequest</span> requestWithIdentifier:kLocalNotificationReqestIdentifer content:content trigger:trigger];</span><br><span class="line">        <span class="comment">// 5.把通知加到UNUserNotificationCenter, 到指定触发点会被触发</span></span><br><span class="line">        [[<span class="type">UNUserNotificationCenter</span> currentNotificationCenter] addNotificationRequest:request withCompletionHandler:<span class="operator">^</span>(<span class="type">NSError</span> <span class="operator">*</span> _Nullable error) &#123;&#125;];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">UILocalNotification</span> <span class="operator">*</span>localNotification <span class="operator">=</span> [[<span class="type">UILocalNotification</span> alloc] <span class="keyword">init</span>];</span><br><span class="line">        <span class="comment">// 1.设置触发时间,如果立即触发则不用设置该项</span></span><br><span class="line">        localNotification.timeZone <span class="operator">=</span> [<span class="type">NSTimeZone</span> defaultTimeZone];</span><br><span class="line">        localNotification.fireDate <span class="operator">=</span> [<span class="type">NSDate</span> dateWithTimeIntervalSinceNow:<span class="number">5</span>];</span><br><span class="line">        <span class="comment">// 2.设置通知标题</span></span><br><span class="line">        localNotification.alertBody <span class="operator">=</span> title;</span><br><span class="line">        <span class="comment">// 3.设置通知动作按钮的标题</span></span><br><span class="line">        localNotification.alertAction <span class="operator">=</span> @<span class="string">&quot;详情&quot;</span>;</span><br><span class="line">        <span class="comment">// 4.设置提醒的声音</span></span><br><span class="line">        localNotification.soundName <span class="operator">=</span><span class="type">UILocalNotificationDefaultSoundName</span>;</span><br><span class="line">        <span class="comment">// 5.设置通知的 传递的userInfo</span></span><br><span class="line">        localNotification.userInfo <span class="operator">=</span> userInfo;</span><br><span class="line">        <span class="comment">// 6.在规定的日期触发通知</span></span><br><span class="line">        [[<span class="type">UIApplication</span> sharedApplication] scheduleLocalNotification:localNotification];</span><br><span class="line">        <span class="comment">// 7.立即触发一个通知</span></span><br><span class="line">        <span class="comment">//[[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>AppDelegate 回调：</li>
+</ul>
+<p>iOS 10之前：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 如果应用已经完全退出：</span></span><br><span class="line">- (<span class="type">BOOL</span>)application:(<span class="built_in">UIApplication</span> *)application didFinishLaunchingWithOptions:(<span class="built_in">NSDictionary</span> *)launchOptions;</span><br><span class="line"><span class="comment">//获取userInfo可以通过如下方式获取：</span></span><br><span class="line"><span class="comment">// NSDictionary *userInfoLocal = (NSDictionary *)[launchOptions objectForKey:UIApplicationLaunchOptionsLocalNotificationKey];</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果应用还在运行，不论是在前台还是后台运行都会调用如下方法</span></span><br><span class="line">- (<span class="type">void</span>)application:(<span class="built_in">UIApplication</span> *)application didReceiveLocalNotification:(<span class="built_in">UILocalNotification</span> *)notification;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>iOS 10之后：</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>userNotificationCenter:<span class="params">(UNUserNotificationCenter *)</span>center willPresentNotification:<span class="params">(UNNotification *)</span>notification withCompletionHandler:<span class="params">(void (^)</span><span class="params">(UNNotificationPresentationOptions options)</span>)completionHandler;</span><br><span class="line"></span><br><span class="line">- <span class="params">(void)</span>userNotificationCenter:<span class="params">(UNUserNotificationCenter *)</span>center didReceiveNotificationResponse:<span class="params">(UNNotificationResponse *)</span>response withCompletionHandler:<span class="params">(void(^)(void)</span>)completionHandler;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="远程推送"><a href="#远程推送" class="headerlink" title="远程推送"></a>远程推送</h5><p>首先先放上官方远程推送的指导链接<a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/APNSOverview.html#//apple_ref/doc/uid/TP40008194-CH8-SW1">APNs Overview</a></p>
+<h6 id="远程推送证书申请"><a href="#远程推送证书申请" class="headerlink" title="远程推送证书申请"></a>远程推送证书申请</h6><p>关于证书的申请可以参照下面这篇博客，写得比较详细之前也是参照这篇博客进行配置的。<br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/c60eb29db67e?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation">iOS 远程推送证书详细制作流程</a></p>
+<h6 id="远程推送流程"><a href="#远程推送流程" class="headerlink" title="远程推送流程"></a>远程推送流程</h6><p>远程推送涉及到如下几个方面：</p>
+<ol>
+<li>iOS 设备</li>
+<li>APNs</li>
+<li>业务推送服务端</li>
+</ol>
+<p>简单将整个推送的数据流向可以分成如下三个步骤：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1.</span> 业务推送服务端将消息先发送到苹果的APNs</span><br><span class="line"><span class="bullet">2.</span> 由苹果的APNs将消息推送到客户iOS设备端</span><br><span class="line"><span class="bullet">3.</span> 由iOS系统将接收到的消息传递给相应的App</span><br></pre></td></tr></table></figure>
+<p>如下图所示：<br><img src="/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00001.png"></p>
+<p>APNs是Apple Push Notification service(苹果推送通知服务）的缩写，在Android平台上，推送是靠应用自身在后台维持客户端与业务推送服务器之间的一个长链接来实现的，但是在iOS系统中为了节省手机电池电量的损耗，系统不允许应用在后台进行过多的操作，一旦应用进入后台，系统只会分配少量时间给应用做必要的收尾工作，虽然我们可以再次申请，但是也是难以做到在后台长期驻留的，应用进入后台后虽然还不会从内存中移除，但是已经不运行任何代码了，这就导致了一旦应用进入后台将不能收到实时的信息。为了解决这个问题苹果推出了APNs，iOS系统自己做了个长连接，依托一个或几个系统常驻内存的进程运作，保持与APNs之间的通讯，接管所有应用的消息推送，独立于应用之外，而且这种长连接即使在手机休眠的时候也一直保持，iOS设备上的所有应用共用这一套长链接，包括iOS版本更新提示,手机时钟校准什么的也都是通过这个链接通知到设备上，设备上的应用通过deviceToken进行区分。</p>
+<p>下面是远程推送的详细过程：<br><img src="/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00005.png"></p>
+<p>在我们应用启动的时候会调用向iOS系统请求deviceToken,iOS系统再将请求转发给APNs服务，这时候APNs在对设备进行校验之后就会把当前设备加入到Push服务的设备列表中，同时返给我们一个deviceToken。<br>下面是请求deviceToken的代码：</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (void)registerForRemoteNotifications:(<span class="type">UIApplication</span> <span class="operator">*</span>)application&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">@available</span>(<span class="keyword">iOS</span> <span class="number">10.0</span>, <span class="operator">*</span>)) &#123;</span><br><span class="line">        <span class="type">UNAuthorizationOptions</span> authOptions <span class="operator">=</span> <span class="type">UNAuthorizationOptionAlert</span><span class="operator">|</span></span><br><span class="line">                                            <span class="type">UNAuthorizationOptionSound</span><span class="operator">|</span></span><br><span class="line">                                            <span class="type">UNAuthorizationOptionBadge</span>;</span><br><span class="line">        [[<span class="type">UNUserNotificationCenter</span> currentNotificationCenter] requestAuthorizationWithOptions:authOptions completionHandler:<span class="operator">^</span>(<span class="type">BOOL</span> granted, <span class="type">NSError</span> <span class="operator">*</span> _Nullable error) &#123;</span><br><span class="line">            <span class="keyword">if</span> (error) &#123;</span><br><span class="line">                <span class="comment">//........</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span>(<span class="operator">!</span>granted)&#123;</span><br><span class="line">                <span class="comment">//用户关闭了权限</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;];</span><br><span class="line">        [<span class="type">UNUserNotificationCenter</span> currentNotificationCenter].delegate <span class="operator">=</span> <span class="keyword">self</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">UIUserNotificationType</span> allNotificationTypes <span class="operator">=</span></span><br><span class="line">        (<span class="type">UIUserNotificationTypeSound</span> <span class="operator">|</span> <span class="type">UIUserNotificationTypeAlert</span> <span class="operator">|</span> <span class="type">UIUserNotificationTypeBadge</span>);</span><br><span class="line">        <span class="type">UIUserNotificationSettings</span> <span class="operator">*</span>settings <span class="operator">=</span></span><br><span class="line">        [<span class="type">UIUserNotificationSettings</span> settingsForTypes:allNotificationTypes categories:<span class="literal">nil</span>];</span><br><span class="line">        [application registerUserNotificationSettings:settings];</span><br><span class="line">    &#125;</span><br><span class="line">    [application registerForRemoteNotifications];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在注册远程通知后，会通过如下的delegate方法返回deviceToken：</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>application:<span class="params">(UIApplication *)</span>application didRegisterForRemoteNotificationsWithDeviceToken:<span class="params">(NSData *)</span>deviceToken;</span><br></pre></td></tr></table></figure>
+
+<p>如果获取失败则会通过下面的方法返回错误信息：</p>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">- (void)<span class="built_in">application</span>:(UIApplication *)<span class="built_in">application</span> didFailToRegisterForRemoteNotificationsWithError:(NSError *)<span class="keyword">error</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>deviceToken在app卸载后重装等情况时会变化，因此为确保deviceToken变化后app仍然能够正常接收服务器端发送的通知，建议每次启动应用都将获取到的deviceToken传给业务推送服务器，业务服务器将会这些deviceToken存到数据库中。当有需要被推送的消息时，业务推送服务器会按照苹果官方的消息格式组织消息内容，并带上目标应用的deviceToken 一并发给APNs服务器，下面是一个消息的内容例子：</p>
+<p><img src="/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00007.png"></p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;aps&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;alert&quot;</span>:&#123;</span><br><span class="line">            <span class="string">&quot;title&quot;</span>:<span class="string">&quot;这是一条推送测试消息标题&quot;</span>,</span><br><span class="line">            <span class="string">&quot;subtitle&quot;</span>:<span class="string">&quot;这是一条推送测试消息副标题&quot;&quot;,</span></span><br><span class="line">            <span class="string">&quot;body&quot;</span>:<span class="string">&quot;这是一条推送测试消息&quot;</span>,</span><br><span class="line">            <span class="string">&quot;title-loc-key&quot;</span>:<span class="string">&quot;TITLE_LOC_KEY&quot;</span>,</span><br><span class="line">            <span class="string">&quot;title-loc-args&quot;</span>:[</span><br><span class="line">                <span class="string">&quot;idl_01&quot;</span>,</span><br><span class="line">                <span class="string">&quot;idl_02&quot;</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="string">&quot;loc-key&quot;</span>:<span class="string">&quot;LOC_KEY&quot;</span>,</span><br><span class="line">            <span class="string">&quot;loc-args&quot;</span>:[</span><br><span class="line">                <span class="string">&quot;idl_01&quot;</span>,</span><br><span class="line">                <span class="string">&quot;idl_02&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;sound&quot;</span>:<span class="string">&quot;sound01.wav&quot;</span>,</span><br><span class="line">        <span class="string">&quot;badge&quot;</span>:<span class="number">1</span>,</span><br><span class="line">        <span class="string">&quot;mutable-content&quot;</span>:<span class="number">1</span>,</span><br><span class="line">        <span class="string">&quot;category&quot;</span>:<span class="string">&quot;realtime&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;msgid&quot;</span>:<span class="string">&quot;123456&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>payload在iOS8之前最大限制是256字节，iOS8之后大小限制为2K字节，目前payload大小可以达到4K,对于VoIP最大尺寸可以达到5K.<br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/26233730/apn-apple-push-notification-payload-size-limit">APN (Apple Push Notification) payload size limit</a></p>
+<p>APNs收到业务推送服务器发来的消息后，会在自己维护的Push设备列表中查找，找到匹配的设备后，由于我们的设备和APNs维持一个基于SSL协议的TCP流通讯长连接，APNs就可以通过这个长链接将新消息推送到我们设备上，然后由系统将消息呈现出来。</p>
+<p>但是如果推送的时候deviceToken对应的机器在APNs服务器上处于离线状态，苹果会保存推送信息一段时间，在离线的设备恢复在线状态时，重新将推送信息到该机器。对于连续推送的情况下，APNs永远只存储最新的一条，上一条信息将会被抛弃，如果某个设备长时间不在线，APNs也会将消息丢掉。如果有多条推送任务时，苹果推荐使用单个连接持续发送，而不是重复的开关连接，否则会被苹果认为DOS攻击而断开连接。如果有多台服务器，可以并发连接到APNS，分摊推送任务，可以更高效的执行任务，发送多条推送任务时，如果其中有一条推送使用了错误的deviceToken，那么这条连接就会被断掉，导致后面的推送任务停止执行。</p>
+<p>上面介绍的是正常的流程，但是如果应用从设备卸载后推送的消息又如何处理呢？如何让APNs和业务推送服务器都知道不去向这台卸载了应用的设备推送消息呢？这是通过APNs的Feedback service，APNs会持续的更新Feedback service的列表，当我们的业务推送服务器将信息发给APNs推送到我们的设备时，如果这时设备无法将消息推送到指定的应用，就会向APNs服务器报告一个反馈信息，而这个信息就记录在Feedback service中。因此业务推送服务器可以通过定时的去检测Feedback service的列表，然后删除在自己数据库中记录的存在于反馈列表中的 deviceToken，从而不再向这些设备发送推送信息，下面是从Feedback Service中读取到的过期设备的信息结构：<br><img src="/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00009.png"></p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">第一部分是设备失效后的时间信息</span><br><span class="line">第二个部分是deviceToken的长度</span><br><span class="line">第三部分就是失效的deviceToken</span><br></pre></td></tr></table></figure>
+
+<p>如果一个消息发送失败呢? 比如通知格式不正确或APNs无法解析，这时候APNs 会在大约 500ms 后断掉链接，在断链前发送的消息还没到达设备的消息也会发送失败，并在断链之前返回一个错误应答，带上发消息时的 Identifier 和一个错误码。如下图所示，这样我们就可以定位到到底那条消息发送失败，以及失败的错误码了，我们就可以根据返回的错误信息，对这部分消息进行重发，重发是通过发送缓存做的，维持一个较小的缓存，当收到APNs的错误信息时，从缓存中去除出错的那一条消息，剩下的进行重发。</p>
+<p><img src="/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/00008.png"></p>
+<p>下面是可能返回的错误码：</p>
+<figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Status</span>       codeDescription</span><br><span class="line"><span class="number">0</span>              No errors encountered</span><br><span class="line"><span class="number">1</span>              Processing error</span><br><span class="line"><span class="number">2</span>              Missing device token</span><br><span class="line"><span class="number">3</span>              Missing topic</span><br><span class="line"><span class="number">4</span>              Missing payload</span><br><span class="line"><span class="number">5</span>              Invalid token <span class="built_in">size</span></span><br><span class="line"><span class="number">6</span>              Invalid topic <span class="built_in">size</span></span><br><span class="line"><span class="number">7</span>              Invalid payload <span class="built_in">size</span></span><br><span class="line"><span class="number">8</span>              Invalid token</span><br><span class="line"><span class="number">10</span>             Shutdown</span><br><span class="line"><span class="number">255</span>            <span class="keyword">None</span> (unknown)</span><br></pre></td></tr></table></figure>
+
+
+<p>设备收到消息会回调应用中的方法：</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">// iOS&lt;<span class="number">10</span>时，且app被完全杀死</span><br><span class="line">- <span class="params">(BOOL)</span>application:<span class="params">(UIApplication *)</span>application didFinishLaunchingWithOptions:<span class="params">(NSDictionary *)</span>launchOptions;</span><br><span class="line"></span><br><span class="line">// 支持iOS7及以上系统</span><br><span class="line">- <span class="params">(void)</span>application:<span class="params">(UIApplication *)</span>application didReceiveRemoteNotification:<span class="params">(NSDictionary *)</span>userInfo fetchCompletionHandler:<span class="params">(void (^)</span><span class="params">(UIBackgroundFetchResult)</span>)completionHandler;</span><br><span class="line"></span><br><span class="line">//  iOS&gt;=10: app在前台获取到通知</span><br><span class="line">- <span class="params">(void)</span>userNotificationCenter:<span class="params">(UNUserNotificationCenter *)</span>center willPresentNotification:<span class="params">(UNNotification *)</span>notification withCompletionHandler:<span class="params">(void (^)</span><span class="params">(UNNotificationPresentationOptions)</span>)completionHandler;</span><br><span class="line"></span><br><span class="line">//  iOS&gt;=10: 点击通知进入app时触发（杀死/切到后台唤起）</span><br><span class="line">- <span class="params">(void)</span>userNotificationCenter:<span class="params">(UNUserNotificationCenter *)</span>center didReceiveNotificationResponse:<span class="params">(UNNotificationResponse *)</span>response withCompletionHandler:<span class="params">(void (^)</span><span class="params">(void)</span>)completionHandler;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Notification-Extension-通知扩展"><a href="#Notification-Extension-通知扩展" class="headerlink" title="Notification Extension 通知扩展"></a>Notification Extension 通知扩展</h5><p>通知扩展是iOS 10之后添加的功能，它包括两个方面：</p>
+<table>
+<thead>
+<tr>
+<th>扩展</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通知服务扩展（UNNotificationServiceExtension）</td>
+<td>在收到通知后且展示通知前允许开发者做一些事情，比如添加附件、加载网络请求等</td>
+</tr>
+<tr>
+<td>通知内容扩展（UNNotificationContentExtension）</td>
+<td>在展示通知时展示一个自定义的用户界面</td>
+</tr>
+</tbody></table>
+<p><img src="/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/000010.png"></p>
+<h6 id="通知服务扩展"><a href="#通知服务扩展" class="headerlink" title="通知服务扩展"></a>通知服务扩展</h6><p><img src="/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/000011.png"></p>
+<p>上图是Service Extension的大致流程图，Notification的playload下发到达设备之前会经过Notification Service Extension,因此我们可以用extension修改推送内容，下载推送相关的资源，可以在extension中解密和加密的数据或下载推送相关的图片</p>
+<p>在NotificationService.m文件中，有两个回调方法：</p>
+<figure class="highlight actionscript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 系统接到通知后，有最多30秒在这里重写通知内容,一般我们会在这里下载附件</span></span><br><span class="line">- (<span class="keyword">void</span>)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(<span class="keyword">void</span> (^)(UNNotificationContent *contentToDeliver))contentHandler;</span><br><span class="line"><span class="comment">// 如果修改内容任务没有完成，系统会调用 serviceExtensionTimeWillExpire 方法，给我们提供最后一次提供修改内容的机会。如果还是没有修改远程推送成功，系统将会展示远程推送最原始的内容。</span></span><br><span class="line">- (<span class="keyword">void</span>)serviceExtensionTimeWillExpire;</span><br></pre></td></tr></table></figure>
+
+<p>下面是NotificationService的一个模版：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&quot;NotificationService.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NotificationService</span> ()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="type">void</span> (^contentHandler)(UNNotificationContent *contentToDeliver);</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) UNMutableNotificationContent *bestAttemptContent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">NotificationService</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(<span class="type">void</span> (^)(UNNotificationContent * _Nonnull))contentHandler &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">self</span>.contentHandler = contentHandler;</span><br><span class="line">    <span class="keyword">self</span>.bestAttemptContent = [request.content mutableCopy];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//修改UNNotificationContent内容</span></span><br><span class="line">    <span class="keyword">self</span>.bestAttemptContent.title = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@&quot;%@ [title modified]&quot;</span>, <span class="keyword">self</span>.bestAttemptContent.title];</span><br><span class="line">        </span><br><span class="line">    <span class="built_in">NSDictionary</span> *userInfo =  <span class="keyword">self</span>.bestAttemptContent.userInfo;</span><br><span class="line">    <span class="built_in">NSString</span> *mediaUrl = userInfo[<span class="string">@&quot;media&quot;</span>][<span class="string">@&quot;url&quot;</span>];</span><br><span class="line">    <span class="built_in">NSString</span> *mediaType = userInfo[<span class="string">@&quot;media&quot;</span>][<span class="string">@&quot;type&quot;</span>];</span><br><span class="line">    <span class="keyword">if</span> (!mediaUrl.length) &#123;</span><br><span class="line">        <span class="keyword">self</span>.contentHandler(<span class="keyword">self</span>.bestAttemptContent);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        [<span class="keyword">self</span> loadAttachmentForUrlString:mediaUrl withType:mediaType completionHandle:^(UNNotificationAttachment *attach) &#123;</span><br><span class="line">            <span class="keyword">if</span> (attach) &#123;</span><br><span class="line">                <span class="keyword">self</span>.bestAttemptContent.attachments = [<span class="built_in">NSArray</span> arrayWithObject:attach];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">self</span>.contentHandler(<span class="keyword">self</span>.bestAttemptContent);</span><br><span class="line">        &#125;];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)loadAttachmentForUrlString:(<span class="built_in">NSString</span> *)urlStr withType:(<span class="built_in">NSString</span> *)type completionHandle:(<span class="type">void</span>(^)(UNNotificationAttachment *attach))completionHandler &#123;</span><br><span class="line">    __block UNNotificationAttachment *attachment = <span class="literal">nil</span>;</span><br><span class="line">    <span class="built_in">NSURL</span> *attachmentURL = [<span class="built_in">NSURL</span> URLWithString:urlStr];</span><br><span class="line">    <span class="built_in">NSString</span> *fileExt = [<span class="keyword">self</span> getfileExtWithMediaType:type];</span><br><span class="line">    <span class="built_in">NSURLSession</span> *session = [<span class="built_in">NSURLSession</span> sessionWithConfiguration:[<span class="built_in">NSURLSessionConfiguration</span> defaultSessionConfiguration]];</span><br><span class="line">    [[session downloadTaskWithURL:attachmentURL completionHandler:^(<span class="built_in">NSURL</span> *temporaryFileLocation, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error) &#123;</span><br><span class="line">        <span class="keyword">if</span> (error) &#123;</span><br><span class="line">            <span class="built_in">NSLog</span>(<span class="string">@&quot;加载多媒体失败 %@&quot;</span>, error.localizedDescription);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">NSFileManager</span> *fileManager = [<span class="built_in">NSFileManager</span> defaultManager];</span><br><span class="line">            <span class="built_in">NSURL</span> *localURL = [<span class="built_in">NSURL</span> fileURLWithPath:[temporaryFileLocation.path stringByAppendingString:fileExt]];</span><br><span class="line">            [fileManager moveItemAtURL:temporaryFileLocation toURL:localURL error:&amp;error];</span><br><span class="line">            <span class="built_in">NSMutableDictionary</span> * dict = [<span class="keyword">self</span>.bestAttemptContent.userInfo mutableCopy];</span><br><span class="line">            [dict setObject:[<span class="built_in">NSData</span> dataWithContentsOfURL:localURL] forKey:<span class="string">@&quot;image&quot;</span>];</span><br><span class="line">            <span class="keyword">self</span>.bestAttemptContent.userInfo = dict;</span><br><span class="line">            <span class="built_in">NSError</span> *attachmentError = <span class="literal">nil</span>;</span><br><span class="line">            attachment = [UNNotificationAttachment attachmentWithIdentifier:<span class="string">@&quot;attachment_downloaded&quot;</span> URL:localURL options:<span class="literal">nil</span> error:&amp;attachmentError];</span><br><span class="line">            <span class="keyword">if</span> (attachmentError) &#123;</span><br><span class="line">                <span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>, attachmentError.localizedDescription);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        completionHandler(attachment);</span><br><span class="line">    &#125;] resume];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)serviceExtensionTimeWillExpire &#123;</span><br><span class="line">    <span class="keyword">self</span>.contentHandler(<span class="keyword">self</span>.bestAttemptContent);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>测试消息格式如下：这样就会把图片下载并缓存到本地。</p>
+<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">    <span class="string">&quot;aps&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;alert&quot;</span>:&#123;</span><br><span class="line">            <span class="string">&quot;title&quot;</span>:<span class="string">&quot;测试标题&quot;</span>,</span><br><span class="line">            <span class="string">&quot;subtitle&quot;</span>:<span class="string">&quot;子标题&quot;</span>,</span><br><span class="line">            <span class="string">&quot;body&quot;</span>:<span class="string">&quot;消息内容&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;sound&quot;</span>:<span class="string">&quot;default&quot;</span>,</span><br><span class="line">        <span class="string">&quot;badge&quot;</span>:<span class="number">1</span>,</span><br><span class="line">        <span class="string">&quot;mutable-content&quot;</span>:<span class="number">1</span>,</span><br><span class="line">        <span class="string">&quot;category&quot;</span>:<span class="string">&quot;CategoryIdentifier&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;msgid&quot;</span>:<span class="string">&quot;123456&quot;</span>,</span><br><span class="line">    <span class="string">&quot;media&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;type&quot;</span>:<span class="string">&quot;image&quot;</span>,</span><br><span class="line">        <span class="string">&quot;url&quot;</span>:<span class="string">&quot;https://timgsa.baidu.com/timg?image&amp;quality=80&amp;size=b9999_10000&amp;sec=1565629545485&amp;di=7905ab7e4e3d0f6e4bea6385a481adc5&amp;imgtype=0&amp;src=http%3A%2F%2Fimg4.duitang.com%2Fuploads%2Fitem%2F201409%2F08%2F20140908154922_Gw3h5.jpeg&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里需要注意如下几点：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">1. didReceiveNotificationRequest里面加载数据的时间上限为30秒，如果在30秒时间内没有完成内容的加载，通知按系统默认形式弹出</span><br><span class="line">2. UNNotificationAttachment的url接收的是本地文件的url，因此如果图片使用的是网络上的url那么就需要加载到本地并将本地url赋给UNNotificationAttachment</span><br><span class="line">3. aps字符串中的mutable-content字段需要设置为1，才能修改</span><br><span class="line">4. 在对NotificationService进行debug时，需要在Xcode顶栏选择编译运行的target为NotificationService，否则无法进行实时debug。</span><br><span class="line">5. UNNotificationAttachment：attachment支持如下类型：</span><br><span class="line">   * 音频5M（kUTTypeWaveformAudio/kUTTypeMP3/kUTTypeMPEG4Audio/kUTTypeAudioInterchangeFileFormat）</span><br><span class="line">   * 图片10M（kUTTypeJPEG/kUTTypeGIF/kUTTypePNG）</span><br><span class="line">   * 视频50M（kUTTypeMPEG/kUTTypeMPEG2Video/kUTTypeMPEG4/kUTTypeAVIMovie）</span><br></pre></td></tr></table></figure>
+
+<h6 id="通知内容扩展"><a href="#通知内容扩展" class="headerlink" title="通知内容扩展"></a>通知内容扩展</h6><figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&quot;NotificationService.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NotificationService</span> ()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="type">void</span> (^contentHandler)(UNNotificationContent *contentToDeliver);</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) UNMutableNotificationContent *bestAttemptContent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">NotificationService</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(<span class="type">void</span> (^)(UNNotificationContent * _Nonnull))contentHandler &#123;</span><br><span class="line">    <span class="keyword">self</span>.contentHandler = contentHandler;</span><br><span class="line">    <span class="keyword">self</span>.bestAttemptContent = [request.content mutableCopy];</span><br><span class="line">    <span class="comment">// 设置UNNotificationAction</span></span><br><span class="line">    UNNotificationAction * actionA  =[UNNotificationAction actionWithIdentifier:<span class="string">@&quot;ActionA&quot;</span> title:<span class="string">@&quot;RequiredStyle&quot;</span> options:UNNotificationActionOptionAuthenticationRequired];</span><br><span class="line">    UNNotificationAction * actionB = [UNNotificationAction actionWithIdentifier:<span class="string">@&quot;ActionB&quot;</span> title:<span class="string">@&quot;DestructiveStyle&quot;</span> options:UNNotificationActionOptionDestructive];</span><br><span class="line">    UNNotificationAction * actionC = [UNNotificationAction actionWithIdentifier:<span class="string">@&quot;ActionC&quot;</span> title:<span class="string">@&quot;ForegroundStyle&quot;</span> options:UNNotificationActionOptionForeground];</span><br><span class="line">    UNTextInputNotificationAction * actionD = [UNTextInputNotificationAction actionWithIdentifier:<span class="string">@&quot;ActionD&quot;</span></span><br><span class="line">                                                                                            title:<span class="string">@&quot;InputDestructiveStyle&quot;</span></span><br><span class="line">                                                                                          options:UNNotificationActionOptionDestructive</span><br><span class="line">                                                                             textInputButtonTitle:<span class="string">@&quot;Send&quot;</span></span><br><span class="line">                                                                             textInputPlaceholder:<span class="string">@&quot;input some words here ...&quot;</span>];</span><br><span class="line">    <span class="built_in">NSArray</span> *actionArr = [[<span class="built_in">NSArray</span> alloc] initWithObjects:actionA, actionB, actionC, actionD, <span class="literal">nil</span>];</span><br><span class="line">    <span class="built_in">NSArray</span> *identifierArr = [[<span class="built_in">NSArray</span> alloc] initWithObjects:<span class="string">@&quot;ActionA&quot;</span>, <span class="string">@&quot;ActionB&quot;</span>, <span class="string">@&quot;ActionC&quot;</span>, <span class="string">@&quot;ActionD&quot;</span>, <span class="literal">nil</span>];</span><br><span class="line">    UNNotificationCategory * notficationCategory = [UNNotificationCategory categoryWithIdentifier:<span class="string">@&quot;IDL_CategoryIdentifier&quot;</span></span><br><span class="line">                                                                                          actions:actionArr</span><br><span class="line">                                                                                intentIdentifiers:identifierArr</span><br><span class="line">                                                                                          options:UNNotificationCategoryOptionCustomDismissAction];</span><br><span class="line">    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:[<span class="built_in">NSSet</span> setWithObject:notficationCategory]];</span><br><span class="line">    <span class="comment">// 设置categoryIdentifier</span></span><br><span class="line">    <span class="keyword">self</span>.bestAttemptContent.categoryIdentifier = <span class="string">@&quot;IDL_CategoryIdentifier&quot;</span>;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//.......</span></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&quot;NotificationViewController.h&quot;</span></span></span><br><span class="line"><span class="meta">#import <span class="string">&lt;UserNotifications/UserNotifications.h&gt;</span></span></span><br><span class="line"><span class="meta">#import <span class="string">&lt;UserNotificationsUI/UserNotificationsUI.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NotificationViewController</span> () &lt;<span class="title">UNNotificationContentExtension</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">NotificationViewController</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)viewDidLoad &#123;</span><br><span class="line">    [<span class="variable language_">super</span> viewDidLoad];</span><br><span class="line">    <span class="comment">//这里设置界面</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)didReceiveNotification:(UNNotification *)notification &#123;</span><br><span class="line">    <span class="built_in">NSData</span> *data = notification.request.content.userInfo[<span class="string">@&quot;xxx&quot;</span>];</span><br><span class="line">    <span class="comment">//这里根据收到的通知修改界面</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//这里处理事件</span></span><br><span class="line">- (<span class="type">void</span>)didReceiveNotificationResponse:(UNNotificationResponse *)response completionHandler:(<span class="type">void</span> (^)(UNNotificationContentExtensionResponseOption))completion &#123;</span><br><span class="line">    <span class="built_in">NSString</span> identifier = response.actionIdentifier;</span><br><span class="line">    <span class="keyword">if</span> ([identifier isEqualToString:<span class="string">@&quot;ActionA&quot;</span>]) &#123;</span><br><span class="line">        </span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([response.actionIdentifier isEqualToString:<span class="string">@&quot;ActionB&quot;</span>]) &#123;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ([response.actionIdentifier isEqualToString:<span class="string">@&quot;ActionC&quot;</span>]) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;  <span class="keyword">else</span> <span class="keyword">if</span> ([response.actionIdentifier isEqualToString:<span class="string">@&quot;ActionD&quot;</span>]) &#123;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        completion(UNNotificationContentExtensionResponseOptionDismiss);</span><br><span class="line">    &#125;</span><br><span class="line">    completion(UNNotificationContentExtensionResponseOptionDoNotDismiss);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)mediaPlay &#123;</span><br><span class="line">    <span class="comment">//按下播放按钮</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)mediaPause &#123;</span><br><span class="line">    <span class="comment">//按下停止播放按钮</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>需要注意的点：</p>
+<ol>
+<li>有如下几处CategoryIdentifier需要保持一致：</li>
+</ol>
+<p>*收到消息中的category字段</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;aps&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;category&quot;</span><span class="punctuation">:</span><span class="string">&quot;IDLCategoryIdentifier&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在NotificationService.m didReceiveNotificationRequest中设置category的值：</li>
+</ul>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">self.bestAttemptContent.categoryIdentifier</span> = @<span class="string">&quot;IDLCategoryIdentifier&quot;</span><span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>info.plist中关于category的配置</li>
+</ul>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">NSE<span class="function"><span class="title">xtension</span> ---&gt;</span> NSE<span class="function"><span class="title">xtensionAttributes</span> --&gt;</span> UNN<span class="function"><span class="title">otificationExtensionCategory</span> ---&gt;</span> <span class="string">&quot;IDLCategoryIdentifier&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>Notification Service Extension 的 target和Notification Conten Extension 的 target在配置中所支持的系统版本要在iOS10及以上</li>
+</ol>
+<h5 id="推送统计"><a href="#推送统计" class="headerlink" title="推送统计"></a>推送统计</h5><p>在推送业务服务端在push中加一个类似pushId的字段在Notification Service Extension 中的didReceiveNotificationRequest方法中获取self.bestAttemptContent.userInfo<br>从中获取到pushId并通过post请求发给推送业务服务端进行push到达率统计。</p>
+<h5 id="如何提高消息送达率"><a href="#如何提高消息送达率" class="headerlink" title="如何提高消息送达率"></a>如何提高消息送达率</h5><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1.</span> 可以借助三方推送平台的统计功能，统计出每天送达率较高的时间段，在这个时间段内推送比较重要的，或者量比较大的消息</span><br><span class="line"><span class="bullet">2.</span> 通过APNs Feedback Service 定期清除错误的deviceToken</span><br><span class="line"><span class="bullet">3.</span> 我们在发送累计达到一定数值后sleep几秒，从而降低推送速率</span><br><span class="line"><span class="bullet">4.</span> 借助自建的在线推送渠道，如果用户在线则通过在线推送，只有用户不在线的情况下使用离线推送</span><br></pre></td></tr></table></figure>
+
+<h5 id="各个版本推送演进过程"><a href="#各个版本推送演进过程" class="headerlink" title="各个版本推送演进过程"></a>各个版本推送演进过程</h5><ol>
+<li>playload 容量变化</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>限制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>x &lt; iOS8</td>
+<td>256字节</td>
+</tr>
+<tr>
+<td>x &gt;&#x3D; iOS8 &amp;&amp; x &lt; iOS10</td>
+<td>2KB</td>
+</tr>
+<tr>
+<td>x &gt;&#x3D; iOS10</td>
+<td>4KB</td>
+</tr>
+</tbody></table>
+<ol start="2">
+<li>推送通知呈现样式变化</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>呈现形式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>x &lt; iOS8</td>
+<td>只有3个地方展示</td>
+</tr>
+<tr>
+<td>x &gt;&#x3D; iOS8 &amp;&amp; x &lt; iOS10</td>
+<td>提供Actions功能</td>
+</tr>
+<tr>
+<td>x &gt;&#x3D; iOS10</td>
+<td>提供快捷回复TextInput</td>
+</tr>
+</tbody></table>
+<ol start="3">
+<li>证书文件的有效期</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>证书类型</th>
+<th>有效期</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Development Push SSL Certificate</td>
+<td>大概四个月</td>
+</tr>
+<tr>
+<td>ProductionPush SSL Certificate</td>
+<td>大约一年</td>
+</tr>
+</tbody></table>
+<h5 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h5><ol>
+<li>免费用户不能使用推送</li>
+<li>模拟器不能测试推送</li>
+<li>目前比较流行的三方推送平台：个推，极光，信鸽，Firebase 等</li>
+<li>推送测试软件：SmartPush,Knuff都一样，随便选一个。</li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/">iOS 理论基础</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-理论基础/">iOS 理论基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/08/30/iOS-支付内购/" title="iOS 支付内购">
+  <span>
+  iOS 支付内购</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/08/26/Cocopods-使用/"  title="Cocopods 使用">
+ <span>Cocopods 使用
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/08/28/iOS-推送总结/" data-title="iOS 推送总结" data-url="http://yoursite.com/2019/08/28/iOS-%E6%8E%A8%E9%80%81%E6%80%BB%E7%BB%93/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%BC%80%E7%AF%87%E5%8F%A8%E5%8F%A8"><span class="toc-number">1.</span> <span class="toc-text">开篇叨叨</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%8E%A8%E9%80%81%E7%9A%84%E7%A7%8D%E7%B1%BB"><span class="toc-number">2.</span> <span class="toc-text">推送的种类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E6%8E%A8%E9%80%81"><span class="toc-number">3.</span> <span class="toc-text">本地推送</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%BF%9C%E7%A8%8B%E6%8E%A8%E9%80%81"><span class="toc-number">4.</span> <span class="toc-text">远程推送</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E8%BF%9C%E7%A8%8B%E6%8E%A8%E9%80%81%E8%AF%81%E4%B9%A6%E7%94%B3%E8%AF%B7"><span class="toc-number">4.1.</span> <span class="toc-text">远程推送证书申请</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E8%BF%9C%E7%A8%8B%E6%8E%A8%E9%80%81%E6%B5%81%E7%A8%8B"><span class="toc-number">4.2.</span> <span class="toc-text">远程推送流程</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Notification-Extension-%E9%80%9A%E7%9F%A5%E6%89%A9%E5%B1%95"><span class="toc-number">5.</span> <span class="toc-text">Notification Extension 通知扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E9%80%9A%E7%9F%A5%E6%9C%8D%E5%8A%A1%E6%89%A9%E5%B1%95"><span class="toc-number">5.1.</span> <span class="toc-text">通知服务扩展</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E9%80%9A%E7%9F%A5%E5%86%85%E5%AE%B9%E6%89%A9%E5%B1%95"><span class="toc-number">5.2.</span> <span class="toc-text">通知内容扩展</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%8E%A8%E9%80%81%E7%BB%9F%E8%AE%A1"><span class="toc-number">6.</span> <span class="toc-text">推送统计</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E6%8F%90%E9%AB%98%E6%B6%88%E6%81%AF%E9%80%81%E8%BE%BE%E7%8E%87"><span class="toc-number">7.</span> <span class="toc-text">如何提高消息送达率</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%90%84%E4%B8%AA%E7%89%88%E6%9C%AC%E6%8E%A8%E9%80%81%E6%BC%94%E8%BF%9B%E8%BF%87%E7%A8%8B"><span class="toc-number">8.</span> <span class="toc-text">各个版本推送演进过程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Others"><span class="toc-number">9.</span> <span class="toc-text">Others</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

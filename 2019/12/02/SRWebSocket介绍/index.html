@@ -1,0 +1,1169 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS开源库之SRWebSocket源码分析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="开源库信息 SRWebSocket  为什么需要WebSocket对于一个应用来说Http协议几乎是必备的协议，当客户端需要数据的时候通过Http协议发起请求，服务端响应请求返回对应的数据给客户端，但是如果客户端需要实时知道服务的某个状态变化怎么办？在不借助WebSocket的情况下，只能通过轮询来不断向服务端查询这个状态，这种方式对服务端和客户端都会带来资源上的损耗，客户端要不断地发送请求给服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS开源库之SRWebSocket源码分析">
+<meta property="og:url" content="http://yoursite.com/2019/12/02/SRWebSocket%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="开源库信息 SRWebSocket  为什么需要WebSocket对于一个应用来说Http协议几乎是必备的协议，当客户端需要数据的时候通过Http协议发起请求，服务端响应请求返回对应的数据给客户端，但是如果客户端需要实时知道服务的某个状态变化怎么办？在不借助WebSocket的情况下，只能通过轮询来不断向服务端查询这个状态，这种方式对服务端和客户端都会带来资源上的损耗，客户端要不断地发送请求给服务">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-12-01T18:26:16.000Z">
+<meta property="article:modified_time" content="2019-12-19T14:55:08.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/12/02/SRWebSocket介绍/" title="iOS开源库之SRWebSocket源码分析" itemprop="url">iOS开源库之SRWebSocket源码分析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-12-01T18:26:16.000Z" itemprop="datePublished"> Published 2019-12-02</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="开源库信息"><a href="#开源库信息" class="headerlink" title="开源库信息"></a>开源库信息</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/facebook/SocketRocket">SRWebSocket</a></li>
+</ul>
+<h4 id="为什么需要WebSocket"><a href="#为什么需要WebSocket" class="headerlink" title="为什么需要WebSocket"></a>为什么需要WebSocket</h4><p>对于一个应用来说Http协议几乎是必备的协议，当客户端需要数据的时候通过Http协议发起请求，服务端响应请求返回对应的数据给客户端，但是如果客户端需要实时知道服务的某个状态变化怎么办？在不借助WebSocket的情况下，只能通过轮询来不断向服务端查询这个状态，这种方式对服务端和客户端都会带来资源上的损耗，客户端要不断地发送请求给服务端来请求当前的状态，这种方式一来耗费了大量CPU时间，二来带来了不必要的流量损耗。对于服务端来说多出了一系列的无用的请求，给服务器带来了不必要的负担。最后的结果还是没办法做到真正的实时，当然这里可以做些优化，在某次拉取数据发现状态没有改变的时候，增加下一次请求的时间，直到达到某个阈值后再减小两次请求的间隔时间。还可以使用长轮询：客户端发送一个超时时间很长的请求，服务端长时间持有这个请求，在服务端状态改变的时候通过这个请求返回，长轮询这种方式虽然省去了大量无效请求，减少了服务器压力和一定的网络带宽的占用，但是还是需要保持大量的连接。</p>
+<p>但是这里还需要明确一个问题：<strong><strong>Http长连接和WebSocket长连接的区别</strong></strong></p>
+<p>要弄清楚这个问题必须要明确三个概念<strong><strong>HTTP keep-alive</strong></strong>,<strong><strong>Comet</strong></strong>,<strong><strong>WebSocket</strong></strong></p>
+<p>在之前的HTTP 1.0 之前默认使用的是短连接，短连接的特点是客户端和服务端每进行一次通信就会建立一次连接，这里的连接指的是传输层的TCP连接，也就是说每次请求都会建立一次TCP连接，然后发送请求，等待收到服务端返回的请求后，断开这个连接。整个过程是由客户端驱动的，服务端只能响应某个具体的请求，不能主动和客户端建立连接发送数据。</p>
+<p>HTTP 1.1之后就默认使用长连接，它会在响应头加入如下属性：</p>
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">Connection:</span><span class="meta">keep</span>-alive；</span><br></pre></td></tr></table></figure>
+
+<p>那么这种长连接是不是就可以实现客户端和服务端全双工通信呢？其实不能的，因为这里的长连接还是传输层的长连接并不是应用层面的长连接，它相对于HTTP 1.0 来说，每次请求客户端收到来自服务端的返回体之后，底层的TCP连接不会立马断掉，如果后续有 HTTP 请求还是会复用这个底层的TCP连接。但是应用层面上还是遵循了HTTP协议规定的一个Request，一个Response的过程。一个请求获得一个响应后应用层必定会断掉。而且只有客户端发起的请求才会有响应，也就是说整个过程还是客户端来驱动的，客户端索要数据，服务端响应请求返回数据。即使采用keep-alive技术来保证TCP连接不会断，如果服务端也无法主动给客户端发起一个HTTP请求。</p>
+<p>Comet是指客户端发送一个HTTP请求，但是服务端不会立刻返回，而是一直持有着这个请求直到有客户端需要的内容后再返回，在这个期间这个 HTTP请求可以连接维持比较长的时间。类似一种服务端推送机制：客户端发起请求相当于先把连接建立好，等服务端有消息需要返回时再返回给客户端，但是本质还是不变的，服务器的每次数据下发都是针对客户端先前发起的某次请求，服务端不能无缘无故地向客户端下发数据。</p>
+<p>而 <strong><strong>WebSocket</strong></strong>和<strong><strong>HTTP</strong></strong>两个协议在协议堆栈里面其实是两个对等的协议，都是位于应用层，是两个完全不同的概念，WebSocket可以不用像HTTP协议那样，要先有请求后服务端才能向客户端返回数据，它的长链接是应用层上的长连接，而不再单单是传输层上TCP上的长连接，但是它和HTTP协议都是基于TCP基础之上的。在WebSocket连接建立后，服务端可以主动地向客户端发送数据，从而实现全双工通讯。</p>
+<p>所以什么是WebSocket,为什么需要有WebSocket? <strong><strong>WebSocket</strong></strong> 实际上是一个与Http协议一样都是基于TCP协议之上的应用层协议，它和Http协议的区别在于它不再遵循客户端主动发起请求，服务端响应的Request-Response 机制，而是可以在客户端没有发送请求的情况下，服务端主动下发数据给客户端。实现客户端和服务端的全双工通讯，也就是说WebSocket是为了弥补Http不能全双工数据通信的不足而推出的，连接一旦建立，双方可以随时向对方发送数据。</p>
+<h4 id="WebSocket-协议简要介绍"><a href="#WebSocket-协议简要介绍" class="headerlink" title="WebSocket 协议简要介绍"></a>WebSocket 协议简要介绍</h4><p>WebSocket的默认端口是80和443,分别对应的协议为<strong><strong>ws:&#x2F;&#x2F;</strong></strong>,<strong><strong>wss:&#x2F;&#x2F;</strong></strong>,整个协议包含三大部分：<br><strong><strong>建立连接</strong></strong>，<strong><strong>握手</strong></strong>和<strong><strong>数据通信</strong></strong>。</p>
+<p><strong><strong>建立连接</strong></strong></p>
+<p>在客户端与服务端进行握手之前，客户端和服务端需要建立好连接：</p>
+<ul>
+<li><p>一个客户端对于相同的目标地址（这里简单理解成一个服务器IP），同一时刻只能有一个处于CONNECTING状态的连接。如果当前已有指向目标地址的连接处于CONNECTING状态，就要等待这个连接成功，或者建立失败之后才能建立新的连接。</p>
+</li>
+<li><p>如果客户端处于一个代理环境中，它首先要请求它的代理来建立一个到达目标地址的TCP连接。例如，如果客户端处于代理环境中，它想要连接某目标地址的80端口，它可能要首先发送以下消息：</p>
+</li>
+</ul>
+<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CONNECT</span> <span class="string">example.com:80</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>example.com</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果客户端没有处于代理环境中，那么就需要建立一个到达目标地址的<strong><strong>直接</strong></strong>的TCP连接</li>
+</ul>
+<p><strong><strong>握手</strong></strong></p>
+<p>建立好客户端和服务端的连接后，客户端就可以向服务端发起握手请求了。握手请求消息的方法必须是GET，HTTP版本必须大于1.1 。</p>
+<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/chat</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>server.example.com</span><br><span class="line"><span class="attribute">Upgrade</span><span class="punctuation">: </span>websocket</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>Upgrade</span><br><span class="line"><span class="attribute">Sec-WebSocket-Key</span><span class="punctuation">: </span>dGhlIHNhbXBsZSBub25jZQ==</span><br><span class="line"><span class="attribute">Origin</span><span class="punctuation">: </span>http://example.com</span><br><span class="line"><span class="attribute">Sec-WebSocket-Protocol</span><span class="punctuation">: </span>chat, superchat</span><br><span class="line"><span class="attribute">Sec-WebSocket-Version</span><span class="punctuation">: </span>13</span><br></pre></td></tr></table></figure>
+
+<p>出于兼容性的考虑，WS的建立连接还是依赖HTTP来实现，这种方式的好处是：握手时不容易被屏蔽，能通过各种 HTTP 代理服务器。</p>
+<p>下面针对上述给出的包一一进行介绍：</p>
+<ul>
+<li>****Upgrade ****</li>
+</ul>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Upgrade</span>是HTTP <span class="number">1</span>.<span class="number">1</span>中用于定义转换协议的header域，它表示如果服务器支持的话，客户端希望从已建立好的连接协议，切换到另外一个应用层协议，这里是从HTTP协议切换到WebSocket协议。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>**** Connection ****</li>
+</ul>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">HTTP</span> <span class="number">1</span>.<span class="number">1</span>中规定Upgrade只能应用在直接连接中，也就是说WS的连接不能通过中间人来转发，它必须是一个直接连接。如果客户端和服务器之间是通过代理连接的，那么在发送这个握手消息之前首先要发送CONNECT消息来建立直接连接。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>**** Sec-WebSocket-Key ****</li>
+</ul>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">请求消息中的<span class="string">&quot;Sec-WebSocket-Key&quot;</span>是一个Base64编码的<span class="number">16</span>位随机字符，服务器端会用这些数据来构造出一个SHA-<span class="number">1</span>的信息摘要，把<span class="string">&quot;Sec-WebSocket-Key&quot;</span>加上一个魔幻字符串<span class="string">&quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot;</span>。使用SHA-<span class="number">1</span>加密，然后进行<span class="built_in">BASE</span>-<span class="number">64</span>编码，将结果做为<span class="string">&quot;Sec-WebSocket-Accept&quot;</span>头的值，返回给客户端。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>**** Origin ****</li>
+</ul>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">用于防止跨站攻击，客户端会使用这个来标识原始域。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>Sec-WebSocket-Protocol</strong></strong></li>
+</ul>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">客户端支持的子协议的列表,这个字段用于协商应用子协议，在创建 WebSocket 对象的时候，可以传递一个可选的子协议数组，告诉服务器，客户端可以理解哪些协议。服务器必须从数据里面选择几个支持的协议进行返回，如果一个都不支持，那么会直接导致握手失败。客户端可以不发送子协议，但是一旦发送，服务器无法支持其中任意一个都会导致握手失败。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><strong>Sec-WebSocket-Version</strong></strong></li>
+</ul>
+<figure class="highlight mathematica"><table><tr><td class="code"><pre><span class="line">客户端支持的<span class="variable">WS</span>协议的版本列表<span class="operator">,</span>客户端可以初始请求它选择的 <span class="variable">WebSocket</span> 协议版本<span class="operator">,</span>如果服务器支持请求的版本服务器将接受该版本。如果服务器不支持请求的版本，它会返回一个包含所有它所能支持的<span class="built_in">Sec</span><span class="operator">-</span><span class="variable">WebSocket</span><span class="operator">-</span><span class="built_in">Version</span>头字段。 在这时候客户端可以根据服务端返回的服务端支持的版本，重新构建请求发起握手。</span><br><span class="line">下面是一个服务端返回的响应头信息：</span><br><span class="line"></span><br><span class="line"><span class="variable">HTTP</span><span class="operator">/</span><span class="number">1.1</span> <span class="number">400</span> <span class="variable">Bad</span> <span class="variable">Request</span></span><br><span class="line"><span class="built_in">Sec</span><span class="operator">-</span><span class="variable">WebSocket</span><span class="operator">-</span><span class="built_in">Version</span><span class="operator">:</span> <span class="number">13</span><span class="operator">,</span> <span class="number">8</span></span><br></pre></td></tr></table></figure>
+
+<p>在收到请求后服务端作为回应会返回如下的报文：</p>
+<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="meta">HTTP/1.1</span> <span class="number">101</span> Switching Protocols</span><br><span class="line"><span class="attribute">Upgrade</span><span class="punctuation">: </span>websocket</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>Upgrade</span><br><span class="line"><span class="attribute">Sec-WebSocket-Accept</span><span class="punctuation">: </span>s3pPLMBiTxaQ9kYGzzhZRbK+xOo=  </span><br><span class="line"><span class="attribute">Sec-WebSocket-Protocol</span><span class="punctuation">: </span>chat</span><br></pre></td></tr></table></figure>
+
+<p>101表示服务器收到了客户端切换协议的请求，并且同意切换到此协议，Sec-WebSocket-Accept的生成方式在上面已经介绍过了，通过这个步骤，客户端和服务端会建立起一个长连接。</p>
+<p>客户端收到服务端发送过来的应答数据后，如果返回的状态码为101，则可以开始解析header域：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>判断是否含有Upgrade头，且内容包含websocket。</span><br><span class="line"><span class="bullet">* </span>判断是否含有Connection头，且内容包含Upgrade</span><br><span class="line"><span class="bullet">* </span>判断是否含有Sec-WebSocket-Accept头，并对这个字段进行校验。</span><br><span class="line"><span class="bullet">* </span>如果含有Sec-WebSocket-Extensions头，要判断是否之前的Request握手带有此内容，如果没有，则连接失败。</span><br><span class="line"><span class="bullet">* </span>如果含有Sec-WebSocket-Protocol头，要判断是否之前的Request握手带有此协议，如果没有，则连接失败。</span><br></pre></td></tr></table></figure>
+
+<p>上面最关键的就是Sec-WebSocket-Accept字段的校验。</p>
+<p><strong><strong>WebSocket数据通信</strong></strong></p>
+<p>WebSocket 会把应用的消息分割成一个或多个帧，接收方接到到多个帧会进行组装，等到接收到完整消息之后再通知接收端。</p>
+<figure class="highlight gherkin"><table><tr><td class="code"><pre><span class="line">0                   1                   2                   3</span><br><span class="line">0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-------+-+-------------+-------------------------------+</span><br><span class="line">|<span class="string">F</span>|<span class="string">R</span>|<span class="string">R</span>|<span class="string">R</span>|<span class="string"> opcode</span>|<span class="string">M</span>|<span class="string"> Payload len </span>|<span class="string">    Extended payload length    </span>|</span><br><span class="line">|<span class="string">I</span>|<span class="string">S</span>|<span class="string">S</span>|<span class="string">S</span>|<span class="string">  (4)  </span>|<span class="string">A</span>|<span class="string">     (7)     </span>|<span class="string">             (16/64)           </span>|</span><br><span class="line">|<span class="string">N</span>|<span class="string">V</span>|<span class="string">V</span>|<span class="string">V</span>|<span class="string">       </span>|<span class="string">S</span>|<span class="string">             </span>|<span class="string">   (if payload len==126/127)   </span>|</span><br><span class="line">|<span class="string"> </span>|<span class="string">1</span>|<span class="string">2</span>|<span class="string">3</span>|<span class="string">       </span>|<span class="string">K</span>|<span class="string">             </span>|<span class="string">                               </span>|</span><br><span class="line">+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +</span><br><span class="line">|<span class="string">     Extended payload length continued, if payload len == 127  </span>|</span><br><span class="line">+ - - - - - - - - - - - - - - - +-------------------------------+</span><br><span class="line">|<span class="string">                               </span>|<span class="string">Masking-key, if MASK set to 1  </span>|</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">|<span class="string"> Masking-key (continued)       </span>|<span class="string">          Payload Data         </span>|</span><br><span class="line">+-------------------------------- - - - - - - - - - - - - - - - +</span><br><span class="line">:                     Payload Data continued ...                :</span><br><span class="line">+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +</span><br><span class="line">|<span class="string">                     Payload Data continued ...                </span>|</span><br><span class="line">+---------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">FIN</span>      <span class="number">1</span>bit 表示信息的最后一帧，flag，也就是标记符</span><br><span class="line"><span class="attribute">RSV</span> <span class="number">1</span>-<span class="number">3</span>  <span class="number">1</span>bit each 以后备用的 默认都为 <span class="number">0</span></span><br><span class="line"><span class="attribute">Opcode</span>   <span class="number">4</span>bit 帧类型，稍后细说</span><br><span class="line"><span class="attribute">Mask</span>     <span class="number">1</span>bit 掩码，是否加密数据，只适用于客户端发给服务器的消息，客户端给服务器发送消息，这里一定为 <span class="number">1</span></span><br><span class="line"><span class="attribute">Payload</span>  <span class="number">7</span>bit 数据的长度</span><br><span class="line"><span class="attribute">Masking</span>-key      <span class="number">1</span> or <span class="number">4</span> bit 掩码Key</span><br><span class="line"><span class="attribute">Payload</span> data     (x + y) bytes 数据</span><br><span class="line"><span class="attribute">Extension</span> data   x bytes  扩展数据</span><br><span class="line"><span class="attribute">Application</span> data y bytes  程序数据</span><br></pre></td></tr></table></figure>
+
+<p>Opcode 字段代表的意思如下所示：</p>
+<figure class="highlight haml"><table><tr><td class="code"><pre><span class="line"><span class="tag">%<span class="selector-tag">x0</span></span>：表示一个延续帧。当Opcode为0时，表示本次数据传输采用了数据分片，当前收到的数据帧为其中一个数据分片。</span><br><span class="line"><span class="tag">%<span class="selector-tag">x1</span></span>：表示这是一个文本帧（frame）</span><br><span class="line"><span class="tag">%<span class="selector-tag">x2</span></span>：表示这是一个二进制帧（frame）</span><br><span class="line"><span class="tag">%<span class="selector-tag">x3</span></span>-7：保留的操作代码，用于后续定义的非控制帧。</span><br><span class="line"><span class="tag">%<span class="selector-tag">x8</span></span>：表示连接断开。</span><br><span class="line"><span class="tag">%<span class="selector-tag">x9</span></span>：表示这是一个ping操作。</span><br><span class="line"><span class="tag">%<span class="selector-tag">xA</span></span>：表示这是一个pong操作。</span><br><span class="line"><span class="tag">%<span class="selector-tag">xB</span></span>-F：保留的操作代码，用于后续定义的控制帧。</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>WebSocket分帧规则</strong></strong></p>
+<p>分帧是通过将消息分割为更小的一个个分段以更好地共享输出通道。</p>
+<p>RFC 6455 规定的分帧规则如下：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">1</span>. 一个没有分片的消息由一个带有FIN值为<span class="number">1</span>以及一个非<span class="number">0</span>操作码的帧组成。</span><br><span class="line"><span class="attribute">2</span>. 一个分片的消息由单个带有FIN为<span class="number">0</span> 和一个非<span class="number">0</span>操作码的帧组成，跟随零个或多个带有FIN位为<span class="number">0</span>和操作码设置为<span class="number">0</span>的帧，且终止于一个带有FIN等于<span class="number">1</span>且操作码为<span class="number">0</span>的帧。 </span><br><span class="line"><span class="attribute">3</span>. 消息分片必须按发送者发送顺序交付给接收者，片段中的消息不能与片段中的另一个消息交替。</span><br><span class="line"><span class="attribute">4</span>. 控制帧本身必须不被分割，中间件必须不尝试改变控制帧的分片。</span><br><span class="line"><span class="attribute">5</span>. 一个端点必须能处理一个分片消息中间的控制帧。</span><br></pre></td></tr></table></figure>
+
+<p>也就是说一个分帧后的数据可能会以如下形式呈现：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">开始帧 ：单个帧，FIN 设为 0，opcode 非 0；</span><br><span class="line">中间帧 ：0 个或多个帧，FIN 设为 0，opcode 设为 0；</span><br><span class="line">结束帧：单个帧，FIN 设为 1，opcode 设为 0的帧。</span><br><span class="line"></span><br><span class="line">其中开始帧和结束帧可以带数据也可以不带数据</span><br></pre></td></tr></table></figure>
+
+<p>WebSocket采用排队的机制，希望发送出去的数据会先丢到数据缓存区中，然后按照排队的顺序进行发送。</p>
+<h4 id="SRWebSocket-源码解析"><a href="#SRWebSocket-源码解析" class="headerlink" title="SRWebSocket 源码解析"></a>SRWebSocket 源码解析</h4><p><strong><strong>上层使用方法</strong></strong></p>
+<p>SRWebSocket 整个代码量其实不多，就两个文件，在使用上也十分方便，几行代码就可以完成SRWebSocket的接入：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)connectWebSocketServer:(<span class="built_in">NSString</span> *)server port:(<span class="built_in">NSString</span> *)port &#123;</span><br><span class="line">    <span class="built_in">NSURLRequest</span> *request = [<span class="built_in">NSURLRequest</span> requestWithURL:[<span class="built_in">NSURL</span> URLWithString:[<span class="built_in">NSString</span> stringWithFormat:<span class="string">@&quot;ws://%@:%@&quot;</span>,server,port]]];</span><br><span class="line">    _socket = [[SRWebSocket alloc] initWithURLRequest:request];</span><br><span class="line">    _socket.delegate = <span class="keyword">self</span>;</span><br><span class="line">    [_socket open];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)webSocket:(SRWebSocket *)webSocket didReceiveMessage:(<span class="type">id</span>)message &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)webSocketDidOpen:(SRWebSocket *)webSocket&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)webSocket:(SRWebSocket *)webSocket didFailWithError:(<span class="built_in">NSError</span> *)error &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="type">void</span>)webSocket:(SRWebSocket *)webSocket didCloseWithCode:(<span class="built_in">NSInteger</span>)code reason:(<span class="built_in">NSString</span> *)reason wasClean:(<span class="type">BOOL</span>)wasClean &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有了上面WebSocket原理的介绍对整个代码的理解会轻松很多，接下来我们就逐步对SRWebSocket进行解析：</p>
+<p><strong><strong>1. SRWebSocket初始化</strong></strong></p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">id</span>)initWithURLRequest:(<span class="built_in">NSURLRequest</span> *)request</span><br><span class="line">               protocols:(<span class="built_in">NSArray</span> *)protocols</span><br><span class="line">allowsUntrustedSSLCertificates:(<span class="type">BOOL</span>)allowsUntrustedSSLCertificates &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span> = [<span class="variable language_">super</span> init]) &#123;</span><br><span class="line">        assert(request.URL);</span><br><span class="line">        _url = request.URL;</span><br><span class="line">        _urlRequest = request;</span><br><span class="line">        _allowsUntrustedSSLCertificates = allowsUntrustedSSLCertificates;</span><br><span class="line">        _requestedProtocols = [protocols <span class="keyword">copy</span>];</span><br><span class="line">        [<span class="keyword">self</span> _SR_commonInit];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>initWithURLRequest最关键的部分在于对****_SR_commonInit****方法的调用，其中_allowsUntrustedSSLCertificates表示是否允许未经信任的SSL证书，_requestedProtocols就是上面提到的WebSocket子协议。</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">- (void)<span class="variable">_SR_commonInit</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//校验URL的scheme，必须是ws，http，wss，https</span></span><br><span class="line">    NSString *scheme = <span class="variable">_url</span>.scheme.lowercaseString;</span><br><span class="line">    <span class="built_in">assert</span>([scheme isEqualToString:@<span class="string">&quot;ws&quot;</span>] || [scheme isEqualToString:@<span class="string">&quot;http&quot;</span>] || [scheme isEqualToString:@<span class="string">&quot;wss&quot;</span>] || [scheme isEqualToString:@<span class="string">&quot;https&quot;</span>]);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//是否是安全的请求</span></span><br><span class="line">    <span class="keyword">if</span> ([scheme isEqualToString:@<span class="string">&quot;wss&quot;</span>] || [scheme isEqualToString:@<span class="string">&quot;https&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">_secure</span> = YES;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 初始化状态为SR_CONNECTING</span></span><br><span class="line">    <span class="variable">_readyState</span> = SR_CONNECTING;</span><br><span class="line">    <span class="variable">_consumerStopped</span> = YES;</span><br><span class="line">    <span class="comment">//webSocket 版本</span></span><br><span class="line">    <span class="variable">_webSocketVersion</span> = <span class="number">13</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//初始化串行工作队列</span></span><br><span class="line">    <span class="variable">_workQueue</span> = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);</span><br><span class="line">    dispatch_queue_set_specific(<span class="variable">_workQueue</span>, (<span class="variable">__bridge</span> void *)self, maybe_bridge(<span class="variable">_workQueue</span>), NULL);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//设置代理queue为主队列</span></span><br><span class="line">    <span class="variable">_delegateDispatchQueue</span> = dispatch_get_main_queue();</span><br><span class="line">    sr_dispatch_retain(<span class="variable">_delegateDispatchQueue</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//读写缓存</span></span><br><span class="line">    <span class="variable">_readBuffer</span> = [[NSMutableData alloc] init];</span><br><span class="line">    <span class="variable">_outputBuffer</span> = [[NSMutableData alloc] init];</span><br><span class="line">    <span class="comment">//当前数据帧</span></span><br><span class="line">    <span class="variable">_currentFrameData</span> = [[NSMutableData alloc] init];</span><br><span class="line"></span><br><span class="line">    <span class="comment">//消费者队列</span></span><br><span class="line">    <span class="variable">_consumers</span> = [[NSMutableArray alloc] init];</span><br><span class="line"></span><br><span class="line">    <span class="variable">_consumerPool</span> = [[SRIOConsumerPool alloc] init];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//RunLoopes</span></span><br><span class="line">    <span class="variable">_scheduledRunloops</span> = [[NSMutableSet alloc] init];</span><br><span class="line">    [self <span class="variable">_initializeStreams</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>_SR_commonInit 在最开始的时候对当前协议进行了校验，如果不是ws，http，wss，https，就会报错。而后就是WebSocket状态的设置，以及WebSocket版本的设置。紧接着初始化工作队列_workQueue，WebSocket工作在串行队列中，后续在介绍到数据收发的时候会介绍到这个队列。至于为什么是串行队列，通过上面的理论介绍估计大家心里已经有答案了，但是不急后面会给大家详细介绍_workQueue在数据收发过程中的使用。再接着就是_delegateDispatchQueue的初始化，它是一个运行在主线程上的一个队列。再接着就是读写缓存的初始化，以及消费者数组，对应Runloop 的初始化。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="type">void</span>)_initializeStreams &#123;</span><br><span class="line">    <span class="comment">//断言 port值小于UINT32_MAX</span></span><br><span class="line">    assert(_url.port.unsignedIntValue &lt;= <span class="built_in">UINT32_MAX</span>);</span><br><span class="line">    uint32_t port = _url.port.unsignedIntValue;</span><br><span class="line">    <span class="comment">//如果没有指定port值则使用webSocket默认的端口值</span></span><br><span class="line">    <span class="keyword">if</span> (port == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!_secure) &#123;</span><br><span class="line">            port = <span class="number">80</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            port = <span class="number">443</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">NSString</span> *host = _url.host;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">CFReadStreamRef</span> readStream = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="built_in">CFWriteStreamRef</span> writeStream = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//CFStreamCreatePairWithSocketToHost接口用于创建一对Socket stream，一个用于读取，一个用于写入</span></span><br><span class="line">    <span class="built_in">CFStreamCreatePairWithSocketToHost</span>(<span class="literal">NULL</span>, (__bridge <span class="built_in">CFStringRef</span>)host, port, &amp;readStream, &amp;writeStream);</span><br><span class="line"></span><br><span class="line">    _outputStream = <span class="built_in">CFBridgingRelease</span>(writeStream);</span><br><span class="line">    _inputStream = <span class="built_in">CFBridgingRelease</span>(readStream);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//代理设为自己</span></span><br><span class="line">    _inputStream.delegate = <span class="keyword">self</span>;</span><br><span class="line">    _outputStream.delegate = <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>_initializeStreams 最主要的是通过CFStreamCreatePairWithSocketToHost接口创建一对Socket stream，一个用于读取（readStream），一个用于写入（writeStream）并为读写stream。设置对应的代理。</p>
+<p>到此为止整个初始化过程结束，最主要的工作如下：</p>
+<ol>
+<li>串行工作队列_workQueue的创建</li>
+<li>代理分发队列_delegateDispatchQueue的创建</li>
+<li>输入输出缓存 _readBuffer，_outputBuffer的创建</li>
+<li>消费者数组_consumers的创建</li>
+<li>WebSocket 相关的runloop的创建</li>
+<li>输入输出流的创建,以及对应代理NSStreamDelegate的设置</li>
+</ol>
+<p>NSStreamDelegate定义如下所示：</p>
+<p>&#96;&#96;&#96;&#96;<br>@protocol NSStreamDelegate <NSObject><br>@optional</NSObject></p>
+<ul>
+<li>(void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode;<br>@end</li>
+</ul>
+<p>typedef NS_OPTIONS(NSUInteger, NSStreamEvent) {<br>    NSStreamEventNone &#x3D; 0,<br>    NSStreamEventOpenCompleted &#x3D; 1UL &lt;&lt; 0,<br>    NSStreamEventHasBytesAvailable &#x3D; 1UL &lt;&lt; 1,<br>    NSStreamEventHasSpaceAvailable &#x3D; 1UL &lt;&lt; 2,<br>    NSStreamEventErrorOccurred &#x3D; 1UL &lt;&lt; 3,<br>    NSStreamEventEndEncountered &#x3D; 1UL &lt;&lt; 4<br>};</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="strong">****</span>2. 开启连接<span class="strong">****</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)open {</p>
+<p>  assert(_url);<br>  NSAssert(_readyState &#x3D;&#x3D; SR_CONNECTING, @”Cannot call -(void)open on SRWebSocket more than once”);</p>
+<p>  &#x2F;&#x2F;如果有指定超时时间则延迟指定超时时间后查看状态是否还是SR_CONNECTING 如果是则返回超时消息<br>  _selfRetain &#x3D; self;<br>  if (_urlRequest.timeoutInterval &gt; 0) {<br>  dispatch_time_t popTime &#x3D; dispatch_time(DISPATCH_TIME_NOW, _urlRequest.timeoutInterval * NSEC_PER_SEC);<br>  dispatch_after(popTime, dispatch_get_main_queue(), ^(void){<br>      if (self.readyState &#x3D;&#x3D; SR_CONNECTING)<br>          [self _failWithError:[NSError errorWithDomain:@”com.squareup.SocketRocket” code:504 userInfo:@{NSLocalizedDescriptionKey: @”Timeout Connecting to Server”}]];<br>  });<br>  }</p>
+<p>  &#x2F;&#x2F;执行连接任务<br>  [self openConnection];</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)openConnection {</p>
+<p>  &#x2F;&#x2F;更新安全、流配置<br>  [self _updateSecureStreamOptions];</p>
+<p>  &#x2F;&#x2F;判断有没有runloop,如果没有的话就新建对应的runloop<br>  if (!_scheduledRunloops.count) {<br>  [self scheduleInRunLoop:[NSRunLoop SR_networkRunLoop] forMode:NSDefaultRunLoopMode];<br>  }</p>
+<p>  &#x2F;&#x2F;开启输入输出流<br>  [_outputStream open];<br>  [_inputStream open];</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">这里最关键有三个部分：</span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> <span class="strong">****</span><span class="emphasis">_updateSecureStreamOptions<span class="strong">****</span></span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">如果是<span class="strong">****</span>wss://<span class="strong">****</span>类型的WebSocket</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>(void)_updateSecureStreamOptions {<br>  if (_secure) {<br>  NSMutableDictionary *SSLOptions &#x3D; [[NSMutableDictionary alloc] init];<br>  [_outputStream setProperty:(__bridge id)kCFStreamSocketSecurityLevelNegotiatedSSL<br>                      forKey:(__bridge id)kCFStreamPropertySocketSecurityLevel];<br>  &#x2F;&#x2F; 如果我们正在使用pinned certs 我们将不对证书链进行验证<br>  if ([_urlRequest SR_SSLPinnedCertificates].count) {<br>      [SSLOptions setValue:@NO forKey:(__bridge id)kCFStreamSSLValidatesCertificateChain];<br>  }<br>#if DEBUG<br>  &#x2F;&#x2F;如果是debug模式则允许非信任的证书<br>  self.allowsUntrustedSSLCertificates &#x3D; YES;<br>#endif<br>  &#x2F;&#x2F;如果允许非信任的证书则将配置设置到SSLOptions<br>  if (self.allowsUntrustedSSLCertificates) {<br>      [SSLOptions setValue:@NO forKey:(__bridge id)kCFStreamSSLValidatesCertificateChain];<br>      SRFastLog(@”Allowing connection to any root cert”);<br>  }<br>  &#x2F;&#x2F;将SSLOptions设置为输出流设置属性<br>  [_outputStream setProperty:SSLOptions<br>                      forKey:(__bridge id)kCFStreamPropertySSLSettings];<br>  }<br>  &#x2F;&#x2F;重新设置输入流和输出流的delegate<br>  _inputStream.delegate &#x3D; self;<br>  _outputStream.delegate &#x3D; self;<br>  &#x2F;&#x2F;为输入流和输出流设置networkServiceType<br>  [self setupNetworkServiceType:_urlRequest.networkServiceType];<br>}</li>
+</ul>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="variable">_updateSecureStreamOptions</span> 只针对安全流才需要设置的，在这里会根据SR_SSLPinnedCertificates是否存在，以及allowsUntrustedSSLCertificates值设置<span class="variable">_outputStream</span>的SSL设置。然后重新设置<span class="variable">_inputStream</span>以及<span class="variable">_outputStream</span>的delegate。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>(void)setupNetworkServiceType:(NSURLRequestNetworkServiceType)requestNetworkServiceType {<br>  NSString *networkServiceType;<br>  switch (requestNetworkServiceType) {<br>  case NSURLNetworkServiceTypeDefault:<br>      break;<br>  case NSURLNetworkServiceTypeVoIP: {<br>      networkServiceType &#x3D; NSStreamNetworkServiceTypeVoIP;<br>#if TARGET_OS_IPHONE &amp;&amp; __IPHONE_9_0<br>      if (floor(NSFoundationVersionNumber) &gt; NSFoundationVersionNumber_iOS_8_3) {<br>          static dispatch_once_t predicate;<br>          dispatch_once(&amp;predicate, ^{<br>              NSLog(@”SocketRocket: %@ - this service type is deprecated in favor of using PushKit for VoIP control”, networkServiceType);<br>          });<br>      }<br>#endif<br>      break;<br>  }<br>  case NSURLNetworkServiceTypeVideo:<br>      networkServiceType &#x3D; NSStreamNetworkServiceTypeVideo;<br>      break;<br>  case NSURLNetworkServiceTypeBackground:<br>      networkServiceType &#x3D; NSStreamNetworkServiceTypeBackground;<br>      break;<br>  case NSURLNetworkServiceTypeVoice:<br>      networkServiceType &#x3D; NSStreamNetworkServiceTypeVoice;<br>      break;<br>  }<br>  if (networkServiceType !&#x3D; nil) {<br>  [_inputStream setProperty:networkServiceType forKey:NSStreamNetworkServiceType];<br>  [_outputStream setProperty:networkServiceType forKey:NSStreamNetworkServiceType];<br>  }<br>}<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">然后再设置<span class="emphasis">_inputStream 以及 _</span>outputStream 的 NSStreamNetworkServiceType属性。</span><br><span class="line"></span><br><span class="line"><span class="bullet">2.</span> <span class="strong">****</span><span class="emphasis">_scheduledRunloops<span class="strong">****</span></span></span><br><span class="line"><span class="emphasis"></span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li>(NSRunLoop *)SR_networkRunLoop {<br>  static dispatch_once_t onceToken;<br>  dispatch_once(&amp;onceToken, ^{<br>  networkThread &#x3D; [[_SRRunLoopThread alloc] init];<br>  networkThread.name &#x3D; @”com.squareup.SocketRocket.NetworkThread”;<br>  [networkThread start];<br>  networkRunLoop &#x3D; networkThread.runLoop;<br>  });<br>  return networkRunLoop;<br>}<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">在SR_networkRunLoop方法中会新创建一个NSThread的线程，然后持有这个线程的runLoop作为networkRunLoop，由于这个线程是通过单例创建的所以，在整个应用生命周期都会存在。提到networkThread不得不提<span class="variable">_workQueue</span>，networkThread主要用于支持读写的工作线程，<span class="variable">_workQueue</span>是用于处理控制任务的队列，两者单独分开，各司其职。这样做的目的主要是为了避免数据的读写任务阻塞了控制任务，从而影响了事件的实时性。</span><br><span class="line"></span><br><span class="line"><span class="number">3</span>. ****<span class="variable">_outputStream</span>/<span class="variable">_inputStream</span> open****</span><br><span class="line"></span><br><span class="line">调用<span class="variable">_outputStream</span>/<span class="variable">_inputStream</span> open之后端口就会被打开，这时候输入输出流就会有数据通过代理传递进来。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">****<span class="number">3</span>. 通过代理处理数据****</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p>(void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {<br>  __weak typeof(self) weakSelf &#x3D; self;</p>
+<p>  &#x2F;&#x2F;如果协议是wss:&#x2F;&#x2F;类型而且_pinnedCertFound 为NO，并且事件类型是有可读数据未读，或者事件类型是还有空余空间可写<br>  if (_secure &amp;&amp; !_pinnedCertFound &amp;&amp; (eventCode &#x3D;&#x3D; NSStreamEventHasBytesAvailable || eventCode &#x3D;&#x3D; NSStreamEventHasSpaceAvailable)) {<br>  &#x2F;&#x2F;获取到SSLPinnedCertificates<br>  NSArray *sslCerts &#x3D; [_urlRequest SR_SSLPinnedCertificates];<br>  if (sslCerts) {<br>      将NSStream中的证书与服务端请求中的SSLPinnedCertificates一个一个进行比较，查看是否有找到匹配的。<br>      SecTrustRef secTrust &#x3D; (__bridge SecTrustRef)[aStream propertyForKey:(__bridge id)kCFStreamPropertySSLPeerTrust];<br>      if (secTrust) {<br>          NSInteger numCerts &#x3D; SecTrustGetCertificateCount(secTrust);<br>          for (NSInteger i &#x3D; 0; i &lt; numCerts &amp;&amp; !_pinnedCertFound; i++) {<br>              SecCertificateRef cert &#x3D; SecTrustGetCertificateAtIndex(secTrust, i);<br>              NSData *certData &#x3D; CFBridgingRelease(SecCertificateCopyData(cert));<br><br>              for (id ref in sslCerts) {<br>                  SecCertificateRef trustedCert &#x3D; (__bridge SecCertificateRef)ref;<br>                  NSData *trustedCertData &#x3D; CFBridgingRelease(SecCertificateCopyData(trustedCert));<br><br>                  if ([trustedCertData isEqualToData:certData]) {<br>                      _pinnedCertFound &#x3D; YES;<br>                      break;<br>                  }<br>              }<br>          }<br>      }<br>      if (!_pinnedCertFound) {<br>          &#x2F;&#x2F;服务端证书无效<br>          dispatch_async(_workQueue, ^{<br>              NSDictionary *userInfo &#x3D; @{ NSLocalizedDescriptionKey : @”Invalid server cert” };<br>              [weakSelf _failWithError:[NSError errorWithDomain:@”org.lolrus.SocketRocket” code:23556 userInfo:userInfo]];<br>          });<br>          return;<br>      } else if (aStream &#x3D;&#x3D; _outputStream) {<br>          &#x2F;&#x2F;如果流是输出流，则打开流成功<br>          dispatch_async(_workQueue, ^{<br>              [self didConnect];<br>          });<br>      }<br>  }<br>  }</p>
+<p>  dispatch_async(_workQueue, ^{<br>  &#x2F;&#x2F;将当前数据交给_workQueue处理<br>  [weakSelf safeHandleEvent:eventCode stream:aStream];<br>  });</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">是数据的主要集中地，对于未认证的请求，会先对服务端的证书进行认证，如果认证成功会调用<span class="keyword">didConnect进行握手，然后不论是什么类型的请求，都会进过safeHandleEvent将数据分发出去。接下来我们重点看下didConnect以及safeHandleEvent：</span></span><br><span class="line"><span class="keyword"></span></span><br></pre></td></tr></table></figure></li>
+<li><p>(void)didConnect {</p>
+<p> &#x2F;&#x2F; 设置GET请求，并指定HTTP 协议版本为1.1<br>  CFHTTPMessageRef request &#x3D; CFHTTPMessageCreateRequest(NULL, CFSTR(“GET”), (__bridge CFURLRef)_url, kCFHTTPVersion1_1);</p>
+<p>  &#x2F;&#x2F; 设置Host字段<br>  CFHTTPMessageSetHeaderFieldValue(request, CFSTR(“Host”), (__bridge CFStringRef)(_url.port ? [NSString stringWithFormat:@”%@:%@”, _url.host, _url.port] : _url.host));</p>
+<p>  &#x2F;&#x2F;生成随机数<br>  NSMutableData *keyBytes &#x3D; [[NSMutableData alloc] initWithLength:16];<br>  SecRandomCopyBytes(kSecRandomDefault, keyBytes.length, keyBytes.mutableBytes);</p>
+<p>  &#x2F;&#x2F;Base64加密<br>  if ([keyBytes respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {<br>  _secKey &#x3D; [keyBytes base64EncodedStringWithOptions:0];<br>  } else {</p>
+</li>
+</ul>
+<p>#pragma clang diagnostic push<br>#pragma clang diagnostic ignored “-Wdeprecated-declarations”<br>        _secKey &#x3D; [keyBytes base64Encoding];<br>#pragma clang diagnostic pop<br>    }</p>
+<pre><code>assert([_secKey length] == 24);
+
+// Apply cookies if any have been provided
+NSDictionary * cookies = [NSHTTPCookie requestHeaderFieldsWithCookies:[self requestCookies]];
+for (NSString * cookieKey in cookies) &#123;
+    NSString * cookieValue = [cookies objectForKey:cookieKey];
+    if ([cookieKey length] &amp;&amp; [cookieValue length]) &#123;
+        CFHTTPMessageSetHeaderFieldValue(request, (__bridge CFStringRef)cookieKey, (__bridge CFStringRef)cookieValue);
+    &#125;
+&#125;
+
+// 添加认证字段
+if (_url.user.length &amp;&amp; _url.password.length) &#123;
+    NSData *userAndPassword = [[NSString stringWithFormat:@&quot;%@:%@&quot;, _url.user, _url.password] dataUsingEncoding:NSUTF8StringEncoding];
+    NSString *userAndPasswordBase64Encoded;
+    if ([keyBytes respondsToSelector:@selector(base64EncodedStringWithOptions:)]) &#123;
+        userAndPasswordBase64Encoded = [userAndPassword base64EncodedStringWithOptions:0];
+    &#125; else &#123;
+</code></pre>
+<p>#pragma clang diagnostic push<br>#pragma clang diagnostic ignored “-Wdeprecated-declarations”<br>            userAndPasswordBase64Encoded &#x3D; [userAndPassword base64Encoding];<br>#pragma clang diagnostic pop<br>        }<br>        _basicAuthorizationString &#x3D; [NSString stringWithFormat:@”Basic %@”, userAndPasswordBase64Encoded];<br>        CFHTTPMessageSetHeaderFieldValue(request, CFSTR(“Authorization”), (__bridge CFStringRef)_basicAuthorizationString);<br>    }</p>
+<pre><code>CFHTTPMessageSetHeaderFieldValue(request, CFSTR(&quot;Upgrade&quot;), CFSTR(&quot;websocket&quot;));
+CFHTTPMessageSetHeaderFieldValue(request, CFSTR(&quot;Connection&quot;), CFSTR(&quot;Upgrade&quot;));
+CFHTTPMessageSetHeaderFieldValue(request, CFSTR(&quot;Sec-WebSocket-Key&quot;), (__bridge CFStringRef)_secKey);
+CFHTTPMessageSetHeaderFieldValue(request, CFSTR(&quot;Sec-WebSocket-Version&quot;), (__bridge CFStringRef)[NSString stringWithFormat:@&quot;%ld&quot;, (long)_webSocketVersion]);
+CFHTTPMessageSetHeaderFieldValue(request, CFSTR(&quot;Origin&quot;), (__bridge CFStringRef)_url.SR_origin);
+
+//追加子协议
+if (_requestedProtocols) &#123;
+    CFHTTPMessageSetHeaderFieldValue(request, CFSTR(&quot;Sec-WebSocket-Protocol&quot;), (__bridge CFStringRef)[_requestedProtocols componentsJoinedByString:@&quot;, &quot;]);
+&#125;
+
+//添加http头
+[_urlRequest.allHTTPHeaderFields enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) &#123;
+    CFHTTPMessageSetHeaderFieldValue(request, (__bridge CFStringRef)key, (__bridge CFStringRef)obj);
+&#125;];
+
+NSData *message = CFBridgingRelease(CFHTTPMessageCopySerializedMessage(request));
+
+CFRelease(request);
+
+//将数据送出
+[self _writeData:message];
+//指派数据消费者等待响应头部准备就绪后读取HttpHeader
+[self _readHTTPHeader];
+</code></pre>
+<p>}</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">上述的<span class="strong">****</span>didConnect<span class="strong">****</span>其实就是之前介绍的WebSocket握手阶段。它会构建出一个Http 1.1 的请求头，然后发送出去，并分配数据消费者，等待消费服务端返回的应答头部。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)_readHTTPHeader {<br>  if (_receivedHTTPHeaders &#x3D;&#x3D; NULL) {<br>  _receivedHTTPHeaders &#x3D; CFHTTPMessageCreateEmpty(NULL, NO);<br>  }<br>  &#x2F;&#x2F;等待头数据读取完毕后执行下面的block<br>  [self _readUntilHeaderCompleteWithCallback:^(SRWebSocket *self,  NSData *data) {<br>  &#x2F;&#x2F;将获取到的数据追加到_receivedHTTPHeaders<br>  CFHTTPMessageAppendBytes(_receivedHTTPHeaders, (const UInt8 *)data.bytes, data.length);<br>  &#x2F;&#x2F;判断请求头响应部分是否已经读取完毕<br>  if (CFHTTPMessageIsHeaderComplete(_receivedHTTPHeaders)) {<br>      &#x2F;&#x2F; 如果读取完毕则调用_HTTPHeadersDidFinish<br>      [self _HTTPHeadersDidFinish];<br>  } else {<br>      &#x2F;&#x2F; 否则继续读返回的头部数据<br>      [self _readHTTPHeader];<br>  }<br>  }];<br>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>(void)_HTTPHeadersDidFinish {</p>
+<p>  &#x2F;&#x2F;获取返回的状态码<br>  NSInteger responseCode &#x3D; CFHTTPMessageGetResponseStatusCode(_receivedHTTPHeaders);</p>
+<p>  &#x2F;&#x2F;如果大于400 表示握手失败<br>  if (responseCode &gt;&#x3D; 400) {<br>  SRFastLog(@”Request failed with response code %d”, responseCode);<br>  [self _failWithError:[NSError errorWithDomain:SRWebSocketErrorDomain code:2132 userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@”received bad response code from server %ld”, (long)responseCode], SRHTTPResponseErrorKey:@(responseCode)}]];<br>  return;<br>  }</p>
+<p>  &#x2F;&#x2F;检查服务器返回的Sec-WebSocket-Accept字段是否正确<br>  if(![self _checkHandshake:_receivedHTTPHeaders]) {<br>  [self _failWithError:[NSError errorWithDomain:SRWebSocketErrorDomain code:2133 userInfo:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@”Invalid Sec-WebSocket-Accept response”] forKey:NSLocalizedDescriptionKey]]];<br>  return;<br>  }</p>
+<p>  &#x2F;&#x2F;对子协议进行校验<br>  NSString *negotiatedProtocol &#x3D; CFBridgingRelease(CFHTTPMessageCopyHeaderFieldValue(_receivedHTTPHeaders, CFSTR(“Sec-WebSocket-Protocol”)));<br>  if (negotiatedProtocol) {<br>  &#x2F;&#x2F; Make sure we requested the protocol<br>  if ([_requestedProtocols indexOfObject:negotiatedProtocol] &#x3D;&#x3D; NSNotFound) {<br>      [self _failWithError:[NSError errorWithDomain:SRWebSocketErrorDomain code:2133 userInfo:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@”Server specified Sec-WebSocket-Protocol that wasn’t requested”] forKey:NSLocalizedDescriptionKey]]];<br>      return;<br>  }<br><br>  _protocol &#x3D; negotiatedProtocol;<br>  }</p>
+<p>  &#x2F;&#x2F;上述校验结束后代表整个WebSocket已经打开了<br>  self.readyState &#x3D; SR_OPEN;</p>
+<p>  &#x2F;&#x2F;如果没有错误发生则读取新的帧<br>  if (!_didFail) {<br>  [self _readFrameNew];<br>  }</p>
+<p>  &#x2F;&#x2F;通过代理通知业务层WebSocket已经打开了<br>  [self _performDelegateBlock:^{<br>  if ([self.delegate respondsToSelector:@selector(webSocketDidOpen:)]) {<br>      [self.delegate webSocketDidOpen:self];<br>  };<br>  }];</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">我们接下来看下每次数据进来是怎么进行交付的。我们再回到：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>(void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">除了上述的认证过程外，还有个十分重要的方法safeHandleEvent:<span class="keyword">stream</span>,每个数据进来都会通过这个方法进行处理：</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>(void)safeHandleEvent:(NSStreamEvent)eventCode stream:(NSStream *)aStream {<br>  switch (eventCode) {<br>      case NSStreamEventOpenCompleted: {<br>          SRFastLog(@”NSStreamEventOpenCompleted %@”, aStream);<br>          if (self.readyState &gt;&#x3D; SR_CLOSING) {<br>              return;<br>          }<br>          assert(_readBuffer);<br><br>          &#x2F;&#x2F; didConnect fires after certificate verification if we’re using pinned certificates.<br>          BOOL usingPinnedCerts &#x3D; [[_urlRequest SR_SSLPinnedCertificates] count] &gt; 0;<br>          if ((!_secure || !usingPinnedCerts) &amp;&amp; self.readyState &#x3D;&#x3D; SR_CONNECTING &amp;&amp; aStream &#x3D;&#x3D; _inputStream) {<br>              [self didConnect];<br>          }<br>          [self _pumpWriting];<br>          [self _pumpScanner];<br>          break;<br>      }<br><br>      case NSStreamEventErrorOccurred: {<br>          SRFastLog(@”NSStreamEventErrorOccurred %@ %@”, aStream, [[aStream streamError] copy]);<br>          &#x2F;&#x2F;&#x2F; TODO specify error better!<br>          [self _failWithError:aStream.streamError];<br>          _readBufferOffset &#x3D; 0;<br>          [_readBuffer setLength:0];<br>          break;<br><br>      }<br><br>      case NSStreamEventEndEncountered: {<br>          [self _pumpScanner];<br>          SRFastLog(@”NSStreamEventEndEncountered %@”, aStream);<br>          if (aStream.streamError) {<br>              [self _failWithError:aStream.streamError];<br>          } else {<br>              dispatch_async(_workQueue, ^{<br>                  if (self.readyState !&#x3D; SR_CLOSED) {<br>                      self.readyState &#x3D; SR_CLOSED;<br>                      [self _scheduleCleanup];<br>                  }<br><br>                  if (!_sentClose &amp;&amp; !_failed) {<br>                      _sentClose &#x3D; YES;<br>                      &#x2F;&#x2F; If we get closed in this state it’s probably not clean because we should be sending this when we send messages<br>                      [self _performDelegateBlock:^{<br>                          if ([self.delegate respondsToSelector:@selector(webSocket:didCloseWithCode:reason:wasClean:)]) {<br>                              [self.delegate webSocket:self didCloseWithCode:SRStatusCodeGoingAway reason:@”Stream end encountered” wasClean:NO];<br>                          }<br>                      }];<br>                  }<br>              });<br>          }<br><br>          break;<br>      }<br><br>      case NSStreamEventHasBytesAvailable: {<br>          SRFastLog(@”NSStreamEventHasBytesAvailable %@”, aStream);<br>          const int bufferSize &#x3D; 2048;<br>          uint8_t buffer[bufferSize];<br><br>          while (_inputStream.hasBytesAvailable) {<br>              NSInteger bytes_read &#x3D; [_inputStream read:buffer maxLength:bufferSize];<br><br>              if (bytes_read &gt; 0) {<br>                  [_readBuffer appendBytes:buffer length:bytes_read];<br>              } else if (bytes_read &lt; 0) {<br>                  [self _failWithError:_inputStream.streamError];<br>              }<br><br>              if (bytes_read !&#x3D; bufferSize) {<br>                  break;<br>              }<br>          };<br>          [self _pumpScanner];<br>          break;<br>      }<br><br>      case NSStreamEventHasSpaceAvailable: {<br>          SRFastLog(@”NSStreamEventHasSpaceAvailable %@”, aStream);<br>          [self _pumpWriting];<br>          break;<br>      }<br><br>      default:<br>          SRFastLog(@”(default)  %@”, aStream);<br>          break;<br>  }</li>
+</ul>
+<p>}</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">这里有个十分关键的类型：<span class="strong">****</span>NSStreamEvent<span class="strong">****</span>用于表示当前消息的类型：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>typedef NS_OPTIONS(NSUInteger, NSStreamEvent) {<br>    NSStreamEventNone &#x3D; 0,<br>    NSStreamEventOpenCompleted &#x3D; 1UL &lt;&lt; 0,          &#x2F;&#x2F;打开完成<br>    NSStreamEventHasBytesAvailable &#x3D; 1UL &lt;&lt; 1,      &#x2F;&#x2F;流中有数据可读<br>    NSStreamEventHasSpaceAvailable &#x3D; 1UL &lt;&lt; 2,      &#x2F;&#x2F;缓存中有空间可写<br>    NSStreamEventErrorOccurred &#x3D; 1UL &lt;&lt; 3,          &#x2F;&#x2F;遇到错误<br>    NSStreamEventEndEncountered &#x3D; 1UL &lt;&lt; 4          &#x2F;&#x2F;遇到结束符<br>};</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">我们这里先看下 <span class="strong">****</span>NSStreamEventOpenCompleted<span class="strong">****</span>，后面介绍读写的时候还会接着介绍<span class="strong">****</span>NSStreamEventHasBytesAvailable<span class="strong">****</span>，<span class="strong">****</span>NSStreamEventHasSpaceAvailable<span class="strong">****</span>这两个事件。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;&#x2F;连接完成<br>case NSStreamEventOpenCompleted: {<br>    SRFastLog(@”NSStreamEventOpenCompleted %@”, aStream);<br>     &#x2F;&#x2F;如果就绪状态为关闭或者正在关闭，直接返回<br>    if (self.readyState &gt;&#x3D; SR_CLOSING) {<br>        return;<br>    }<br>    assert(_readBuffer);</p>
+<pre><code>//如果是ws，或者无自签证书，而且是正准备连接，而且aStream是输入流
+// didConnect fires after certificate verification if we&#39;re using pinned certificates.
+BOOL usingPinnedCerts = [[_urlRequest SR_SSLPinnedCertificates] count] &gt; 0;
+if ((!_secure || !usingPinnedCerts) &amp;&amp; self.readyState == SR_CONNECTING &amp;&amp; aStream == _inputStream) &#123;
+    //进行握手连接
+    [self didConnect];
+&#125;
+//开始写数据
+[self _pumpWriting];
+//读取应答数据
+[self _pumpScanner];
+break;
+</code></pre>
+<p>}</p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">之前介绍的是wss协议类型的情况，这里则是<span class="keyword">ws</span>或者无自签名证书的情形，主要流程还是类似的。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">上面介绍了从初始化，到建立连接，再到握手的整个流程，在介绍WebSocket读写数据之前，我们再从头梳理下这个阶段的关键过程：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ol>
+<li>最开始我们会对协议类型进行校验，判断是否是ws，http，wss，https这些类型的一种</li>
+<li>设置当前状态为SR_CONNECTING</li>
+<li>创建_workQueue，networkThread以及_delegateDispatchQueue</li>
+<li>初始化读写缓存_readBuffer，_outputBuffer，消费者数组_consumers以及消费对象池_consumerPool。</li>
+<li>通过CFStreamCreatePairWithSocketToHost创建读写数据流readStream，writeStream。并设置读写流代理,指定对应的Runloop,如果是wss协议，还要更新流的安全属性, 上面设置完毕后调用输入输出流的open方法打开流。</li>
+<li>流打开后就会有数据从代理进来，对于wss类型的协议，如果证书还没找到，那么会进行证书的匹配，如果匹配成功则调用didConnect，在didConnect中发送握手消息头到服务端，进行握手通信。</li>
+<li>通过数据消费者从缓存中读取应答头数据，这时候分别对服务端返回的头部的状态码，Sec-WebSocket-Accept，子协议进行校验，如果校验通过则将状态设置为SR_OPEN并通过代理webSocketDidOpen通知业务层websocket已经成功连接。</li>
+</ol>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="strong">****</span>3. 数据读写<span class="strong">****</span></span><br><span class="line"></span><br><span class="line">最后剩下一个问题，数据是怎样从输入流读入，怎样从输出流发出，数据消费者在整个过程中扮演的角色，workQueue,networkThread在整个过程扮演的角色。</span><br><span class="line"></span><br><span class="line">我们来看下<span class="strong">****</span>NSStreamEventHasBytesAvailable<span class="strong">****</span>用于表示可以从缓存中读取数据了：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>case NSStreamEventHasBytesAvailable: {<br>    SRFastLog(@”NSStreamEventHasBytesAvailable %@”, aStream);<br>    const int bufferSize &#x3D; 2048;<br>    uint8_t buffer[bufferSize];</p>
+<pre><code>while (_inputStream.hasBytesAvailable) &#123;
+    //从输入流中读取数据到缓存中
+    NSInteger bytes_read = [_inputStream read:buffer maxLength:bufferSize];
+    if (bytes_read &gt; 0) &#123;
+        //将数据追加到读缓存中
+        [_readBuffer appendBytes:buffer length:bytes_read];
+    &#125; else if (bytes_read &lt; 0) &#123;
+        [self _failWithError:_inputStream.streamError];
+    &#125;
+    //如果读取的不等于最大的，说明读完了，跳出循环
+    if (bytes_read != bufferSize) &#123;
+        break;
+    &#125;
+&#125;;
+//开始扫描，看消费者什么时候消费数据
+[self _pumpScanner];
+break;
+</code></pre>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<p>-(void)_pumpScanner {<br>    [self assertOnWorkQueue];<br>    &#x2F;&#x2F;判断是否在扫描<br>    if (!_isPumping) {<br>        _isPumping &#x3D; YES;<br>    } else {<br>        return;<br>    }<br>    while ([self _innerPumpScanner]) {}<br>    _isPumping &#x3D; NO;<br>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(BOOL)_innerPumpScanner {</p>
+<p>  BOOL didWork &#x3D; NO;<br>  &#x2F;&#x2F;如果当前状态为已关闭 返回NO<br>  if (self.readyState &gt;&#x3D; SR_CLOSED) {<br>  return didWork;<br>  }<br>  &#x2F;&#x2F;如果数据消费者列表为空，返回NO<br>  if (!_consumers.count) {<br>  return didWork;<br>  }</p>
+<p>  &#x2F;&#x2F;读取的buffer长度 - 偏移量  &#x3D;  可以被读取的数据帧的长度<br>  size_t curSize &#x3D; _readBuffer.length - _readBufferOffset;<br>  &#x2F;&#x2F;如果未读为空，返回NO<br>  if (!curSize) {<br>  return didWork;<br>  }</p>
+<p>  &#x2F;&#x2F;取出数据消费者队列中的第一个消费者<br>  SRIOConsumer *consumer &#x3D; [_consumers objectAtIndex:0];<br>  &#x2F;&#x2F;得到需要的字节数<br>  size_t bytesNeeded &#x3D; consumer.bytesNeeded;<br>  &#x2F;&#x2F;消费者本次找到的要读取的数据大小<br>  size_t foundSize &#x3D; 0;</p>
+<p>  &#x2F;&#x2F; 确定foundSize 大小<br>  &#x2F;&#x2F;consumer.consumer是指定了用于查找要读取数据的规则。<br>  if (consumer.consumer) {<br>  &#x2F;&#x2F;把未读数据从readBuffer中赋值到tempView里，待consumer.consumer按照它的规则进行查找要读取的数据<br>  NSData *tempView &#x3D; [NSData dataWithBytesNoCopy:(char *)_readBuffer.bytes + _readBufferOffset length:_readBuffer.length - _readBufferOffset freeWhenDone:NO];<br>  &#x2F;&#x2F;得到要读取的数据大小<br>  foundSize &#x3D; consumer.consumer(tempView);<br>  } else {<br>  &#x2F;&#x2F;如果没有指定查找规则则按bytesNeeded来确定foundSize<br>  assert(consumer.bytesNeeded);<br>  &#x2F;&#x2F;如果未读字节大于需要字节，直接等于需要字节<br>  if (curSize &gt;&#x3D; bytesNeeded) {<br>      foundSize &#x3D; bytesNeeded;<br>  }<br>  &#x2F;&#x2F;如果为读取当前帧<br>  else if (consumer.readToCurrentFrame) {<br>      &#x2F;&#x2F;消费大小等于当前未读字节<br>      foundSize &#x3D; curSize;<br>  }<br>  }</p>
+<p>  &#x2F;&#x2F;通过上面的foundSize得到需要读取的数据，并且释放已读的空间<br>  NSData *slice &#x3D; nil;<br>  &#x2F;&#x2F;如果读取当前帧或者foundSize大于0<br>  if (consumer.readToCurrentFrame || foundSize) {<br>  &#x2F;&#x2F;从已读偏移到要读的字节处<br>  NSRange sliceRange &#x3D; NSMakeRange(_readBufferOffset, foundSize);<br>  &#x2F;&#x2F;得到data<br>  slice &#x3D; [_readBuffer subdataWithRange:sliceRange];<br>  &#x2F;&#x2F;增加已读偏移<br>  _readBufferOffset +&#x3D; foundSize;<br>  &#x2F;&#x2F;如果读取偏移的大小大于4096，或者读取偏移大于 1&#x2F;2的buffer大小<br>  if (_readBufferOffset &gt; 4096 &amp;&amp; _readBufferOffset &gt; (_readBuffer.length &gt;&gt; 1)) {<br>      &#x2F;&#x2F;重新创建，释放已读那部分的data空间<br>      _readBuffer &#x3D; [[NSMutableData alloc] initWithBytes:(char *)_readBuffer.bytes + _readBufferOffset length:_readBuffer.length - _readBufferOffset];            _readBufferOffset &#x3D; 0;<br>  }<br><br>  &#x2F;&#x2F;如果用户未掩码的数据<br>  if (consumer.unmaskBytes) {<br>      &#x2F;&#x2F;copy切片<br>      NSMutableData *mutableSlice &#x3D; [slice mutableCopy];<br>      &#x2F;&#x2F;得到长度字节数<br>      NSUInteger len &#x3D; mutableSlice.length;<br>      uint8_t *bytes &#x3D; mutableSlice.mutableBytes;<br><br>      for (NSUInteger i &#x3D; 0; i &lt; len; i++) {<br>          &#x2F;&#x2F;得到一个读取掩码key，为偏移量_currentReadMaskOffset取余_currentReadMaskKey，当前掩码key，<br>          &#x2F;&#x2F;再和字节异或运算（相同为0，不同为1）<br>          bytes[i] &#x3D; bytes[i] ^ _currentReadMaskKey[_currentReadMaskOffset % sizeof(_currentReadMaskKey)];<br>          &#x2F;&#x2F;偏移量+1<br>          _currentReadMaskOffset +&#x3D; 1;<br>      }<br>      &#x2F;&#x2F;把数据改成掩码后的<br>      slice &#x3D; mutableSlice;<br>  }<br><br>  &#x2F;&#x2F;如果读取当前帧<br>  if (consumer.readToCurrentFrame) {<br>      &#x2F;&#x2F;拼接数据<br>      [_currentFrameData appendData:slice];<br>      &#x2F;&#x2F;+1<br>      _readOpCount +&#x3D; 1;<br>      &#x2F;&#x2F;判断Opcode，如果是文本帧<br>      if (_currentFrameOpcode &#x3D;&#x3D; SROpCodeTextFrame) {<br>          &#x2F;&#x2F; Validate UTF8 stuff.<br>          &#x2F;&#x2F;得到当前帧数据的长度<br>          size_t currentDataSize &#x3D; _currentFrameData.length;<br>          &#x2F;&#x2F;如果currentDataSize 大于0<br>          if (_currentFrameOpcode &#x3D;&#x3D; SROpCodeTextFrame &amp;&amp; currentDataSize &gt; 0) {<br>              &#x2F;&#x2F; TODO: Optimize the crap out of this.  Don’t really have to copy all the data each time<br>              &#x2F;&#x2F;判断需要scan的大小<br>              size_t scanSize &#x3D; currentDataSize - _currentStringScanPosition;<br>              &#x2F;&#x2F;得到要sacn的data<br>              NSData *scan_data &#x3D; [_currentFrameData subdataWithRange:NSMakeRange(_currentStringScanPosition, scanSize)];<br>              &#x2F;&#x2F;验证数据<br>              int32_t valid_utf8_size &#x3D; validate_dispatch_data_partial_string(scan_data);<br><br>              &#x2F;&#x2F;-1为错误，关闭连接<br>              if (valid_utf8_size &#x3D;&#x3D; -1) {<br>                  [self closeWithCode:SRStatusCodeInvalidUTF8 reason:@”Text frames must be valid UTF-8”];<br>                  dispatch_async(_workQueue, ^{<br>                      [self closeConnection];<br>                  });<br>                  return didWork;<br>              } else {<br>                  &#x2F;&#x2F;扫描的位置+上合法数据的size<br>                  _currentStringScanPosition +&#x3D; valid_utf8_size;<br>              }<br>          }<br><br>      }<br>      &#x2F;&#x2F;需要的size - 已操作的size<br>      consumer.bytesNeeded -&#x3D; foundSize;<br>      &#x2F;&#x2F;如果还需要的字节数 &#x3D; 0，移除消费者<br>      if (consumer.bytesNeeded &#x3D;&#x3D; 0) {<br>          [_consumers removeObjectAtIndex:0];<br>          &#x2F;&#x2F;回调读取完成<br>          consumer.handler(self, nil);&#x2F;&#x2F;由于读取当前帧的时候数据存放在_currentFrameData，所以这里返回为nil<br>          &#x2F;&#x2F;把要返回的consumer，先放在_consumerPool缓冲池中<br>          [_consumerPool returnConsumer:consumer];<br>          &#x2F;&#x2F;已经工作为YES<br>          didWork &#x3D; YES;<br>      }<br>  } else if (foundSize) {<br>      &#x2F;&#x2F;移除消费者<br>      [_consumers removeObjectAtIndex:0];<br>      &#x2F;&#x2F;回调回去当前接受到的数据<br>      consumer.handler(self, slice);<br><br>      [_consumerPool returnConsumer:consumer];<br>      didWork &#x3D; YES;<br>  }<br>  }<br>  return didWork;</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">上面是比较详细的代码注释，接下来我们抠出这段代码中关键的部分，让大家对这部分流程更加清晰：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(BOOL)_innerPumpScanner {</p>
+<p>  &#x2F;&#x2F;第一部分： 前置条件判断<br>  &#x2F;&#x2F;…………….</p>
+<p>  &#x2F;&#x2F;取出数据消费者队列中的第一个消费者<br>  SRIOConsumer *consumer &#x3D; [_consumers objectAtIndex:0];</p>
+<p>  &#x2F;&#x2F;第二部分：得到需要的字节数foundSize<br>  size_t bytesNeeded &#x3D; consumer.bytesNeeded;<br>  &#x2F;&#x2F;消费者本次找到的要读取的数据大小<br>  size_t foundSize &#x3D; 0;<br>  &#x2F;&#x2F; 确定foundSize 大小<br>  &#x2F;&#x2F;consumer.consumer是指定了用于查找要读取数据的规则。<br>  if (consumer.consumer) {<br>  &#x2F;&#x2F;指定了用于查找要读取数据的规则的情况<br>  } else {<br>  &#x2F;&#x2F;读取当前帧或者读取部分数据的情况<br>  }</p>
+<p>  &#x2F;&#x2F;第三部分：通过上面的foundSize得到需要读取的数据，并且释放已读的空间<br>  &#x2F;&#x2F;如果读取当前帧或者foundSize大于0<br>  if (consumer.readToCurrentFrame || foundSize) {<br>  &#x2F;&#x2F;从已读偏移到要读的字节处<br>  NSRange sliceRange &#x3D; NSMakeRange(_readBufferOffset, foundSize);<br>  &#x2F;&#x2F;得到data<br>  slice &#x3D; [_readBuffer subdataWithRange:sliceRange];<br>  &#x2F;&#x2F;…………….<br><br>  &#x2F;&#x2F;如果读取当前帧<br>  if (consumer.readToCurrentFrame) {<br>      &#x2F;&#x2F;拼接数据<br>      [_currentFrameData appendData:slice];<br>      &#x2F;&#x2F;…………..<br>      &#x2F;&#x2F;当前帧已经读取完毕<br>      if (consumer.bytesNeeded &#x3D;&#x3D; 0) {<br>          [_consumers removeObjectAtIndex:0];<br>          &#x2F;&#x2F;回调读取完成<br>          consumer.handler(self, nil);&#x2F;&#x2F;由于读取当前帧的时候数据存放在_currentFrameData，所以这里返回为nil<br>          &#x2F;&#x2F;把要返回的consumer，先放在_consumerPool缓冲池中<br>          [_consumerPool returnConsumer:consumer];<br>          &#x2F;&#x2F;已经工作为YES<br>          didWork &#x3D; YES;<br>      }<br>  }<br>  &#x2F;&#x2F;非当前帧的情况<br>  else if (foundSize) {<br>      &#x2F;&#x2F;第四部分：将得到所需要数据的消费者从消费者列表中移除，并通过对应的block交付数据，将consumer放到对象池中。<br>      [_consumers removeObjectAtIndex:0];<br>      &#x2F;&#x2F;回调回去当前接受到的数据<br>      consumer.handler(self, slice);<br>      [_consumerPool returnConsumer:consumer];<br>      didWork &#x3D; YES;<br>  }<br>  }<br>  return didWork;</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">整个流程分成四个步骤：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>第一部分：前置条件判断<br>第二部分：确定消费者需要的字节数foundSize<br>第三部分：通过上面的foundSize得到需要读取的数据，并且释放已读的空间<br>第四部分：将得到所需要数据的消费者从消费者列表中移除，并通过对应的block交付数据，将consumer放到对象池中。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">再回到<span class="built_in">NSStreamEventHasBytesAvailable</span>事件的处理中做个总结：</span><br><span class="line"></span><br><span class="line">这个事件中，首先将数据从数据流中取出数据然后添加到读缓存中，然后从数据消费者队列中取出一个消费者，让它再读缓存中按需读取出它所需要的数据，并通过block交付给应用层。至于消费者是何时添加的我们放在后面集中介绍，我们接下来看<span class="built_in">NSStreamEventHasSpaceAvailable</span>。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>case NSStreamEventHasSpaceAvailable: {<br>    SRFastLog(@”NSStreamEventHasSpaceAvailable %@”, aStream);<br>    [self _pumpWriting];<br>    break;<br>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">写相对读来说相对简单，这里就不做过多介绍，大家可以直接看下面注释：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)_writeData:(NSData *)data {<br>  [self assertOnWorkQueue];</p>
+<p>  if (_closeWhenFinishedWriting) {<br>      return;<br>  }<br>  [_outputBuffer appendData:data];<br>  [self _pumpWriting];</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)_pumpWriting {<br>  [self assertOnWorkQueue];<br>  &#x2F;&#x2F;输出缓存大小<br>  NSUInteger dataLength &#x3D; _outputBuffer.length;<br>  &#x2F;&#x2F;输出缓存和输出流都还有空间剩余<br>  if (dataLength - _outputBufferOffset &gt; 0 &amp;&amp; _outputStream.hasSpaceAvailable) {<br>  &#x2F;&#x2F;通过输出缓存输出数据<br>  NSInteger bytesWritten &#x3D; [_outputStream write:_outputBuffer.bytes + _outputBufferOffset maxLength:dataLength - _outputBufferOffset];<br>  &#x2F;&#x2F;………..<br>  &#x2F;&#x2F;修改缓存偏移<br>  _outputBufferOffset +&#x3D; bytesWritten;<br>  &#x2F;&#x2F;……….<br>  }<br>  &#x2F;&#x2F;如果_closeWhenFinishedWriting表示写完数据后关闭连接则走下面流程<br>  if (_closeWhenFinishedWriting &amp;&amp;<br>  _outputBuffer.length - _outputBufferOffset &#x3D;&#x3D; 0 &amp;&amp;<br>  (_inputStream.streamStatus !&#x3D; NSStreamStatusNotOpen &amp;&amp;<br>   _inputStream.streamStatus !&#x3D; NSStreamStatusClosed) &amp;&amp;<br>  !_sentClose) {<br>  _sentClose &#x3D; YES;<br>  @synchronized(self) {<br>      [_outputStream close];<br>      [_inputStream close];<br>      for (NSArray *runLoop in [_scheduledRunloops copy]) {<br>          [self unscheduleFromRunLoop:[runLoop objectAtIndex:0] forMode:[runLoop objectAtIndex:1]];<br>      }<br>  }<br>  if (!_failed) {<br>      &#x2F;&#x2F;通过代理告诉应用层关闭的原因<br>      [self _performDelegateBlock:^{<br>          if ([self.delegate respondsToSelector:@selector(webSocket:didCloseWithCode:reason:wasClean:)]) {<br>              [self.delegate webSocket:self didCloseWithCode:_closeCode reason:_closeReason wasClean:YES];<br>          }<br>      }];<br>  }<br>  [self _scheduleCleanup];<br>  }<br>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">我们接下来看下数据消费者是如何管理的：</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>(void)_addConsumerWithDataLength:(size_t)dataLength<br>                    callback:(data_callback)callback<br>          readToCurrentFrame:(BOOL)readToCurrentFrame<br>                 unmaskBytes:(BOOL)unmaskBytes {<br>  [self assertOnWorkQueue];<br>  assert(dataLength);</p>
+<p>  [_consumers addObject:[_consumerPool consumerWithScanner:nil<br>                                               handler:callback<br>                                            bytesNeeded:dataLength<br>                                     readToCurrentFrame:readToCurrentFrame<br>                                            unmaskBytes:unmaskBytes]];<br>  [self _pumpScanner];</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(SRIOConsumer *)consumerWithScanner:(stream_scanner)scanner<br>                        handler:(data_callback)handler<br>                    bytesNeeded:(size_t)bytesNeeded<br>             readToCurrentFrame:(BOOL)readToCurrentFrame<br>                    unmaskBytes:(BOOL)unmaskBytes {<br>  SRIOConsumer *consumer &#x3D; nil;<br>  if (_bufferedConsumers.count) {<br>  consumer &#x3D; [_bufferedConsumers lastObject];<br>  [_bufferedConsumers removeLastObject];<br>  } else {<br>  consumer &#x3D; [[SRIOConsumer alloc] init];<br>  }</p>
+<p>  [consumer setupWithScanner:scanner handler:handler bytesNeeded:bytesNeeded readToCurrentFrame:readToCurrentFrame unmaskBytes:unmaskBytes];</p>
+<p>  return consumer;</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)returnConsumer:(SRIOConsumer *)consumer {<br>  if (_bufferedConsumers.count &lt; _poolSize) {<br>  [_bufferedConsumers addObject:consumer];<br>  }<br>}</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">数据消费者是通过****<span class="variable">_addConsumerWithDataLength</span>****添加到消费者数组<span class="variable">_consumers</span>中的，同时为了避免频繁创建消费者对象这里使用了对象池，默认消费者对象池中的对象为<span class="number">8</span>个，每次用完都会归还到对象池，在需要的时候会从对象池中拿取最后一个返回。</span><br><span class="line"></span><br><span class="line">所以添加消费者对象的时候会从消费者对象池中取出一个闲置的消费者对象，然后添加到消费者队列中，然后调用<span class="variable">_pumpScanner</span>，从消费者列表中取出第一个消费者，让它从读缓存中读取需要的数据，并通过handler交付读到的数据。</span><br><span class="line"></span><br><span class="line">SRWebSocket会在如下情况下添加消费者：</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>(void)_readUntilHeaderCompleteWithCallback:(data_callback)dataHandler; &#x2F;&#x2F; 握手阶段，发送完握手头信息后会去读取服务端返回的响应头</p>
+</li>
+<li><p>(void)_readFrameContinue；持续读帧信息的时候</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">也就是每次需要数据的时候都会往消费者队列中添加一个消费者，等到有数据之后会去除这些消费者读取数据，并通过block交付。</span><br><span class="line"></span><br><span class="line"><span class="strong">****</span>读取接收到的连续帧<span class="strong">****</span></span><br><span class="line"></span><br><span class="line">介绍了缓存的读写，读消费者的管理，以及帧格式的介绍后下面我们来看下怎样读取帧和发送帧，首先看下读取连续帧：</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>(void)_readFrameContinue {</p>
+<p>  assert((_currentFrameCount &#x3D;&#x3D; 0 &amp;&amp; _currentFrameOpcode &#x3D;&#x3D; 0) || (_currentFrameCount &gt; 0 &amp;&amp; _currentFrameOpcode &gt; 0));</p>
+<p>  [self _addConsumerWithDataLength:2 callback:^(SRWebSocket *self, NSData *data) {</p>
+<pre><code>  __block frame_header header = &#123;0&#125;;
+  
+  const uint8_t *headerBuffer = data.bytes;
+  assert(data.length &gt;= 2);
+  
+  //读取RSV,默认必须是0
+  if (headerBuffer[0] &amp; SRRsvMask) &#123;
+      [self _closeWithProtocolError:@&quot;Server used RSV bits&quot;];
+      return;
+  &#125;
+  //获取操作码
+  uint8_t receivedOpcode = (SROpCodeMask &amp; headerBuffer[0]);
+  //当前帧是否是控制帧
+  BOOL isControlFrame = (receivedOpcode == SROpCodePing || receivedOpcode == SROpCodePong || receivedOpcode == SROpCodeConnectionClose);
+  
+  //中间帧的操作码必须为0
+  if (!isControlFrame &amp;&amp; receivedOpcode != 0 &amp;&amp; self-&gt;_currentFrameCount &gt; 0) &#123;
+      [self _closeWithProtocolError:@&quot;all data frames after the initial data frame must have opcode 0&quot;];
+      return;
+  &#125;
+  if (receivedOpcode == 0 &amp;&amp; self-&gt;_currentFrameCount == 0) &#123;
+      [self _closeWithProtocolError:@&quot;cannot continue a message&quot;];
+      return;
+  &#125;
+  //操作码赋给header
+  header.opcode = receivedOpcode == 0 ? self-&gt;_currentFrameOpcode : receivedOpcode;
+  //fin结束码赋给header
+  header.fin = !!(SRFinMask &amp; headerBuffer[0]);
+  //是否mask字段
+  header.masked = !!(SRMaskMask &amp; headerBuffer[1]);
+  //内容长度
+  header.payload_length = SRPayloadLenMask &amp; headerBuffer[1];
+  headerBuffer = NULL;
+  //客户端收到的数据必须是unmasked数据
+  if (header.masked) &#123;
+      [self _closeWithProtocolError:@&quot;Client must receive unmasked data&quot;];
+  &#125;
+  //额外内容
+  size_t extra_bytes_needed = header.masked ? sizeof(_currentReadMaskKey) : 0;
+  //.........
+  if (extra_bytes_needed == 0) &#123;
+      [self _handleFrameHeader:header curData:self-&gt;_currentFrameData];
+  &#125; else &#123;
+      //..........
+  &#125;
+</code></pre>
+<p>  } readToCurrentFrame:NO unmaskBytes:NO];</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)_handleFrameHeader:(frame_header)frame_header curData:(NSData *)curData {</p>
+<p>  &#x2F;&#x2F;当前状态检查<br>  if (self.readyState &#x3D;&#x3D; SR_CLOSED) {<br>  return;<br>  }</p>
+<p>  &#x2F;&#x2F;是否是控制帧<br>  BOOL isControlFrame &#x3D; (frame_header.opcode &#x3D;&#x3D; SROpCodePing || frame_header.opcode &#x3D;&#x3D; SROpCodePong || frame_header.opcode &#x3D;&#x3D; SROpCodeConnectionClose);</p>
+<p>  &#x2F;&#x2F;控制帧不能分片<br>  if (isControlFrame &amp;&amp; !frame_header.fin) {<br>  [self _closeWithProtocolError:@”Fragmented control frames not allowed”];<br>  return;<br>  }</p>
+<p>  &#x2F;&#x2F;控制帧大小不能大于126<br>  if (isControlFrame &amp;&amp; frame_header.payload_length &gt;&#x3D; 126) {<br>  [self _closeWithProtocolError:@”Control frames cannot have payloads larger than 126 bytes”];<br>  return;<br>  }</p>
+<p>  if (!isControlFrame) {<br>  _currentFrameOpcode &#x3D; frame_header.opcode;<br>  _currentFrameCount +&#x3D; 1;<br>  }</p>
+<p>  if (frame_header.payload_length &#x3D;&#x3D; 0) {<br>  &#x2F;&#x2F;是控制帧的情况<br>  if (isControlFrame) {<br>      [self _handleFrameWithData:curData opCode:frame_header.opcode];<br>  } else {<br>      if (frame_header.fin) {<br>          &#x2F;&#x2F;数据帧读取完毕<br>          [self _handleFrameWithData:_currentFrameData opCode:frame_header.opcode];<br>      } else {<br>          &#x2F;&#x2F;数据帧还未读取完毕<br>          [self _readFrameContinue];<br>      }<br>  }<br>  } else {<br>  &#x2F;&#x2F;有负载数据<br>  assert(frame_header.payload_length &lt;&#x3D; SIZE_T_MAX);<br>  [self _addConsumerWithDataLength:(size_t)frame_header.payload_length callback:^(SRWebSocket *self, NSData *newData) {<br>      &#x2F;&#x2F;是控制帧的情况<br>      if (isControlFrame) {<br>          [self _handleFrameWithData:newData opCode:frame_header.opcode];<br>      } else {<br>          if (frame_header.fin) {<br>              &#x2F;&#x2F;数据帧读取完毕<br>              [self _handleFrameWithData:self-&gt;_currentFrameData opCode:frame_header.opcode];<br>          } else {<br>              &#x2F;&#x2F;数据帧还未读取完毕<br>              [self _readFrameContinue];<br>          }<br><br>      }<br>  } readToCurrentFrame:!isControlFrame unmaskBytes:frame_header.masked];<br>  }</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)_handleFrameWithData:(NSData *)frameData opCode:(NSInteger)opcode {<br>  &#x2F;&#x2F; Check that the current data is valid UTF8</p>
+<p>  BOOL isControlFrame &#x3D; (opcode &#x3D;&#x3D; SROpCodePing || opcode &#x3D;&#x3D; SROpCodePong || opcode &#x3D;&#x3D; SROpCodeConnectionClose);<br>  &#x2F;&#x2F;………….<br>  switch (opcode) {<br>  &#x2F;&#x2F;文本流<br>  case SROpCodeTextFrame: {<br>      &#x2F;&#x2F;如果当前类型为文本类型，是否转为string<br>      if ([self.delegate respondsToSelector:@selector(webSocketShouldConvertTextFrameToString:)] &amp;&amp; ![self.delegate webSocketShouldConvertTextFrameToString:self]) {<br>          &#x2F;&#x2F;不转为string<br>          [self _handleMessage:[frameData copy]];<br>      } else {<br>          &#x2F;&#x2F;转为string<br>          NSString *str &#x3D; [[NSString alloc] initWithData:frameData encoding:NSUTF8StringEncoding];<br>          &#x2F;&#x2F;有数据但是转换后string为空，表明转换失败<br>          if (str &#x3D;&#x3D; nil &amp;&amp; frameData) {<br>              [self closeWithCode:SRStatusCodeInvalidUTF8 reason:@”Text frames must be valid UTF-8”];<br>              dispatch_async(_workQueue, ^{<br>                  [self closeConnection];<br>              });<br>              return;<br>          }<br>          [self _handleMessage:str];<br>      }<br>      break;<br>  }<br>  case SROpCodeBinaryFrame:<br>      &#x2F;&#x2F;二进制流<br>      [self _handleMessage:[frameData copy]];<br>      break;<br>      &#x2F;&#x2F;关闭消息<br>  case SROpCodeConnectionClose:<br>      [self handleCloseWithData:[frameData copy]];<br>      break;<br>      &#x2F;&#x2F; ping<br>  case SROpCodePing:<br>      [self handlePing:[frameData copy]];<br>      break;<br>      &#x2F;&#x2F; pong<br>  case SROpCodePong:<br>      [self handlePong:[frameData copy]];<br>      break;<br>  default:<br>      [self _closeWithProtocolError:[NSString stringWithFormat:@”Unknown opcode %ld”, (long)opcode]];<br>      &#x2F;&#x2F; TODO: Handle invalid opcode<br>      break;<br>  }</p>
+</li>
+</ul>
+<p>}</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>(void)_handleMessage:(id)message {<br>  SRFastLog(@”Received message”);<br>  [self _performDelegateBlock:^{<br>  [self.delegate webSocket:self didReceiveMessage:message];<br>  }];<br>}<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">上面将所有读连续帧的代码都贴出来了，并做了对应的注释，下面我们来做个总结，<span class="strong">****</span><span class="emphasis">_readFrameContinue<span class="strong">****</span>会先读取帧的前两个字节取出fin,rsv,opcode,payload len,并对这些字段进行校验。<span class="strong">****</span>_</span>handleFrameHeader<span class="strong">****</span>继续读取payload数据，再将数据以及opcode送到<span class="strong">****</span><span class="emphasis">_handleFrameWithData<span class="strong">****</span> 通过 <span class="strong">****</span>_</span>handleMessage<span class="strong">****</span> 将消息送到业务层。从这里可以看出虽然WebSocket会将数据进行分包，但是SRWebSocket会再底层将这些分包进行拼接后将一个完整的数据交付给业务层。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="strong">****</span>发送帧数据<span class="strong">****</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>(void)send:(id)data {<br>  data &#x3D; [data copy];<br>  dispatch_async(_workQueue, ^{<br>  if ([data isKindOfClass:[NSString class]]) {<br>      [self _sendFrameWithOpcode:SROpCodeTextFrame data:[(NSString *)data dataUsingEncoding:NSUTF8StringEncoding]];<br>  } else if ([data isKindOfClass:[NSData class]]) {<br>      [self _sendFrameWithOpcode:SROpCodeBinaryFrame data:data];<br>  } else if (data &#x3D;&#x3D; nil) {<br>      [self _sendFrameWithOpcode:SROpCodeTextFrame data:data];<br>  } else {<br>      assert(NO);<br>  }<br>  });<br>}</li>
+</ul>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>(void)_sendFrameWithOpcode:(SROpCode)opcode data:(id)data {</p>
+<p>  &#x2F;&#x2F;….</p>
+<p>  size_t payloadLength &#x3D; [data isKindOfClass:[NSString class]] ? [(NSString *)data lengthOfBytesUsingEncoding:NSUTF8StringEncoding] : [data length];</p>
+<p>  NSMutableData *frame &#x3D; [[NSMutableData alloc] initWithLength:payloadLength + SRFrameHeaderOverhead];</p>
+<p>  &#x2F;&#x2F;…..</p>
+<p>  uint8_t *frame_buffer &#x3D; (uint8_t *)[frame mutableBytes];</p>
+<p>  &#x2F;&#x2F; 设置fin<br>  frame_buffer[0] &#x3D; SRFinMask | opcode;</p>
+<p>  BOOL useMask &#x3D; YES;</p>
+</li>
+</ul>
+<p>#ifdef NOMASK<br>    useMask &#x3D; NO;<br>#endif</p>
+<pre><code>// 客户端发送给服务端的必须使用mask
+if (useMask) &#123;
+// set the mask and header
+    frame_buffer[1] |= SRMaskMask;
+&#125;
+
+size_t frame_buffer_size = 2;
+
+//填充数据
+const uint8_t *unmasked_payload = NULL;
+if ([data isKindOfClass:[NSData class]]) &#123;
+    unmasked_payload = (uint8_t *)[data bytes];
+&#125; else if ([data isKindOfClass:[NSString class]]) &#123;
+    unmasked_payload =  (const uint8_t *)[data UTF8String];
+&#125; else &#123;
+    return;
+&#125;
+
+//设置payload字段
+if (payloadLength &lt; 126) &#123;
+    frame_buffer[1] |= payloadLength;
+&#125; else if (payloadLength &lt;= UINT16_MAX) &#123;
+    frame_buffer[1] |= 126;
+    *((uint16_t *)(frame_buffer + frame_buffer_size)) = EndianU16_BtoN((uint16_t)payloadLength);
+    frame_buffer_size += sizeof(uint16_t);
+&#125; else &#123;
+    frame_buffer[1] |= 127;
+    *((uint64_t *)(frame_buffer + frame_buffer_size)) = EndianU64_BtoN((uint64_t)payloadLength);
+    frame_buffer_size += sizeof(uint64_t);
+&#125;
+    
+if (!useMask) &#123;
+    for (size_t i = 0; i &lt; payloadLength; i++) &#123;
+        frame_buffer[frame_buffer_size] = unmasked_payload[i];
+        frame_buffer_size += 1;
+    &#125;
+&#125; else &#123;
+    //对数据进行mark 处理
+    uint8_t *mask_key = frame_buffer + frame_buffer_size;
+    SecRandomCopyBytes(kSecRandomDefault, sizeof(uint32_t), (uint8_t *)mask_key);
+    frame_buffer_size += sizeof(uint32_t);
+    
+    // TODO: could probably optimize this with SIMD
+    for (size_t i = 0; i &lt; payloadLength; i++) &#123;
+        frame_buffer[frame_buffer_size] = unmasked_payload[i] ^ mask_key[i % sizeof(uint32_t)];
+        frame_buffer_size += 1;
+    &#125;
+&#125;
+
+assert(frame_buffer_size &lt;= [frame length]);
+frame.length = frame_buffer_size;
+
+//调用_writeData 写到流当中
+[self _writeData:frame];
+</code></pre>
+<p>}</p>
+<p>&#96;&#96;&#96;</p>
+<p>发送帧流程比较简单，就是构造帧数据，然后将数据塞入帧中，往输出流写。</p>
+<p>之前再规划这篇博客的时候本来只想简单介绍下SRWebSocket的但是写着写着，发现它还是满有意思的，特别是数据消费者部分的设计提起了兴趣，所以还是硬着头皮看将整个代码过了一遍，下面是一些比较好的文章，可以供大家深入阅读，个人觉得只要弄清楚了WebSocket理论基础后看这部分代码会显得十分轻松，希望这篇博客能够帮助到大家。好了今天就到这里。</p>
+<h4 id="较好的文章推荐"><a href="#较好的文章推荐" class="headerlink" title="较好的文章推荐"></a>较好的文章推荐</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc2616">Hypertext Transfer Protocol – HTTP&#x2F;1.1</a></li>
+<li><a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc6455">The WebSocket Protocol</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/2dbb360886a8">iOS即时通讯，从入门到“放弃”？</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/cdb7a886789a">SRWebSocket源码浅析</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5bf37b766fb9a04a0163edb2">SRWebSocket 源码介绍</a></li>
+<li><a target="_blank" rel="noopener" href="https://halfrost.com/websocket/">全双工通信的 WebSocket</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/bcefda55bce4">微信,QQ这类IM app怎么做——谈谈Websocket</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/0e5b946880b4">刨根问底HTTP和WebSocket协议(一）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/f666da1b1835">刨根问底HTTP和WebSocket协议(二）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/99610d84ab2a">刨根问底HTTP和WebSocket协议(三）</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/7620620/whats-the-behavioral-difference-between-http-stay-alive-and-websockets">What’s the behavioral difference between HTTP Stay-Alive and Websockets?</a></li>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000015122195">WebSocket与http长连接的区别</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/entry/5a5c559c518825734859ee5e">理论联系实际：从零理解WebSocket的通信原理、协议格式、安全性</a></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/12/04/YYAsyncLayer-源码解析/" title="YYAsyncLayer 源码解析">
+  <span>
+  YYAsyncLayer 源码解析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/11/30/AFNetWorking源码解析/"  title="AFNetWorking源码解析">
+ <span>AFNetWorking源码解析
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/12/02/SRWebSocket介绍/" data-title="iOS开源库之SRWebSocket源码分析" data-url="http://yoursite.com/2019/12/02/SRWebSocket%E4%BB%8B%E7%BB%8D/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%E5%BA%93%E4%BF%A1%E6%81%AF"><span class="toc-number">1.</span> <span class="toc-text">开源库信息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81WebSocket"><span class="toc-number">2.</span> <span class="toc-text">为什么需要WebSocket</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#WebSocket-%E5%8D%8F%E8%AE%AE%E7%AE%80%E8%A6%81%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.</span> <span class="toc-text">WebSocket 协议简要介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SRWebSocket-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">SRWebSocket 源码解析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BE%83%E5%A5%BD%E7%9A%84%E6%96%87%E7%AB%A0%E6%8E%A8%E8%8D%90"><span class="toc-number">5.</span> <span class="toc-text">较好的文章推荐</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

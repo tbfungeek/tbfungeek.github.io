@@ -1,0 +1,780 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iOS Runtime源码解析之dyld | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="源码地址 dyld  源码分析上一篇博客已经介绍到dyld被加载，以及设置dyld的入口点为__dyld_start,这篇博客就从__dyld_start开始看下应用执行main之前都经历了哪些过程，在开始之前我们需要先对iOS中对动态库有一定对了解，如果你之前接触过其他平台你可能会听说过Windows系统下的DLL文件，Linux 系统下的so文件，iOS系统则是使用dylib作为动态库，至于i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS Runtime源码解析之dyld">
+<meta property="og:url" content="http://yoursite.com/2020/01/14/iOS-Runtime%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E4%B9%8Bdyld/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="源码地址 dyld  源码分析上一篇博客已经介绍到dyld被加载，以及设置dyld的入口点为__dyld_start,这篇博客就从__dyld_start开始看下应用执行main之前都经历了哪些过程，在开始之前我们需要先对iOS中对动态库有一定对了解，如果你之前接触过其他平台你可能会听说过Windows系统下的DLL文件，Linux 系统下的so文件，iOS系统则是使用dylib作为动态库，至于i">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-01-13T16:19:28.000Z">
+<meta property="article:modified_time" content="2020-02-08T03:33:33.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Objective C 相关">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2020/01/14/iOS-Runtime源码解析之dyld/" title="iOS Runtime源码解析之dyld" itemprop="url">iOS Runtime源码解析之dyld</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2020-01-13T16:19:28.000Z" itemprop="datePublished"> Published 2020-01-14</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="源码地址"><a href="#源码地址" class="headerlink" title="源码地址"></a>源码地址</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/opensource-apple/dyld">dyld</a></li>
+</ul>
+<h4 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h4><p>上一篇博客已经介绍到dyld被加载，以及设置dyld的入口点为__dyld_start,这篇博客就从__dyld_start开始看下应用执行main之前都经历了哪些过程，在开始之前我们需要先对iOS中对动态库有一定对了解，如果你之前接触过其他平台你可能会听说过Windows系统下的DLL文件，Linux 系统下的so文件，iOS系统则是使用dylib作为动态库，至于iOS动态库与静态库的对比我们会专门用一篇博客进行介绍，dylib和普通的可执行文件在文件结构上大同小异，都是Mach O格式文件，只不过在文件类型上，一个是MH_DYLIB,一个是MH_EXECUTE，但是动态库不能像可执行文件那样直接运行，而是需要通过dyld加载到内存与主程序链接后才可以执行，在主程序启动后会通过dyld将它所依赖的全部动态链接库链接起来，最终组成可运行的应用。</p>
+<p>如果想查看某个可执行文件所依赖的动态链接库可以通过命令：<strong><strong>jtool -L IDLFundation</strong></strong> 来查看，我们接下来就来看下整个过程：</p>
+<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line">__dyld_start:</span><br><span class="line">	popq	%rdi		<span class="comment"># param1 = mh of app</span></span><br><span class="line">	pushq	$0		<span class="comment"># push a zero for debugger end of frames marker</span></span><br><span class="line">	movq	%rsp,%rbp	<span class="comment"># pointer to base of kernel frame</span></span><br><span class="line">	andq    $-<span class="number">16</span>,%rsp       <span class="comment"># force SSE alignment</span></span><br><span class="line">	subq	$16,%rsp	<span class="comment"># room for local variables</span></span><br><span class="line">	</span><br><span class="line">    //调用dyldbootstrap::start</span><br><span class="line">	<span class="comment"># call dyldbootstrap::start(app_mh, argc, argv, slide, dyld_mh, &amp;startGlue)</span></span><br><span class="line">	movl	<span class="number">8</span>(%rbp),%esi	<span class="comment"># param2 = argc into %esi</span></span><br><span class="line">	leaq	<span class="number">16</span>(%rbp),%rdx	<span class="comment"># param3 = &amp;argv[0] into %rdx</span></span><br><span class="line">	movq	__dyld_start_static(%rip), %r8</span><br><span class="line">	leaq	__dyld_start(%rip), %rcx</span><br><span class="line">	subq	 %r8, %rcx	<span class="comment"># param4 = slide into %rcx</span></span><br><span class="line">	leaq	___dso_handle(%rip),%r8 <span class="comment"># param5 = dyldsMachHeader</span></span><br><span class="line">	leaq	-<span class="number">8</span>(%rbp),%r9</span><br><span class="line">	call	__ZN13dyldbootstrap5startEPK12macho_headeriPPKclS2_Pm</span><br><span class="line">	movq	-<span class="number">8</span>(%rbp),%rdi</span><br><span class="line">	cmpq	$0,%rdi</span><br><span class="line">	jne	Lnew</span><br></pre></td></tr></table></figure>
+
+<p>在__dyld_start会通过汇编调用dyldbootstrap::start方法</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">uintptr_t</span> <span class="title">start</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> macho_header* appsMachHeader, <span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span>* argv[], </span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="type">intptr_t</span> slide, <span class="type">const</span> <span class="keyword">struct</span> macho_header* dyldsMachHeader,</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="type">uintptr_t</span>* startGlue)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//.........</span></span><br><span class="line">    <span class="keyword">return</span> dyld::_main(appsMachHeader, appsSlide, argc, argv, envp, apple, startGlue);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>dyldbootstrap::start方法中会进入dyld的入口main函数。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">_main(<span class="type">const</span> macho_header* mainExecutableMH, <span class="type">uintptr_t</span> mainExecutableSlide, </span><br><span class="line">        <span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span>* argv[], <span class="type">const</span> <span class="type">char</span>* envp[], <span class="type">const</span> <span class="type">char</span>* apple[], </span><br><span class="line">        <span class="type">uintptr_t</span>* startGlue)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">uintptr_t</span> result = <span class="number">0</span>;</span><br><span class="line">    sMainExecutableMachHeader = mainExecutableMH;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置ImageLoader的context</span></span><br><span class="line">    <span class="built_in">setContext</span>(mainExecutableMH, argc, argv, envp, apple);</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        <span class="comment">// instantiate ImageLoader for main executable</span></span><br><span class="line">        <span class="comment">// 加载Image(代表镜像)</span></span><br><span class="line">        <span class="comment">// 为主程序初始化imageLoader,用于后续的链接等过程</span></span><br><span class="line">        sMainExecutable = <span class="built_in">instantiateFromLoadedImage</span>(mainExecutableMH, mainExecutableSlide, sExecPath);</span><br><span class="line">        gLinkContext.mainExecutable = sMainExecutable;</span><br><span class="line">        gLinkContext.processIsRestricted = sProcessIsRestricted;</span><br><span class="line">        gLinkContext.processRequiresLibraryValidation = sProcessRequiresLibraryValidation;</span><br><span class="line">        gLinkContext.mainExecutableCodeSigned = <span class="built_in">hasCodeSignatureLoadCommand</span>(mainExecutableMH);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">        <span class="keyword">if</span> ( gLinkContext.sharedRegionMode != ImageLoader::kDontUseSharedRegion )</span><br><span class="line">            <span class="comment">// 将共享库加载到内存中</span></span><br><span class="line">            <span class="built_in">mapSharedCache</span>();</span><br><span class="line">        <span class="comment">// .......</span></span><br><span class="line">        <span class="comment">// 如果有插入的库,加载</span></span><br><span class="line">        <span class="comment">// load any inserted libraries</span></span><br><span class="line">        <span class="keyword">if</span>( sEnv.DYLD_INSERT_LIBRARIES != <span class="literal">NULL</span> ) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">const</span> <span class="type">char</span>* <span class="type">const</span>* lib = sEnv.DYLD_INSERT_LIBRARIES; *lib != <span class="literal">NULL</span>; ++lib) </span><br><span class="line">                <span class="comment">//// 加载环境变量DYLD_INSERT_LIBRARIES中的动态库，使用loadInsertedDylib进行加载</span></span><br><span class="line">                <span class="built_in">loadInsertedDylib</span>(*lib);<span class="comment">//把环境变量DYLD_INSERT_LIBRARIES 中的动态库调用loadInsertedDylib进行加载</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// record count of inserted libraries so that a flat search will look at </span></span><br><span class="line">        <span class="comment">// inserted libraries, then main, then others.</span></span><br><span class="line">        sInsertedDylibCount = sAllImages.<span class="built_in">size</span>()<span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// link main executable</span></span><br><span class="line">        <span class="comment">// 链接主程序</span></span><br><span class="line">        gLinkContext.linkingMainExecutable = <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">//继续回到dyld的_main函数中来,继续加载根目录Framework目录下的其他动态库. 加载完所有的dylibs之后,每个dylib之间还是没有关联,</span></span><br><span class="line">        <span class="comment">//不知道怎么调用,这时候就该进行link操作了,link操作分成rebase和binding辆部分.</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//ASLR（Address space layout randomization）是一种针对缓冲区溢出的安全保护技术，</span></span><br><span class="line">        <span class="comment">//通过对堆、栈、共享库映射等线性区布局的随机化，通过增加攻击者预测目的地址的难度，防止攻击者直接定位攻击代码位置，达到阻止溢出攻击的目的。</span></span><br><span class="line">        <span class="comment">//据研究表明ASLR可以有效的降低缓冲区溢出攻击的成功率，如今Linux、FreeBSD、Windows等主流操作系统都已采用了该技术。</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//rebase: 由于ASLR访问地址被随机化,所以rebase在动态库内部进行修正访问地址,并创建访问地址存储在__DATA段,这个期间可能会产生缺页并进行IO操作</span></span><br><span class="line">        <span class="comment">//binding: 主要负责动态库之间的调用地址的修正和创建</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//initialize</span></span><br><span class="line">        <span class="comment">//这里就比较简单了, 这个时候各个库都已经load完成,访问地址指针也已经修正过,就可以初始化所有dylib了, 会调用C++的初始化构造方法,</span></span><br><span class="line">        <span class="comment">//也就是用__attribute__((constructor))修饰的方法,被修饰的方法都会在main()方法之前调用</span></span><br><span class="line">        <span class="built_in">link</span>(sMainExecutable, sEnv.DYLD_BIND_AT_LAUNCH, <span class="literal">true</span>, ImageLoader::<span class="built_in">RPathChain</span>(<span class="literal">NULL</span>, <span class="literal">NULL</span>));</span><br><span class="line">        sMainExecutable-&gt;<span class="built_in">setNeverUnloadRecursive</span>();</span><br><span class="line">        <span class="keyword">if</span> ( sMainExecutable-&gt;forceFlat() ) &#123;</span><br><span class="line">            gLinkContext.bindFlat = <span class="literal">true</span>;</span><br><span class="line">            gLinkContext.prebindUsage = ImageLoader::kUseNoPrebinding;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// link any inserted libraries</span></span><br><span class="line">        <span class="comment">// 链接任何插入的库</span></span><br><span class="line">        <span class="comment">// do this after linking main executable so that any dylibs pulled in by inserted </span></span><br><span class="line">        <span class="comment">// dylibs (e.g. libSystem) will not be in front of dylibs the program uses</span></span><br><span class="line">        <span class="keyword">if</span> ( sInsertedDylibCount &gt; <span class="number">0</span> ) &#123;</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">unsigned</span> <span class="type">int</span> i=<span class="number">0</span>; i &lt; sInsertedDylibCount; ++i) &#123;</span><br><span class="line">                ImageLoader* image = sAllImages[i+<span class="number">1</span>];</span><br><span class="line">                <span class="built_in">link</span>(image, sEnv.DYLD_BIND_AT_LAUNCH, <span class="literal">true</span>, ImageLoader::<span class="built_in">RPathChain</span>(<span class="literal">NULL</span>, <span class="literal">NULL</span>));</span><br><span class="line">                image-&gt;<span class="built_in">setNeverUnloadRecursive</span>();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// only INSERTED libraries can interpose</span></span><br><span class="line">            <span class="comment">// register interposing info after all inserted libraries are bound so chaining works</span></span><br><span class="line">            <span class="keyword">for</span>(<span class="type">unsigned</span> <span class="type">int</span> i=<span class="number">0</span>; i &lt; sInsertedDylibCount; ++i) &#123;</span><br><span class="line">                ImageLoader* image = sAllImages[i+<span class="number">1</span>];</span><br><span class="line">                image-&gt;<span class="built_in">registerInterposing</span>();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// &lt;rdar://problem/19315404&gt; dyld should support interposition even without DYLD_INSERT_LIBRARIES</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i=sInsertedDylibCount+<span class="number">1</span>; i &lt; sAllImages.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            ImageLoader* image = sAllImages[i];</span><br><span class="line">            <span class="keyword">if</span> ( image-&gt;<span class="built_in">inSharedCache</span>() )</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            image-&gt;<span class="built_in">registerInterposing</span>();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// apply interposing to initial set of images</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i &lt; sImageRoots.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            sImageRoots[i]-&gt;<span class="built_in">applyInterposing</span>(gLinkContext);</span><br><span class="line">        &#125;</span><br><span class="line">        gLinkContext.linkingMainExecutable = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">        sMainExecutable-&gt;<span class="built_in">weakBind</span>(gLinkContext);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">initializeMainExecutable</span>(); </span><br><span class="line"></span><br><span class="line">        <span class="comment">// 寻找主程序的入口</span></span><br><span class="line">        <span class="comment">// find entry point for main executable</span></span><br><span class="line">        result = (<span class="type">uintptr_t</span>)sMainExecutable-&gt;<span class="built_in">getThreadPC</span>();</span><br><span class="line">        <span class="keyword">if</span> ( result != <span class="number">0</span> ) &#123;</span><br><span class="line">            <span class="comment">// 主可执行文件使用lc_main，需要返回libdyld.dylib中的glue</span></span><br><span class="line">            <span class="comment">//调用main()</span></span><br><span class="line">            <span class="comment">//当执行完dyld::_main方法之后,返回了main()函数地址,这个时候所有初始化工作都已经完成了,正式进入Objc声明周期</span></span><br><span class="line">            <span class="comment">// main executable uses LC_MAIN, needs to return to glue in libdyld.dylib</span></span><br><span class="line">            <span class="keyword">if</span> ( (gLibSystemHelpers != <span class="literal">NULL</span>) &amp;&amp; (gLibSystemHelpers-&gt;version &gt;= <span class="number">9</span>) )</span><br><span class="line">                *startGlue = (<span class="type">uintptr_t</span>)gLibSystemHelpers-&gt;startGlueToCallExit;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="built_in">halt</span>(<span class="string">&quot;libdyld.dylib support not present for LC_MAIN&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// main executable uses LC_UNIXTHREAD, dyld needs to let &quot;start&quot; in program set up for main()</span></span><br><span class="line">            result = (<span class="type">uintptr_t</span>)sMainExecutable-&gt;<span class="built_in">getMain</span>();</span><br><span class="line">            *startGlue = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">catch</span>(<span class="type">const</span> <span class="type">char</span>* message) &#123;</span><br><span class="line">        <span class="built_in">syncAllImages</span>();</span><br><span class="line">        <span class="built_in">halt</span>(message);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">catch</span>(...) &#123;</span><br><span class="line">        dyld::<span class="built_in">log</span>(<span class="string">&quot;dyld: launch failed\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在main函数中会执行如下操作：</p>
+<ol>
+<li>将主程序初始化为imageLoader,用于后续的链接等操作</li>
+<li>加载共享库到内存</li>
+<li>加载插入的动态库</li>
+<li>链接主程序,链接插入库</li>
+<li>初始化主程序</li>
+<li>寻找主程序入口点</li>
+</ol>
+<p>接下来我们将按照上面的顺序进行展开：</p>
+<p><strong><strong>将主程序初始化为imageLoader</strong></strong></p>
+<p>在dyld main方法中会通过instantiateFromLoadedImage创建ImageLoader，其中第一个参数传入的是mainExecutableMH为主程序的Mach O Header,有了mainExecutableMH，dyld就可以从头开始遍历整个Mach O文件信息了。在开始创建ImageLoader之前会先调用isCompatibleMachO来查看mainExecutableMH中的cputype与cpusubtype是否与当前设备兼容，只有兼容的情况下才会继续创建ImageLoader,创建后的ImageLoader会通过addImage添加到sAllImages，然后调用addMappedRange()申请内存，更新主程序镜像映射的内存区。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">static ImageLoader* instantiate<span class="constructor">FromLoadedImage(<span class="params">const</span> <span class="params">macho_header</span><span class="operator">*</span> <span class="params">mh</span>, <span class="params">uintptr_t</span> <span class="params">slide</span>, <span class="params">const</span> <span class="params">char</span><span class="operator">*</span> <span class="params">path</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 检测mach-o header的cputype与cpusubtype是否与当前系统兼容</span></span><br><span class="line">    <span class="keyword">if</span> ( is<span class="constructor">CompatibleMachO((<span class="params">const</span> <span class="params">uint8_t</span><span class="operator">*</span>)</span>mh, path) ) &#123;</span><br><span class="line">        <span class="comment">//初始化镜像加载器</span></span><br><span class="line">        ImageLoader* image = ImageLoaderMachO::instantiate<span class="constructor">MainExecutable(<span class="params">mh</span>, <span class="params">slide</span>, <span class="params">path</span>, <span class="params">gLinkContext</span>)</span>;</span><br><span class="line">        add<span class="constructor">Image(<span class="params">image</span>)</span>;</span><br><span class="line">        return image;</span><br><span class="line">    &#125;</span><br><span class="line">    throw <span class="string">&quot;main executable not a known format&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看下ImageLoader的创建方法：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">ImageLoader* ImageLoaderMachO::instantiate<span class="constructor">MainExecutable(<span class="params">const</span> <span class="params">macho_header</span><span class="operator">*</span> <span class="params">mh</span>, <span class="params">uintptr_t</span> <span class="params">slide</span>, <span class="params">const</span> <span class="params">char</span><span class="operator">*</span> <span class="params">path</span>, <span class="params">const</span> LinkContext&amp; <span class="params">context</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">bool</span> compressed;</span><br><span class="line">    unsigned <span class="built_in">int</span> segCount;</span><br><span class="line">    unsigned <span class="built_in">int</span> libCount;</span><br><span class="line">    const linkedit_data_command* codeSigCmd;</span><br><span class="line">    const encryption_info_command* encryptCmd;</span><br><span class="line">    <span class="comment">// sniffLoadCommands主要获取加载命令中compressed的值（压缩还是传统）以及segment的数量、libCount(需要加载的动态库的数量)</span></span><br><span class="line">    sniff<span class="constructor">LoadCommands(<span class="params">mh</span>, <span class="params">path</span>, <span class="params">false</span>, &amp;<span class="params">compressed</span>, &amp;<span class="params">segCount</span>, &amp;<span class="params">libCount</span>, <span class="params">context</span>, &amp;<span class="params">codeSigCmd</span>, &amp;<span class="params">encryptCmd</span>)</span>;</span><br><span class="line">    <span class="comment">// instantiate concrete class based on content of load commands</span></span><br><span class="line">    <span class="keyword">if</span> ( compressed ) </span><br><span class="line">        return ImageLoaderMachOCompressed::instantiate<span class="constructor">MainExecutable(<span class="params">mh</span>, <span class="params">slide</span>, <span class="params">path</span>, <span class="params">segCount</span>, <span class="params">libCount</span>, <span class="params">context</span>)</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">#<span class="keyword">if</span> SUPPORT_CLASSIC_MACHO</span><br><span class="line">        return ImageLoaderMachOClassic::instantiate<span class="constructor">MainExecutable(<span class="params">mh</span>, <span class="params">slide</span>, <span class="params">path</span>, <span class="params">segCount</span>, <span class="params">libCount</span>, <span class="params">context</span>)</span>;</span><br><span class="line">#<span class="keyword">else</span></span><br><span class="line">        throw <span class="string">&quot;missing LC_DYLD_INFO load command&quot;</span>;</span><br><span class="line">#endif</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>instantiateMainExecutable会首先调用sniffLoadCommands从加载信息中获取到当前的主程序是Compressed还是Classic类型的，以及segment的数量，需要加载的动态库的数量。然后根据主程序的类型来创建ImageLoaderMachOCompressed或者ImageLoaderMachOClassic类型的ImageLoader.</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">ImageLoaderMachO::sniffLoadCommands</span><span class="params">(<span class="type">const</span> macho_header* mh, <span class="type">const</span> <span class="type">char</span>* path, <span class="type">bool</span> inCache, <span class="type">bool</span>* compressed,</span></span></span><br><span class="line"><span class="params"><span class="function">                                            <span class="type">unsigned</span> <span class="type">int</span>* segCount, <span class="type">unsigned</span> <span class="type">int</span>* libCount, <span class="type">const</span> LinkContext&amp; context,</span></span></span><br><span class="line"><span class="params"><span class="function">                                            <span class="type">const</span> linkedit_data_command** codeSigCmd,</span></span></span><br><span class="line"><span class="params"><span class="function">                                            <span class="type">const</span> encryption_info_command** encryptCmd)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">uint32_t</span> i = <span class="number">0</span>; i &lt; cmd_count; ++i) &#123;</span><br><span class="line">        <span class="type">uint32_t</span> cmdLength = cmd-&gt;cmdsize;</span><br><span class="line">        <span class="keyword">struct</span> <span class="title class_">macho_segment_command</span>* segCmd;</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">        <span class="keyword">switch</span> (cmd-&gt;cmd) &#123;</span><br><span class="line">            <span class="keyword">case</span> LC_DYLD_INFO:</span><br><span class="line">            <span class="keyword">case</span> LC_DYLD_INFO_ONLY:</span><br><span class="line">                *compressed = <span class="literal">true</span>;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> LC_SEGMENT_COMMAND:</span><br><span class="line">                segCmd = (<span class="keyword">struct</span> macho_segment_command*)cmd;</span><br><span class="line">                <span class="comment">//.........</span></span><br><span class="line">                <span class="comment">// ignore zero-sized segments</span></span><br><span class="line">                <span class="keyword">if</span> ( segCmd-&gt;vmsize != <span class="number">0</span> )</span><br><span class="line">                    *segCount += <span class="number">1</span>;</span><br><span class="line">                <span class="comment">//......</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">            <span class="keyword">case</span> LC_LOAD_DYLIB:</span><br><span class="line">            <span class="keyword">case</span> LC_LOAD_WEAK_DYLIB:</span><br><span class="line">            <span class="keyword">case</span> LC_REEXPORT_DYLIB:</span><br><span class="line">            <span class="keyword">case</span> LC_LOAD_UPWARD_DYLIB:</span><br><span class="line">                *libCount += <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> LC_CODE_SIGNATURE:</span><br><span class="line">                *codeSigCmd = (<span class="keyword">struct</span> linkedit_data_command*)cmd; <span class="comment">// only support one LC_CODE_SIGNATURE per image</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> LC_ENCRYPTION_INFO:</span><br><span class="line">            <span class="keyword">case</span> LC_ENCRYPTION_INFO_64:</span><br><span class="line">                *encryptCmd = (<span class="keyword">struct</span> encryption_info_command*)cmd; <span class="comment">// only support one LC_ENCRYPTION_INFO[_64] per image</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        cmd = nextCmd;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// fSegmentsArrayCount is only 8-bits</span></span><br><span class="line">    <span class="keyword">if</span> ( *segCount &gt; <span class="number">255</span> )</span><br><span class="line">        dyld::<span class="built_in">throwf</span>(<span class="string">&quot;malformed mach-o image: more than 255 segments in %s&quot;</span>, path);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fSegmentsArrayCount is only 8-bits</span></span><br><span class="line">    <span class="keyword">if</span> ( *libCount &gt; <span class="number">4095</span> )</span><br><span class="line">        dyld::<span class="built_in">throwf</span>(<span class="string">&quot;malformed mach-o image: more than 4095 dependent libraries in %s&quot;</span>, path);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( <span class="built_in">needsAddedLibSystemDepency</span>(*libCount, mh) )</span><br><span class="line">        *libCount = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>sniffLoadCommands 会根据Mach 文件中是否有<strong><strong>LC_DYLD_INFO</strong></strong>，<strong><strong>LC_DYLD_INFO_ONLY</strong></strong>来判断当前Mach O文件是否是compressed的，并且获取segment 数量以及所依赖的动态库数量libCount，还有代码签名命令codeSigCmd以及加密命令encryptCmd。我们这里以compressed类型作为例子。那么上面返回的就是<strong><strong>ImageLoaderMachOCompressed</strong></strong>,</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function">ImageLoaderMachOCompressed* <span class="title">ImageLoaderMachOCompressed::instantiateMainExecutable</span><span class="params">(<span class="type">const</span> macho_header* mh, <span class="type">uintptr_t</span> slide, <span class="type">const</span> <span class="type">char</span>* path, </span></span></span><br><span class="line"><span class="params"><span class="function">                                                        <span class="type">unsigned</span> <span class="type">int</span> segCount, <span class="type">unsigned</span> <span class="type">int</span> libCount, <span class="type">const</span> LinkContext&amp; context)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ImageLoaderMachOCompressed* image = ImageLoaderMachOCompressed::<span class="built_in">instantiateStart</span>(mh, path, segCount, libCount);</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    image-&gt;<span class="built_in">disableCoverageCheck</span>();</span><br><span class="line">    image-&gt;<span class="built_in">instantiateFinish</span>(context);</span><br><span class="line">    image-&gt;<span class="built_in">setMapped</span>(context);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">    <span class="keyword">return</span> image;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>加载共享库到内存</strong></strong></p>
+<p>dyld加载的时候会启动共享缓存技术对这个过程进行优化，共享缓存会在进程启动的时候被dyld映射到内存中，不同App间访问的共享库最终都会映射到同一块物理内存，之后在加载任何Mach O镜像的时候，都会先去检查该Mach O镜像以及所需的动态库文件是否已经存在在共享缓存中，如果存在则直接将它在共享内存中的内存地址映射到进程的内存地址空间，从而加快动态库的加载的速度，对启动性能会有较大的提高。在Mac OS系统中，动态库共享缓存以文件的形式存放在&#x2F;var&#x2F;db&#x2F;dyld目录下，我们需要根据当前设备的CPU架构类型去匹配要打开的缓存文件，接着读取缓存文件的前8192字节，解析并加载缓存头dyld_cache_header信息到内存，我们可以通过&#x2F;usr&#x2F;bin&#x2F;update_dyld_shared_cache来更新共享库。</p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">static void mapSharedCache()</span><br><span class="line">&#123;</span><br><span class="line">    uint64_t cacheBaseAddress = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 检查当前共享缓存是否已经映射到共享区域</span></span><br><span class="line">    <span class="keyword">if</span> ( _shared_region_check_np(&amp;cacheBaseAddress) == <span class="number">0</span> ) &#123;</span><br><span class="line">        <span class="comment">/// 共享库已经被映射到内存中</span></span><br><span class="line">        sSharedCache = (dyld_cache_header*)cacheBaseAddress;</span><br><span class="line">        <span class="comment">// 检查共享库的兼容性，如果已经映射到内存中的共享库但是不兼容，这时候我们将忽略它</span></span><br><span class="line">        <span class="function"><span class="title">if</span> ( strcmp(sSharedCache-&gt;</span>magic, magic) != <span class="number">0</span> ) &#123;</span><br><span class="line">            sSharedCache = NULL;</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//.........</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 如果共享库没有加载到内存中，进行加载</span></span><br><span class="line">        int fd = openSharedCacheFile();</span><br><span class="line">        <span class="keyword">if</span> ( fd != -<span class="number">1</span> ) &#123;</span><br><span class="line">            uint8_t firstPages[<span class="number">8192</span>];</span><br><span class="line">            <span class="comment">// 获取共享库文件的句柄，然后进行读取解析</span></span><br><span class="line">            <span class="keyword">if</span> ( ::read(fd, firstPages, <span class="number">8192</span>) == <span class="number">8192</span> ) &#123;</span><br><span class="line">                dyld_cache_header* header = (dyld_cache_header*)firstPages;</span><br><span class="line">                <span class="comment">//共享缓存合法性检查</span></span><br><span class="line">                <span class="function"><span class="title">if</span> ( strcmp(header-&gt;</span>magic, magic) == <span class="number">0</span> ) &#123;</span><br><span class="line">                    <span class="comment">//.......</span></span><br><span class="line">                    <span class="comment">// 校验缓存文件的完整性</span></span><br><span class="line">                    <span class="comment">//.......</span></span><br><span class="line">                    <span class="keyword">if</span> ( goodCache ) &#123;</span><br><span class="line">                        <span class="comment">//.......</span></span><br><span class="line">                        <span class="comment">// 将共享缓存映射到共享区域</span></span><br><span class="line">                        <span class="keyword">if</span> (_shared_region_map_and_slide_np(fd, mappingCount, mappings, codeSignatureMappingIndex, cacheSlide, slideInfo, slideInfoSize) == <span class="number">0</span>) &#123;</span><br><span class="line">                            <span class="comment">// successfully mapped cache into shared region</span></span><br><span class="line">                            sSharedCache = (dyld_cache_header*)mappings[<span class="number">0</span>].sfm_address;</span><br><span class="line">                            sSharedCacheSlide = cacheSlide;</span><br><span class="line">                            <span class="function"><span class="title">dyld</span>::gProcessInfo-&gt;</span>sharedCacheSlide = cacheSlide;</span><br><span class="line">                            <span class="function"><span class="title">if</span> ( header-&gt;</span>mappingOffset &gt;= <span class="number">0</span>x68 ) &#123;</span><br><span class="line">                                <span class="function"><span class="title">memcpy</span>(dyld::gProcessInfo-&gt;</span><span class="function"><span class="title">sharedCacheUUID</span>, header-&gt;</span>uuid, <span class="number">16</span>);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">else</span> &#123;</span><br><span class="line">                            <span class="comment">//........</span></span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> ( gLinkContext.verboseMapping ) </span><br><span class="line">                        dyld::<span class="built_in">log</span>(<span class="string">&quot;dyld: shared cached file is invalid\n&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> ( gLinkContext.verboseMapping ) </span><br><span class="line">                    dyld::<span class="built_in">log</span>(<span class="string">&quot;dyld: shared cached file cannot be read\n&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            close(fd);  </span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> ( gLinkContext.verboseMapping ) </span><br><span class="line">                dyld::<span class="built_in">log</span>(<span class="string">&quot;dyld: shared cached file cannot be opened\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">// tell gdb where the shared cache is</span></span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>加载插入的动态库</strong></strong></p>
+<p>插入的动态库会存储在DYLD_INSERT_LIBRARIES，在这时候会遍历DYLD_INSERT_LIBRARIES环境变量中指定的动态库列表，并调用loadInsertedDylib()将其加载。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>( sEnv.DYLD_INSERT_LIBRARIES != <span class="literal">NULL</span> ) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">const</span> <span class="type">char</span>* <span class="type">const</span>* lib = sEnv.DYLD_INSERT_LIBRARIES; *lib != <span class="literal">NULL</span>; ++lib) </span><br><span class="line">        <span class="comment">// 加载环境变量DYLD_INSERT_LIBRARIES中的动态库，使用loadInsertedDylib进行加载</span></span><br><span class="line">        <span class="built_in">loadInsertedDylib</span>(*lib);<span class="comment">//把环境变量DYLD_INSERT_LIBRARIES 中的动态库调用loadInsertedDylib进行加载</span></span><br><span class="line">&#125;</span><br><span class="line">sInsertedDylibCount = sAllImages.<span class="built_in">size</span>()<span class="number">-1</span>;</span><br></pre></td></tr></table></figure>
+<p>loadInsertedDylib会调用load方法完成加载工作。load方法会先调用loadPhase0尝试从文件加载，然后一直从loadPhase0一直到loadPhase6，查找动态库的路径，每个阶段都会为下一阶段生成搜索的路径。整个查找顺序会顺着: ****DYLD_ROOT_PATH -&gt; LD_LIBRARY_PATH -&gt; DYLD_FRAMEWORK_PATH -&gt; raw path - &gt;DYLD_FALLBACK_LIBRARY_PATH **** 如果找到则调用ImageLoaderMachO::instantiateFromFile来实例化一个ImageLoader，之后调用checkandAddImage验证映像并将其加入到全局映像列表中。如果loadPhase0返回空，表示在路径中没有找到动态库，就尝试从共享缓存中查找，找到就调用ImageLoaderMachO::instantiateFromCache()从缓存中加载，否则就抛出没找到映像的异常。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">ImageLoader* load(const <span class="built_in">char</span>* path, const LoadContext&amp; context)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    <span class="comment">// 尝试所有路径排列并检查现有加载的镜像</span></span><br><span class="line">    <span class="comment">// try all path permutations and check against existing loaded images</span></span><br><span class="line">    ImageLoader* image = load<span class="constructor">Phase0(<span class="params">path</span>, <span class="params">orgPath</span>, <span class="params">context</span>, NULL)</span>;</span><br><span class="line">    <span class="keyword">if</span> ( image != NULL ) &#123;</span><br><span class="line">        return image;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    image = load<span class="constructor">Phase0(<span class="params">path</span>, <span class="params">orgPath</span>, <span class="params">context</span>, &amp;<span class="params">exceptions</span>)</span>;</span><br><span class="line">    <span class="keyword">if</span> ( (image<span class="operator"> == </span>NULL)<span class="operator"> &amp;&amp; </span>cacheable<span class="constructor">Path(<span class="params">path</span>)</span><span class="operator"> &amp;&amp; </span>!context.dontLoad ) &#123;</span><br><span class="line">        <span class="comment">//......    </span></span><br><span class="line">        <span class="keyword">if</span> ( (myerr<span class="operator"> == </span>ENOENT)<span class="operator"> || </span>(myerr<span class="operator"> == </span><span class="number">0</span>) ) &#123;</span><br><span class="line">            <span class="comment">// see if this image is in shared cache</span></span><br><span class="line">            <span class="comment">//......</span></span><br><span class="line">            <span class="keyword">if</span> ( find<span class="constructor">InSharedCacheImage(<span class="params">resolvedPath</span>, <span class="params">false</span>, NULL, &amp;<span class="params">mhInCache</span>, &amp;<span class="params">pathInCache</span>, &amp;<span class="params">slideInCache</span>)</span> ) &#123;</span><br><span class="line">                <span class="comment">//......</span></span><br><span class="line">                image = ImageLoaderMachO::instantiate<span class="constructor">FromCache(<span class="params">mhInCache</span>, <span class="params">pathInCache</span>, <span class="params">slideInCache</span>, <span class="params">stat_buf</span>, <span class="params">gLinkContext</span>)</span>;</span><br><span class="line">                    image = checkand<span class="constructor">AddImage(<span class="params">image</span>, <span class="params">context</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">static ImageLoader* load<span class="constructor">Phase6(<span class="params">int</span> <span class="params">fd</span>, <span class="params">const</span> <span class="params">struct</span> <span class="params">stat</span>&amp; <span class="params">stat_buf</span>, <span class="params">const</span> <span class="params">char</span><span class="operator">*</span> <span class="params">path</span>, <span class="params">const</span> LoadContext&amp; <span class="params">context</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="comment">// try mach-o loader</span></span><br><span class="line">    <span class="keyword">if</span> ( shortPage ) </span><br><span class="line">        throw <span class="string">&quot;file too short&quot;</span>;</span><br><span class="line">    <span class="keyword">if</span> ( is<span class="constructor">CompatibleMachO(<span class="params">firstPage</span>, <span class="params">path</span>)</span> ) &#123;</span><br><span class="line">        <span class="comment">// 只有MH_BUNDLE，MH_DYLIB，以及一些MH_EXECUTE 才能被动态加载</span></span><br><span class="line">        switch ( ((mach_header*)firstPage)-&gt;filetype ) &#123;</span><br><span class="line">            case MH_EXECUTE:</span><br><span class="line">            case MH_DYLIB:</span><br><span class="line">            case MH_BUNDLE:</span><br><span class="line">                break;</span><br><span class="line">            default:</span><br><span class="line">                throw <span class="string">&quot;mach-o, but wrong filetype&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//实例化镜像</span></span><br><span class="line">        ImageLoader* image = ImageLoaderMachO::instantiate<span class="constructor">FromFile(<span class="params">path</span>, <span class="params">fd</span>, <span class="params">firstPage</span>, <span class="params">fileOffset</span>, <span class="params">fileLength</span>, <span class="params">stat_buf</span>, <span class="params">gLinkContext</span>)</span>;</span><br><span class="line">        <span class="comment">// validate</span></span><br><span class="line">        return checkand<span class="constructor">AddImage(<span class="params">image</span>, <span class="params">context</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>链接主程序</strong></strong></p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="built_in">link</span>(sMainExecutable, sEnv.DYLD_BIND_AT_LAUNCH, <span class="literal">true</span>, ImageLoader::<span class="built_in">RPathChain</span>(<span class="literal">NULL</span>, <span class="literal">NULL</span>));</span><br><span class="line"><span class="comment">//......</span></span><br><span class="line"><span class="comment">// 4.link any inserted libraries</span></span><br><span class="line"><span class="comment">// 链接任何插入的库</span></span><br><span class="line"><span class="comment">// do this after linking main executable so that any dylibs pulled in by inserted </span></span><br><span class="line"><span class="comment">// dylibs (e.g. libSystem) will not be in front of dylibs the program uses</span></span><br><span class="line"><span class="keyword">if</span> ( sInsertedDylibCount &gt; <span class="number">0</span> ) &#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">unsigned</span> <span class="type">int</span> i=<span class="number">0</span>; i &lt; sInsertedDylibCount; ++i) &#123;</span><br><span class="line">        ImageLoader* image = sAllImages[i+<span class="number">1</span>];</span><br><span class="line">        <span class="built_in">link</span>(image, sEnv.DYLD_BIND_AT_LAUNCH, <span class="literal">true</span>, ImageLoader::<span class="built_in">RPathChain</span>(<span class="literal">NULL</span>, <span class="literal">NULL</span>));</span><br><span class="line">        image-&gt;<span class="built_in">setNeverUnloadRecursive</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//......</span></span><br><span class="line">gLinkContext.linkingMainExecutable = <span class="literal">false</span>;</span><br><span class="line">sMainExecutable-&gt;<span class="built_in">weakBind</span>(gLinkContext);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void ImageLoader::link(const LinkContext&amp; context, <span class="built_in">bool</span> forceLazysBound, <span class="built_in">bool</span> preflightOnly, <span class="built_in">bool</span> neverUnload, const RPathChain&amp; loaderRPaths)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">//递归加载所有依赖库进内存。</span></span><br><span class="line">    this-&gt;recursive<span class="constructor">LoadLibraries(<span class="params">context</span>, <span class="params">preflightOnly</span>, <span class="params">loaderRPaths</span>)</span>;</span><br><span class="line">    context.notify<span class="constructor">Batch(<span class="params">dyld_image_state_dependents_mapped</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">    uint64_t t1 = mach<span class="constructor">_absolute_time()</span>;</span><br><span class="line">    context.clear<span class="constructor">AllDepths()</span>;</span><br><span class="line">    this-&gt;recursive<span class="constructor">UpdateDepth(<span class="params">context</span>.<span class="params">imageCount</span>()</span>);</span><br><span class="line"></span><br><span class="line">    uint64_t t2 = mach<span class="constructor">_absolute_time()</span>;</span><br><span class="line">    <span class="comment">//递归对自己以及依赖库进行复基位操作。在以前，程序每次加载其在内存中的堆栈基地址都是一样的，这意味着你的方法，变量等地址每次都一样的，这使得程序很不安全，后面就出现ASLR（Address space layout randomization,地址空间配置随机加载），</span></span><br><span class="line">    <span class="comment">//程序每次启动后地址都会随机变化，这样程序里所有的代码地址都是错的，需要重新对代码地址进行计算修复才能正常访问</span></span><br><span class="line">    <span class="comment">// 递归修正自己和依赖库的基地址，因为ASLR的原因，需要根据随机slide修正基地址</span></span><br><span class="line">    this-&gt;recursive<span class="constructor">Rebase(<span class="params">context</span>)</span>;</span><br><span class="line">    context.notify<span class="constructor">Batch(<span class="params">dyld_image_state_rebased</span>)</span>;</span><br><span class="line"></span><br><span class="line">    uint64_t t3 = mach<span class="constructor">_absolute_time()</span>;</span><br><span class="line">    <span class="comment">//对库中所有nolazy的符号进行bind,一般的情况下多数符号都是lazybind的，他们在第一次使用的时候才进行bind。</span></span><br><span class="line">    <span class="comment">// recursiveBind对于noLazy的符号进行绑定，lazy的符号会在运行时动态绑定</span></span><br><span class="line">    this-&gt;recursive<span class="constructor">Bind(<span class="params">context</span>, <span class="params">forceLazysBound</span>, <span class="params">neverUnload</span>)</span>;</span><br><span class="line"></span><br><span class="line">    uint64_t t4 = mach<span class="constructor">_absolute_time()</span>;</span><br><span class="line">    <span class="keyword">if</span> ( !context.linkingMainExecutable )</span><br><span class="line">        this-&gt;weak<span class="constructor">Bind(<span class="params">context</span>)</span>;</span><br><span class="line">    uint64_t t5 = mach<span class="constructor">_absolute_time()</span>;	</span><br><span class="line"></span><br><span class="line">    context.notify<span class="constructor">Batch(<span class="params">dyld_image_state_bound</span>)</span>;</span><br><span class="line">    <span class="comment">//........</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong><strong>recursiveLoadLibraries</strong></strong>会先获取当前镜像所需要的库列表，然后会先从缓存库中加载所需要的库，如果没在缓存库中找到则调用loadLibrary进行加载，loadLibrary 实际上调用的是之前介绍的load方法。将依赖的库加载进来并装载。<strong><strong>recursiveUpdateDepth</strong></strong> 会对镜像及其依赖库进行排序。</p>
+<p>接下来我们看下<strong><strong>recursiveRebase</strong></strong></p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void ImageLoader::recursive<span class="constructor">Rebase(<span class="params">const</span> LinkContext&amp; <span class="params">context</span>)</span></span><br><span class="line">&#123; </span><br><span class="line">    <span class="keyword">if</span> ( fState &lt; dyld_image_state_rebased ) &#123;</span><br><span class="line">        <span class="comment">// break cycles</span></span><br><span class="line">        fState = dyld_image_state_rebased;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// rebase lower level libraries first</span></span><br><span class="line">            <span class="keyword">for</span>(unsigned <span class="built_in">int</span> i=<span class="number">0</span>; i &lt; library<span class="constructor">Count()</span>; ++i) &#123;</span><br><span class="line">                ImageLoader* dependentImage = lib<span class="constructor">Image(<span class="params">i</span>)</span>;</span><br><span class="line">                <span class="keyword">if</span> ( dependentImage != NULL )</span><br><span class="line">                    dependentImage-&gt;recursive<span class="constructor">Rebase(<span class="params">context</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// rebase this image</span></span><br><span class="line">            <span class="keyword">do</span><span class="constructor">Rebase(<span class="params">context</span>)</span>;</span><br><span class="line">            <span class="comment">// notify</span></span><br><span class="line">            context.notify<span class="constructor">Single(<span class="params">dyld_image_state_rebased</span>, <span class="params">this</span>)</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在之前的步骤中我们都在完成库的加载，但是这些dylibs之间是没有关联的，需要rebase，binding对地址修正，不知道大家看过高达之类的动画片没有，在变身过程中装备会从四面八方飞过来，然后会一个个安装到身上，嗯，link就是这个过程，动态库中的地址是相对的，因为它需要保证它内部逻辑的独立性，同时为了降低缓冲区溢出攻击的成功率主流的操作系统都会采用ASLR（Address space layout randomization）技术，它通过对堆、栈、共享库映射等线性区布局的随机化来增加攻击者预测目的地址的难度，防止攻击者直接定位攻击代码位置，达到阻止溢出攻击的目的。</p>
+<p>****Rebase：在镜像内部调整指针的指向 ****</p>
+<p>就像上面提到的未加载到内存的动态库镜像里面的地址都是相对的，是距第一个Segement的偏移量，而当加载到内存中的时候，起始地址就是申请的内存的起始地址，就不再是0，那么如何再能够找到这些引用的正确内存位置呢？这个就是rebase需要解决的问题，rebase这一步就是将相对地址调整为绝对地址，以及修正ASLR带来的地址不确定性：在没有使用ASLR技术之前，动态库加载的时候会把 dylib 加载到指定地址，所有指针和数据对于代码来说都是确定的，使用了ASLR后每次加载都会将dylib 加载到新的随机地址，这个随机的地址跟代码和数据指向的旧地址会有偏差，dyld 在rebase这个阶段需要修正这个偏差，做法就是将 dylib 内部的指针地址都加上这个偏移量，然后重复不断地对 __DATA 段中需要 rebase 的指针加上这个偏移量。也就是说经过rebase处理后镜像内部在内存中的映射已经确定下来了，不再是相对于动态库内部的相对地址，并创建访问地址存储在__DATA段。总的来说经过rebase处理后我们会在内存中获得一个有明确入口的，并且内部地址明确的动态库，但是对其他外部依赖库调用的地址在这步还没修正，需要在binding阶段进行处理。我们先继续往下看：</p>
+<p><strong><strong>recursiveRebase</strong></strong> 里面调用的是<strong><strong>doRebase</strong></strong>，而<strong><strong>doRebase</strong></strong>会调用ImageLoaderMachOCompressed::rebase</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title class_">ImageLoaderMachO</span>::<span class="title function_">doRebase</span>(<span class="params"><span class="keyword">const</span> LinkContext&amp; context</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="comment">// do actual rebasing</span></span><br><span class="line">    <span class="variable language_">this</span>-&gt;<span class="title function_">rebase</span>(context);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">ImageLoaderMachOCompressed::rebase</span><span class="params">(<span class="type">const</span> LinkContext&amp; context)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">        <span class="type">bool</span> done = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">while</span> ( !done &amp;&amp; (p &lt; end) ) &#123;</span><br><span class="line">            <span class="type">uint8_t</span> immediate = *p &amp; REBASE_IMMEDIATE_MASK;</span><br><span class="line">            <span class="type">uint8_t</span> opcode = *p &amp; REBASE_OPCODE_MASK;</span><br><span class="line">            ++p;</span><br><span class="line">            <span class="keyword">switch</span> (opcode) &#123;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_DONE:</span><br><span class="line">                    done = <span class="literal">true</span>;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_SET_TYPE_IMM:</span><br><span class="line">                    type = immediate;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB:</span><br><span class="line">                    segmentIndex = immediate;</span><br><span class="line">                    <span class="comment">//.....</span></span><br><span class="line">                    address = <span class="built_in">segActualLoadAddress</span>(segmentIndex) + <span class="built_in">read_uleb128</span>(p, end);</span><br><span class="line">                    segmentEndAddress = <span class="built_in">segActualEndAddress</span>(segmentIndex);</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_ADD_ADDR_ULEB:</span><br><span class="line">                    address += <span class="built_in">read_uleb128</span>(p, end);</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_ADD_ADDR_IMM_SCALED:</span><br><span class="line">                    address += immediate*<span class="built_in">sizeof</span>(<span class="type">uintptr_t</span>);</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_DO_REBASE_IMM_TIMES:</span><br><span class="line">                    <span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i &lt; immediate; ++i) &#123;</span><br><span class="line">                        <span class="keyword">if</span> ( address &gt;= segmentEndAddress ) </span><br><span class="line">                            <span class="built_in">throwBadRebaseAddress</span>(address, segmentEndAddress, segmentIndex, start, end, p);</span><br><span class="line">                        <span class="built_in">rebaseAt</span>(context, address, slide, type);</span><br><span class="line">                        address += <span class="built_in">sizeof</span>(<span class="type">uintptr_t</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                    fgTotalRebaseFixups += immediate;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_DO_REBASE_ULEB_TIMES:</span><br><span class="line">                    count = <span class="built_in">read_uleb128</span>(p, end);</span><br><span class="line">                    <span class="keyword">for</span> (<span class="type">uint32_t</span> i=<span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">                        <span class="built_in">rebaseAt</span>(context, address, slide, type);</span><br><span class="line">                        address += <span class="built_in">sizeof</span>(<span class="type">uintptr_t</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                    fgTotalRebaseFixups += count;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB:</span><br><span class="line">                    <span class="built_in">rebaseAt</span>(context, address, slide, type);</span><br><span class="line">                    address += <span class="built_in">read_uleb128</span>(p, end) + <span class="built_in">sizeof</span>(<span class="type">uintptr_t</span>);</span><br><span class="line">                    ++fgTotalRebaseFixups;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB:</span><br><span class="line">                    count = <span class="built_in">read_uleb128</span>(p, end);</span><br><span class="line">                    skip = <span class="built_in">read_uleb128</span>(p, end);</span><br><span class="line">                    <span class="keyword">for</span> (<span class="type">uint32_t</span> i=<span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">                        <span class="built_in">rebaseAt</span>(context, address, slide, type);</span><br><span class="line">                        address += skip + <span class="built_in">sizeof</span>(<span class="type">uintptr_t</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                    fgTotalRebaseFixups += count;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">default</span>:</span><br><span class="line">                    dyld::<span class="built_in">throwf</span>(<span class="string">&quot;bad rebase opcode %d&quot;</span>, *p);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">catch</span> (<span class="type">const</span> <span class="type">char</span>* msg) &#123;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">CRSetCrashLogMessage2</span>(<span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在ImageLoaderMachOCompressed::rebase方法中就是对这些地址进行修正，从而获得明确的绝对地址。</p>
+<p>接下来我们看下Bind 过程的代码<strong><strong>recursiveBind</strong></strong>：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void ImageLoader::recursive<span class="constructor">Bind(<span class="params">const</span> LinkContext&amp; <span class="params">context</span>, <span class="params">bool</span> <span class="params">forceLazysBound</span>, <span class="params">bool</span> <span class="params">neverUnload</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Normally just non-lazy pointers are bound immediately.</span></span><br><span class="line">    <span class="comment">// The exceptions are:</span></span><br><span class="line">    <span class="comment">//   1) DYLD_BIND_AT_LAUNCH will cause lazy pointers to be bound immediately</span></span><br><span class="line">    <span class="comment">//   2) some API&#x27;s (e.g. RTLD_NOW) can cause lazy pointers to be bound immediately</span></span><br><span class="line">    <span class="keyword">if</span> ( fState &lt; dyld_image_state_bound ) &#123;</span><br><span class="line">        <span class="comment">// break cycles</span></span><br><span class="line">        fState = dyld_image_state_bound;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// bind lower level libraries first</span></span><br><span class="line">            <span class="keyword">for</span>(unsigned <span class="built_in">int</span> i=<span class="number">0</span>; i &lt; library<span class="constructor">Count()</span>; ++i) &#123;</span><br><span class="line">                ImageLoader* dependentImage = lib<span class="constructor">Image(<span class="params">i</span>)</span>;</span><br><span class="line">                <span class="keyword">if</span> ( dependentImage != NULL )</span><br><span class="line">                    dependentImage-&gt;recursive<span class="constructor">Bind(<span class="params">context</span>, <span class="params">forceLazysBound</span>, <span class="params">neverUnload</span>)</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// bind this image</span></span><br><span class="line">            this-&gt;<span class="keyword">do</span><span class="constructor">Bind(<span class="params">context</span>, <span class="params">forceLazysBound</span>)</span>;	</span><br><span class="line">            <span class="comment">// ......</span></span><br><span class="line">            context.notify<span class="constructor">Single(<span class="params">dyld_image_state_bound</span>, <span class="params">this</span>)</span>; </span><br><span class="line">        &#125;</span><br><span class="line">        catch (const <span class="built_in">char</span>* msg) &#123;</span><br><span class="line">            <span class="comment">//......</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void ImageLoaderMachOCompressed::<span class="keyword">do</span><span class="constructor">Bind(<span class="params">const</span> LinkContext&amp; <span class="params">context</span>, <span class="params">bool</span> <span class="params">forceLazysBound</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="constructor">CRSetCrashLogMessage2(<span class="params">this</span>-&gt;<span class="params">getPath</span>()</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// if prebound and loaded at prebound address, and all libraries are same as when this was prebound, then no need to bind</span></span><br><span class="line">    <span class="comment">// note: flat-namespace binaries need to have imports rebound (even if correctly prebound)</span></span><br><span class="line">    <span class="keyword">if</span> ( this-&gt;usable<span class="constructor">Prebinding(<span class="params">context</span>)</span> ) &#123;</span><br><span class="line">        <span class="comment">// don&#x27;t need to bind</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">    #<span class="keyword">if</span> TEXT_RELOC_SUPPORT</span><br><span class="line">        <span class="comment">// if there are __TEXT fixups, temporarily make __TEXT writable</span></span><br><span class="line">        <span class="keyword">if</span> ( fTextSegmentBinds )</span><br><span class="line">            this-&gt;make<span class="constructor">TextSegmentWritable(<span class="params">context</span>, <span class="params">true</span>)</span>;</span><br><span class="line">    #endif</span><br><span class="line"></span><br><span class="line">        <span class="comment">// run through all binding opcodes</span></span><br><span class="line">        each<span class="constructor">Bind(<span class="params">context</span>, &amp;ImageLoaderMachOCompressed::<span class="params">bindAt</span>)</span>;</span><br><span class="line">    #<span class="keyword">if</span> TEXT_RELOC_SUPPORT</span><br><span class="line">        <span class="comment">// if there were __TEXT fixups, restore write protection</span></span><br><span class="line">        <span class="keyword">if</span> ( fTextSegmentBinds )    </span><br><span class="line">        this-&gt;make<span class="constructor">TextSegmentWritable(<span class="params">context</span>, <span class="params">false</span>)</span>;</span><br><span class="line">    #endif  </span><br><span class="line">        <span class="comment">// if this image is in the shared cache, but depends on something no longer in the shared cache,</span></span><br><span class="line">        <span class="comment">// there is no way to reset the lazy pointers, so force bind them now</span></span><br><span class="line">        <span class="keyword">if</span> ( forceLazysBound<span class="operator"> || </span>fInSharedCache ) </span><br><span class="line">            this-&gt;<span class="keyword">do</span><span class="constructor">BindJustLazies(<span class="params">context</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// this image is in cache, but something below it is not.  If</span></span><br><span class="line">        <span class="comment">// this image has lazy pointer to a resolver function, then</span></span><br><span class="line">        <span class="comment">// the stub may have been altered to point to a shared lazy pointer.</span></span><br><span class="line">        <span class="keyword">if</span> ( fInSharedCache ) </span><br><span class="line">            this-&gt;update<span class="constructor">OptimizedLazyPointers(<span class="params">context</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// tell kernel we are done with chunks of LINKEDIT</span></span><br><span class="line">        <span class="keyword">if</span> ( !context.preFetchDisabled ) </span><br><span class="line">            this-&gt;mark<span class="constructor">FreeLINKEDIT(<span class="params">context</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// set up dyld entry points in image</span></span><br><span class="line">    <span class="comment">// do last so flat main executables will have __dyld or __program_vars set up</span></span><br><span class="line">    this-&gt;setup<span class="constructor">LazyPointerHandler(<span class="params">context</span>)</span>;</span><br><span class="line">    <span class="constructor">CRSetCrashLogMessage2(NULL)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>****Bind：将指针指向镜像外部的内容 ****</p>
+<p>我们前面提到了经过rebase处理后我们将会在内存中获取该库的一个明确的入口地址，并且库内部的相对地址会被确定为一个明确的地址，但是对其他库引用的地方还是没明确，这部分就需要Binding阶段进行处理了，Binding阶段主要的任务就是根据被导出符号重定位表项，去符号表中找出符号的基本信息，再去其他库符号表中resolve符号，将resolve结果bind到需要重定位地址上。说句人话就是，在其他库的符号表中去查找明确地址，然后在当前动态库中使用这个地址。一般我们使用另一个动态库的某个方法的时候会有一个间接引用，这个地址中存放的就是我们需要跳转的地址，在binding阶段会将其他库中查找的地址这需要很多计算，去符号表里查找。找到后会将内容存储到 __DATA 段中的那个指针中，下次调用的时候就会从这个地方去拿这个地址去跳转到要调用其他动态库的函数地址。</p>
+<p>这里还有两种特殊的绑定：</p>
+<p><strong><strong>Lazy Bind:</strong></strong></p>
+<p>我们启动优化中常常会考虑将某些动态依赖库改为静态依赖，虽然静态依赖会增大包的体积，但是会改善启动缓慢的问题，上面看到Bind的过程，发现Bind的过程需要查到对应的符号再进行bind. 如果在启动的时候，所有的符号都立即Bind成功，那么势必拖慢启动速度，那么我们可以将某些不必要的符号绑定延后吗？嗯，肯定可以的，Lazy Bind就是第一次调用到才会进行真正的Bind.这里其实用到dyld_stub_binder，在需要绑定的时候会将调用信息传递给它，由它来找到最终要跳转的地址，从而完成绑定。</p>
+<p><strong><strong>Weak Bind:</strong></strong></p>
+<p>Weak Bind这一步是将相同的弱符号统一化，如果有强符号则统一成强符号，否则统一成按装载顺序的首个弱符号，在这个过程中会去寻找，找到一个相同的符号后，如果是强符号则不需要再查找，否则从装载顺序找到首个弱符号地址，将所有库中的相同符号都覆盖为该地址。</p>
+<p><strong><strong>初始化主程序:</strong></strong></p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line">void <span class="built_in">initializeMainExecutable</span>()</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化任意插入的dylibs</span></span><br><span class="line">    <span class="comment">// run initialzers for any inserted dylibs</span></span><br><span class="line">    if ( rootCount &gt; <span class="number">1</span> ) &#123;</span><br><span class="line">        <span class="comment">//这里需要注意的是sImageRoots 中的第一个变量是主程序镜像, 因此这里初始化的时候需要跳过第一个数据, 对其他后面插入的dylib进行调用ImageLoader::runInitializers进行初始化</span></span><br><span class="line">        <span class="built_in">for</span>(size_t i=<span class="number">1</span>; i &lt; rootCount; ++i) &#123;</span><br><span class="line">            sImageRoots<span class="selector-attr">[i]</span>-&gt;<span class="built_in">runInitializers</span>(gLinkContext, initializerTimes[<span class="number">0</span>]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 最后运行主程序的初始化器</span></span><br><span class="line">    <span class="comment">// run initializers for main executable and everything it brings up </span></span><br><span class="line">    sMainExecutable-&gt;<span class="built_in">runInitializers</span>(gLinkContext, initializerTimes[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//.........</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到<strong><strong>initializeMainExecutable</strong></strong>方法中会先对插入的动态链接库进行初始化，然后再对主程序进行初始化，初始化都是调用<strong><strong>runInitializers</strong></strong></p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">void ImageLoader::run<span class="constructor">Initializers(<span class="params">const</span> LinkContext&amp; <span class="params">context</span>, InitializerTimingList&amp; <span class="params">timingInfo</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">//处理初始化器</span></span><br><span class="line">    process<span class="constructor">Initializers(<span class="params">context</span>, <span class="params">thisThread</span>, <span class="params">timingInfo</span>, <span class="params">up</span>)</span>;</span><br><span class="line">    context.notify<span class="constructor">Batch(<span class="params">dyld_image_state_initialized</span>)</span>;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>runInitializers方法中就做两件事情，一个就是调用processInitializers，以及在初始化结束发出通知，告诉监听者，当前已经初始化完毕。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">ImageLoader::processInitializers</span><span class="params">(<span class="type">const</span> LinkContext&amp; context, <span class="type">mach_port_t</span> thisThread,</span></span></span><br><span class="line"><span class="params"><span class="function">                                    InitializerTimingList&amp; timingInfo, ImageLoader::UninitedUpwards&amp; images)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//在镜像列表中的所有镜像进行递归初始化</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">uintptr_t</span> i=<span class="number">0</span>; i &lt; images.count; ++i) &#123;</span><br><span class="line">        images.images[i]-&gt;<span class="built_in">recursiveInitialization</span>(context, thisThread, timingInfo, ups);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">ImageLoader::recursiveInitialization</span><span class="params">(<span class="type">const</span> LinkContext&amp; context, <span class="type">mach_port_t</span> this_thread,</span></span></span><br><span class="line"><span class="params"><span class="function">                                        InitializerTimingList&amp; timingInfo, UninitedUpwards&amp; uninitUps)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function">recursive_lock <span class="title">lock_info</span><span class="params">(this_thread)</span></span>;</span><br><span class="line">    <span class="built_in">recursiveSpinLock</span>(lock_info);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( fState &lt; dyld_image_state_dependents_initialized<span class="number">-1</span> ) &#123;</span><br><span class="line">        <span class="comment">//......</span></span><br><span class="line">        <span class="comment">// let objc know we are about to initialize this image</span></span><br><span class="line">        <span class="type">uint64_t</span> t1 = <span class="built_in">mach_absolute_time</span>();</span><br><span class="line">        fState = dyld_image_state_dependents_initialized;</span><br><span class="line">        oldState = fState;  </span><br><span class="line">        <span class="comment">// 通知 runtime, 当前状态发生变化 -- image的依赖已经完全加载. 如果在runtime中注册了状态监听，当状态发送变化时, 会触发回调函数.</span></span><br><span class="line">        context.<span class="built_in">notifySingle</span>(dyld_image_state_dependents_initialized, <span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//递归的调用当前image的依赖的dylib动态库的初始化函数进行初始化</span></span><br><span class="line">        <span class="comment">// initialize this image    </span></span><br><span class="line">        <span class="type">bool</span> hasInitializers = <span class="keyword">this</span>-&gt;<span class="built_in">doInitialization</span>(context);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// let anyone know we finished initializing this image</span></span><br><span class="line">        fState = dyld_image_state_initialized;</span><br><span class="line">        oldState = fState;</span><br><span class="line">        <span class="comment">// 通知runtime, 当前镜像初始化完成</span></span><br><span class="line">        context.<span class="built_in">notifySingle</span>(dyld_image_state_initialized, <span class="keyword">this</span>);</span><br><span class="line">        <span class="comment">//.....</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">recursiveSpinUnLock</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="built_in">bool</span> ImageLoaderMachO::<span class="keyword">do</span><span class="constructor">Initialization(<span class="params">const</span> LinkContext&amp; <span class="params">context</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 初始化镜像</span></span><br><span class="line">    <span class="comment">// mach-o has -init and static initializers</span></span><br><span class="line">    <span class="keyword">do</span><span class="constructor">ImageInit(<span class="params">context</span>)</span>;</span><br><span class="line">    <span class="keyword">do</span><span class="constructor">ModInitFunctions(<span class="params">context</span>)</span>;</span><br><span class="line">    return (fHasDashInit<span class="operator"> || </span>fHasInitializers);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line"><span class="literal">void</span> ImageLoaderMachO::doImageInit(<span class="keyword">const</span> LinkContext&amp; context)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> ( fHasDashInit ) &#123;</span><br><span class="line">        <span class="keyword">const</span> uint32_t <span class="function"><span class="title">cmd_count</span> = <span class="params">((macho_header*)fMachOData)</span>-&gt;</span>ncmds;</span><br><span class="line">        <span class="keyword">const</span> struct load_command* <span class="keyword">const</span> cmds = (struct load_command*)&amp;fMachOData[sizeof(macho_header)];</span><br><span class="line">        <span class="keyword">const</span> struct load_command* cmd = cmds;</span><br><span class="line">        <span class="keyword">for</span> (uint32_t i = <span class="number">0</span>; i &lt; cmd_count; ++i) &#123;</span><br><span class="line">            <span class="keyword">switch</span> (cmd-&gt;cmd) &#123;</span><br><span class="line">                <span class="keyword">case</span> LC_ROUTINES_COMMAND:</span><br><span class="line">                    Initializer <span class="function"><span class="title">func</span> = <span class="params">(Initializer)(((struct macho_routines_command*)cmd)-&gt;init_address + fSlide)</span>;</span></span><br><span class="line"><span class="function">                    //.......</span></span><br><span class="line"><span class="function">                    <span class="title">func</span><span class="params">(context.argc, context.argv, context.envp, context.apple, &amp;context.programVars)</span>;</span></span><br><span class="line"><span class="function">                    <span class="title">break</span>;</span></span><br><span class="line"><span class="function">            &#125;</span></span><br><span class="line"><span class="function">            <span class="title">cmd</span> = <span class="params">(<span class="keyword">const</span> struct load_command*)(((char*)cmd)+cmd-&gt;cmdsize)</span>;</span></span><br><span class="line"><span class="function">        &#125;</span></span><br><span class="line"><span class="function">    &#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function"></span></span><br></pre></td></tr></table></figure>
+
+<p>doImageInit方法主要获取Mach O的init方法的地址并调用它，完成初始化操作。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line">void ImageLoaderMachO::<span class="title function_ invoke__">doModInitFunctions</span>(<span class="keyword">const</span> LinkContext&amp; context)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="title function_ invoke__">if</span> ( fHasInitializers ) &#123;</span><br><span class="line">        <span class="keyword">const</span> uint32_t cmd_count = ((macho_header*)fMachOData)<span class="punctuation">-&gt;</span>ncmds;</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">struct</span> <span class="title class_">load_command</span>* <span class="keyword">const</span> cmds = (<span class="keyword">struct</span> <span class="title class_">load_command</span>*)&amp;fMachOData[<span class="title function_ invoke__">sizeof</span>(macho_header)];<span class="keyword">const</span> <span class="keyword">struct</span> <span class="title class_">load_command</span>* cmd = cmds;</span><br><span class="line">        <span class="title function_ invoke__">for</span> (uint32_t i = <span class="number">0</span>; i &lt; cmd_count; ++i) &#123;</span><br><span class="line">            <span class="title function_ invoke__">if</span> ( cmd<span class="punctuation">-&gt;</span>cmd == LC_SEGMENT_COMMAND ) &#123;</span><br><span class="line">                <span class="keyword">const</span> <span class="keyword">struct</span> <span class="title class_">macho_segment_command</span>* seg = (<span class="keyword">struct</span> <span class="title class_">macho_segment_command</span>*)cmd;</span><br><span class="line">                <span class="keyword">const</span> <span class="keyword">struct</span> <span class="title class_">macho_section</span>* <span class="keyword">const</span> sectionsStart = (<span class="keyword">struct</span> <span class="title class_">macho_section</span>*)((<span class="type">char</span>*)seg + <span class="title function_ invoke__">sizeof</span>(<span class="keyword">struct</span> <span class="title class_">macho_segment_command</span>));</span><br><span class="line">                <span class="keyword">const</span> <span class="keyword">struct</span> <span class="title class_">macho_section</span>* <span class="keyword">const</span> sectionsEnd = &amp;sectionsStart[seg<span class="punctuation">-&gt;</span>nsects];</span><br><span class="line">                <span class="title function_ invoke__">for</span> (<span class="keyword">const</span> <span class="keyword">struct</span> <span class="title class_">macho_section</span>* sect=sectionsStart; sect &lt; sectionsEnd; ++sect) &#123;</span><br><span class="line">                    <span class="keyword">const</span> uint8_t <span class="keyword">type</span> = sect<span class="punctuation">-&gt;</span>flags &amp; SECTION_TYPE;</span><br><span class="line">                    <span class="title function_ invoke__">if</span> ( <span class="keyword">type</span> == S_MOD_INIT_FUNC_POINTERS ) &#123;</span><br><span class="line">                        <span class="comment">//初始化器</span></span><br><span class="line">                        Initializer* inits = (Initializer*)(sect<span class="punctuation">-&gt;</span>addr + fSlide);</span><br><span class="line">                        <span class="keyword">const</span> size_t count = sect<span class="punctuation">-&gt;</span>size / <span class="title function_ invoke__">sizeof</span>(uintptr_t);</span><br><span class="line">                        <span class="title function_ invoke__">for</span> (size_t i=<span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">                            <span class="comment">//......</span></span><br><span class="line">                            <span class="title function_ invoke__">func</span>(context.argc, context.argv, context.envp, context.apple, &amp;context.programVars);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            cmd = (<span class="keyword">const</span> <span class="keyword">struct</span> <span class="title class_">load_command</span>*)(((<span class="type">char</span>*)cmd)+cmd<span class="punctuation">-&gt;</span>cmdsize);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>doModInitFunctions方法主要获取Mach O的static initializer的地址并调用</p>
+<p>这里需要注意的是这里的initalizer并非指的是名为initalizer的方法, 而是使用 attribute((constructor) 进行修饰的方法, 在ImageLoader类中initializer函数指针所指向该初始化方法的地址。</p>
+<p>这里有一个十分重要的动态库初始化方法，<strong><strong>libSystem_initializer</strong></strong>就是在这个阶段被调用的。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">static <span class="constructor">__attribute__((<span class="params">constructor</span>)</span>) </span><br><span class="line">void lib<span class="constructor">System_initializer(<span class="params">int</span> <span class="params">argc</span>, <span class="params">const</span> <span class="params">char</span><span class="operator">*</span> <span class="params">argv</span>[], <span class="params">const</span> <span class="params">char</span><span class="operator">*</span> <span class="params">envp</span>[], <span class="params">const</span> <span class="params">char</span><span class="operator">*</span> <span class="params">apple</span>[], <span class="params">const</span> <span class="params">struct</span> ProgramVars<span class="operator">*</span> <span class="params">vars</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="constructor">_libkernel_init(<span class="params">libkernel_funcs</span>)</span>;</span><br><span class="line"></span><br><span class="line">    bootstrap<span class="constructor">_init()</span>;</span><br><span class="line">    mach<span class="constructor">_init()</span>;</span><br><span class="line">    pthread<span class="constructor">_init()</span>;</span><br><span class="line">    <span class="constructor">__libc_init(<span class="params">vars</span>, <span class="params">libSystem_atfork_prepare</span>, <span class="params">libSystem_atfork_parent</span>, <span class="params">libSystem_atfork_child</span>, <span class="params">apple</span>)</span>;</span><br><span class="line">    <span class="constructor">__keymgr_initializer()</span>;</span><br><span class="line">    <span class="constructor">_dyld_initializer()</span>;</span><br><span class="line"></span><br><span class="line">    libdispatch<span class="constructor">_init()</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="constructor">_libxpc_initializer()</span>;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">	errno = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>libSystem_initializer会调用libdispatch_init再到_objc_init初始化runtime在_objc_init中通过注册了几个关键通知, 从dyld这里接手了关键时机的处理，这个方法会在下一篇介绍runtime的博客中进行介绍，我们先继续往下看。对于Libsystem代码地址可以在<a target="_blank" rel="noopener" href="https://opensource.apple.com/tarballs/Libsystem/">该地址</a>进行下载.</p>
+<p><strong><strong>获取主程序入口</strong></strong></p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">result</span> = (uintptr_t)sMainExecutable-&gt;</span>getThreadPC();</span><br><span class="line"><span class="keyword">if</span> ( result != <span class="number">0</span> ) &#123;</span><br><span class="line">    <span class="comment">// 主可执行文件使用lc_main，需要返回libdyld.dylib中的glue</span></span><br><span class="line">    <span class="comment">//调用main()</span></span><br><span class="line">    <span class="comment">//当执行完dyld::_main方法之后,返回了main()函数地址,这个时候所有初始化工作都已经完成了,正式进入Objc声明周期</span></span><br><span class="line">    <span class="comment">// main executable uses LC_MAIN, needs to return to glue in libdyld.dylib</span></span><br><span class="line">    <span class="function"><span class="title">if</span> ( (gLibSystemHelpers != NULL) &amp;&amp; (gLibSystemHelpers-&gt;</span>version &gt;= <span class="number">9</span>) )</span><br><span class="line">        *<span class="function"><span class="title">startGlue</span> = (uintptr_t)gLibSystemHelpers-&gt;</span>startGlueToCallExit;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        halt(<span class="string">&quot;libdyld.dylib support not present for LC_MAIN&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// main executable uses LC_UNIXTHREAD, dyld needs to let &quot;start&quot; in program set up for main()</span></span><br><span class="line">    <span class="function"><span class="title">result</span> = (uintptr_t)sMainExecutable-&gt;</span>getMain();</span><br><span class="line">    *startGlue = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main 地址有两种方式获取，一种是存放在LC_MAIN命令中，这时候需要调用<strong><strong>getThreadPC</strong></strong></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span>* <span class="title">ImageLoaderMachO::getThreadPC</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">uint32_t</span> cmd_count = ((macho_header*)fMachOData)-&gt;ncmds;</span><br><span class="line">    <span class="type">const</span> <span class="keyword">struct</span> <span class="title class_">load_command</span>* <span class="type">const</span> cmds = (<span class="keyword">struct</span> load_command*)&amp;fMachOData[<span class="built_in">sizeof</span>(macho_header)];</span><br><span class="line">    <span class="type">const</span> <span class="keyword">struct</span> <span class="title class_">load_command</span>* cmd = cmds;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">uint32_t</span> i = <span class="number">0</span>; i &lt; cmd_count; ++i) &#123;</span><br><span class="line">        <span class="comment">// 遍历loadCommand,加载loadCommand中的&#x27;LC_MAIN&#x27;所指向的偏移地址</span></span><br><span class="line">        <span class="keyword">if</span> ( cmd-&gt;cmd == LC_MAIN ) &#123;</span><br><span class="line">            entry_point_command* mainCmd = (entry_point_command*)cmd;</span><br><span class="line">            <span class="comment">// 偏移量 + header所占的字节数，就是main的入口</span></span><br><span class="line">            <span class="type">void</span>* entry = (<span class="type">void</span>*)(mainCmd-&gt;entryoff + (<span class="type">char</span>*)fMachOData);</span><br><span class="line">            <span class="keyword">if</span> ( <span class="keyword">this</span>-&gt;<span class="built_in">containsAddress</span>(entry) )</span><br><span class="line">                <span class="keyword">return</span> entry;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">throw</span> <span class="string">&quot;LC_MAIN entryoff is out of range&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        cmd = (<span class="type">const</span> <span class="keyword">struct</span> load_command*)(((<span class="type">char</span>*)cmd)+cmd-&gt;cmdsize);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getThreadPC主要逻辑就是遍历loadCommand，找到’LC_MAIN’指令，得到该指令所指向的偏移地址，经过处理后，就得到了main函数的地址，将此地址返回给__dyld_start。__dyld_start中将main函数地址保存在寄存器后，跳转到对应的地址，开始执行main函数，另一种Mach O不支持LC_MAIN仅支持LC_UNIXTHREAD，这时候就需要调用<strong><strong>getMain</strong></strong>方法。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span>* <span class="title">ImageLoaderMachO::getMain</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">uint32_t</span> cmd_count = ((macho_header*)fMachOData)-&gt;ncmds;</span><br><span class="line">    <span class="type">const</span> <span class="keyword">struct</span> <span class="title class_">load_command</span>* <span class="type">const</span> cmds = (<span class="keyword">struct</span> load_command*)&amp;fMachOData[<span class="built_in">sizeof</span>(macho_header)];</span><br><span class="line">    <span class="type">const</span> <span class="keyword">struct</span> <span class="title class_">load_command</span>* cmd = cmds;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">uint32_t</span> i = <span class="number">0</span>; i &lt; cmd_count; ++i) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (cmd-&gt;cmd) &#123;</span><br><span class="line">            <span class="keyword">case</span> LC_UNIXTHREAD: </span><br><span class="line">            &#123;</span><br><span class="line">            <span class="meta">#<span class="keyword">if</span> __i386__</span></span><br><span class="line">                <span class="type">const</span> <span class="type">i386_thread_state_t</span>* registers = (<span class="type">i386_thread_state_t</span>*)(((<span class="type">char</span>*)cmd) + <span class="number">16</span>);</span><br><span class="line">                <span class="type">void</span>* entry = (<span class="type">void</span>*)(registers-&gt;eip + fSlide);</span><br><span class="line">            <span class="meta">#<span class="keyword">elif</span> __x86_64__</span></span><br><span class="line">                <span class="type">const</span> <span class="type">x86_thread_state64_t</span>* registers = (<span class="type">x86_thread_state64_t</span>*)(((<span class="type">char</span>*)cmd) + <span class="number">16</span>);</span><br><span class="line">                <span class="type">void</span>* entry = (<span class="type">void</span>*)(registers-&gt;rip + fSlide);</span><br><span class="line">            <span class="comment">//.....</span></span><br><span class="line">            &#125;   </span><br><span class="line">            <span class="keyword">break</span>;      </span><br><span class="line">        &#125;</span><br><span class="line">        cmd = (<span class="type">const</span> <span class="keyword">struct</span> load_command*)(((<span class="type">char</span>*)cmd)+cmd-&gt;cmdsize);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> <span class="string">&quot;no valid entry point&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>上一篇博客我们主要介绍了从点击应用到加载dyld，再将地址设置到dyld到入口地址，这篇博客就从dyld入口地址__dyld_start作为起点，在这个阶段中主要做了如下工作：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1.</span> 将主程序初始化为imageLoader</span><br><span class="line"><span class="bullet">2.</span> 加载共享库到内存</span><br><span class="line"><span class="bullet">3.</span> 加载插入的动态库</span><br><span class="line"><span class="bullet">4.</span> 链接主程序,链接插入库</span><br><span class="line"><span class="bullet">5.</span> 初始化主程序，插入库</span><br><span class="line"><span class="bullet">6.</span> 寻找主程序入口点</span><br></pre></td></tr></table></figure>
+
+<p>而下一篇博客要给大家介绍的是十分关键的runtime，它的初始化就发生在初始化主程序，插入库这个阶段，这个阶段会调用使用 attribute((constructor) 进行修饰的方法, 其中这里有一个十分重要的动态库初始化方法，<strong><strong>libSystem_initializer</strong></strong>就是在这个阶段被调用的libSystem_initializer会调用libdispatch_init再到_objc_init初始化runtime在_objc_init中通过注册了几个关键通知, 从dyld这里接手了关键时机的处理，包括镜像映射，镜像加载，镜像卸载，这些都是下一篇博客将要介绍的。从下一篇开始就要正式介入介绍Runtime了。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/">优化 App 的启动时间</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.cnbluebox.com/blog/2017/06/20/dyldyu-objc/">dyld与ObjC</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.cnbluebox.com/blog/2017/10/12/dyld2/">Dyld之二: 动态链接过程</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d2eeb4085af5">iOS App启动时发生了什么?</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhiyongzou.github.io/2018/03/26/App-%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E6%8E%A2%E7%B4%A2/">App 启动优化探索</a></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Objective-C-%E7%9B%B8%E5%85%B3/">Objective C 相关</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Objective-C-相关/">Objective C 相关</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2020/01/18/iOS-Runtime源码解析之Runtime较好的文章推荐-md/" title="iOS-Runtime源码解析之Runtime较好的文章推荐">
+  <span>
+  iOS-Runtime源码解析之Runtime较好的文章推荐</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2020/01/09/iOS-Runtime源码解析之App启动/"  title="iOS Runtime源码解析之App启动">
+ <span>iOS Runtime源码解析之App启动
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2020/01/14/iOS-Runtime源码解析之dyld/" data-title="iOS Runtime源码解析之dyld" data-url="http://yoursite.com/2020/01/14/iOS-Runtime%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E4%B9%8Bdyld/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%9C%B0%E5%9D%80"><span class="toc-number">1.</span> <span class="toc-text">源码地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">源码分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,740 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>[后端技术栈-Django]-1-使用Docker容器来部署Django之一Docker简介 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="可能大家会比较奇怪明明讲的是Django为啥要介绍Docker，实不相瞒如果大家不知道Docker对Django的学习并无影响，但是个人之前很早就听说Docker了，借着这个机会也学习下，趁着有这个应用场景也事件下，其实个人对Docker也不是很熟悉，只是现学现卖。将整个过程贯通起来，个人接触新东西一般喜欢围绕着问题展开，遇到不明白的在网上找资料或者找书去了解。这篇博客也采用这种方式，下面就围绕">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[后端技术栈-Django]-1-使用Docker容器来部署Django之一Docker简介">
+<meta property="og:url" content="http://yoursite.com/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="可能大家会比较奇怪明明讲的是Django为啥要介绍Docker，实不相瞒如果大家不知道Docker对Django的学习并无影响，但是个人之前很早就听说Docker了，借着这个机会也学习下，趁着有这个应用场景也事件下，其实个人对Docker也不是很熟悉，只是现学现卖。将整个过程贯通起来，个人接触新东西一般喜欢围绕着问题展开，遇到不明白的在网上找资料或者找书去了解。这篇博客也采用这种方式，下面就围绕">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/001.png">
+<meta property="og:image" content="http://yoursite.com/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/002.png">
+<meta property="og:image" content="http://yoursite.com/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/004.png">
+<meta property="article:published_time" content="2018-12-05T12:15:21.000Z">
+<meta property="article:modified_time" content="2018-12-05T15:15:46.000Z">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2018/12/05/后端技术栈-Django-1-使用Docker容器来部署Django之一Docker简介/" title="[后端技术栈-Django]-1-使用Docker容器来部署Django之一Docker简介" itemprop="url">[后端技术栈-Django]-1-使用Docker容器来部署Django之一Docker简介</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2018-12-05T12:15:21.000Z" itemprop="datePublished"> Published 2018-12-05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p><img src="/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/001.png"></p>
+<p>可能大家会比较奇怪明明讲的是Django为啥要介绍Docker，实不相瞒如果大家不知道Docker对Django的学习并无影响，但是个人之前很早就听说Docker了，借着这个机会也学习下，趁着有这个应用场景也事件下，其实个人对Docker也不是很熟悉，只是现学现卖。将整个过程贯通起来，个人接触新东西一般喜欢围绕着问题展开，遇到不明白的在网上找资料或者找书去了解。这篇博客也采用这种方式，下面就围绕着几个问题展开，这篇博客不会对Docker进行太深入了解，目标是够用就好。深入的知识在后续大家使用的时候遇到问题再在实践中解决，毕竟精力有限。</p>
+<h4 id="1-容器化-vs-虚拟化"><a href="#1-容器化-vs-虚拟化" class="headerlink" title="1. 容器化 vs 虚拟化"></a>1. 容器化 vs 虚拟化</h4><p>虚拟化是通过中间件将一台或者多台独立机器虚拟运行与物理硬件之上，用户并不能感知为他们服务的到底是哪台机器，事实上呈现在用户面前的就和使用一部机器是一样的感觉，只不过这部机器在物理范畴上可能不是单纯一台主机，可能有多台机器组成的一个集群。虚拟机是抽象硬件资源，每一个虚拟机实例占用指定数量的CPU、内存、硬盘等资源，这些资源每个虚拟机实例之间不会共享。</p>
+<p>而什么是容器化呢？容器化从应用出发，将应用分割成多个容器，而这些容器直接运行在操作系统内核上的用户空间，容器技术可以让多个独立用户空间运行在同一台宿主机上。也就是说容器技术是抽象软件资源，它和Linux上运行的一个应用程序没有太大区别。</p>
+<p>早期，大家都认为虚拟化方式可以最大程度上提供虚拟化管理的灵活性。但是随着时间推移，大家发现，虚拟化技术有个问题就是：每个虚拟机都需要运行一个完整的操作系统以及其中安装好的大量应用程序。但实际生产开发环境里，我们更关注的是自己部署的应用程序，如果每次部署发布我都得搞一个完整操作系统和附带的依赖环境，那么这让任务和性能变得很重和很低下。这时候，人们就在想，有没有其他什么方式能让人更加的关注应用程序本身，底层多余的操作系统和环境可以共享和复用？换句话来说，那就是我部署一个服务运行好后，我再想移植到另外一个地方，我可以不用再安装一套操作系统和依赖环境，这就是容器化提出的场景。</p>
+<h4 id="2-容器化的特点"><a href="#2-容器化的特点" class="headerlink" title="2. 容器化的特点"></a>2. 容器化的特点</h4><p>容器是自包含的，它打包了应用程序及其所有依赖，可以直接运行。<br>容器是可移植的，这就可以确保应用在开发环境、测试环境、生产环境等都有完全一样的运行环境。<br>容器是互相隔离的，同一主机上运行的多个容器，不会互相影响。<br>容器是轻量级的，体现在容器的秒级启动，并且占用资源很少。</p>
+<h4 id="3-什么是Docker，Docker的组成及镜像结构"><a href="#3-什么是Docker，Docker的组成及镜像结构" class="headerlink" title="3. 什么是Docker，Docker的组成及镜像结构"></a>3. 什么是Docker，Docker的组成及镜像结构</h4><p>Docker是一个能够把开发应用程序自动部署到容器的开源引擎，使用Docker开发人员只需要关心容器中运行的应用程序，运维人员只需要关心如何管理容器。<br>它能保证写代码的开发环境与应用程序要部署的生产环境一致性。这对经常出现开发环境是好的，等到部署上去各种问题，又得各种联调的程序员来说无疑是巨大的福音。</p>
+<p>Docker 目前大量用于：<br>持续集成和持续部署 (CI&#x2F;CD)， 加速应用管道自动化和应用部署，<br>以及结合微服务技术构建可伸缩扩展的服务框架，<br>服务器资源共享<br>创建隔离的运行环境<br>这些场景。</p>
+<p>那Docker又是由那些组件组成的呢？<br>Docker 主要由 </p>
+<ol>
+<li>Docker引擎：Docker引擎是由客户端服务器架构的程序，客户端通过docker命令行工具以及一套restful API向Docker服务器发出请求，Docker服务器或者称为守护进程完成所有工作并返回。Docker服务器和客户端可以在同一台宿主机器上运行，也可以从本地的Docker客户端连接到另一台宿主机上远程Docker服务器。</li>
+<li>Docker镜像：用户基于镜像运行自己的容器，可以把镜像当作容器的源代码，或者相当于我们安装系统的光盘，写Dockerfile就相当于刻录系统光盘。</li>
+<li>Docker容器：如果说Docker镜像相当于系统光盘，那么Docker容器就是由这个系统光盘制作出来的可以跑的系统。</li>
+<li>Registry： 和我们的github类型，github存储的是代码，而Registry存储的是Docker的镜像，换句话说它就是Docker镜像仓库。</li>
+</ol>
+<p>下面是整个Docker组件的组成图：<br><img src="/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/002.png"></p>
+<p>从 Docker 的使用角度来说最为关键的是镜像的制作，Docker 镜像的制作是通过Dockerfile来完成的，Dockerfile的编写我们会在下面进行介绍，这里我们先来看下Docker 镜像的组成：<br><img src="/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/004.png"></p>
+<p>容器基于镜像启动和运行。可以说Docker镜像是容器的基石，Docker的镜像是一个层叠的只读文件系统，它的最底端是一个引导文件系统及bootfs。 Docker用户几乎永远都不会和引导文件系统有交互，实际上当一个容器启动后，bootfs会被移到内存中，引导文件将被卸载。Docker镜像的第二层是rootfs（root文件系统），位于引导文件系统之上，可以有多种操作系统。 在传统的linux系统中root文件系统最先会以只读的方式加载，当引导和启动完成后他才会被切换成读写模式。 但是在Docker里，root文件系统永远只能是只读，并且Docker会用联合加载系统在rootfs之上加载更多的只读文件系统。 联合加载只得是一次加载多个文件系统。但是在外面看来只有一个文件系统。联合加载会将各层文件系统加载到一起， 这样最终的文件系统会包含所有的文件及目录。Docker将这样的文件系统称为镜像。 一个镜像可以放到另一个镜像顶部，位于下面的镜像称为父镜像。一个容器中可以运行用户的一个或多个进程。当一个容器启动时，Docker会在镜像的最顶层增加一个读写文件系统，我们在Docker中运行的程序就是在这个层运行并执行的。第一次启动Docker时，读写层是空的，当文件发生变化后都会应用到这一层。比如修改一个文件，先将该文件从只读层复制到读写层，然后隐藏只读层，这就是Docker的写时复制。</p>
+<h4 id="4-Docker的常用操作命令"><a href="#4-Docker的常用操作命令" class="headerlink" title="4. Docker的常用操作命令"></a>4. Docker的常用操作命令</h4><p>镜像操作：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line">将镜像拉到本地             [docker pull ubuntu]</span><br><span class="line">查看当前已经有的镜像        [docker images]</span><br><span class="line">查找镜像                  [docker search xxx]</span><br><span class="line">删除镜像                  [docker rmi d5a6e75613ea]</span><br><span class="line"></span><br><span class="line">登录注销docker hub [docker login/logout]</span><br><span class="line">上传镜像：在docker hub 上创建一个docker地址。 标准格式为 用户名/docker镜像名 比如我这边创建的docker镜像名 为testdocker 构建命令如下：</span><br><span class="line">docker build -t <span class="string">&quot;tbfungeek/testdocker:0.0.1&quot;</span> .</span><br><span class="line">使用下面命令就可以进行push到dockerhub了</span><br><span class="line">docker push tbfungeek/testdocker:<span class="number">0.0</span><span class="number">.1</span></span><br></pre></td></tr></table></figure>
+
+<p>容器操作：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">查看docker info      [docker info]</span><br><span class="line">查看当前正在运行的容器  [docker ps -a]</span><br><span class="line">创建容器              [docker run -dit -p <span class="number">8888</span>:<span class="number">80</span> --name test ubuntu <span class="regexp">/bin/</span>bash]</span><br><span class="line">删除容器              [docker rm 容器id]</span><br><span class="line">启动容器  [docker start xxxx]</span><br><span class="line">重启容器  [docker restart xxxx]</span><br><span class="line">附加到容器中 [docker attach xxxx]</span><br><span class="line">退出容器    [<span class="keyword">exit</span>]</span><br><span class="line">停止容器    [docker stop]</span><br><span class="line">查看日志  [docker logs -f xxxx]</span><br><span class="line">查看端口  [docker port <span class="number">4</span>d17d19e34e2]</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="5-DockerFile的常用指令"><a href="#5-DockerFile的常用指令" class="headerlink" title="5. DockerFile的常用指令"></a>5. DockerFile的常用指令</h4><p>构建会在Docker后台守护进程（daemon）中执行，而不是CLI中。构建前，构建进程会将全部内容（递归）发送到守护进程。<br>在创建一个Docker 镜像的时候推荐重新新建一个空的目录作为构建Docker的上下文，并且将Dockerfile放在上下文目录下的顶层目录（虽然可以通过-f参数来指定构建Docker的目录但是推荐还是放在上下文目录的顶层），在这个上下文文件夹中只存放用于构建当前 Docker镜像所必须的文件，对于不需要的文件通过dockerignore文件进行忽略。</p>
+<p>Docker 守护进程会一条一条的执行Dockerfile中的指令，而且会在每一步提交并生成一个新镜像，最后会输出最终镜像的ID。生成完成后，Docker 守护进程会自动清理你发送的上下文。<br>Dockerfile文件中的每条指令会被独立执行，并会创建一个新镜像，RUN cd &#x2F;tmp等命令不会对下条指令产生影响。<br>Docker 会重用已生成的中间镜像，以加速docker build的构建速度。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">1. 创建目录</span><br><span class="line">2. 创建Dockerfile</span><br><span class="line">3. 编写Dockerfile</span><br><span class="line"><span class="comment"># Version: 0.0.1</span></span><br><span class="line"><span class="keyword">FROM</span> ubuntu:latest</span><br><span class="line">MAINTAINER linxiaohai  <span class="string">&quot;tbfungeek@163.com&quot;</span></span><br><span class="line"><span class="built_in">RUN</span> apt-<span class="built_in">get</span> update &amp;&amp; apt-<span class="built_in">get</span> install vim</span><br><span class="line">EXPOSE 80</span><br><span class="line">4. 编译 Dockerfile生成镜像</span><br><span class="line">docker build -f web_container/Dockerfile .</span><br><span class="line">docker build --no-cache -t <span class="string">&quot;标签linxiaohai/web:v1&quot;</span> .</span><br><span class="line">docker build --no-cache -t <span class="string">&quot;标签linxiaohai/web:v1&quot;</span> git@github.com:xxx/web_container</span><br></pre></td></tr></table></figure>
+
+<h5 id="FROM"><a href="#FROM" class="headerlink" title="FROM"></a>FROM</h5><figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> &lt;<span class="built_in">image</span>&gt;</span><br><span class="line"><span class="keyword">FROM</span> &lt;<span class="built_in">image</span>&gt;:&lt;tag&gt;</span><br><span class="line"><span class="keyword">FROM</span> &lt;<span class="built_in">image</span>&gt;@&lt;digest&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在Dockerfile中第一条非注释指令一定是FROM，它指定了以哪一个镜像作为基准镜像，<image>首先会先判断本地是否存在，如果不存在则会从仓库下载，这里推荐使用官方镜像</image></p>
+<h5 id="LABEL"><a href="#LABEL" class="headerlink" title="LABEL"></a>LABEL</h5><p>给构建的镜像打标签。<br>如果base image中也有标签，则继承，如果是同名标签，则覆盖。为了减少layer数量，尽量将标签写在一个LABEL指令中去，如：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">LABEL</span> author=<span class="string">&quot;lin xiaohai&quot;</span> \</span><br><span class="line">      <span class="keyword">version</span>=<span class="string">&quot;0.0.1&quot;</span></span><br><span class="line">指定后可以通过docker <span class="keyword">inspect</span>查看：</span><br><span class="line"><span class="string">&quot;Labels&quot;</span>: &#123;</span><br><span class="line">             <span class="string">&quot;author&quot;</span>: <span class="string">&quot;lin xiaohai&quot;</span>,</span><br><span class="line">             <span class="string">&quot;version&quot;</span>: <span class="string">&quot;0.0.1&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="VOLUME"><a href="#VOLUME" class="headerlink" title="VOLUME"></a>VOLUME</h5><p>VOLUME用于创建挂载点，即向基于所构建镜像创始的容器添加卷</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">VOLUME [<span class="string">&quot;/var/log&quot;</span>]</span><br><span class="line">VOLUME <span class="regexp">/var/</span>log <span class="regexp">/var/</span>db</span><br></pre></td></tr></table></figure>
+
+<p>如，通过VOLUME创建一个挂载点：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">ENV</span> volum <span class="string">&quot;/home/mydata&quot;</span></span><br><span class="line"><span class="keyword">VOLUME</span><span class="language-bash"> <span class="variable">$&#123;volum&#125;</span></span></span><br></pre></td></tr></table></figure>
+<p>构建的镜像，并指定镜像名为docker_file。构建镜像后，使用新构建的运行一个容器。运行容器时，需-v参将能本地目录绑定到容器的卷（挂载点）上，以使容器可以访问宿主机的数据。</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">docker run -dit -v ~<span class="regexp">/test:/</span>home<span class="regexp">/mydata/</span> --name <span class="string">&quot;volumetests&quot;</span> docker_file</span><br></pre></td></tr></table></figure>
+<h5 id="USER"><a href="#USER" class="headerlink" title="USER"></a>USER</h5><p>USER用于指定运行镜像所使用的用户：</p>
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">USER</span> <span class="title">daemon</span></span><br></pre></td></tr></table></figure>
+
+<p>使用USER指定用户时，可以使用用户名、UID或GID，或是两者的组合。以下都是合法的指定试：</p>
+<figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">USER</span> <span class="title">user</span></span><br><span class="line"><span class="keyword">USER</span> <span class="title">user</span>:<span class="keyword">group</span></span><br><span class="line"><span class="title">USER</span> uid</span><br><span class="line"><span class="keyword">USER</span> <span class="title">uid</span>:gid</span><br><span class="line"><span class="keyword">USER</span> <span class="title">user</span>:gid</span><br><span class="line"><span class="keyword">USER</span> <span class="title">uid</span>:group</span><br></pre></td></tr></table></figure>
+
+<p>使用USER指定用户后，Dockerfile中其后的命令RUN、CMD、ENTRYPOINT都将使用该用户。镜像构建完成后，通过docker run运行容器时，可以通过-u参数来覆盖所指定的用户。</p>
+<h5 id="WORKDIR"><a href="#WORKDIR" class="headerlink" title="WORKDIR"></a>WORKDIR</h5><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">WORKDIR <span class="regexp">/path/</span>to/workdir</span><br></pre></td></tr></table></figure>
+
+<p>WORKDIR指令用于设置Dockerfile中的RUN、CMD和ENTRYPOINT指令执行命令的工作目录(默认为&#x2F;目录)，该指令在Dockerfile文件中可以出现多次，如果使用相对路径则为相对于WORKDIR上一次的值</p>
+<h5 id="ARG"><a href="#ARG" class="headerlink" title="ARG"></a>ARG</h5><p>ARG用于指定传递给构建运行时的变量：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">ARG <span class="tag">&lt;<span class="name">name</span>&gt;</span>[=<span class="tag">&lt;<span class="name">default</span> <span class="attr">value</span>&gt;</span>]</span><br></pre></td></tr></table></figure>
+<p>在使用docker build构建镜像时，可以通过–build-arg <varname>&#x3D;<value>参数来指定或重设置这些变量的值。<br>docker内置了一批构建参数，可以不用在Dockerfile中声明：HTTP_PROXY、http_proxy、HTTPS_PROXY、https_proxy、FTP_PROXY、ftp_proxy、NO_PROXY、no_proxy</value></varname></p>
+<h5 id="RUN"><a href="#RUN" class="headerlink" title="RUN"></a>RUN</h5><p>RUN指令会在当前镜像的顶层执行任何命令，并commit成新的（中间）镜像，提交的镜像会在后面继续用到。<br>上面看到RUN后的格式有两种写法。</p>
+<p>shell格式，相当于执行&#x2F;bin&#x2F;sh -c “<command>“：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="built_in">RUN</span> apt-<span class="built_in">get</span> install vim -y</span><br></pre></td></tr></table></figure>
+<p>exec格式，不会触发shell，所以$HOME这样的环境变量无法使用，但它可以在没有bash的镜像中执行，而且可以避免错误的解析命令字符串：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="built_in">RUN</span> [<span class="string">&quot;apt-get&quot;</span>, <span class="string">&quot;install&quot;</span>, <span class="string">&quot;vim&quot;</span>, <span class="string">&quot;-y&quot;</span>]</span><br><span class="line">或</span><br><span class="line"><span class="built_in">RUN</span> [<span class="string">&quot;/bin/bash&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;apt-get install vim -y&quot;</span>]  与shell风格相同</span><br></pre></td></tr></table></figure>
+<p>RUN可以执行任何命令，然后在当前镜像上创建一个新层并提交。提交后的结果镜像将会用在Dockerfile文件的下一步。<br>通过RUN执行多条命令时，可以通过\换行执行,也可以在同一行中，通过分号分隔命令：</p>
+<h5 id="CMD"><a href="#CMD" class="headerlink" title="CMD"></a>CMD</h5><p>一个Dockerfile里只能有一个CMD，如果有多个，只有最后一个生效。CMD指令的主要功能是在build完成后，为了给docker run启动到容器时提供默认命令或参数，这些默认值可以包含可执行的命令，也可以只是参数（此时可执行命令就必须提前在ENTRYPOINT中指定）。<br>它与ENTRYPOINT的功能极为相似，区别在于如果docker run后面出现与CMD指定的相同命令，那么CMD会被覆盖；而ENTRYPOINT会把容器名后面的所有内容都当成参数传递给其指定的命令（不会对命令覆盖）。另外CMD还可以单独作为ENTRYPOINT的所接命令的可选参数。<br>CMD与RUN的区别在于，RUN是在build成镜像时就运行的，先于CMD和ENTRYPOINT的，CMD会在每次启动容器的时候运行，而RUN只在创建镜像时执行一次，固化在image中。</p>
+<h5 id="ENTRYPOINT"><a href="#ENTRYPOINT" class="headerlink" title="ENTRYPOINT"></a>ENTRYPOINT</h5><p>ENTRYPOINT命令设置在容器启动时执行命令，如果有多个ENTRYPOINT指令，那只有最后一个生效。<br>使用exec格式，在docker run <image>的所有参数，都会追加到ENTRYPOINT之后，并且会覆盖CMD所指定的参数（如果有的话）。当然可以在run时使用–entrypoint来覆盖ENTRYPOINT指令。<br>以推荐使用的exec格式为例：<br>我们可以使用ENTRYPOINT来设置基本不会变化的命令，用CMD来设置其它的可能改变的默认启动命令或选项（docker run会覆盖的）。</image></p>
+<h5 id="ENV"><a href="#ENV" class="headerlink" title="ENV"></a>ENV</h5><p>用于设置环境变量：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">ENV <span class="tag">&lt;<span class="name">key</span>&gt;</span> <span class="tag">&lt;<span class="name">value</span>&gt;</span></span><br><span class="line">设置了后，后续的RUN命令都可以使用，当运行生成的镜像时这些环境变量依然有效，如果需要在运行时更改这些环境变量可以在运行docker run时添加-env <span class="tag">&lt;<span class="name">key</span>&gt;</span>=<span class="tag">&lt;<span class="name">value</span>&gt;</span>参数来修改</span><br></pre></td></tr></table></figure>
+
+<h5 id="ADD"><a href="#ADD" class="headerlink" title="ADD"></a>ADD</h5><p>在构建镜像时，复制上下文中的文件到镜像内，格式：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ADD</span> &lt;src&gt;<span class="built_in">..</span>. &lt;dest&gt;</span><br><span class="line"><span class="built_in">ADD</span> [<span class="string">&quot;&lt;src&gt;&quot;</span>,<span class="built_in">..</span>. <span class="string">&quot;&lt;dest&gt;&quot;</span>]</span><br></pre></td></tr></table></figure>
+<p><src>可以是文件、目录，也可以是文件URL。可以使用模糊匹配(wildcards，类似shell的匹配)，可以指定多个<src>，必须是在上下文目录和子目录中，无法添加..&#x2F;a.txt这样的文件。如果<src>是个目录，则复制的是目录下的所有内容，但不包括该目录。如果<src>是个可被docker识别的压缩包，docker会以tar -x的方式解压后将内容复制到<desct>。<br><dest>可以是绝对路径，也可以是相对WORKDIR目录的相对路径。如果路径不存在则会自动级联创建，根据你的需要是<dest>里是否需要反斜杠&#x2F;，习惯使用&#x2F;结尾从而避免被当成文件。</dest></dest></desct></src></src></src></src></p>
+<h5 id="COPY"><a href="#COPY" class="headerlink" title="COPY"></a>COPY</h5><p>COPY的语法与功能与ADD相同，只是不支持上面讲到的<src>是远程URL、自动解压这两个特性，但是Best Practices for Writing Dockerfiles建议尽量使用COPY，并使用RUN与COPY的组合来代替ADD，这是因为虽然COPY只支持本地文件拷贝到container，但它的处理比ADD更加透明，建议只在复制tar文件时使用ADD，如ADD trusty-core-amd64.tar.gz &#x2F;。</src></p>
+<h5 id="EXPOSE"><a href="#EXPOSE" class="headerlink" title="EXPOSE"></a>EXPOSE</h5><p>EXPOSE指令告诉容器在运行时要监听的端口，但是这个端口是用于多个容器之间通信用的（links），外面的host是访问不到的。要把端口暴露给外面的主机，在启动容器时使用-p选项。</p>
+<h5 id="ONBUILD"><a href="#ONBUILD" class="headerlink" title="ONBUILD"></a>ONBUILD</h5><p>向镜像中添加一个触发器，当以该镜像为base image再次构建新的镜像时，会触发执行其中的指令。格式：</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">ONBUILD</span><span class="meta"> [INSTRUCTION]</span></span><br></pre></td></tr></table></figure>
+
+<p>比如我们生成的镜像是用来部署Python代码的，但是因为有多个项目可能会复用该镜像。所以一个合适的方式是：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">[...]</span><br><span class="line"><span class="comment"># 在下一次以此镜像为base image的构建中，执行ADD . /app/src，将项目代目添加到新镜像中去</span></span><br><span class="line">ONBUILD ADD . <span class="regexp">/app/</span>src</span><br><span class="line"><span class="comment"># 并且build Python代码</span></span><br><span class="line">ONBUILD RUN <span class="regexp">/usr/</span>local<span class="regexp">/bin/</span>python-build --dir <span class="regexp">/app/</span>src</span><br><span class="line">[...]</span><br></pre></td></tr></table></figure>
+
+<p>注意<br>ONBUILD只会继承给子节点的镜像，不会再继承给孙子节点。<br>ONBUILD ONBUILD或者ONBUILD FROM或者ONBUILD MAINTAINER是不允许的。</p>
+<h5 id="STOPSIGNAL"><a href="#STOPSIGNAL" class="headerlink" title="STOPSIGNAL"></a>STOPSIGNAL</h5><p>STOPSIGNAL用于设置停止容器所要发送的系统调用信号：</p>
+<h5 id="STOPSIGNAL-signal"><a href="#STOPSIGNAL-signal" class="headerlink" title="STOPSIGNAL signal"></a>STOPSIGNAL signal</h5><p>所使用的信号必须是内核系统调用表中的合法的值，如：9、SIGKILL</p>
+<p>可以通过如下材料进行进一步学习：</p>
+<p><a target="_blank" rel="noopener" href="http://www.cnblogs.com/qcloud1001/p/9273549.html">http://www.cnblogs.com/qcloud1001/p/9273549.html</a><br><a target="_blank" rel="noopener" href="https://legacy.gitbook.com/book/yeasy/docker_practice/details">https://legacy.gitbook.com/book/yeasy/docker_practice/details</a><br><a target="_blank" rel="noopener" href="http://product.dangdang.com/23941643.html">http://product.dangdang.com/23941643.html</a><br><a target="_blank" rel="noopener" href="https://github.com/qianlei90/Blog/issues/35">https://github.com/qianlei90/Blog/issues/35</a><br><a target="_blank" rel="noopener" href="https://github.com/qianlei90/Blog/issues/36">https://github.com/qianlei90/Blog/issues/36</a><br><a target="_blank" rel="noopener" href="http://seanlook.com/2014/11/17/dockerfile-introduction/">http://seanlook.com/2014/11/17/dockerfile-introduction/</a><br><a target="_blank" rel="noopener" href="https://docs.docker.com/get-started/#docker-concepts">https://docs.docker.com/get-started/#docker-concepts</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/22969309">https://www.zhihu.com/question/22969309</a><br><a target="_blank" rel="noopener" href="https://juejin.im/post/5b4615b0f265da0f6d72c130">https://juejin.im/post/5b4615b0f265da0f6d72c130</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/07/02/Objective-C-代码规范/" title="Objective C 代码规范">
+  <span>
+  Objective C 代码规范</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2018/12/03/后端技术栈-Django-0-Django的简要介绍及安装/"  title="[后端技术栈-Django]-0-Django的简要介绍">
+ <span>[后端技术栈-Django]-0-Django的简要介绍
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2018/12/05/后端技术栈-Django-1-使用Docker容器来部署Django之一Docker简介/" data-title="[后端技术栈-Django]-1-使用Docker容器来部署Django之一Docker简介" data-url="http://yoursite.com/2018/12/05/%E5%90%8E%E7%AB%AF%E6%8A%80%E6%9C%AF%E6%A0%88-Django-1-%E4%BD%BF%E7%94%A8Docker%E5%AE%B9%E5%99%A8%E6%9D%A5%E9%83%A8%E7%BD%B2Django%E4%B9%8B%E4%B8%80Docker%E7%AE%80%E4%BB%8B/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%AE%B9%E5%99%A8%E5%8C%96-vs-%E8%99%9A%E6%8B%9F%E5%8C%96"><span class="toc-number">1.</span> <span class="toc-text">1. 容器化 vs 虚拟化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%AE%B9%E5%99%A8%E5%8C%96%E7%9A%84%E7%89%B9%E7%82%B9"><span class="toc-number">2.</span> <span class="toc-text">2. 容器化的特点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E4%BB%80%E4%B9%88%E6%98%AFDocker%EF%BC%8CDocker%E7%9A%84%E7%BB%84%E6%88%90%E5%8F%8A%E9%95%9C%E5%83%8F%E7%BB%93%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">3. 什么是Docker，Docker的组成及镜像结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-Docker%E7%9A%84%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E5%91%BD%E4%BB%A4"><span class="toc-number">4.</span> <span class="toc-text">4. Docker的常用操作命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-DockerFile%E7%9A%84%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">5.</span> <span class="toc-text">5. DockerFile的常用指令</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#FROM"><span class="toc-number">5.1.</span> <span class="toc-text">FROM</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#LABEL"><span class="toc-number">5.2.</span> <span class="toc-text">LABEL</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#VOLUME"><span class="toc-number">5.3.</span> <span class="toc-text">VOLUME</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#USER"><span class="toc-number">5.4.</span> <span class="toc-text">USER</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#WORKDIR"><span class="toc-number">5.5.</span> <span class="toc-text">WORKDIR</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ARG"><span class="toc-number">5.6.</span> <span class="toc-text">ARG</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#RUN"><span class="toc-number">5.7.</span> <span class="toc-text">RUN</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CMD"><span class="toc-number">5.8.</span> <span class="toc-text">CMD</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ENTRYPOINT"><span class="toc-number">5.9.</span> <span class="toc-text">ENTRYPOINT</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ENV"><span class="toc-number">5.10.</span> <span class="toc-text">ENV</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ADD"><span class="toc-number">5.11.</span> <span class="toc-text">ADD</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#COPY"><span class="toc-number">5.12.</span> <span class="toc-text">COPY</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#EXPOSE"><span class="toc-number">5.13.</span> <span class="toc-text">EXPOSE</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ONBUILD"><span class="toc-number">5.14.</span> <span class="toc-text">ONBUILD</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#STOPSIGNAL"><span class="toc-number">5.15.</span> <span class="toc-text">STOPSIGNAL</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#STOPSIGNAL-signal"><span class="toc-number">5.16.</span> <span class="toc-text">STOPSIGNAL signal</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

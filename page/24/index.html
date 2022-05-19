@@ -1,0 +1,1578 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Android | 全栈工程师">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Edgar&#39;s Blog">
+<meta property="og:url" content="http://yoursite.com/page/24/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Android | 全栈工程师">
+<meta property="og:locale">
+<meta property="article:author" content="Edgar">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/20/Android-进阶之动画-四-布局动画/" title="Android 进阶之动画 四 布局动画" itemprop="url">Android 进阶之动画 四 布局动画</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-20T14:42:53.000Z" itemprop="datePublished"> Published 2016-04-20</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>布局动画顾名思义就是为一个布局添加动画，之前学习的视图动画只是为一个View添加动画，而如果需要给某个ViewGroup添加动画就需要使用布局动画了，使用了布局动画后在为这个Layout添加或者删除子View对象的时候。<br>在子View对象移动到新的位置的过程中就会应用指定的动画。<br>了解了布局动画是干什么后就接下来了解下怎么使用了，和其他的动画一样，它也可以有两种方式，一种是XML一种是Java代码形式。</p>
+<h4 id="首先是XML形式的用法："><a href="#首先是XML形式的用法：" class="headerlink" title="首先是XML形式的用法："></a>首先是XML形式的用法：</h4><p>和视图动画一样布局动画也是存放在&#x2F;res&#x2F;anim目录下：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">&lt;layoutAnimation xmlns:<span class="attribute">android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    android:<span class="attribute">delay</span>=<span class="string">&quot;30%&quot;</span></span><br><span class="line">    android:<span class="attribute">animationOrder</span>=<span class="string">&quot;reverse&quot;</span></span><br><span class="line">    android:<span class="attribute">animation</span>=<span class="string">&quot;@anim/slide&quot;</span>/&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">android:<span class="built_in">delay</span> 表示动画播放的延时，也就是两个子View 动画之间的间隔，既可以是百分比，也可以是<span class="built_in">float</span>类型小数。</span><br><span class="line">android:animationOrder表示动画的播放顺序，可以是normal(顺序)、<span class="built_in">reverse</span>(反序)、<span class="built_in">random</span>(随机)。</span><br><span class="line">android:<span class="built_in">animation</span>指向了子控件所要播放的动画。</span><br></pre></td></tr></table></figure>
+<p>有了布局动画就可以将layout animation应用到ViewGroup中了，用法很简单就是直接在Target ViewGroup下添加如下配置：</p>
+<figure class="highlight avrasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">android:</span>layoutAnimation=<span class="string">&quot;@anim/anim_layout&quot;</span></span><br></pre></td></tr></table></figure>
+<p>最后还需要添加:</p>
+<figure class="highlight avrasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">android:</span>animateLayoutChanges=<span class="string">&quot;true&quot;</span></span><br></pre></td></tr></table></figure>
+<p>这样就搞定了。</p>
+<h4 id="使用Java形式的用法："><a href="#使用Java形式的用法：" class="headerlink" title="使用Java形式的用法："></a>使用Java形式的用法：</h4><p>简单的用法：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="comment">//加载动画</span></span><br><span class="line">Animation animation = <span class="keyword">new</span> <span class="constructor">AnimationUtils()</span>.load<span class="constructor">Animation(<span class="params">this</span>, R.<span class="params">anim</span>.<span class="params">layout_anims</span>)</span>;</span><br><span class="line"><span class="comment">//将该动画设置为布局动画</span></span><br><span class="line">LayoutAnimationController layoutAnimationController = <span class="keyword">new</span> <span class="constructor">LayoutAnimationController(<span class="params">animation</span>)</span>;</span><br><span class="line"><span class="comment">//设置延时</span></span><br><span class="line">layoutAnimationController.set<span class="constructor">Delay(1000)</span>;</span><br><span class="line"><span class="comment">//设置动画顺序</span></span><br><span class="line">layoutAnimationController.set<span class="constructor">Order(LayoutAnimationController.ORDER_RANDOM)</span>;</span><br><span class="line"><span class="comment">//将新建的布局动画设置到布局中</span></span><br><span class="line">gridLayout.set<span class="constructor">LayoutAnimation(<span class="params">layoutAnimationController</span>)</span>;</span><br><span class="line"><span class="comment">//添加布局动画监听器</span></span><br><span class="line">gridLayout.set<span class="constructor">LayoutAnimationListener(<span class="params">new</span> Animation.AnimationListener()</span> &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">AnimationStart(Animation <span class="params">animation</span>)</span> &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">AnimationEnd(Animation <span class="params">animation</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">AnimationRepeat(Animation <span class="params">animation</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>通常情况下，布局动画会在ViewGroup 第一次进行布局的时候执行一次，每次调用addView的时候执行一次，如果要强制执行可以调用scheduleLayoutAnimation()完成。</p>
+<p>下面是摘自<a target="_blank" rel="noopener" href="http://blog.csdn.net/yegongheng/article/details/38455191">http://blog.csdn.net/yegongheng/article/details/38455191</a> 的一个例子。<br>了解下面例子之前我们先来看下从大段代码中抽取出的核心代码—-为布局添加Animator来实现动画的例子：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">mLayoutTransition = <span class="keyword">new</span> <span class="constructor">LayoutTransition()</span>;  </span><br><span class="line"><span class="comment">//为GridLayout设置mLayoutTransition对象  </span></span><br><span class="line">mGridLayout.set<span class="constructor">LayoutTransition(<span class="params">mLayoutTransition</span>)</span>;  </span><br><span class="line">mLayoutTransition.set<span class="constructor">Stagger(LayoutTransition.CHANGE_APPEARING, 30)</span>;  </span><br><span class="line">mLayoutTransition.set<span class="constructor">Stagger(LayoutTransition.CHANGE_DISAPPEARING, 30)</span>;  </span><br><span class="line"><span class="comment">//设置每个动画持续的时间  </span></span><br><span class="line">mLayoutTransition.set<span class="constructor">Duration(300)</span>;  </span><br><span class="line"><span class="comment">//为mLayoutTransition的各个时刻 设置Animator</span></span><br><span class="line">mLayoutTransition.set<span class="constructor">Animator(LayoutTransition.APPEARING, <span class="params">mAnimatorAppearing</span>)</span>;  </span><br><span class="line"><span class="comment">//为动画设置监听器</span></span><br><span class="line">mAnimatorAppearing.add<span class="constructor">Listener(<span class="params">new</span> AnimatorListenerAdapter()</span> &#123;  </span><br><span class="line">    @Override  </span><br><span class="line">    public void on<span class="constructor">AnimationEnd(Animator <span class="params">animation</span>)</span> &#123;  </span><br><span class="line">        <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">        super.on<span class="constructor">AnimationEnd(<span class="params">animation</span>)</span>;  </span><br><span class="line">            View view = (View) ((ObjectAnimator) animation).get<span class="constructor">Target()</span>;  </span><br><span class="line">            view.set<span class="constructor">RotationY(0.0f)</span>;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;);  </span><br></pre></td></tr></table></figure>
+<p>最重要的是如下的几个时间点的意义：</p>
+<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line"><span class="comment">* APPEARING —— 元素在容器中显现时需要动画显示。 </span></span><br><span class="line"><span class="comment">* CHANGE_APPEARING —— 由于容器中要显现一个新的元素，其它元素的变化需要动画显示。 </span></span><br><span class="line"><span class="comment">* DISAPPEARING —— 元素在容器中消失时需要动画显示。 </span></span><br><span class="line"><span class="comment">* CHANGE_DISAPPEARING —— 由于容器中某个元素要消失，其它元素的变化需要动画显示。 </span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/** </span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> AndroidLeaf </span></span><br><span class="line"><span class="comment">* ViewGroup中Layout的动画实现 </span></span><br><span class="line"><span class="comment">* 主要知识点： </span></span><br><span class="line"><span class="comment">* 调用 LayoutTransition 对象的 setAnimator() 方法来定义下列动画方式，调用参数是 Animator </span></span><br><span class="line"><span class="comment">* 对象和以下 LayoutTransition 常量： </span></span><br><span class="line"><span class="comment">*  (1)APPEARING —— 元素在容器中显现时需要动画显示。 </span></span><br><span class="line"><span class="comment">*  (2)CHANGE_APPEARING —— 由于容器中要显现一个新的元素，其它元素的变化需要动画显示。 </span></span><br><span class="line"><span class="comment">*  (3)DISAPPEARING —— 元素在容器中消失时需要动画显示。 </span></span><br><span class="line"><span class="comment">*  (4)CHANGE_DISAPPEARING —— 由于容器中某个元素要消失，其它元素的变化需要动画显示。 </span></span><br><span class="line"><span class="comment">*/</span>  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LayoutAnimatorFragment</span> <span class="keyword">extends</span> <span class="title class_">Fragment</span> <span class="keyword">implements</span> <span class="title class_">OnClickListener</span>&#123;  </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Button mButtonAdd;  </span><br><span class="line">    <span class="keyword">private</span> Button mButtonReset;  </span><br><span class="line">    <span class="keyword">private</span> GridLayout mGridLayout;  </span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">buttonNumbers</span> <span class="operator">=</span> <span class="number">1</span>;  </span><br><span class="line">        </span><br><span class="line">    <span class="keyword">private</span> LayoutTransition mLayoutTransition;  </span><br><span class="line">        </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onActivityCreated</span><span class="params">(Bundle savedInstanceState)</span> &#123;  </span><br><span class="line">        <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">        <span class="built_in">super</span>.onActivityCreated(savedInstanceState);  </span><br><span class="line">            </span><br><span class="line">    &#125;  </span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> View <span class="title function_">onCreateView</span><span class="params">(LayoutInflater inflater, ViewGroup container,  </span></span><br><span class="line"><span class="params">            Bundle savedInstanceState)</span> &#123;  </span><br><span class="line">        <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">        <span class="type">View</span> <span class="variable">rootView</span> <span class="operator">=</span> inflater.inflate(R.layout.fragment_layoutanimator, container, <span class="literal">false</span>);  </span><br><span class="line">        initViews(rootView);  </span><br><span class="line">        <span class="keyword">return</span> rootView;  </span><br><span class="line">    &#125;  </span><br><span class="line">        </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">initViews</span><span class="params">(View rootView)</span>&#123;  </span><br><span class="line">            </span><br><span class="line">        mButtonAdd = (Button)rootView.findViewById(R.id.layout_animator_addbutton);  </span><br><span class="line">        mButtonAdd.setOnClickListener(<span class="built_in">this</span>);  </span><br><span class="line">        mButtonReset = (Button)rootView.findViewById(R.id.layout_animator_resetbutton);  </span><br><span class="line">        mButtonReset.setOnClickListener(<span class="built_in">this</span>);  </span><br><span class="line">        mGridLayout = (GridLayout)rootView.findViewById(R.id.layout_animator_gridview);  </span><br><span class="line">        mLayoutTransition = <span class="keyword">new</span> <span class="title class_">LayoutTransition</span>();  </span><br><span class="line">        <span class="comment">//为GridLayout设置mLayoutTransition对象  </span></span><br><span class="line">        mGridLayout.setLayoutTransition(mLayoutTransition);  </span><br><span class="line">        mLayoutTransition.setStagger(LayoutTransition.CHANGE_APPEARING, <span class="number">30</span>);  </span><br><span class="line">        mLayoutTransition.setStagger(LayoutTransition.CHANGE_DISAPPEARING, <span class="number">30</span>);  </span><br><span class="line">        <span class="comment">//设置每个动画持续的时间  </span></span><br><span class="line">        mLayoutTransition.setDuration(<span class="number">300</span>);  </span><br><span class="line">        <span class="comment">//初始化自定义的动画效果  </span></span><br><span class="line">        customLayoutTransition();  </span><br><span class="line">    &#125;  </span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onPause</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">        <span class="built_in">super</span>.onPause();  </span><br><span class="line">            </span><br><span class="line">    &#125;  </span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123;  </span><br><span class="line">        <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">        <span class="keyword">switch</span> (v.getId()) &#123;  </span><br><span class="line">        <span class="keyword">case</span> R.id.layout_animator_addbutton:  </span><br><span class="line">            addButton();  </span><br><span class="line">            <span class="keyword">break</span>;  </span><br><span class="line">        <span class="keyword">case</span> R.id.layout_animator_resetbutton:  </span><br><span class="line">            resetButton();  </span><br><span class="line">            <span class="keyword">break</span>;  </span><br><span class="line">        <span class="keyword">default</span>:  </span><br><span class="line">            <span class="keyword">break</span>;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">        </span><br><span class="line">    <span class="comment">/** </span></span><br><span class="line"><span class="comment">     * 增加Button </span></span><br><span class="line"><span class="comment">     */</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addButton</span><span class="params">()</span>&#123;  </span><br><span class="line">        <span class="type">Button</span> <span class="variable">mButton</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Button</span>(getActivity());  </span><br><span class="line">        LinearLayout.<span class="type">LayoutParams</span> <span class="variable">mLayoutParams</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LinearLayout</span>.LayoutParams(<span class="number">50</span>, <span class="number">50</span>);  </span><br><span class="line">        mButton.setLayoutParams(mLayoutParams);  </span><br><span class="line">        mButton.setText(String.valueOf(buttonNumbers++));  </span><br><span class="line">        mButton.setTextColor(Color.rgb(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));  </span><br><span class="line">        <span class="keyword">if</span>(buttonNumbers % <span class="number">2</span> == <span class="number">1</span>)&#123;  </span><br><span class="line">            mButton.setBackgroundColor(Color.rgb(<span class="number">45</span>, <span class="number">118</span>, <span class="number">87</span>));  </span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;  </span><br><span class="line">            mButton.setBackgroundColor(Color.rgb(<span class="number">225</span>, <span class="number">24</span>, <span class="number">0</span>));  </span><br><span class="line">        &#125;  </span><br><span class="line">        mButton.setOnClickListener(<span class="keyword">new</span> <span class="title class_">OnClickListener</span>() &#123;  </span><br><span class="line">                </span><br><span class="line">            <span class="meta">@Override</span>  </span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123;  </span><br><span class="line">                <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">                mGridLayout.removeView(v);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;);  </span><br><span class="line">            </span><br><span class="line">        mGridLayout.addView(mButton, Math.min(<span class="number">1</span>, mGridLayout.getChildCount()));  </span><br><span class="line">    &#125;  </span><br><span class="line">        </span><br><span class="line">    <span class="comment">/** </span></span><br><span class="line"><span class="comment">    * 删除所有的Button,重置GridLayout </span></span><br><span class="line"><span class="comment">    */</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">resetButton</span><span class="params">()</span>&#123;  </span><br><span class="line">        mGridLayout.removeAllViews();  </span><br><span class="line">        buttonNumbers = <span class="number">1</span>;  </span><br><span class="line">    &#125;  </span><br><span class="line">        </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">customLayoutTransition</span><span class="params">()</span>&#123;  </span><br><span class="line">            </span><br><span class="line">        <span class="comment">/** </span></span><br><span class="line"><span class="comment">        * Add Button </span></span><br><span class="line"><span class="comment">        * LayoutTransition.APPEARING </span></span><br><span class="line"><span class="comment">        * 增加一个Button时，设置该Button的动画效果 </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">        <span class="type">ObjectAnimator</span> <span class="variable">mAnimatorAppearing</span> <span class="operator">=</span> ObjectAnimator.ofFloat(<span class="literal">null</span>, <span class="string">&quot;rotationY&quot;</span>, <span class="number">90.0f</span>,<span class="number">0.0f</span>)  </span><br><span class="line">                .setDuration(mLayoutTransition.getDuration(LayoutTransition.APPEARING));  </span><br><span class="line">        <span class="comment">//为LayoutTransition设置动画及动画类型  </span></span><br><span class="line">        mLayoutTransition.setAnimator(LayoutTransition.APPEARING, mAnimatorAppearing);  </span><br><span class="line">        mAnimatorAppearing.addListener(<span class="keyword">new</span> <span class="title class_">AnimatorListenerAdapter</span>() &#123;  </span><br><span class="line">            <span class="meta">@Override</span>  </span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onAnimationEnd</span><span class="params">(Animator animation)</span> &#123;  </span><br><span class="line">                <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">                <span class="built_in">super</span>.onAnimationEnd(animation);  </span><br><span class="line">                    <span class="type">View</span> <span class="variable">view</span> <span class="operator">=</span> (View) ((ObjectAnimator) animation).getTarget();  </span><br><span class="line">                    view.setRotationY(<span class="number">0.0f</span>);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;);  </span><br><span class="line">            </span><br><span class="line">        <span class="comment">/** </span></span><br><span class="line"><span class="comment">        * Add Button </span></span><br><span class="line"><span class="comment">        * LayoutTransition.CHANGE_APPEARING </span></span><br><span class="line"><span class="comment">        * 当增加一个Button时，设置其他Button的动画效果 </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">            </span><br><span class="line">        <span class="type">PropertyValuesHolder</span> <span class="variable">pvhLeft</span> <span class="operator">=</span>  </span><br><span class="line">                    PropertyValuesHolder.ofInt(<span class="string">&quot;left&quot;</span>, <span class="number">0</span>, <span class="number">1</span>);  </span><br><span class="line">        <span class="type">PropertyValuesHolder</span> <span class="variable">pvhTop</span> <span class="operator">=</span>  </span><br><span class="line">                PropertyValuesHolder.ofInt(<span class="string">&quot;top&quot;</span>, <span class="number">0</span>, <span class="number">1</span>);  </span><br><span class="line">        <span class="type">PropertyValuesHolder</span> <span class="variable">pvhRight</span> <span class="operator">=</span>  </span><br><span class="line">                PropertyValuesHolder.ofInt(<span class="string">&quot;right&quot;</span>, <span class="number">0</span>, <span class="number">1</span>);  </span><br><span class="line">        <span class="type">PropertyValuesHolder</span> <span class="variable">pvhBottom</span> <span class="operator">=</span>  </span><br><span class="line">                PropertyValuesHolder.ofInt(<span class="string">&quot;bottom&quot;</span>, <span class="number">0</span>, <span class="number">1</span>);  </span><br><span class="line">            </span><br><span class="line">        <span class="type">PropertyValuesHolder</span> <span class="variable">mHolderScaleX</span> <span class="operator">=</span> PropertyValuesHolder.ofFloat(<span class="string">&quot;scaleX&quot;</span>, <span class="number">1.0f</span>,<span class="number">0.0f</span>,<span class="number">1.0f</span>);  </span><br><span class="line">        <span class="type">PropertyValuesHolder</span> <span class="variable">mHolderScaleY</span> <span class="operator">=</span> PropertyValuesHolder.ofFloat(<span class="string">&quot;scaleY&quot;</span>, <span class="number">1.0f</span>,<span class="number">0.0f</span>,<span class="number">1.0f</span>);  </span><br><span class="line">        <span class="type">ObjectAnimator</span> <span class="variable">mObjectAnimatorChangeAppearing</span> <span class="operator">=</span> ObjectAnimator.ofPropertyValuesHolder(<span class="built_in">this</span>, pvhLeft,  </span><br><span class="line">                pvhTop,pvhRight,pvhBottom,mHolderScaleX,mHolderScaleY).setDuration(mLayoutTransition  </span><br><span class="line">                        .getDuration(LayoutTransition.CHANGE_APPEARING));  </span><br><span class="line">        mLayoutTransition.setAnimator(LayoutTransition.CHANGE_APPEARING, mObjectAnimatorChangeAppearing);  </span><br><span class="line">        mObjectAnimatorChangeAppearing.addListener(<span class="keyword">new</span> <span class="title class_">AnimatorListenerAdapter</span>() &#123;  </span><br><span class="line">            <span class="meta">@Override</span>  </span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onAnimationEnd</span><span class="params">(Animator animation)</span> &#123;  </span><br><span class="line">                <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">                <span class="built_in">super</span>.onAnimationEnd(animation);  </span><br><span class="line">                    <span class="type">View</span> <span class="variable">view</span> <span class="operator">=</span> (View) ((ObjectAnimator) animation).getTarget();  </span><br><span class="line">                    view.setScaleX(<span class="number">1f</span>);  </span><br><span class="line">                    view.setScaleY(<span class="number">1f</span>);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;);  </span><br><span class="line">            </span><br><span class="line">        <span class="comment">/** </span></span><br><span class="line"><span class="comment">        * Delete Button </span></span><br><span class="line"><span class="comment">        * LayoutTransition.DISAPPEARING </span></span><br><span class="line"><span class="comment">        * 当删除一个Button时，设置该Button的动画效果 </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">        <span class="type">ObjectAnimator</span> <span class="variable">mObjectAnimatorDisAppearing</span> <span class="operator">=</span> ObjectAnimator.ofFloat(<span class="literal">null</span>, <span class="string">&quot;rotationX&quot;</span>, <span class="number">0.0f</span>,<span class="number">90.0f</span>)  </span><br><span class="line">                .setDuration(mLayoutTransition.getDuration(LayoutTransition.DISAPPEARING));  </span><br><span class="line">        mLayoutTransition.setAnimator(LayoutTransition.DISAPPEARING, mObjectAnimatorDisAppearing);  </span><br><span class="line">        mObjectAnimatorDisAppearing.addListener(<span class="keyword">new</span> <span class="title class_">AnimatorListenerAdapter</span>() &#123;  </span><br><span class="line">            <span class="meta">@Override</span>  </span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onAnimationEnd</span><span class="params">(Animator animation)</span> &#123;  </span><br><span class="line">                <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">                <span class="built_in">super</span>.onAnimationEnd(animation);  </span><br><span class="line">                    <span class="type">View</span> <span class="variable">view</span> <span class="operator">=</span> (View) ((ObjectAnimator) animation).getTarget();  </span><br><span class="line">                    view.setRotationX(<span class="number">0.0f</span>);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;);  </span><br><span class="line">            </span><br><span class="line">        <span class="comment">/** </span></span><br><span class="line"><span class="comment">        * Delete Button </span></span><br><span class="line"><span class="comment">        * LayoutTransition.CHANGE_DISAPPEARING </span></span><br><span class="line"><span class="comment">        * 当删除一个Button时，设置其它Button的动画效果 </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">        <span class="comment">//Keyframe 对象中包含了一个时间/属性值的键值对，用于定义某个时刻的动画状态。  </span></span><br><span class="line">        <span class="type">Keyframe</span> <span class="variable">mKeyframeStart</span> <span class="operator">=</span> Keyframe.ofFloat(<span class="number">0.0f</span>, <span class="number">0.0f</span>);  </span><br><span class="line">        <span class="type">Keyframe</span> <span class="variable">mKeyframeMiddle</span> <span class="operator">=</span> Keyframe.ofFloat(<span class="number">0.5f</span>, <span class="number">180.0f</span>);  </span><br><span class="line">        <span class="type">Keyframe</span> <span class="variable">mKeyframeEndBefore</span> <span class="operator">=</span> Keyframe.ofFloat(<span class="number">0.999f</span>, <span class="number">360.0f</span>);  </span><br><span class="line">        <span class="type">Keyframe</span> <span class="variable">mKeyframeEnd</span> <span class="operator">=</span> Keyframe.ofFloat(<span class="number">1.0f</span>, <span class="number">0.0f</span>);  </span><br><span class="line">            </span><br><span class="line">        <span class="type">PropertyValuesHolder</span> <span class="variable">mPropertyValuesHolder</span> <span class="operator">=</span> PropertyValuesHolder.ofKeyframe(<span class="string">&quot;rotation&quot;</span>,   </span><br><span class="line">                mKeyframeStart,mKeyframeMiddle,mKeyframeEndBefore,mKeyframeEnd);  </span><br><span class="line">        <span class="type">ObjectAnimator</span> <span class="variable">mObjectAnimatorChangeDisAppearing</span> <span class="operator">=</span> ObjectAnimator.ofPropertyValuesHolder(<span class="built_in">this</span>, pvhLeft,pvhTop,pvhRight,pvhBottom,mPropertyValuesHolder)  </span><br><span class="line">                .setDuration(mLayoutTransition.getDuration(LayoutTransition.CHANGE_DISAPPEARING));  </span><br><span class="line">        mLayoutTransition.setAnimator(LayoutTransition.CHANGE_DISAPPEARING, mObjectAnimatorChangeDisAppearing);  </span><br><span class="line">        mObjectAnimatorChangeDisAppearing.addListener(<span class="keyword">new</span> <span class="title class_">AnimatorListenerAdapter</span>() &#123;  </span><br><span class="line">            <span class="meta">@Override</span>  </span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onAnimationEnd</span><span class="params">(Animator animation)</span> &#123;  </span><br><span class="line">                <span class="comment">// TODO Auto-generated method stub  </span></span><br><span class="line">                <span class="built_in">super</span>.onAnimationEnd(animation);  </span><br><span class="line">                    <span class="type">View</span> <span class="variable">view</span> <span class="operator">=</span> (View) ((ObjectAnimator) animation).getTarget();  </span><br><span class="line">                    view.setRotation(<span class="number">0.0f</span>);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/20/Android-进阶之动画-四-布局动画/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/20/Android-进阶之动画-四-布局动画/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/19/Android-进阶之动画-三-属性动画/" title="Android 进阶之动画 三 属性动画" itemprop="url">Android 进阶之动画 三 属性动画</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-19T14:42:25.000Z" itemprop="datePublished"> Published 2016-04-19</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="存放路径-res-x2F-animator"><a href="#存放路径-res-x2F-animator" class="headerlink" title="存放路径:res&#x2F;animator"></a>存放路径:res&#x2F;animator</h4><p>一个属性动画在某一个时间段，只能改变一个对象的一个属性值，通过多个属性动画组合到AnimationSet就可以将多个属性同时形成一个动画。</p>
+<h4 id="属性动画的属性"><a href="#属性动画的属性" class="headerlink" title="属性动画的属性"></a>属性动画的属性</h4><p>属性动画有如下的属性：</p>
+<ul>
+<li>Duration：动画的时长信息</li>
+<li>TimeInterpolation： 所有插值器都必须实现此接口，用于计算变化率的信息</li>
+<li>TypeEvaluator： 根据属性的起始、结束值和插值一起计算出当前时间的属性值</li>
+<li>Frame refreash delay： 即每隔多少时间计算1次属性值，默认情况下为10ms。</li>
+<li>Repeat Country and behavoir：重复次数与方式。</li>
+<li>Animation sets： 动画集合，便可以同时对1个对象利用多个动画，这些动画可以同时播放也能对不同动画设置不同的延迟</li>
+</ul>
+<h4 id="属性动画属性确定过程"><a href="#属性动画属性确定过程" class="headerlink" title="属性动画属性确定过程"></a>属性动画属性确定过程</h4><p>整个属性动画的属性值确定过程如下所示：<br><img src="/2016/04/19/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%89-%E5%B1%9E%E6%80%A7%E5%8A%A8%E7%94%BB/animatorframe.png"><br>在属性动画开始的时候会先获取目标对象属性的开始值，结束值，以及动画的持续时间，将这些值传入ValueAnimator，根据当前时间计算出已完成动画的百分比，<br>但是我们这里的动画不一定是匀速的，它会受到时间插值器的影响，因此还需要将百分比数值传入给TimeInterpolator，计算interpolated（插值）分数当插值分数计算完成后，ValueAnimator 会根据插值分数调用适合的 TypeEvaluator去计算运动中的属性值。整个过程也可以通过下图来理解。<br><img src="/2016/04/19/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E4%B8%89-%E5%B1%9E%E6%80%A7%E5%8A%A8%E7%94%BB/animatorprocess.jpg"></p>
+<p>重要类的介绍：</p>
+<h5 id="ValueAnimator"><a href="#ValueAnimator" class="headerlink" title="ValueAnimator"></a>ValueAnimator</h5><p>用法</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">ValueAnimator animation = <span class="module-access"><span class="module"><span class="identifier">ValueAnimator</span>.</span></span><span class="keyword">of</span><span class="constructor">Float(0f, 1f)</span>; </span><br><span class="line">animation.set<span class="constructor">Duration(1000)</span>; </span><br><span class="line">animation.add<span class="constructor">UpdateListener(<span class="params">new</span> AnimatorUpdateListener()</span> &#123; </span><br><span class="line">    @Override </span><br><span class="line">    public void on<span class="constructor">AnimationUpdate(ValueAnimator <span class="params">animation</span>)</span> &#123; </span><br><span class="line">        <span class="module-access"><span class="module"><span class="identifier">Log</span>.</span></span>i(<span class="string">&quot;jimmy&quot;</span>, ((Float) animation.get<span class="constructor">AnimatedValue()</span>).<span class="keyword">to</span><span class="constructor">String()</span>);</span><br><span class="line">     &#125; </span><br><span class="line">&#125;); </span><br><span class="line">animation.set<span class="constructor">Interpolator(<span class="params">new</span> CycleInterpolator(3)</span>); </span><br><span class="line">animation.start<span class="literal">()</span>;</span><br></pre></td></tr></table></figure>
+<p>关键子类：ObjectAnimator<br>继承自ValueAnimator，允许你指定要进行动画的对象和该对象的一个属性。该类会根据计算得到的新值自动更新属性。大多数的情况，使用ObjectAnimator就足够了，由于它使得目标对象动画值的处理进程变得简单，它具有时序引擎和属性值计算和自动更新属性值的功能，不用再像ValueAnimator那样自己写动画更新的逻辑。但ObjectAnimator有一定的限制:<br>该对象的属性必须有get和set方法，并且方法的格式必须是驼峰式，格式为set<propertyName>()，由于ObjectAnimator会自动更新属性，它必须能够访问到属性的setter方法，比如属性名为pro,你就需要一个setPro()方法。<br>如果没有那么可以使用下面的三种方法：</propertyName></p>
+<ul>
+<li>添加setter方法</li>
+<li>使用包装类</li>
+<li>使用ValueAnimator代替<br>但是一般第一种方法往往无效，因为很少去直接修改某个类的代码</li>
+</ul>
+<p>ObjectAnimator 的用法：我们通常使用ObjectAnimator设置View已知的属性来生成动画，而一般View已知属性变化时都会主动触发重绘图操作，所以动画会自动实现，这种情况下用法如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">ObjectAnimator anim = <span class="module-access"><span class="module"><span class="identifier">ObjectAnimator</span>.</span></span><span class="keyword">of</span><span class="constructor">Float(<span class="params">foo</span>, <span class="string">&quot;alpha&quot;</span>, 0f, 1f)</span>; </span><br><span class="line">anim.set<span class="constructor">Duration(1000)</span>; </span><br><span class="line">anim.start<span class="literal">()</span>;</span><br></pre></td></tr></table></figure>
+
+<p>但是也可以手动完成属性的改变：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">ObjectAnimator myObjectAnimator= <span class="module-access"><span class="module"><span class="identifier">ObjectAnimator</span>.</span></span><span class="keyword">of</span><span class="constructor">Int(<span class="params">view</span>, <span class="string">&quot;custome&quot;</span>, 0,1)</span>.set<span class="constructor">Duration(2000)</span>;</span><br><span class="line">mObjectAnimator.add<span class="constructor">UpdateListener(<span class="params">new</span> AnimatorUpdateListener()</span>&#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">AnimationUpdate(ValueAnimator <span class="params">animation</span>)</span>&#123;</span><br><span class="line">        <span class="comment">//int value = animation.getAnimatedValue();获取当前属性值</span></span><br><span class="line">        <span class="comment">//view.setXXX(value);设置属性值</span></span><br><span class="line">        <span class="comment">//view.postInvalidate();主动刷新</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h5 id="Evaluators"><a href="#Evaluators" class="headerlink" title="Evaluators"></a>Evaluators</h5><p>Evaluators 告知属性动画系统如何去计算一个属性值。<br>属性系统提供了以下几种Evaluators：</p>
+<ul>
+<li>IntEvaluator</li>
+<li>FloatEvaluator</li>
+<li>ArgbEvaluator</li>
+<li>TypeEvaluator  一个用于用户自定义计算器的接口，如果对象属性值类型，不是int，float，或color类型，你必须实现这个接口，去定义自己的数据类型。</li>
+</ul>
+<h5 id="XML方式使用属性动画"><a href="#XML方式使用属性动画" class="headerlink" title="XML方式使用属性动画"></a>XML方式使用属性动画</h5><p>下面是摘自Google官方文档：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">set</span></span></span><br><span class="line"><span class="tag">  <span class="attr">android:ordering</span>=<span class="string">[</span>&quot;<span class="attr">together</span>&quot; | &quot;<span class="attr">sequentially</span>&quot;]&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--android:ordering 	控制子动画启动方式是先后有序的还是同时进行。sequentially:动画按照先后顺序；together(默认):动画同时启动；--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">objectAnimator</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:propertyName</span>=<span class="string">&quot;string&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:duration</span>=<span class="string">&quot;int&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:valueFrom</span>=<span class="string">&quot;float | int | color&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:valueTo</span>=<span class="string">&quot;float | int | color&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:startOffset</span>=<span class="string">&quot;int&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:repeatCount</span>=<span class="string">&quot;int&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:repeatMode</span>=<span class="string">[</span>&quot;<span class="attr">repeat</span>&quot; | &quot;<span class="attr">reverse</span>&quot;]</span></span><br><span class="line"><span class="tag">        <span class="attr">android:valueType</span>=<span class="string">[</span>&quot;<span class="attr">intType</span>&quot; | &quot;<span class="attr">floatType</span>&quot;]/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">set</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>objectAnimator 属性：</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">android:propertyName 代表要执行动画的属性，这个必须填写</span><br><span class="line">android:valueTo 	 <span class="type">float</span>、<span class="type">int</span>或者color类型，表明动画结束的点；如果是颜色的话由<span class="number">6</span>位十六进制的数字表示。</span><br><span class="line">android:valueFrom 	 动画的起始点，如果没有指定，系统会通过属性的<span class="keyword">get</span>方法获取，颜色也是<span class="number">6</span>位十六进制的数字表示。</span><br><span class="line">android:duration 	 动画的时长，<span class="type">int</span>类型，以毫秒为单位，默认为<span class="number">300</span>毫秒。</span><br><span class="line">android:startOffset  动画延迟的时间，从调用<span class="keyword">start</span>方法后开始计算，<span class="type">int</span>型，毫秒为单位。</span><br><span class="line">android:repeatCount  一个动画的重复次数，<span class="type">int</span>型，”<span class="number">-1</span>“表示无限循环，”<span class="number">1</span>“表示动画在第一次执行完成后重复执行一次，也就是两次，默认为<span class="number">0</span>，不重复执行。</span><br><span class="line">android:repeatMode 	 重复模式：<span class="type">int</span>型，当一个动画执行完的时候应该如何处理。该值必须是正数或者是<span class="number">-1</span>，“<span class="keyword">reverse</span>”会使得按照动画向相反的方向执行，可实现类似钟摆效果。“repeat”会使得动画每次都从头开始循环。</span><br><span class="line">android:valueType 	 关键参数，如果该<span class="keyword">value</span>是一个颜色，那么就不需要指定，因为动画框架会自动的处理颜色值。有intType和floatType（默认）两种：分别说明动画值为<span class="type">int</span>和<span class="type">float</span>型。</span><br></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">Animator animator = <span class="module-access"><span class="module"><span class="identifier">AnimatorInflater</span>.</span></span>load<span class="constructor">Animator(<span class="params">myContext</span>,R.<span class="params">animtor</span>.<span class="params">property_anim</span>)</span>;</span><br><span class="line">animator.set<span class="constructor">Target(Obj)</span>;</span><br><span class="line">animator.start<span class="literal">()</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="多属性动画："><a href="#多属性动画：" class="headerlink" title="多属性动画："></a>多属性动画：</h4><p>有时候我们需要同时修改多个属性，那就可以用到PropertyValuesHolder类，它就相当于AnimationSet</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">PropertyValuesHolder anim1 = <span class="module-access"><span class="module"><span class="identifier">PropertyValuesHolder</span>.</span></span><span class="keyword">of</span><span class="constructor">Float(<span class="string">&quot;alpha&quot;</span>, 0f, 1f)</span>;  </span><br><span class="line">PropertyValuesHolder anim2 = <span class="module-access"><span class="module"><span class="identifier">PropertyValuesHolder</span>.</span></span><span class="keyword">of</span><span class="constructor">Float(<span class="string">&quot;translationY&quot;</span>, 0, 100)</span>;  </span><br><span class="line"><span class="module-access"><span class="module"><span class="identifier">ObjectAnimator</span>.</span></span><span class="keyword">of</span><span class="constructor">PropertyValuesHolder(<span class="params">view</span>, <span class="params">anim1</span>, <span class="params">anim2</span>, <span class="operator">...</span><span class="operator">...</span>)</span>.set<span class="constructor">Duration(1000)</span>.start<span class="literal">()</span>;</span><br></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/19/Android-进阶之动画-三-属性动画/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/19/Android-进阶之动画-三-属性动画/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/18/Android-进阶之动画-二-逐帧动画/" title="Android 进阶之动画 二 逐帧动画" itemprop="url">Android 进阶之动画 二 逐帧动画</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-18T14:42:08.000Z" itemprop="datePublished"> Published 2016-04-18</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="存放路径-res-x2F-drawable"><a href="#存放路径-res-x2F-drawable" class="headerlink" title="存放路径:res&#x2F;drawable"></a>存放路径:res&#x2F;drawable</h4><p>用法：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">animation-list</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:oneshot</span>=<span class="string">[</span>&quot;<span class="attr">true</span>&quot; | &quot;<span class="attr">false</span>&quot;] &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:drawable</span>=<span class="string">&quot;@[package:]drawable/drawable_resource_name&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:duration</span>=<span class="string">&quot;integer&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">animation-list</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>android:oneshot true代表只执行一次，false循环执行。<br>item节点表示 一帧的动画资源。<br>item节点包含如下属性：<br>android:drawable frame的Drawable资源。<br>android:duration frame显示多长时间。</p>
+</blockquote>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">ImageView Image = (ImageView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">image</span>)</span>;</span><br><span class="line"><span class="module-access"><span class="module"><span class="identifier">Image</span>.</span></span>set<span class="constructor">BackgroundResource(R.<span class="params">drawable</span>.<span class="params">animations</span>)</span>;</span><br><span class="line">drawableAnimation = (AnimationDrawable) <span class="module-access"><span class="module"><span class="identifier">Image</span>.</span></span>get<span class="constructor">Background()</span>;</span><br><span class="line">drawableAnimation.start<span class="literal">()</span>;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是AnimationDrawable的start()方法不能在Activity的onCreate方法中调用，因为AnimationDrawable还未完全附着到window上，最好的调度时机是onWindowFocusChanged()方法中。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/18/Android-进阶之动画-二-逐帧动画/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/18/Android-进阶之动画-二-逐帧动画/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/17/Android-进阶之动画-一-补间动画/" title="Android 进阶之动画 一 视图动画" itemprop="url">Android 进阶之动画 一 视图动画</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-17T14:41:20.000Z" itemprop="datePublished"> Published 2016-04-17</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h4 id="存放路径-res-x2F-anim"><a href="#存放路径-res-x2F-anim" class="headerlink" title="存放路径:res&#x2F;anim"></a>存放路径:res&#x2F;anim</h4><h4 id="类型："><a href="#类型：" class="headerlink" title="类型："></a>类型：</h4><p>Alpha 透明度动画，可以产生淡入淡出的效果  对应的类：AlphaAnimation<br>Scale 大小缩放动画                    对应的类：ScaleAnimation<br>Translate 移动动画                   对应的类：TranslateAnimation<br>Rotate  旋转变化                     对应的类：RotateAnimation</p>
+<h4 id="动画集合"><a href="#动画集合" class="headerlink" title="动画集合"></a>动画集合</h4><p>可以使用set标签创建一个动画集合，set还有如下属性用于控播放：<br>duration: 动画的持续时间<br>startOffset: 动画起始偏移，如果没有指定这个属性，动画将会同时播放。<br>fillBefore ：在动画开始之前是否应用动画变形<br>fillAfter:   在动画开始之后是否应用动画变形<br>interpolator: 动画插值器</p>
+<h4 id="使用方式："><a href="#使用方式：" class="headerlink" title="使用方式："></a>使用方式：</h4><pre><code>Animation animation = AnimationUtils.loadAnimation(this, R.anim.animation_demo);  
+animation.setRepeatCount(Animation.INFINITE);  
+imageView.startAnimation(animation);
+</code></pre>
+<h4 id="动画属性"><a href="#动画属性" class="headerlink" title="动画属性"></a>动画属性</h4><p>接下来我们来看下这些属性具体有哪些属性：</p>
+<ul>
+<li>Animation属性：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>xml属性</th>
+<th>java方法</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>android:detachWallpaper</td>
+<td>setDetachWallpaper(boolean)</td>
+<td>是否在壁纸上运行</td>
+</tr>
+<tr>
+<td>android:duration</td>
+<td>setDuration(long)</td>
+<td>动画持续时间，毫秒为单位</td>
+</tr>
+<tr>
+<td>android:fillAfter</td>
+<td>setFillAfter(boolean)</td>
+<td>控件动画结束时是否保持动画最后的状态</td>
+</tr>
+<tr>
+<td>android:fillBefore</td>
+<td>setFillBefore(boolean)</td>
+<td>控件动画结束时是否还原到开始动画前的状态</td>
+</tr>
+<tr>
+<td>android:fillEnabled</td>
+<td>setFillEnabled(boolean)</td>
+<td>控件动画结束时是否还原到开始动画前的状态</td>
+</tr>
+<tr>
+<td>android:interpolator</td>
+<td>setInterpolator(Interpolator)</td>
+<td>设定插值器</td>
+</tr>
+<tr>
+<td>android:repeatCount</td>
+<td>setRepeatCount(int)</td>
+<td>重复次数</td>
+</tr>
+<tr>
+<td>android:repeatMode</td>
+<td>setRepeatMode(int)</td>
+<td>重复类型</td>
+</tr>
+<tr>
+<td>android:startOffset</td>
+<td>setStartOffset(long)</td>
+<td>调用start函数之后等待开始运行的时间，单位为毫秒</td>
+</tr>
+<tr>
+<td>android:zAdjustment</td>
+<td>setZAdjustment(int)</td>
+<td>表示被设置动画的内容运行时在Z轴上的位置（top&#x2F;bottom&#x2F;normal），默认为normal</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>reset()</td>
+<td>重置Animation的初始化</td>
+</tr>
+<tr>
+<td>cancel()</td>
+<td>取消Animation动画</td>
+</tr>
+<tr>
+<td>start()</td>
+<td>开始Animation动画</td>
+</tr>
+<tr>
+<td>setAnimationListener(AnimationListener listener)</td>
+<td>给当前Animation设置动画监听</td>
+</tr>
+<tr>
+<td>hasStarted()</td>
+<td>判断当前Animation是否开始</td>
+</tr>
+<tr>
+<td>hasEnded()</td>
+<td>判断当前Animation是否结束</td>
+</tr>
+</tbody></table>
+<p>我们知道Animation是上述所有动画的属性，因此上述的每个动画都有这些属性. 下面我们来看看每个动画都有哪些特定的属性：</p>
+<ul>
+<li>Alpha属性：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>xml属性</th>
+<th>java方法</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>android:fromAlpha</td>
+<td>AlphaAnimation(float fromAlpha, …)</td>
+<td>动画开始的透明度（0.0到1.0，0.0是全透明，1.0是不透明）</td>
+</tr>
+<tr>
+<td>android:toAlpha</td>
+<td>AlphaAnimation(…, float toAlpha)</td>
+<td>动画结束的透明度</td>
+</tr>
+</tbody></table>
+<ul>
+<li>Rotate属性：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>xml属性</th>
+<th>java方法</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>android:fromDegrees</td>
+<td>RotateAnimation(float fromDegrees, …)</td>
+<td>旋转开始角度，正代表顺时针度数，负代表逆时针度数</td>
+</tr>
+<tr>
+<td>android:toDegrees</td>
+<td>RotateAnimation(…, float toDegrees, …)</td>
+<td>旋转结束角度，正代表顺时针度数，负代表逆时针度数</td>
+</tr>
+<tr>
+<td>android:pivotX</td>
+<td>RotateAnimation(…, float pivotX, …)</td>
+<td>缩放起点X坐标（数值、百分数、百分数p，譬如50表示以当前View左上角坐标加50px为初始点、50%表示以当前View的左上角加上当前View宽高的50%做为初始点、50%p表示以当前View的左上角加上父控件宽高的50%做为初始点）</td>
+</tr>
+<tr>
+<td>android:pivotY</td>
+<td>RotateAnimation(…, float pivotY)</td>
+<td>缩放起点Y坐标，同上规律</td>
+</tr>
+</tbody></table>
+<ul>
+<li>Scale属性</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>xml属性</th>
+<th>java方法</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>android:fromXScale</td>
+<td>ScaleAnimation(float fromX, …)</td>
+<td>初始X轴缩放比例，1.0表示无变化</td>
+</tr>
+<tr>
+<td>android:toXScale</td>
+<td>ScaleAnimation(…, float toX, …)</td>
+<td>结束X轴缩放比例</td>
+</tr>
+<tr>
+<td>android:fromYScale</td>
+<td>ScaleAnimation(…, float fromY, …)</td>
+<td>初始Y轴缩放比例</td>
+</tr>
+<tr>
+<td>android:toYScale</td>
+<td>ScaleAnimation(…, float toY, …)</td>
+<td>结束Y轴缩放比例</td>
+</tr>
+<tr>
+<td>android:pivotX</td>
+<td>ScaleAnimation(…, float pivotX, …)</td>
+<td>缩放起点X轴坐标（数值、百分数、百分数p，譬如50表示以当前View左上角坐标加50px为初始点、50%表示以当前View的左上角加上当前View宽高的50%做为初始点、50%p表示以当前View的左上角加上父控件宽高的50%做为初始点）</td>
+</tr>
+<tr>
+<td>android:pivotY</td>
+<td>ScaleAnimation(…, float pivotY)</td>
+<td>缩放起点Y轴坐标，同上规律</td>
+</tr>
+</tbody></table>
+<ul>
+<li>Translate属性</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>xml属性</th>
+<th>java方法</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>android:fromXDelta</td>
+<td>TranslateAnimation(float fromXDelta, …)</td>
+<td>起始点X轴坐标（数值、百分数、百分数p，譬如50表示以当前View左上角坐标加50px为初始点、50%表示以当前View的左上角加上当前View宽高的50%做为初始点、50%p表示以当前View的左上角加上父控件宽高的50%做为初始点）</td>
+</tr>
+<tr>
+<td>android:fromYDelta</td>
+<td>TranslateAnimation(…, float fromYDelta, …)</td>
+<td>起始点Y轴从标，同上规律</td>
+</tr>
+<tr>
+<td>android:toXDelta</td>
+<td>TranslateAnimation(…, float toXDelta, …)</td>
+<td>结束点X轴坐标，同上规律</td>
+</tr>
+<tr>
+<td>android:toYDelta</td>
+<td>TranslateAnimation(…, float toYDelta)</td>
+<td>结束点Y轴坐标，同上规律</td>
+</tr>
+</tbody></table>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/17/Android-进阶之动画-一-补间动画/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/17/Android-进阶之动画-一-补间动画/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/17/Android-进阶之动画-零-大纲/" title="Android 进阶之动画 零 大纲" itemprop="url">Android 进阶之动画 零 大纲</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-17T12:45:09.000Z" itemprop="datePublished"> Published 2016-04-17</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="/2016/04/17/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E5%8A%A8%E7%94%BB-%E9%9B%B6-%E5%A4%A7%E7%BA%B2/animation_all.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-动画进阶/">Android 动画进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/17/Android-进阶之动画-零-大纲/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/17/Android-进阶之动画-零-大纲/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/17/推荐一个Android-SDK-镜像/" title="推荐一个Android SDK 镜像" itemprop="url">推荐一个Android SDK 镜像</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-17T12:02:07.000Z" itemprop="datePublished"> Published 2016-04-17</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>由于这些年Android 更新很快，每年的Google IO都会引入很多特性，在兴奋于这些特性之余也常常需要忍受被墙之苦，但是好在很多好心人士，提供了SDK的镜像，之前一直在AndroidDevTool上下载更新，但是最近发现上面的更新速度也逐渐跟不上脚步了，所以下面推荐一个Android SDK 的镜像更新方式：<br>该镜像是由南阳理工提供：</p>
+<h5 id="手动更改配置文件"><a href="#手动更改配置文件" class="headerlink" title="手动更改配置文件"></a>手动更改配置文件</h5><p>Utopic Unicorn (ubuntu 14.10) 编辑 &#x2F;etc&#x2F;apt&#x2F;sources.list 文件 (需要使用 sudo), 修改文件内容为加以下条目(操作前请做好相应备份)</p>
+<blockquote>
+<p>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-security main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-updates main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-proposed main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-backports main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-security main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-updates main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-proposed main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-backports main restricted universe multiverse</p>
+</blockquote>
+<p>Ubuntu14.04 LTS 配置文件编辑 &#x2F;etc&#x2F;apt&#x2F;sources.list 文件 (需要使用 sudo), 修改文件内容为加以下条目(操作前请做好相应备份)</p>
+<blockquote>
+<p>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-security main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-updates main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-proposed main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-backports main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-security main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-updates main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-proposed main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> trusty-backports main restricted universe multiverse    </p>
+</blockquote>
+<p>Ubuntu14.10</p>
+<blockquote>
+<p>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-security main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-updates main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-proposed main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-backports main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-security main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-updates main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-proposed main restricted universe multiverse<br>  deb-src <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> utopic-backports main restricted universe multiverse</p>
+</blockquote>
+<p>Ubuntu13.10</p>
+<blockquote>
+<p>deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> saucy main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> saucy-security main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> saucy-updates main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> saucy-proposed main restricted universe multiverse<br>  deb <a target="_blank" rel="noopener" href="http://mirror.nyist.edu.cn/ubuntu/">http://mirror.nyist.edu.cn/ubuntu/</a> saucy-ba使用说明</p>
+</blockquote>
+<h5 id="配置步骤"><a href="#配置步骤" class="headerlink" title="配置步骤"></a>配置步骤</h5><ol>
+<li><p>启动 Android SDK Manager ，打开主界面，依次选择「Tools」、「Options…」，弹出『Android SDK Manager - Settings』窗口；</p>
+</li>
+<li><p>在『Android SDK Manager - Settings』窗口中，在「HTTP Proxy Server」和「HTTP Proxy Port」输入框内填入mirror.nyist.edu.cn和80，并且选中「Force https:&#x2F;&#x2F;… sources to be fetched using http:&#x2F;&#x2F;…」复选框。设置完成后单击「Close」按钮关闭『Android SDK Manager - Settings』窗口返回到主界面；</p>
+</li>
+<li><p>依次选择「Packages」、「Reload」。</p>
+</li>
+<li><p>完成</p>
+</li>
+</ol>
+<p>由于网络关系有的时候会下载不成功，这时候被别放弃，^ V ^ 多试几次。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E5%85%B6%E4%BB%96/">Android其他</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android其他/">Android其他</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/17/推荐一个Android-SDK-镜像/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/17/推荐一个Android-SDK-镜像/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/16/Android-进阶之事件交互-二-滑动事件/" title="Android 进阶之事件交互 二 滑动事件" itemprop="url">Android 进阶之事件交互 二 滑动事件</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-16T15:41:19.000Z" itemprop="datePublished"> Published 2016-04-16</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="滑动原理"><a href="#滑动原理" class="headerlink" title="滑动原理"></a>滑动原理</h3><p>实现View的滑动如下图所示：<br>图上通过滑动从将圆形从黄色地方移到灰色地方，从图上很明显看出，要实现这种移动只需要计算出滑动的偏移量，然后通过原始坐标就可以计算出最终坐标的位置，因此我们需要获得如下信息：</p>
+<ul>
+<li>第一次相对于View的坐标</li>
+<li>再次按下的时候相对于View的坐标</li>
+<li>根据上面两个坐标即可计算出两次的偏移量，有了偏移量就可以移动View了，不断重复上述步骤就实现了滑动过程。<br><img src="/2016/04/16/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E4%BA%8B%E4%BB%B6%E4%BA%A4%E4%BA%92-%E4%BA%8C-%E6%BB%91%E5%8A%A8%E4%BA%8B%E4%BB%B6/scroller.png"></li>
+</ul>
+<p>大体的结构如下，接下来我们的重点将放在如何实现processTouchEvent这个方法来实现滑动。</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="built_in">float</span> originX = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="built_in">float</span> originY = <span class="number">-1</span>;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processTouchEvent</span>(<span class="params"><span class="built_in">float</span> offsetX,<span class="built_in">float</span> offsetY</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">@Override</span><br><span class="line"><span class="function"><span class="keyword">public</span> boolean <span class="title">onTouchEvent</span>(<span class="params">MotionEvent <span class="keyword">event</span></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">float</span> destX = <span class="keyword">event</span>.getX();</span><br><span class="line">    <span class="built_in">float</span> destY = <span class="keyword">event</span>.getY();</span><br><span class="line">    <span class="keyword">switch</span> (<span class="keyword">event</span>.getAction()) &#123;</span><br><span class="line">        <span class="keyword">case</span> MotionEvent.ACTION_DOWN:</span><br><span class="line">            originX = destX;</span><br><span class="line">            originY = destY;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> MotionEvent.ACTION_MOVE:</span><br><span class="line">            <span class="built_in">float</span> offsetX = destX - originX;</span><br><span class="line">            <span class="built_in">float</span> offsetY = destY - originY;</span><br><span class="line">            processTouchEvent(offsetX,offsetY);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="literal">default</span>:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="滑动的实现"><a href="#滑动的实现" class="headerlink" title="滑动的实现"></a>滑动的实现</h3><h4 id="使用layout方法"><a href="#使用layout方法" class="headerlink" title="使用layout方法"></a>使用layout方法</h4><p>在绘制View的时候，会调用layout方法并传入left，top，right，bottom来移动View。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void process<span class="constructor">TouchEvent(Context <span class="params">context</span>,<span class="params">float</span> <span class="params">offsetX</span>,<span class="params">float</span> <span class="params">offsetY</span>)</span> &#123;</span><br><span class="line">    layout(get<span class="constructor">Left()</span>+offsetX,get<span class="constructor">Top()</span>+offsetY,get<span class="constructor">Right()</span>+offsetX,get<span class="constructor">Bottom()</span>+offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="使用LayoutParams"><a href="#使用LayoutParams" class="headerlink" title="使用LayoutParams"></a>使用LayoutParams</h4><p>这种适用于要移动的View位于一个Layout中的情形，因为移动一个View通常是通过修改它在Parent View 中的margin来实现的。所以可以通过这种方式来实现：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void process<span class="constructor">TouchEvent(<span class="params">float</span> <span class="params">offsetX</span>,<span class="params">float</span> <span class="params">offsetY</span>)</span> &#123;</span><br><span class="line">    ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) get<span class="constructor">LayoutParams()</span>;</span><br><span class="line">    layoutParams.leftMargin = (<span class="built_in">int</span>) (get<span class="constructor">Left()</span> + offsetX);</span><br><span class="line">    layoutParams.topMargin = (<span class="built_in">int</span>) (get<span class="constructor">Top()</span> + offsetY);</span><br><span class="line">    set<span class="constructor">LayoutParams(<span class="params">layoutParams</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用ScrollTo和ScrollBy"><a href="#使用ScrollTo和ScrollBy" class="headerlink" title="使用ScrollTo和ScrollBy"></a>使用ScrollTo和ScrollBy</h3><p>在使用这两个方法移动视图的时候，移动的不是View或者ViewGroup本身，而是View 或者ViewGroup的包含的内容，比如TextView 使用这两种方式移动的时候移动的将是TextView的文本，<br>而一个Layout移动的时候移动的将是里面的子View,那么我们怎样移动一个View本身，而不是仅仅其内容呢？很简单换位思考下，站在要移动View的父类的角度，它不就是父类的内容吗？<br>有了这个思路就好办了。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void process<span class="constructor">TouchEvent(<span class="params">float</span> <span class="params">offsetX</span>,<span class="params">float</span> <span class="params">offsetY</span>)</span> &#123;</span><br><span class="line">    ((View)get<span class="constructor">Parent()</span>).scroll<span class="constructor">By((<span class="params">int</span>)</span>offsetX,(<span class="built_in">int</span>)offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是这里我们需要时时刻刻让自己记住，这里移动的是父类的位移，而子View的移动偏移实际上是和父View移动位移的相反数。因此要达到我们的移动目标必须将上面的偏移量取相反数。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void process<span class="constructor">TouchEvent(<span class="params">float</span> <span class="params">offsetX</span>,<span class="params">float</span> <span class="params">offsetY</span>)</span> &#123;</span><br><span class="line">    ((View)get<span class="constructor">Parent()</span>).scroll<span class="constructor">By(-(<span class="params">int</span>)</span>offsetX,-(<span class="built_in">int</span>)offsetY);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用Scroller"><a href="#使用Scroller" class="headerlink" title="使用Scroller"></a>使用Scroller</h3><p>Scroller存在的意义就是为了避免ScrollTo和ScrollBy带来的瞬间移动的效果，它的移动效果会更加平滑。</p>
+<ul>
+<li>创建Scroller<br>mScroller &#x3D; new Scroller(context);</li>
+<li>覆写computeScroll方法<br>computeScroll 方法是什么时候执行的呢？我们知道在调用invalidate会调用onDraw来重绘当前的页面，在onDraw方法中会调用computeScroll<br>下面是一个典型的实现，首先调用computeScrollOffset来判断时候完成整个滑动，如果返回true，则表示滑动过程还没结束。我们需要继续滑动<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@Override</span></span><br><span class="line">public void computeScroll() &#123;</span><br><span class="line">    super<span class="selector-class">.computeScroll</span>();</span><br><span class="line">    <span class="comment">//If it returns true, the animation is not yet finished.</span></span><br><span class="line">    <span class="built_in">if</span>(mScroller.computeScrollOffset()) &#123;</span><br><span class="line">        ((View)<span class="built_in">getParent</span>())<span class="selector-class">.scrollTo</span>(mScroller.getCurrX(),mScroller<span class="selector-class">.getCurrY</span>());</span><br><span class="line">        <span class="built_in">invalidate</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>调用startScroll启动滑动过程：<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">case MotionEvent.ACTION_UP:</span><br><span class="line">    mScroller.start<span class="constructor">Scroll(<span class="params">xpos</span>,<span class="params">ypos</span>,((View)</span>get<span class="constructor">Parent()</span>).get<span class="constructor">ScrollX()</span>,((View)get<span class="constructor">Parent()</span>).get<span class="constructor">ScrollY()</span>);</span><br><span class="line">    invalidate<span class="literal">()</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>由于这种方法十分重要所以在这里将对Scroller常用的方法做个总结：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">mScroller.get<span class="constructor">CurrX()</span> <span class="comment">//获取mScroller当前水平滚动的位置</span></span><br><span class="line">mScroller.get<span class="constructor">CurrY()</span> <span class="comment">//获取mScroller当前竖直滚动的位置</span></span><br><span class="line">mScroller.get<span class="constructor">FinalX()</span> <span class="comment">//获取mScroller最终停止的水平位置</span></span><br><span class="line">mScroller.get<span class="constructor">FinalY()</span> <span class="comment">//获取mScroller最终停止的竖直位置</span></span><br><span class="line">mScroller.set<span class="constructor">FinalX(<span class="params">int</span> <span class="params">newX</span>)</span> <span class="comment">//设置mScroller最终停留的水平位置，没有动画效果，直接跳到目标位置</span></span><br><span class="line">mScroller.set<span class="constructor">FinalY(<span class="params">int</span> <span class="params">newY</span>)</span> <span class="comment">//设置mScroller最终停留的竖直位置，没有动画效果，直接跳到目标位置</span></span><br><span class="line"><span class="comment">//开启滚动，startX, startY为开始滚动的位置，dx,dy为滚动的偏移量, duration为完成滚动的时间</span></span><br><span class="line">mScroller.start<span class="constructor">Scroll(<span class="params">int</span> <span class="params">startX</span>, <span class="params">int</span> <span class="params">startY</span>, <span class="params">int</span> <span class="params">dx</span>, <span class="params">int</span> <span class="params">dy</span>)</span> <span class="comment">//使用默认完成时间250ms</span></span><br><span class="line">mScroller.start<span class="constructor">Scroll(<span class="params">int</span> <span class="params">startX</span>, <span class="params">int</span> <span class="params">startY</span>, <span class="params">int</span> <span class="params">dx</span>, <span class="params">int</span> <span class="params">dy</span>, <span class="params">int</span> <span class="params">duration</span>)</span></span><br><span class="line">第一个参数是起始移动的x坐标值， 正值表明滚动将向左滚动</span><br><span class="line">第二个是起始移动的y坐标值， 正值表明滚动将向上滚动</span><br><span class="line">dx 水平方向滑动的距离，正值会使滚动向左滚动</span><br><span class="line">dy 垂直方向滑动的距离，正值会使滚动向上滚动</span><br><span class="line">mScroller.compute<span class="constructor">ScrollOffset()</span> <span class="comment">//返回值为boolean，true说明滚动尚未完成，false说明滚动已经完成。这是一个很重要的方法，通常放在View.computeScroll()中，用来判断是否滚动是否结束。</span></span><br></pre></td></tr></table></figure>
+
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-事件处理进阶/">Android 事件处理进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/16/Android-进阶之事件交互-二-滑动事件/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/16/Android-进阶之事件交互-二-滑动事件/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/15/Android-进阶之事件交互/" title="Android 进阶之事件交互 一 触摸事件和键盘事件" itemprop="url">Android 进阶之事件交互 一 触摸事件和键盘事件</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-15T14:26:32.000Z" itemprop="datePublished"> Published 2016-04-15</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="MotionEvent"><a href="#MotionEvent" class="headerlink" title="MotionEvent"></a>MotionEvent</h3><p>我们在Android进阶之绘图中介绍了如何在界面上进行绘制的部分，但是这仅仅是静态的画面，它属于输出部分，但是只有输出往往是不够的，还需要通过某种方式接收用户的输入，这才能构成交互。<br>在我们解除屏幕到离开屏幕会产生一系列触摸事件，要响应这些事件必须复写onTouchEvent(MotionEvent e):<br>这里传入的参数MotionEvent是一个很重要的参数，它包含了当前触摸点的坐标，以及触摸事件的类型：<br>当用户触摸屏的时候，就会触发onTouchEvent事件处理函数，每当位置发生改变的时候触发一次，当触摸结束的时候还会触发一次。<br>它有一个返回值如果当前的onTouchEvent已经处理了屏幕触摸，就返回true，否则，就返回false。从而通过View或者Activity堆栈来传递事件，直到成功处理触摸为止。这部分涉及到事件的传递和分发机制<br>在后面会详细介绍，我们先来认识下MotionEvent：</p>
+<p>通过event.getAction() 可以获取事件的类型：<br>MotionEvent.ACTION_UP       触摸结束，ACTION_UP<br>MotionEvent.ACTION_DOWN     开始触摸，第一个手指头按下的时候触发<br>MotionEvent.ACTION_POINT_DOWN 其他手指再按下的时候触发<br>MotionEvent.ACTION_POINT_UP  其他手指抬起来的时候触发<br>MotionEvent.ACTION_MOVE     按下手指在屏幕上移动的时候<br>MotionEvent.ACTION_CANCEL   触摸事件取消的时候<br>MotionEvent.ACTION_OUTSIDE  移动操作发生在被监控的屏幕元素边界之外的时候</p>
+<p>通过event.getX() event.getY() event.getRawX() event.getRawY() 可以分别获得当前触点距离父容器以及屏幕的坐标位置；这个可以在绘图介绍中的坐标体系中看到每个方法的返回值意义</p>
+<p>还可以通过下面的方法获取到事件开始和结束的时间信息：<br>getDownTime()  事件开始时间<br>getEventTime() 事件结束时间</p>
+<h3 id="多点触控事件："><a href="#多点触控事件：" class="headerlink" title="多点触控事件："></a>多点触控事件：</h3><p>现在的电容屏一般都支持多点触控技术，判断当前触摸事件为单点触控还是多点触控可以使用getPointerCount()方法，如果大于1表示为多点触控。<br>多点触控每个点称为一个pointer，MotionEvent包含该时刻所有point的信息。每个point都有唯一的ID，这个ID是在该point刚触碰屏幕的时候赋值的。有效期至该点离开屏幕或者取消。<br>我们要获得每个点的信息，必须通过它的index，而要获得index必须使用ACTION_POINTER_ID_MASK从Action中获得Action Point id</p>
+<p>多点触控的处理：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="built_in">int</span> xpos = -<span class="number">1</span>;</span><br><span class="line"><span class="built_in">int</span> ypos = -<span class="number">1</span>;</span><br><span class="line"><span class="built_in">int</span> action = event.get<span class="constructor">Action()</span>;</span><br><span class="line"><span class="keyword">if</span>(event.get<span class="constructor">PointerCount()</span> &gt;<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="built_in">int</span> actionPointerid = action &amp; MotionEvent.ACTION_POINTER_ID_MASK;</span><br><span class="line">    <span class="built_in">int</span> actionEvent  = action &amp; MotionEvent.ACTION_MASK;</span><br><span class="line">    <span class="built_in">int</span> pointerIndex = event.find<span class="constructor">PointerIndex(<span class="params">actionPointerid</span>)</span>;</span><br><span class="line">    xPos = (<span class="built_in">int</span>)event.get<span class="constructor">X(<span class="params">pointerIndex</span>)</span>;</span><br><span class="line">    yPos = (<span class="built_in">int</span>)event.get<span class="constructor">Y(<span class="params">pointerIndex</span>)</span>;</span><br><span class="line">&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">    xPos = (<span class="built_in">int</span>)event.get<span class="constructor">X()</span>;</span><br><span class="line">    yPos = (<span class="built_in">int</span>)event.get<span class="constructor">Y()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="跟踪触摸的移动："><a href="#跟踪触摸的移动：" class="headerlink" title="跟踪触摸的移动："></a>跟踪触摸的移动：</h3><p>每当当前的触摸接触位置，压力或者区域大小发生改变的时候，将会触发ACTION_MOVE。MotionEvent中包含有着这系列变化的历史值。可以使用如下方式获取历史值：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">单点触控：</span><br><span class="line"><span class="built_in">int</span> historySize = event.get<span class="constructor">HistorySize()</span>;<span class="comment">//返回当前事件可用的移动位置的数量</span></span><br><span class="line"><span class="keyword">for</span>(<span class="built_in">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">	<span class="built_in">float</span> x = event.get<span class="constructor">HistoricalX(<span class="params">i</span>)</span>;</span><br><span class="line">	<span class="built_in">float</span> y = event.get<span class="constructor">HistoricalY(<span class="params">i</span>)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">多点触控：</span><br><span class="line"><span class="built_in">int</span> historySize = event.get<span class="constructor">HistorySize()</span>;<span class="comment">//返回当前事件可用的移动位置的数量</span></span><br><span class="line"><span class="keyword">for</span>(<span class="built_in">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">	<span class="built_in">int</span> id = event.get<span class="constructor">PointerId(<span class="params">i</span>)</span>;</span><br><span class="line">	<span class="built_in">float</span> x = event.get<span class="constructor">HistoricalX(<span class="params">id</span>, <span class="params">i</span>)</span>;</span><br><span class="line">	<span class="built_in">float</span> y = event.get<span class="constructor">HistoricalY(<span class="params">id</span>, <span class="params">i</span>)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>处理触摸屏移动事件：<br>处理移动事件一般首先处理每个历史事件，然后再处理当前的MotionEvent值</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">switch (action) &#123;</span><br><span class="line">	case MotionEvent.ACTION_MOVE:</span><br><span class="line">		<span class="built_in">int</span> historySize = event.get<span class="constructor">HistorySize()</span>;</span><br><span class="line">		<span class="keyword">for</span>(<span class="built_in">int</span> i=<span class="number">0</span>;i&lt;historySize;i++)&#123;</span><br><span class="line">			<span class="built_in">float</span> x = event.get<span class="constructor">HistoricalX(<span class="params">i</span>)</span>;</span><br><span class="line">			<span class="built_in">float</span> y = event.get<span class="constructor">HistoricalY(<span class="params">i</span>)</span>;</span><br><span class="line">			<span class="module-access"><span class="module"><span class="identifier">Log</span>.</span></span>i(<span class="string">&quot;MainActivity&quot;</span>,<span class="string">&quot;历史坐标值:(&quot;</span>+x+<span class="string">&quot;),(&quot;</span>+y+<span class="string">&quot;)&quot;</span>);</span><br><span class="line">		&#125;</span><br><span class="line">				</span><br><span class="line">		<span class="built_in">float</span> currentx = event.get<span class="constructor">X()</span>;</span><br><span class="line">		<span class="built_in">float</span> currenty = event.get<span class="constructor">Y()</span>;</span><br><span class="line">		<span class="module-access"><span class="module"><span class="identifier">Log</span>.</span></span>i(<span class="string">&quot;MainActivity&quot;</span>,<span class="string">&quot;当前值:(&quot;</span>+currentx+<span class="string">&quot;),(&quot;</span>+currenty+<span class="string">&quot;)&quot;</span>);</span><br><span class="line">		<span class="module-access"><span class="module"><span class="identifier">Log</span>.</span></span>i(<span class="string">&quot;MainActivity&quot;</span>, <span class="string">&quot;ACTION_MOVE&quot;</span>);</span><br><span class="line">		return <span class="literal">true</span>;</span><br><span class="line">		default:return super.on<span class="constructor">TouchEvent(<span class="params">event</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="为控件添加触摸事件监听器："><a href="#为控件添加触摸事件监听器：" class="headerlink" title="为控件添加触摸事件监听器："></a>为控件添加触摸事件监听器：</h3><p>可以使用setOnTouchLinstener方法为某个View对象监听触摸事件。</p>
+<h3 id="键盘事件："><a href="#键盘事件：" class="headerlink" title="键盘事件："></a>键盘事件：</h3><p>除了上述的显示屏事件外Android中还提供了键盘事件的处理：<br>所有的硬件按键产生的事件都是由处于活动状态的Activity或者当前前台View进行处理。Android中控件在处理物理按键事件时，提供的回调方法有onKeyUp() ,onKeyDown(),onKeyLongPress()<br>要想让Activity或者View对按键的按下做出响应，需要重写onKeyDown和onKeyUp事件处理方法：<br>方法中的keyCode包含了被按下的键的值，把它和KeyEvent类中的静态的Keycode进行比较，就可以执行特定按键的处理。</p>
+<p>要在Activity的View中对按键按下做出响应，需要实现OnKeyListener并使用setOnKeyListener方法将其分配给一个View。<br>OnKeyListener并不是为了单独的按键按下和释放分别实现独立的方法，而是使用单一的onKey事件。ACTION_DOWN表示按下按键，ACTION_UP表示释放按键<br><img src="/2016/04/15/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E4%BA%8B%E4%BB%B6%E4%BA%A4%E4%BA%92/keyevent.png"></p>
+<h3 id="事件分发和事件拦截机制"><a href="#事件分发和事件拦截机制" class="headerlink" title="事件分发和事件拦截机制"></a>事件分发和事件拦截机制</h3><p>上面所讲述的情况是相对理想的情况，也就是事件已经传送到当前的View的情形，但是一般一个View 往往都是处在某个ViewGroup中，这就引入了一个新的问题，事件是如何传递分发和拦截的。<br>我们先看下下面这张图：<br>绿色的代表一个View，它被layout在两个ViewGoup内，当一个事件发生的时候，首先从底层的父ViewGroup开始传输的，在介绍整个传输过程之前先介绍下面两个方法：</p>
+<ul>
+<li><p>onInterceptTouchEvent()是用于事件的预处理并改变事件的传递方向，也就是决定是否允许Touch事件继续子控件传递，如果返回True表示事件在当前的viewGroup中会被处理，<br>则向下传递被截断，所有子控件将没有机会参与Touch事件，同时把事件传递给当前的控件的onTouchEvent()处理；返回false，则把事件交给子控件的onInterceptTouchEvent()<br>onInterceptTouchEvent()是ViewGroup的一个方法，目的是在系统向该ViewGroup及其各个childView触发onTouchEvent()之前对相关事件进行一次拦截.不能包含子view的控件是没有这个方法的.</p>
+</li>
+<li><p>onTouchEvent()这个上面介绍了用于处理事件，返回值决定当前控件是否消费了这个事件，也就是说在当前控件在处理完Touch事件后，是否还允许Touch事件继续向父控件传递，一但返回True，<br>则父控件不用操心自己来处理Touch事件。返回false，则向上传递给父控件.</p>
+</li>
+</ul>
+<p><img src="/2016/04/15/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E4%BA%8B%E4%BB%B6%E4%BA%A4%E4%BA%92/event1.png"></p>
+<p>如果layoutview1，layoutview2 onInterceptTouchEvent都返回false，也就是不拦截，那么整个事件的传递如下图所示：</p>
+<p><img src="/2016/04/15/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E4%BA%8B%E4%BB%B6%E4%BA%A4%E4%BA%92/event2.png"></p>
+<p>如果layoutview1 onInterceptTouchEvent 返回false ，layoutview2 onInterceptTouchEvent都返回true，那么整个事件的传递如下图所示：</p>
+<p><img src="/2016/04/15/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E4%BA%8B%E4%BB%B6%E4%BA%A4%E4%BA%92/event3.png"></p>
+<p>如果layoutview1，layoutview2 onInterceptTouchEvent都返回false，也就是不拦截，childview onTouchEvent 返回true 那么整个事件的传递如下图所示：</p>
+<p><img src="/2016/04/15/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E4%BA%8B%E4%BB%B6%E4%BA%A4%E4%BA%92/event4.png"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-事件处理进阶/">Android 事件处理进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/15/Android-进阶之事件交互/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/15/Android-进阶之事件交互/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/14/Android-进阶之Android-绘图-五-硬件加速/" title="Android 进阶之Android 绘图 五 硬件加速" itemprop="url">Android 进阶之Android 绘图 五 硬件加速</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-14T04:09:21.000Z" itemprop="datePublished"> Published 2016-04-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="绘图与硬件加速："><a href="#绘图与硬件加速：" class="headerlink" title="绘图与硬件加速："></a>绘图与硬件加速：</h3><p>在Android 3.0后，Android的2D渲染通道开始支持硬件加速，意味着所有View的Canvas绘画动作都会使用GPU启用硬加速，使用GPU的特性，可以使得界面渲染更加平滑，在4.0之后更是默认开启了硬件加速，<br>但是硬加速不是被所有的2D绘制所支持，并且会消耗更多内存RAM，并且由于硬件加速属于双缓冲机制，使用显存进行页面渲染，这导致了更频繁的显存操作，可能引起白屏、花屏、闪屏的现象。甚至在低RAM内存配置手机上闪退。<br>一般可以通过如下两种方法解决这类问题。<br>1.降低页面的内存占用，给硬件加速腾出RAM<br>2.在适当的地方关闭硬件加速。<br>前者操作起来比较麻烦，因此在可能的情况下最优先选择的是关闭硬件加速。</p>
+<p>不过不支持仅仅是针对自定义View Android可以保证内置的组件和应用支持硬件加速，因此，如果应用中只使用了标准UI组件，可以放心开启硬件加速。<br>下面介绍下如何在各个层级中关闭硬件加速：</p>
+<ol>
+<li>Application 应用程序等级控制硬件加速，在AndroidManifest.xml中添加：</li>
+</ol>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">application</span> android:hardwareAccelerated=<span class="string">&quot;true&quot;</span> ...&gt;  </span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>Activity  Activity等级的控制还是在AndroidManifest.xml中进行控制：</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">application</span> <span class="attr">android:hardwareAccelerated</span>=<span class="string">&quot;true&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">activity</span> <span class="attr">...</span> /&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:hardwareAccelerated</span>=<span class="string">&quot;false&quot;</span> /&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+
+
+<ol start="3">
+<li><p>Window 窗口级控制：</p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="built_in">getWindow</span>()<span class="selector-class">.setFlags</span>(  </span><br><span class="line">    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,  </span><br><span class="line">    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);  </span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>View 在运行时控制单个View是否使用硬件加速：</p>
+</li>
+</ol>
+<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line"><span class="built_in">setLayerType</span>(<span class="built_in">View</span>.LAYER_TYPE_SOFTWARE, <span class="built_in">null</span>);  LAYER_TYPE_HARDWARE即为使用硬件加速（GPU），LAYER_TYPE_SOFTWARE使用CPU进行绘制。</span><br></pre></td></tr></table></figure>
+
+<p>检测当前View或者Canvas是否使用硬件加速<br>View.isHardwareAccelerated()<br>Canvas.isHardwareAccelerated()  </p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-绘图进阶/">Android 绘图进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/14/Android-进阶之Android-绘图-五-硬件加速/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/14/Android-进阶之Android-绘图-五-硬件加速/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/13/Android-进阶之Android-绘图-四-图像容器Bitmap-Drawable以及图像变换/" title="Android 进阶之Android 绘图 四 图像容器Bitmap Drawable以及图像变换" itemprop="url">Android 进阶之Android 绘图 四 图像容器Bitmap Drawable以及图像变换</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-13T03:32:11.000Z" itemprop="datePublished"> Published 2016-04-13</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="Drawable资源"><a href="#Drawable资源" class="headerlink" title="Drawable资源"></a>Drawable资源</h3><ul>
+<li>Color Drawable</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">color</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span> <span class="attr">android:color</span>=<span class="string">&quot;#563459&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Shape Drawable</li>
+</ul>
+<p>每个Shape Drawable都包含如下属性：<br>类型:通过shape属性来指定：</p>
+<figure class="highlight processing"><table><tr><td class="code"><pre><span class="line">Line 一条横跨了父类View的宽度的水平线。</span><br><span class="line">&lt;<span class="built_in">shape</span> xmlns:android=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    android:<span class="built_in">shape</span>=<span class="string">&quot;line&quot;</span> &gt;</span><br><span class="line">    &lt;<span class="built_in">stroke</span> android:<span class="built_in">width</span>=<span class="string">&quot;2dp&quot;</span> android:<span class="type">color</span>=<span class="string">&quot;#ff0000&quot;</span> /&gt;</span><br><span class="line">&lt;/<span class="built_in">shape</span>&gt;</span><br><span class="line">rectangle 矩形</span><br><span class="line">&lt;<span class="built_in">shape</span> xmlns:android=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    android:<span class="built_in">shape</span>=<span class="string">&quot;rectangle&quot;</span> &gt;</span><br><span class="line">    &lt;<span class="built_in">stroke</span> android:<span class="built_in">width</span>=<span class="string">&quot;2dp&quot;</span> android:<span class="type">color</span>=<span class="string">&quot;#ff0000&quot;</span> /&gt;</span><br><span class="line">&lt;/<span class="built_in">shape</span>&gt;</span><br><span class="line"></span><br><span class="line">oval 圆弧</span><br><span class="line">&lt;<span class="built_in">shape</span> xmlns:android=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    android:<span class="built_in">shape</span>=<span class="string">&quot;oval&quot;</span> &gt;</span><br><span class="line">    &lt;<span class="built_in">stroke</span> android:<span class="built_in">width</span>=<span class="string">&quot;2dp&quot;</span> android:<span class="type">color</span>=<span class="string">&quot;#ff0000&quot;</span> /&gt;</span><br><span class="line">&lt;/<span class="built_in">shape</span>&gt;</span><br><span class="line"></span><br><span class="line">ring 圆环</span><br><span class="line">&lt;<span class="built_in">shape</span> xmlns:android=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    android:<span class="built_in">shape</span>=<span class="string">&quot;ring&quot;</span> </span><br><span class="line">    android:innerRadius=<span class="string">&quot;100dp&quot;</span></span><br><span class="line">    android:thickness=<span class="string">&quot;10dp&quot;</span></span><br><span class="line">    &gt;</span><br><span class="line">    &lt;<span class="built_in">stroke</span> android:<span class="built_in">width</span>=<span class="string">&quot;2dp&quot;</span> android:<span class="type">color</span>=<span class="string">&quot;#ff0000&quot;</span> /&gt;</span><br><span class="line">&lt;/<span class="built_in">shape</span>&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">使用<span class="built_in">stroke</span>可以指定:轮廓的颜色，线宽，虚线长度，虚线间隔</span><br><span class="line">&lt;<span class="built_in">stroke</span> android:<span class="built_in">width</span>=<span class="string">&quot;2dp&quot;</span> android:<span class="type">color</span>=<span class="string">&quot;#ff0000&quot;</span> android:dashWidth=<span class="string">&quot;10dp&quot;</span> android:dashGap=<span class="string">&quot;5dp&quot;</span>/&gt;</span><br><span class="line"></span><br><span class="line">填充颜色：</span><br><span class="line">&lt;solid android:<span class="type">color</span>=<span class="string">&quot;#324390&quot;</span>/&gt;</span><br><span class="line"></span><br><span class="line">边角</span><br><span class="line"> &lt;corners</span><br><span class="line">        android:bottomLeftRadius=<span class="string">&quot;10dp&quot;</span></span><br><span class="line">        android:bottomRightRadius=<span class="string">&quot;10dp&quot;</span></span><br><span class="line">        android:topLeftRadius=<span class="string">&quot;10dp&quot;</span></span><br><span class="line">        android:topRightRadius=<span class="string">&quot;20dp&quot;</span> /&gt;</span><br><span class="line">内边距</span><br><span class="line">&lt;padding android:left=<span class="string">&quot;35dp&quot;</span></span><br><span class="line">        	android:right=<span class="string">&quot;35dp&quot;</span></span><br><span class="line">        	android:bottom=<span class="string">&quot;35dp&quot;</span></span><br><span class="line">        	android:top=<span class="string">&quot;35dp&quot;</span>/&gt;</span><br><span class="line">            </span><br><span class="line">渐变效果</span><br><span class="line">线性渐变：</span><br><span class="line">&lt;gradient</span><br><span class="line">    android:angle=<span class="string">&quot;45&quot;</span></span><br><span class="line">    android:centerColor=<span class="string">&quot;#ffffff&quot;</span></span><br><span class="line">    android:centerX=<span class="string">&quot;60dp&quot;</span></span><br><span class="line">    android:centerY=<span class="string">&quot;100dp&quot;</span></span><br><span class="line">    android:endColor=<span class="string">&quot;#000000&quot;</span></span><br><span class="line">    android:startColor=<span class="string">&quot;#000000&quot;</span></span><br><span class="line">    android:type=<span class="string">&quot;linear&quot;</span></span><br><span class="line">    android:useLevel=<span class="string">&quot;false&quot;</span> /&gt;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"> 辐射渐变 </span><br><span class="line">&lt;gradient</span><br><span class="line">    android:centerColor=<span class="string">&quot;#ffffff&quot;</span></span><br><span class="line">    android:endColor=<span class="string">&quot;#FF0000&quot;</span></span><br><span class="line">    android:startColor=<span class="string">&quot;#000000&quot;</span></span><br><span class="line">    android:type=<span class="string">&quot;radial&quot;</span></span><br><span class="line">    android:useLevel=<span class="string">&quot;false&quot;</span></span><br><span class="line">    android:gradientRadius=<span class="string">&quot;300&quot;</span>/&gt;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"> 扫描渐变</span><br><span class="line"> &lt;gradient</span><br><span class="line">    android:centerColor=<span class="string">&quot;#ffffff&quot;</span></span><br><span class="line">    android:endColor=<span class="string">&quot;#000000&quot;</span></span><br><span class="line">    android:startColor=<span class="string">&quot;#000000&quot;</span></span><br><span class="line">    android:type=<span class="string">&quot;sweep&quot;</span></span><br><span class="line">    android:useLevel=<span class="string">&quot;false&quot;</span></span><br><span class="line">    android:gradientRadius=<span class="string">&quot;100&quot;</span> /&gt;</span><br><span class="line"></span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+
+
+<p>变换Drawable–ScaleDrawable</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">scale</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/ic_launcher&quot;</span></span></span><br><span class="line"><span class="tag">    //缩放中心</span></span><br><span class="line"><span class="tag">    <span class="attr">android:scaleGravity</span>=<span class="string">&quot;center_horizontal|clip_vertical“</span></span></span><br><span class="line"><span class="string"><span class="tag">   //相对于原始Drawable的包围框的目标宽度和高度</span></span></span><br><span class="line"><span class="string"><span class="tag">    android:scaleHeight=&quot;</span><span class="attr">100</span>%&quot;</span></span><br><span class="line"><span class="tag">    <span class="attr">android:scaleWidth</span>=<span class="string">&quot;100%&quot;</span> /&gt;</span></span><br><span class="line">在部件文件中使用scaleDrawable</span><br><span class="line"> <span class="tag">&lt;<span class="name">ImageView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/imagescale&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_weight</span>=<span class="string">&quot;1&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:src</span>=<span class="string">&quot;@drawable/scale&quot;</span> /&gt;</span></span><br><span class="line">在Activity中添加：</span><br><span class="line">mImageScaleIv = (ImageView) findViewById(R.id.imagescale);</span><br><span class="line">mImageScaleIv.setImageLevel(5000);</span><br><span class="line">//Level值在0-10000之间，5000表示50%</span><br></pre></td></tr></table></figure>
+<p>变换Drawable–RotateDrawable</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">rotate</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/ic_launcher&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:fromDegrees</span>=<span class="string">&quot;0&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:pivotX</span>=<span class="string">&quot;50%&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:pivotY</span>=<span class="string">&quot;50%&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:toDegrees</span>=<span class="string">&quot;180&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">在部件文件中使用rotate Drawable</span><br><span class="line"> <span class="tag">&lt;<span class="name">ImageView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/imagerotate&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_weight</span>=<span class="string">&quot;1&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:src</span>=<span class="string">&quot;@drawable/rotate&quot;</span> /&gt;</span></span><br><span class="line">在Activity中添加：</span><br><span class="line">mImageRotateIv = (ImageView) findViewById(R.id.imagerotate);</span><br><span class="line">mImageRotateIv.setImageLevel(5000);</span><br><span class="line">//Level值在0-10000之间，5000表示50%</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>LayerDrawable</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">LayerDrawable允许在Drawable资源之上组合多个Drawable资源，如果定义一个半透明的Drawable数组，那么可以将他们彼此堆叠起来，以创建动态形状和变化的复杂组合，LayerDrawable的定义如下所示，其中第一个定义的位于对下方：</span><br><span class="line"></span><br><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">“@drawable/image1</span>&quot;/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span>  <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/image2“/&gt;</span></span></span><br><span class="line"><span class="string"><span class="tag">    &lt;item  android:drawable=&quot;</span>@<span class="attr">drawable</span>/<span class="attr">image3</span>“/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span>&gt;</span></span><br><span class="line"></span><br><span class="line">在布局中使用LayerDrawable   </span><br><span class="line"> <span class="tag">&lt;<span class="name">ImageView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/image&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span> </span></span><br><span class="line"><span class="tag">        <span class="attr">android:src</span>=<span class="string">&quot;@drawable/layerdrawable&quot;</span></span></span><br><span class="line"><span class="tag"> /&gt;</span></span><br></pre></td></tr></table></figure>
+<p>状态列表Drawable</p>
+<p>允许根据包含该状态列表的View的状态指定一个不同的Drawable。<br>状态有如下几种：<br>State_pressed:按下或没有按下<br>State_focus:有焦点或者没有焦点<br>State_hovered:光标在View上悬停或者不悬停<br>State_selected：选中或者没选中<br>State_checkable能或者不能被选中<br>State_checked:被选中或者没有被选中<br>State_enabled:启用或者禁止<br>State_activited:激活或者未激活<br>State_window_focus：父窗口有没有焦点<br>每个状态可以设置为true或者false。对于一个给定的View确定该显示哪个Drawable时，Android会使用和当前状态匹配的状态列表中的第一项。因此默认值应该放在最后。</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="section">&lt;selector&gt;</span></span><br><span class="line">        <span class="section">&lt;item              /&gt;</span></span><br><span class="line"><span class="section">&lt;/selector&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>级别Drawable</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">使用级别列表可以创建Drawable的资源序列，并给每一层指定一个整形的索引值，如下所示:</span><br><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">level-list</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw0&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;0&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw1&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;1&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw2&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;2&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw3&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;3&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw4&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;4&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw5&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;5&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw6&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;6&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw7&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;7&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw8&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;8&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@drawable/nw9&quot;</span> <span class="attr">android:maxLevel</span>=<span class="string">&quot;9&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">level-list</span>&gt;</span></span><br><span class="line"></span><br><span class="line">在代码中选择要显示的图像：可以使用如下所示</span><br><span class="line"></span><br><span class="line">public void onClick(View v) &#123;</span><br><span class="line">	mCount=(mCount+1)%9;</span><br><span class="line">	mImageIV.setImageLevel(mCount);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Bitmap-amp-amp-BitmapFactory"><a href="#Bitmap-amp-amp-BitmapFactory" class="headerlink" title="Bitmap &amp;&amp; BitmapFactory"></a>Bitmap &amp;&amp; BitmapFactory</h3><p>decodeFile（stringpath）   用于从给定的路径中解析Bitmap<br>decodeFileDescriptor(FileDescriptor fd)  用于从FileDescriptor对应的文件中解析<br>decodeRescource(Resouce res,int id)  用于根据给定的资源ID从指定的资源中解析<br>decodeStream(InputStream is)   用于从指定的输入流中解析</p>
+<p><img src="/2016/04/13/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E5%9B%9B-%E5%9B%BE%E5%83%8F%E5%AE%B9%E5%99%A8Bitmap-Drawable%E4%BB%A5%E5%8F%8A%E5%9B%BE%E5%83%8F%E5%8F%98%E6%8D%A2/bitmapfactoy.png"></p>
+<p>compress(Bitmap.CompressFormat format,int quality,Outputstream stream)<br>用于将Bitmap对象压缩为指定格式并保留到指定的文件输出流中，其中format参考值可以是<br>Bitmap.compressFormat.PNG,Bitmap.compressFormat.JPEG,.compressFormat.WEBP</p>
+<p>createBitmap(Bitmap source)  使用位图对象创建新的位图对象<br>createBitmap(Bitmap source,int  x,int y,int width,int height);  用于从源位图的指定坐标点开始，挖取指定宽度和高度的一块图像来创建新的Bitmap对象<br>createBitmap(Bitmap source,int x,int y,int with,int height,Matrix matrix,boolean filter)  用于从源位图的指定坐标点，“挖取”指定宽度和高度的一块图像来创建新的Bitmap对象，并按Matrix指定规则进行变换<br>createBitmap(int width,int height,Bitmap.Config config)  用于创建一个指定宽度高度的新的Bitmap对象<br>createScaledBitmap(Bitmap source，int dstwidth,int dstheight,,boolean filter)  用于将源位图缩放为指定宽度和高度的新的Bitmap对象<br>createBitmap(int colors[],int width,int height,Bitmap.Config)  用指定的颜色数组，创建一个指定宽度和高度的Bitmap对象，数组元素的个数为width*height<br>isRecycled()  用于判断图片是否被回收<br>recycle()  回收图片</p>
+<p>Bitmap 和 Drawable之间的转换</p>
+<p>Drawable转化为Bitmap    </p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public static Bitmap drawable<span class="constructor">ToBitmap(Drawable <span class="params">drawable</span>)</span> &#123;    </span><br><span class="line">    <span class="built_in">int</span> width = drawable.get<span class="constructor">IntrinsicWidth()</span>;    </span><br><span class="line">    <span class="built_in">int</span> height = drawable.get<span class="constructor">IntrinsicHeight()</span>; </span><br><span class="line">    drawable.set<span class="constructor">Bounds(0, 0, <span class="params">width</span>, <span class="params">height</span>)</span>; </span><br><span class="line">       </span><br><span class="line">    Bitmap bitmap = <span class="module-access"><span class="module"><span class="identifier">Bitmap</span>.</span></span>create<span class="constructor">Bitmap(<span class="params">width</span>, <span class="params">height</span>, <span class="params">drawable</span>.<span class="params">getOpacity</span>()</span> != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);    </span><br><span class="line">    Canvas canvas = <span class="keyword">new</span> <span class="constructor">Canvas(<span class="params">bitmap</span>)</span>;    </span><br><span class="line">       </span><br><span class="line">    drawable.draw(canvas);    </span><br><span class="line">    return bitmap;    </span><br><span class="line">&#125;    </span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> void drawable<span class="constructor">ToBitamp(Drawable <span class="params">drawable</span>)</span>&#123;</span><br><span class="line">    BitmapDrawable bd = (BitmapDrawable) drawable;</span><br><span class="line">    bitmap = bd.get<span class="constructor">Bitmap()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Bitmap-转换为-Drawable"><a href="#Bitmap-转换为-Drawable" class="headerlink" title="Bitmap 转换为 Drawable"></a>Bitmap 转换为 Drawable</h3><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public static Drawable bitmap<span class="constructor">ToDrawble(Bitmap <span class="params">bitmap</span>,Context <span class="params">mcontext</span>)</span>&#123;  </span><br><span class="line">    Drawable drawable = <span class="keyword">new</span> <span class="constructor">BitmapDrawable(<span class="params">mcontext</span>.<span class="params">getResources</span>()</span>, bitmap);  </span><br><span class="line">    return drawable;  </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<p>Matrix图像变换</p>
+<p>我们在介绍Paint的时候接触到了ColorMatrix，它是一个颜色矩阵用于颜色变换的，这里需要介绍的是图像变换矩阵：<br>图像变换常见的有如下几种：<br>1.平移变化   matrix.setTranslate<br>2.缩放变化   matrix.setScale<br>3.旋转变化   matrix.setRotate<br>4.倾斜变化   matrix.setSkew<br>运用上述的方式会重置所有的值，只设置当前的变化，所以不会变化不会累加。<br>如果需要累加变化则需要使用postXXXX和preXXXX<br>postXXXX 是会在前面的变化结束后叠加post的动画<br>而preXXXX是会在当前的变化前叠加pre的动画</p>
+<p>如果上述的还不能满足我们的要求，我们还可以直接设置矩阵值：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="built_in">float</span><span class="literal">[]</span> matrixArray = <span class="keyword">new</span> <span class="built_in">float</span><span class="literal">[<span class="number">9</span>]</span>;</span><br><span class="line">Matrix matrix = <span class="keyword">new</span> <span class="constructor">Matrix()</span>;</span><br><span class="line">matrix.set<span class="constructor">Values(<span class="params">matrixArray</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>同样我们在使用上述的几种便捷方式设置好变换矩阵后还可以通过下面的方式获得矩阵的值：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="built_in">float</span><span class="literal">[]</span> matrixValues = <span class="keyword">new</span> <span class="built_in">float</span><span class="literal">[<span class="number">9</span>]</span>;  </span><br><span class="line">matrix.get<span class="constructor">Values(<span class="params">matrixValues</span>)</span>;</span><br></pre></td></tr></table></figure>
+<p>那么如何应用到实际的图像中呢？<br>还记得前面介绍Canvas.drawBitmap把这里就有一个需要Matrix，还有一个是在创建Bitmap的时候，这里就不写了，大家可以看看前面的内容。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-绘图进阶/">Android 绘图进阶</a>
+  </div>
+
+</div>
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2016/04/13/Android-进阶之Android-绘图-四-图像容器Bitmap-Drawable以及图像变换/#comments" class="ds-thread-count comments-count-link" data-thread-key="2016/04/13/Android-进阶之Android-绘图-四-图像容器Bitmap-Drawable以及图像变换/" data-count-type="comments">&nbsp;</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/23/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="page-number current">24</span><a class="page-number" href="/page/25/">25</a><a class="page-number" href="/page/26/">26</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="extend next" rel="next" href="/page/25/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

@@ -1,0 +1,714 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之性能优化 代码级优化 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="缓存缓存已经计算好的数据，避免不必要的重复计算。 BatchingBatching是在真正执行运算操作之前对数据进行批量预处理，例如你需要有这样一个方法，它的作用是查找某个值是否存在与于一堆数据中。假设一个前提，我们会先对数据做排序，然后使用二分查找法来判断值是否存在。我们先看第一种情况，下图中存在着多次重复的排序操作。在上面的那种写法下，如果数据的量级并不大的话，应该还可以接受，可是如果数据集非">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之性能优化 代码级优化">
+<meta property="og:url" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="缓存缓存已经计算好的数据，避免不必要的重复计算。 BatchingBatching是在真正执行运算操作之前对数据进行批量预处理，例如你需要有这样一个方法，它的作用是查找某个值是否存在与于一堆数据中。假设一个前提，我们会先对数据做排序，然后使用二分查找法来判断值是否存在。我们先看第一种情况，下图中存在着多次重复的排序操作。在上面的那种写法下，如果数据的量级并不大的话，应该还可以接受，可是如果数据集非">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/5.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/6.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/7.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/9.png">
+<meta property="article:published_time" content="2016-06-05T12:37:16.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:56:50.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/06/05/Android-进阶之性能优化-代码级优化/" title="Android 进阶之性能优化 代码级优化" itemprop="url">Android 进阶之性能优化 代码级优化</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-06-05T12:37:16.000Z" itemprop="datePublished"> Published 2016-06-05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h4><p>缓存已经计算好的数据，避免不必要的重复计算。<br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/1.png"></p>
+<h4 id="Batching"><a href="#Batching" class="headerlink" title="Batching"></a>Batching</h4><p>Batching是在真正执行运算操作之前对数据进行批量预处理，例如你需要有这样一个方法，它的作用是查找某个值是否存在与于一堆数据中。假设一个前提，我们会先对数据做排序，然后使用二分查找法来判断值是否存在。我们先看第一种情况，下图中存在着多次重复的排序操作。<br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/2.png"><br>在上面的那种写法下，如果数据的量级并不大的话，应该还可以接受，可是如果数据集非常大，就会有严重的效率问题。那么我们看下改进的写法，把排序的操作打包绑定只执行一次：<br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/3.png"><br>上面就是Batching的一种示例：把重复的操作拎出来，打包只执行一次。</p>
+<h4 id="逐步过滤筛选-，减小搜索的数据集"><a href="#逐步过滤筛选-，减小搜索的数据集" class="headerlink" title="逐步过滤筛选 ，减小搜索的数据集"></a>逐步过滤筛选 ，减小搜索的数据集</h4><p>对于需要在大量数据集中获取某个数据的时候通过逐步对数据进行过滤筛选，减小搜索的数据集， 可以十分明显地提高程序的执行性能。</p>
+<h4 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h4><p>使用多线程并发处理任务，从某种程度上可以快速提高程序的执行性能。对于Android程序来说，主线程通常也成为UI线程，需要处理UI的渲染， 响应用户的操作等等。对于那些可能影响到UI线程的任务都需要特别留意是否有必要放到其他的线程来进行处理。如果处理不当，很有可能引起程序ANR。</p>
+<h4 id="遍历器的选用："><a href="#遍历器的选用：" class="headerlink" title="遍历器的选用："></a>遍历器的选用：</h4><p>在Android上可能用到的三种不同的遍历方法：<br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/4.png"><br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/5.png"><br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/6.png"><br>使用上面三种方式在同一台手机上，使用相同的数据集做测试，他们的表现性能如下所示：<br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/7.png"><br>从上面可以看到for index的方式有更好的效率，但是因为不同平台编译器优化各有差异，我们最好还是针对实际的方法做一下简单的测量比较好，拿到数据之后，再选择效率最高的那个方式。</p>
+<h4 id="借助Lint工具优化代码"><a href="#借助Lint工具优化代码" class="headerlink" title="借助Lint工具优化代码"></a>借助Lint工具优化代码</h4><p>Lint是Android提供的一个静态扫描应用源码并找出其中的潜在问题的一个强大的工具。<br><img src="/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/9.png"></p>
+<p>Lint的功能非常强大，它能够扫描各种问题。当然我们可以通过Android Studio设置找到Lint，对Lint做一些定制化扫描的设置，可以选择忽略掉那些不想Lint去扫描的选项，我们还可以针对部分扫描内容修改它的提示优先级。</p>
+<h4 id="借助Strict-Mode-进行代码优化"><a href="#借助Strict-Mode-进行代码优化" class="headerlink" title="借助Strict Mode 进行代码优化"></a>借助Strict Mode 进行代码优化</h4><p>Android提供了一个叫做Strict Mode的工具，我们可以通过手机设置里面的开发者选项，打开Strict Mode选项，如果程序存在潜在的隐患，屏幕就会闪现红色。我们也可以通过StrictMode API在代码层面做细化的跟踪，</p>
+<h4 id="避免在主线程做访问网络，IO读写等耗时操作。"><a href="#避免在主线程做访问网络，IO读写等耗时操作。" class="headerlink" title="避免在主线程做访问网络，IO读写等耗时操作。"></a>避免在主线程做访问网络，IO读写等耗时操作。</h4><h4 id="避免创建不必要的对象"><a href="#避免创建不必要的对象" class="headerlink" title="避免创建不必要的对象"></a>避免创建不必要的对象</h4><p>如果你需要返回一个String对象，并且你知道它最终会需要连接到一个StringBuffer，请修改你的函数实现方式，避免直接进行连接操作，应该采用创建一个临时对象来做字符串的拼接这个操作。<br>当从已经存在的数据集中抽取出String的时候，尝试返回原数据的substring对象，而不是创建一个重复的对象。使用substring的方式，你将会得到一个新的String对象，但是这个string对象是和原string共享内部char[]空间的。</p>
+<h4 id="选择Static而不是Virtual"><a href="#选择Static而不是Virtual" class="headerlink" title="选择Static而不是Virtual"></a>选择Static而不是Virtual</h4><p>如果你不需要访问一个对象的值，请保证这个方法是static类型的，这样方法调用将快15%-20%。</p>
+<h4 id="常量声明为Static-Final"><a href="#常量声明为Static-Final" class="headerlink" title="常量声明为Static Final"></a>常量声明为Static Final</h4><p>考虑下面这种声明的方式</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">static int intVal <span class="operator">=</span> <span class="number">42</span><span class="comment">;</span></span><br><span class="line">static String strVal <span class="operator">=</span> <span class="string">&quot;Hello, world!&quot;</span><span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>编译器会使用一个初始化类的函数，然后当类第一次被使用的时候执行。这个函数将42存入intVal，还从class文件的常量表中提取了strVal的引用。当之后使用intVal或strVal的时候，他们会直接被查询到。<br>我们可以用final关键字来优化：</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">final</span> <span class="type">int</span> intVal = <span class="number">42</span>;</span><br><span class="line"><span class="type">static</span> <span class="keyword">final</span> <span class="type">String</span> strVal = <span class="string">&quot;Hello, world!&quot;</span>;</span><br></pre></td></tr></table></figure>
+<p>这时再也不需要上面的方法了，因为final声明的常量进入了静态dex文件的域初始化部分。调用intVal的代码会直接使用42，调用strVal的代码也会使用一个相对廉价的“字符串常量”指令，而不是查表。</p>
+<h4 id="避免内部的Getters-x2F-Setters"><a href="#避免内部的Getters-x2F-Setters" class="headerlink" title="避免内部的Getters&#x2F;Setters"></a>避免内部的Getters&#x2F;Setters</h4><p>在面向对象编程中，将getter和setting暴露给公用接口是合理的，但在类内部应该仅仅使用域直接访问。<br>在没有JIT(Just In Time Compiler)时，直接访问变量的速度是调用getter的3倍。有JIT时，直接访问变量的速度是通过getter访问的7倍。</p>
+<h4 id="使用包级访问而不是内部类的私有访问"><a href="#使用包级访问而不是内部类的私有访问" class="headerlink" title="使用包级访问而不是内部类的私有访问"></a>使用包级访问而不是内部类的私有访问</h4><p>参考下面一段代码</p>
+<figure class="highlight csharp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Foo</span> &#123;    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">class</span> <span class="title">Inner</span> &#123;        </span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">stuff</span>()</span> &#123;            </span><br><span class="line">            Foo.<span class="keyword">this</span>.doStuff(Foo.<span class="keyword">this</span>.mValue);        </span><br><span class="line">         &#125;    </span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> mValue;    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span>()</span> &#123;        </span><br><span class="line">        Inner <span class="keyword">in</span> = <span class="keyword">new</span> Inner();        </span><br><span class="line">        mValue = <span class="number">27</span>;        </span><br><span class="line">        <span class="keyword">in</span>.stuff();    </span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doStuff</span>(<span class="params"><span class="built_in">int</span> <span class="keyword">value</span></span>)</span> &#123;        </span><br><span class="line">        System.<span class="keyword">out</span>.println(<span class="string">&quot;Value is &quot;</span> + <span class="keyword">value</span>);    </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里重要的是，我们定义了一个私有的内部类Foo$Inner，它直接访问了外部类中的私有方法以及私有成员对象。这是合法的，这段代码也会如同预期一样打印出</p>
+<figure class="highlight actionscript"><table><tr><td class="code"><pre><span class="line">Value <span class="keyword">is</span> <span class="number">27</span>。</span><br></pre></td></tr></table></figure>
+<p>问题是，VM因为Foo和Foo$Inner是不同的类，会认为在Foo$Inner中直接访问Foo类的私有成员是不合法的。即使Java语言允许内部类访问外部类的私有成员。为了去除这种差异，编译器会产生一些仿造函数：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*package*/</span> </span><br><span class="line">static <span class="built_in">int</span> <span class="module-access"><span class="module"><span class="identifier">Foo</span>.</span></span>access<span class="constructor">$100(Foo <span class="params">foo</span>)</span> &#123;    </span><br><span class="line">    return foo.mValue;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*package*/</span> </span><br><span class="line">static void <span class="module-access"><span class="module"><span class="identifier">Foo</span>.</span></span>access<span class="constructor">$200(Foo <span class="params">foo</span>, <span class="params">int</span> <span class="params">value</span>)</span> &#123;</span><br><span class="line">        foo.<span class="keyword">do</span><span class="constructor">Stuff(<span class="params">value</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每当内部类需要访问外部类中的mValue成员或需要调用doStuff()函数时，它都会调用这些静态方法。这意味着，上面的代码可以归结为，通 过accessor函数来访问成员变量。早些时候我们说过，通过accessor会比直接访问域要慢。所以，这是一个特定语言用法造成性能降低的例子。<br>如果你正在性能热区（hotspot:高频率、重复执行的代码段）使用像这样的代码，你可以把内部类需要访问的域和方法声明为包级访问，而不是私有访问权限。不幸的是，这意味着在相同包中的其他类也可以直接访问这些域，所以在公开的API中你不能这样做。</p>
+<h4 id="避免使用float类型"><a href="#避免使用float类型" class="headerlink" title="避免使用float类型"></a>避免使用float类型</h4><p>Android系统中float类型的数据存取速度是int类型的一半，尽量优先采用int类型。</p>
+<h4 id="使用库函数"><a href="#使用库函数" class="headerlink" title="使用库函数"></a>使用库函数</h4><p>除了那些常见的让你多使用自带库函数的理由以外，记得系统函数有时可以替代第三方库，并且还有汇编级别的优化，他们通常比带有JIT的Java编译出来的代码更高效。典型的例子是：Android API 中的 String.indexOf()，Dalvik出于内联性能考虑将其替换。同样 System.arraycopy()函数也被替换，这样的性能在Nexus One测试，比手写的for循环并使用JIT还快9倍。</p>
+<h4 id="谨慎使用native函数"><a href="#谨慎使用native函数" class="headerlink" title="谨慎使用native函数"></a>谨慎使用native函数</h4><p>结合Android NDK使用native代码开发，并不总是比Java直接开发的效率更好的。Java转native代码是有代价的，而且JIT不能在这种情况下做优化。 如果你在native代码中分配资源（比如native堆上的内存，文件描述符等等），这会对收集这些资源造成巨大的困难。你同时也需要为各种架构重新编 译代码，甚至对已同样架构的设备都需要编译多个版本</p>
+<h4 id="使用更加轻量的数据结构"><a href="#使用更加轻量的数据结构" class="headerlink" title="使用更加轻量的数据结构"></a>使用更加轻量的数据结构</h4><p>利用Android 系统中专门优化过的容器类，例如SparseArray, SparseBooleanArray, 与 LongSparseArray。 通常的HashMap的实现方式更加消耗内存，因为它需要一个额外的实例对象来记录Mapping操作。另外，SparseArray更加高效在于他们避免了对key与value的autobox自动装箱，并且避免了装箱后的解箱。</p>
+<h4 id="避免在Android里面使用Enum"><a href="#避免在Android里面使用Enum" class="headerlink" title="避免在Android里面使用Enum"></a>避免在Android里面使用Enum</h4><p>Enums的内存消耗通常是static constants的2倍。应该尽量避免在Android上使用enums。<br>适当的代码抽象，但是不要过分的抽象。</p>
+<h4 id="资源管理部分优化"><a href="#资源管理部分优化" class="headerlink" title="资源管理部分优化"></a>资源管理部分优化</h4><ul>
+<li>不要存在重复的代码和无用的代码，移除不用的库</li>
+<li>如果需要使用到的功能仅仅是某个库的极小部分可以尝试移植这个库或者自己实现而不是将整个库导入。</li>
+<li>使用proguard混淆代码，它会对不用的代码做优化，并且混淆后也能够减少安装包的大小。</li>
+<li>native code的部分，大多数情况下只需要支持armabi与x86的架构即可。如果非必须，可以考虑拿掉x86的部分。</li>
+<li>使用Lint工具查找没有使用到的资源。去除不使用的图片，String，XML等等。</li>
+<li>assets目录下的资源请确保没有用不上的文件。</li>
+<li>生成APK的时候，aapt工具本身会对png做优化，但是在此之前还可以使用其他工具如tinypng对图片进行进一步的压缩预处理。</li>
+<li>jpeg还是png，根据需要做选择，在某些时候jpeg可以减少图片的体积，还可以选择wabp格式。</li>
+<li>对于9.png的图片，可拉伸区域尽量切小，另外可以通过使用9.png拉伸达到大图效果的时候尽量不要使用整张大图。</li>
+<li>有选择性的提供hdpi，xhdpi，xxhdpi的图片资源。建议优先提供xhdpi的图片，对于mdpi，ldpi与xxxhdpi根据需要提供有差异的部分即可。</li>
+<li>尽可能的重用已有的图片资源。例如对称的图片，只需要提供一张，另外一张图片可以通过代码旋转的方式实现。</li>
+<li>能用代码绘制实现的功能，尽量不要使用大量的图片。例如减少使用多张图片组成animate-list的AnimationDrawable</li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android性能优化/">Android性能优化</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/06/07/Android-进阶之第三方库的介绍-butterknife/" title="Android 进阶之第三方库的介绍 butterknife">
+  <span>
+  Android 进阶之第三方库的介绍 butterknife</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/06/04/Android-进阶之性能优化-网络优化/"  title="Android 进阶之性能优化 网络优化">
+ <span>Android 进阶之性能优化 网络优化
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/06/05/Android-进阶之性能优化-代码级优化/" data-title="Android 进阶之性能优化 代码级优化" data-url="http://yoursite.com/2016/06/05/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%93%E5%AD%98"><span class="toc-number">1.</span> <span class="toc-text">缓存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Batching"><span class="toc-number">2.</span> <span class="toc-text">Batching</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%80%90%E6%AD%A5%E8%BF%87%E6%BB%A4%E7%AD%9B%E9%80%89-%EF%BC%8C%E5%87%8F%E5%B0%8F%E6%90%9C%E7%B4%A2%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="toc-number">3.</span> <span class="toc-text">逐步过滤筛选 ，减小搜索的数据集</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">多线程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%81%8D%E5%8E%86%E5%99%A8%E7%9A%84%E9%80%89%E7%94%A8%EF%BC%9A"><span class="toc-number">5.</span> <span class="toc-text">遍历器的选用：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9Lint%E5%B7%A5%E5%85%B7%E4%BC%98%E5%8C%96%E4%BB%A3%E7%A0%81"><span class="toc-number">6.</span> <span class="toc-text">借助Lint工具优化代码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9Strict-Mode-%E8%BF%9B%E8%A1%8C%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%96"><span class="toc-number">7.</span> <span class="toc-text">借助Strict Mode 进行代码优化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%9C%A8%E4%B8%BB%E7%BA%BF%E7%A8%8B%E5%81%9A%E8%AE%BF%E9%97%AE%E7%BD%91%E7%BB%9C%EF%BC%8CIO%E8%AF%BB%E5%86%99%E7%AD%89%E8%80%97%E6%97%B6%E6%93%8D%E4%BD%9C%E3%80%82"><span class="toc-number">8.</span> <span class="toc-text">避免在主线程做访问网络，IO读写等耗时操作。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%88%9B%E5%BB%BA%E4%B8%8D%E5%BF%85%E8%A6%81%E7%9A%84%E5%AF%B9%E8%B1%A1"><span class="toc-number">9.</span> <span class="toc-text">避免创建不必要的对象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%80%89%E6%8B%A9Static%E8%80%8C%E4%B8%8D%E6%98%AFVirtual"><span class="toc-number">10.</span> <span class="toc-text">选择Static而不是Virtual</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B8%B8%E9%87%8F%E5%A3%B0%E6%98%8E%E4%B8%BAStatic-Final"><span class="toc-number">11.</span> <span class="toc-text">常量声明为Static Final</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%86%85%E9%83%A8%E7%9A%84Getters-x2F-Setters"><span class="toc-number">12.</span> <span class="toc-text">避免内部的Getters&#x2F;Setters</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%8C%85%E7%BA%A7%E8%AE%BF%E9%97%AE%E8%80%8C%E4%B8%8D%E6%98%AF%E5%86%85%E9%83%A8%E7%B1%BB%E7%9A%84%E7%A7%81%E6%9C%89%E8%AE%BF%E9%97%AE"><span class="toc-number">13.</span> <span class="toc-text">使用包级访问而不是内部类的私有访问</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E4%BD%BF%E7%94%A8float%E7%B1%BB%E5%9E%8B"><span class="toc-number">14.</span> <span class="toc-text">避免使用float类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%BA%93%E5%87%BD%E6%95%B0"><span class="toc-number">15.</span> <span class="toc-text">使用库函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%A8%E6%85%8E%E4%BD%BF%E7%94%A8native%E5%87%BD%E6%95%B0"><span class="toc-number">16.</span> <span class="toc-text">谨慎使用native函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%9B%B4%E5%8A%A0%E8%BD%BB%E9%87%8F%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">17.</span> <span class="toc-text">使用更加轻量的数据结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%9C%A8Android%E9%87%8C%E9%9D%A2%E4%BD%BF%E7%94%A8Enum"><span class="toc-number">18.</span> <span class="toc-text">避免在Android里面使用Enum</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86%E9%83%A8%E5%88%86%E4%BC%98%E5%8C%96"><span class="toc-number">19.</span> <span class="toc-text">资源管理部分优化</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

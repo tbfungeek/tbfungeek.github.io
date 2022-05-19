@@ -1,0 +1,782 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title> FBRetainCycleDetector  FBAllocationTracker 源码解析 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="开篇叨叨FBRetainCycleDetector 是FaceBook推出的用于检测对象是否有循环引用的一个开源库.下面是一个简单的用法： #import &lt;FBRetainCycleDetector&#x2F;FBRetainCycleDetector.h&gt;FBRetainCycleDetector *detector &#x3D; [FBRetainCycleDetector new];[detect">
+<meta property="og:type" content="article">
+<meta property="og:title" content=" FBRetainCycleDetector  FBAllocationTracker 源码解析">
+<meta property="og:url" content="http://yoursite.com/2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="开篇叨叨FBRetainCycleDetector 是FaceBook推出的用于检测对象是否有循环引用的一个开源库.下面是一个简单的用法： #import &lt;FBRetainCycleDetector&#x2F;FBRetainCycleDetector.h&gt;FBRetainCycleDetector *detector &#x3D; [FBRetainCycleDetector new];[detect">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png">
+<meta property="article:published_time" content="2019-11-26T11:42:31.000Z">
+<meta property="article:modified_time" content="2019-12-19T13:45:40.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="iOS 开源库分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-源码解析/" title=" FBRetainCycleDetector  FBAllocationTracker 源码解析" itemprop="url"> FBRetainCycleDetector  FBAllocationTracker 源码解析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2019-11-26T11:42:31.000Z" itemprop="datePublished"> Published 2019-11-26</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h5 id="开篇叨叨"><a href="#开篇叨叨" class="headerlink" title="开篇叨叨"></a>开篇叨叨</h5><p><a target="_blank" rel="noopener" href="https://github.com/facebook/FBRetainCycleDetector">FBRetainCycleDetector</a> 是FaceBook推出的用于检测对象是否有循环引用的一个开源库.下面是一个简单的用法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&lt;FBRetainCycleDetector/FBRetainCycleDetector.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">FBRetainCycleDetector *detector = [FBRetainCycleDetector new];</span><br><span class="line">[detector addCandidate:myObject];</span><br><span class="line"><span class="built_in">NSSet</span> *retainCycles = [detector findRetainCycles];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;%@&quot;</span>, retainCycles);</span><br></pre></td></tr></table></figure>
+
+<p>它先创建一个FBRetainCycleDetector循环引用检测器，然后将待检查循环引用关系的对象通过addCandidate传入，检测器通过findRetainCycles查找这个对象中的循环引用。它能通过添加Filters对某些进行过滤，并且支持检测Block,Timmer,Associations这些对象的内存泄漏。但是它不能单独在项目中使用必须借助其他工具比如FBAllocationTracker,MLeaksFinders 查找Candidates，下面这篇博客主要是对FBRetainCycleDetector源码进行分析，不对使用做过多介绍，具体使用可以在GitHub主页查看。</p>
+<h4 id="FBRetainCycleDetector"><a href="#FBRetainCycleDetector" class="headerlink" title="FBRetainCycleDetector"></a>FBRetainCycleDetector</h4><h5 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h5><p>下图是FBRetainCycleDetector目录结构：</p>
+<ul>
+<li><img src="/2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/00001.png"></li>
+</ul>
+<h5 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h5><p>FBRetainCycleDetector主要任务有两个：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="bullet">1.</span> 找出<span class="strong">****</span>Object<span class="strong">****</span>，<span class="strong">****</span>Timer类型Object<span class="strong">****</span>，<span class="strong">****</span>Object associate类型Object<span class="strong">****</span>,<span class="strong">****</span>Block类型Object<span class="strong">****</span> 这几种类型的 Strong Reference。</span><br><span class="line"><span class="bullet">2.</span> 最开始把Self作为根节点，沿着找出的各个Reference进行深度遍历，如果形成了环，则存在循环依赖。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>OK 我们现在开始FBRetainCycleDetector的解析：</p>
+<p><strong><strong>FBRetainCycleDetector 对象初始化</strong></strong></p>
+<p>首先我们来看下FBRetainCycleDetector：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">FBRetainCycleDetector</span> </span>&#123;</span><br><span class="line">  <span class="built_in">NSMutableArray</span> *_candidates;</span><br><span class="line">  FBObjectGraphConfiguration *_configuration;</span><br><span class="line">  <span class="built_in">NSMutableSet</span> *_objectSet;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里最重要有两个对象，_candidates是一系列待检测的对象，_configuration为配置对象，在这里可以配置需要过滤的对象，检测属性的配置等等。</p>
+<p>为了简化代码的分析过程，我们以最简单的初始化形式入手看下初始化过程我们做了什么:</p>
+<figure class="highlight lua"><table><tr><td class="code"><pre><span class="line">- (instancetype)init &#123;</span><br><span class="line">  <span class="keyword">return</span> [<span class="built_in">self</span> initWithConfiguration:</span><br><span class="line">          <span class="string">[[FBObjectGraphConfiguration alloc] initWithFilterBlocks:FBGetStandardGraphEdgeFilters()</span></span><br><span class="line"><span class="string">                                               shouldInspectTimers:YES]]</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="keyword">instancetype</span>)initWithConfiguration:(FBObjectGraphConfiguration *)configuration &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">self</span> = [<span class="variable language_">super</span> init]) &#123;</span><br><span class="line">    _configuration = configuration;</span><br><span class="line">    _candidates = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    _objectSet = [<span class="built_in">NSMutableSet</span> new];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在初始化过程中FBRetainCycleDetector调用了initWithConfiguration:初始化了一个标准的过滤器，过滤器过滤了引用循环中的一些类和方法，并检查NSTimer循环引用情况。</p>
+<p><strong><strong>添加检测对象</strong></strong></p>
+<p>待检测的对象在addCandidate方法中被封装为FBObjectiveCGraphElement对象，然后添加到_candidates中。</p>
+<figure class="highlight erlang"><table><tr><td class="code"><pre><span class="line">- <span class="params">(void)</span>addCandidate:<span class="params">(id)</span>candidate &#123;</span><br><span class="line">  FBObjectiveCGraphElement *graphElement = FBWrapObjectGraphElement<span class="params">(nil, candidate, _configuration)</span>;</span><br><span class="line">  if <span class="params">(graphElement)</span> &#123;</span><br><span class="line">    [_candidates addObject:graphElement];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>查找循环引用</strong></strong></p>
+<p>FBRetainCycleDetector 通过调用findRetainCycles开始查找循环引用，如果某个对象比较复杂可能检测时间会比较久，所以在FBRetainCycleDetector中默认设置了一个检测深度，默认情况下为10.可以通过</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="type">NSSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>)findRetainCyclesWithMaxCycleLength:(<span class="type">NSUInteger</span>)length</span><br></pre></td></tr></table></figure>
+<p>来指定更深的层级。我们继续看findRetainCycles，findRetainCycles内部只是简单得转调了findRetainCyclesWithMaxCycleLength方法。</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="type">NSSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>)findRetainCycles &#123;</span><br><span class="line">  <span class="keyword">return</span> [<span class="keyword">self</span> findRetainCyclesWithMaxCycleLength:kFBRetainCycleDetectorDefaultStackDepth];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们继续跟进findRetainCyclesWithMaxCycleLength方法：</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="type">NSSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>)findRetainCyclesWithMaxCycleLength:(<span class="type">NSUInteger</span>)length &#123;</span><br><span class="line">  <span class="type">NSMutableSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>allRetainCycles <span class="operator">=</span> [<span class="type">NSMutableSet</span> new];</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">FBObjectiveCGraphElement</span> <span class="operator">*</span>graphElement <span class="keyword">in</span> _candidates) &#123;</span><br><span class="line">    <span class="type">NSSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>retainCycles <span class="operator">=</span> [<span class="keyword">self</span> _findRetainCyclesInObject:graphElement</span><br><span class="line">                                                                                      stackDepth:length];</span><br><span class="line">    [allRetainCycles unionSet:retainCycles];</span><br><span class="line">  &#125;</span><br><span class="line">  [_candidates removeAllObjects];</span><br><span class="line">  [_objectSet removeAllObjects];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Filter cycles that have been broken down since we found them.</span></span><br><span class="line">  <span class="comment">// These are false-positive that were picked-up and are transient cycles.</span></span><br><span class="line">  <span class="type">NSMutableSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>brokenCycles <span class="operator">=</span> [<span class="type">NSMutableSet</span> <span class="keyword">set</span>];</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; <span class="operator">*</span>itemCycle <span class="keyword">in</span> allRetainCycles) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">FBObjectiveCGraphElement</span> <span class="operator">*</span>element <span class="keyword">in</span> itemCycle) &#123;</span><br><span class="line">      <span class="keyword">if</span> (element.object <span class="operator">==</span> <span class="literal">nil</span>) &#123;</span><br><span class="line">        <span class="comment">// At least one element of the cycle has been removed, thus breaking</span></span><br><span class="line">        <span class="comment">// the cycle.</span></span><br><span class="line">        [brokenCycles addObject:itemCycle];</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  [allRetainCycles minusSet:brokenCycles];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> allRetainCycles;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>findRetainCyclesWithMaxCycleLength方法中主要可以分成两个阶段，第一个阶段通过_findRetainCyclesInObject查找被加入到_candidates中对象的循环引用放到allRetainCycles集合中 ，第二阶段是查看这些元素中哪些是已经释放了的从allRetainCycles中移除。</p>
+<p>对于对象的相互引用情况可以看做一个有向图，对象之间的引用就是图的的连线，每一个对象就是有向图的顶点，查找循环引用的过程就是在整个有向图中查找闭环的过程，FBRetainCycleDetector是通过DFS深度遍历的方式遍历整个对象有向图的，整个遍历查找过程真正的实现位于<br>_findRetainCyclesInObject方法中，在分析_findRetainCyclesInObject实现之前我们先通过下面的视频看下整个算法的大概流程：</p>
+ 
+<video width="100%" height="400" src="http://img.cdn.blogfshare.com/blogvideo_memoryleak_1.mp4" controls="controls">
+</video>
+
+
+
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="type">NSSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>)_findRetainCyclesInObject:(<span class="type">FBObjectiveCGraphElement</span> <span class="operator">*</span>)graphElement</span><br><span class="line">                                                                 stackDepth:(<span class="type">NSUInteger</span>)stackDepth &#123;</span><br><span class="line">    </span><br><span class="line">  <span class="type">NSMutableSet</span>&lt;<span class="type">NSArray</span>&lt;<span class="type">FBObjectiveCGraphElement</span> *&gt; *&gt; <span class="operator">*</span>retainCycles <span class="operator">=</span> [<span class="type">NSMutableSet</span> new];</span><br><span class="line">    </span><br><span class="line">  <span class="comment">// 查找循环引用是通过深度遍历整个对象图来实现的</span></span><br><span class="line">  <span class="comment">// 首先初始化深度搜索树中的一个节点</span></span><br><span class="line">  <span class="type">FBNodeEnumerator</span> <span class="operator">*</span>wrappedObject <span class="operator">=</span> [[<span class="type">FBNodeEnumerator</span> alloc] initWithObject:graphElement];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// stack 用于保存当前DFS搜索树中的搜索路径</span></span><br><span class="line">  <span class="type">NSMutableArray</span>&lt;<span class="type">FBNodeEnumerator</span> *&gt; <span class="operator">*</span>stack <span class="operator">=</span> [<span class="type">NSMutableArray</span> new];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// objectsOnPath 保存搜索路径中访问过的对象</span></span><br><span class="line">  <span class="type">NSMutableSet</span>&lt;<span class="type">FBNodeEnumerator</span> *&gt; <span class="operator">*</span>objectsOnPath <span class="operator">=</span> [<span class="type">NSMutableSet</span> new];</span><br><span class="line">   </span><br><span class="line">  <span class="comment">// 增加根节点，从根节点开始搜索</span></span><br><span class="line">  [stack addObject:wrappedObject];</span><br><span class="line"></span><br><span class="line">  <span class="comment">//判断是否已经搜索完毕</span></span><br><span class="line">  <span class="keyword">while</span> ([stack count] <span class="operator">&gt;</span> <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 算法会创建许多生命周期非常短的对象，这个会造成很大的内存抖动，所以这里使用了自动释放池来缓解这个问题。</span></span><br><span class="line">    <span class="meta">@autoreleasepool</span> &#123;</span><br><span class="line">      <span class="comment">// 取出stack中的最上面的节点，并标记该节点已读</span></span><br><span class="line">      <span class="type">FBNodeEnumerator</span> <span class="operator">*</span>top <span class="operator">=</span> [stack lastObject];</span><br><span class="line">       </span><br><span class="line">      <span class="comment">// 这里不重复便利同样的子树</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="operator">!</span>[objectsOnPath containsObject:top]) &#123;</span><br><span class="line">        <span class="keyword">if</span> ([_objectSet containsObject:@([top.object objectAddress])]) &#123;</span><br><span class="line">          [stack removeLastObject];</span><br><span class="line">          <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 这里之所以只保留对象的地址是为了避免不必要的对象持有</span></span><br><span class="line">        [_objectSet addObject:@([top.object objectAddress])];</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 记录已经访问过的节点</span></span><br><span class="line">      [objectsOnPath addObject:top];</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Take next adjecent node to that child. Wrapper object can</span></span><br><span class="line">      <span class="comment">// persist iteration state. If we see that node again, it will</span></span><br><span class="line">      <span class="comment">// give us new adjacent node unless it runs out of them</span></span><br><span class="line">      <span class="comment">//取top节点的next节点，也就是这个object可能持有的对象。</span></span><br><span class="line">      <span class="type">FBNodeEnumerator</span> <span class="operator">*</span>firstAdjacent <span class="operator">=</span> [top nextObject];</span><br><span class="line">      <span class="keyword">if</span> (firstAdjacent) &#123;</span><br><span class="line">        <span class="comment">//如果存在未访问到的节点</span></span><br><span class="line">        <span class="comment">// Current node still has some adjacent not-visited nodes</span></span><br><span class="line"></span><br><span class="line">        <span class="type">BOOL</span> shouldPushToStack <span class="operator">=</span> <span class="type">NO</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 检查是否已经访问过了</span></span><br><span class="line">        <span class="comment">// Check if child was already seen in that path</span></span><br><span class="line">        <span class="keyword">if</span> ([objectsOnPath containsObject:firstAdjacent]) &#123;</span><br><span class="line">          <span class="comment">// We have caught a retain cycle</span></span><br><span class="line">          <span class="comment">//如果该节点已经存在被访问过的对象中，说明构成了retain cycle</span></span><br><span class="line">          <span class="comment">// Ignore the first element which is equal to firstAdjacent, use firstAdjacent</span></span><br><span class="line">          <span class="comment">// we&#x27;re doing that because firstAdjacent has set all contexts, while its</span></span><br><span class="line">          <span class="comment">// first occurence could be a root without any context</span></span><br><span class="line">          <span class="type">NSUInteger</span> index <span class="operator">=</span> [stack indexOfObject:firstAdjacent];</span><br><span class="line">          <span class="type">NSInteger</span> length <span class="operator">=</span> [stack count] <span class="operator">-</span> index;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">if</span> (index <span class="operator">==</span> <span class="type">NSNotFound</span>) &#123;</span><br><span class="line">            <span class="comment">// Object got deallocated between checking if it exists and grabbing its index</span></span><br><span class="line">            shouldPushToStack <span class="operator">=</span> <span class="type">YES</span>;</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//计算出firstAdj出现的位置，同时计算出路径的长度，将这一系列的节点（object），也就是环，存放在array里面。</span></span><br><span class="line">            <span class="comment">//将这个array存放到retainCycles集合中。</span></span><br><span class="line">            <span class="type">NSRange</span> cycleRange <span class="operator">=</span> <span class="type">NSMakeRange</span>(index, length);</span><br><span class="line">            <span class="type">NSMutableArray</span>&lt;<span class="type">FBNodeEnumerator</span> *&gt; <span class="operator">*</span>cycle <span class="operator">=</span> [[stack subarrayWithRange:cycleRange] mutableCopy];</span><br><span class="line">            [cycle replaceObjectAtIndex:<span class="number">0</span> withObject:firstAdjacent];</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 1. Unwrap the cycle</span></span><br><span class="line">            <span class="comment">// 2. Shift to lowest address (if we omit that, and the cycle is created by same class,</span></span><br><span class="line">            <span class="comment">//    we might have duplicates)</span></span><br><span class="line">            <span class="comment">// 3. Shift by class (lexicographically)</span></span><br><span class="line"></span><br><span class="line">            [retainCycles addObject:[<span class="keyword">self</span> _shiftToUnifiedCycle:[<span class="keyword">self</span> _unwrapCycle:cycle]]];</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// Node is clear to check, add it to stack and continue</span></span><br><span class="line">          shouldPushToStack <span class="operator">=</span> <span class="type">YES</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (shouldPushToStack) &#123;</span><br><span class="line">          <span class="keyword">if</span> ([stack count] <span class="operator">&lt;</span> stackDepth) &#123;</span><br><span class="line">            [stack addObject:firstAdjacent];</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// Node has no more adjacent nodes, it itself is done, move on</span></span><br><span class="line">        [stack removeLastObject];</span><br><span class="line">        [objectsOnPath removeObject:top];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> retainCycles;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>_findRetainCyclesInObject方法中有四个比较重要的对象：</p>
+<figure class="highlight asciidoc"><table><tr><td class="code"><pre><span class="line"><span class="bullet">* </span>retainCycles用于存放循环引用环的集合；</span><br><span class="line"><span class="bullet">* </span>wrappedObject图的根起点</span><br><span class="line"><span class="bullet">* </span>stack是在图中当前的路径</span><br><span class="line"><span class="bullet">* </span>objectsOnPath用于记录以前访问过的节点。</span><br></pre></td></tr></table></figure>
+
+<p>在遍历开始前首先用传进来的graphElement来初始化FBNodeEnumerator对象，FBNodeEnumerator 是整个遍历的关键，但是这里我们先注重整个流程，开始遍历之前会将用当前graphElement初始化的FBNodeEnumerator添加到stack，然后通过FBNodeEnumerator 的 nextObject 取出下一个节点，通过 <strong><strong>[objectsOnPath containsObject:firstAdjacent]</strong></strong> 来判断该节点是否已经被访问过了，如果该节点已经存在被访问过的对象中，说明构成了retain cycle，这时候计算出firstAdj出现的位置，同时计算出路径的长度，将这一系列的节点组成的环，存放在array里面。将这个array存放到retainCycles集合中。</p>
+<p>这里还有两个比较重要的方法_unwrapCycle和_shiftToUnifiedCycle：</p>
+<ul>
+<li>_unwrapCycle: 的作用是将数组中的每一个 FBNodeEnumerator 实例解压成 FBObjectiveCGraphElement</li>
+<li>_shiftToUnifiedCycle: 方法用于将每一个环中的元素按照地址递增以及字母顺序来排序，来避免把相同环的不同表示方式当作两个不同的环。</li>
+</ul>
+<p><strong><strong>获取强引用对象</strong></strong></p>
+<p>我们上面介绍addCandidate方法的时候看到FBRetainCycleDetector会把所有的对象封装在FBObjectiveCGraphElement中，FBObjectiveCGraphElement类中有个十分重要的方法allRetainedObjects，它用于返回某个对象所持有的全部强引用对象数组。获取数组之后，再把其中的对象包装成新的FBNodeEnumerator实例，作为下一个有向图的顶点。</p>
+<figure class="highlight lisp"><table><tr><td class="code"><pre><span class="line">- (<span class="name">NSSet</span> *)allRetainedObjects &#123;</span><br><span class="line">  NSArray *retainedObjectsNotWrapped = [FBAssociationManager associationsForObject<span class="symbol">:_object</span>]<span class="comment">;</span></span><br><span class="line">  NSMutableSet *retainedObjects = [NSMutableSet new];</span><br><span class="line"></span><br><span class="line">  for (id obj in retainedObjectsNotWrapped) &#123;</span><br><span class="line">    FBObjectiveCGraphElement *element = FBWrapObjectGraphElementWithContext(<span class="name">self</span>,</span><br><span class="line">                                                                            obj,</span><br><span class="line">                                                                            _configuration,</span><br><span class="line">                                                                            @[@<span class="string">&quot;__associated_object&quot;</span>])<span class="comment">;</span></span><br><span class="line">    if (<span class="name">element</span>) &#123;</span><br><span class="line">      [retainedObjects addObject<span class="symbol">:element</span>]<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return retainedObjects<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在最开始我们会通过[FBAssociationManager associationsForObject:]获取该对象所有通过objc_setAssociatedObject关联的对象。FBAssociationManager 是 object associations的一个跟踪器，通过指定对象它能够返回该指定对象通过objc_setAssociatedObject retain策略添加的关联对象。它只有三个方法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> 开始跟踪 object associations，这里使用的是fishhook来hook objc_(set/remove)AssociatedObject 这些C方法,并插入一些跟踪代码</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">+ (<span class="type">void</span>)hook;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> 停止跟踪 object associations</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">+ (<span class="type">void</span>)unhook;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> 返回指定对象的 objects associated</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">+ (<span class="keyword">nullable</span> <span class="built_in">NSArray</span> *)associationsForObject:(<span class="keyword">nullable</span> <span class="type">id</span>)object;</span><br></pre></td></tr></table></figure>
+<p>要跟踪关联对象必须在main.m中调用[FBAssociationManager hook]通过fishhook Hook 对应方法。</p>
+<p>我们接下来继续看下allRetainedObjects方法。allRetainedObjects方法中会遍历FBAssociationManager获取到的_object关联的对象。然后通过FBWrapObjectGraphElementWithContext创建FBObjectiveCGraphElement。并添加到retainedObjects数组返回。</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">FBObjectiveCGraphElement *FBWrapObjectGraphElementWithContext(FBObjectiveCGraphElement *sourceElement,</span><br><span class="line">                                                              id <span class="keyword">object</span>,</span><br><span class="line">                                                              FBObjectGraphConfiguration *<span class="keyword">configuration</span>,</span><br><span class="line">                                                              NSArray&lt;NSString *&gt; *namePath) &#123;</span><br><span class="line">  //通过FBObjectGraphConfiguration中添加的过滤器对当前的<span class="keyword">object</span>进行一次过滤</span><br><span class="line">  <span class="keyword">if</span> (_ShouldBreakGraphEdge(<span class="keyword">configuration</span>, sourceElement, [namePath firstObject], object_getClass(<span class="keyword">object</span>))) &#123;</span><br><span class="line">    <span class="keyword">return</span> nil;</span><br><span class="line">  &#125;</span><br><span class="line">  FBObjectiveCBlock *newElement;</span><br><span class="line">  //如果是Block类型则返回FBObjectiveCBlock</span><br><span class="line">  <span class="keyword">if</span> (FBObjectIsBlock((__bridge <span class="type">void</span> *)<span class="keyword">object</span>)) &#123;</span><br><span class="line">    newElement = [[FBObjectiveCBlock alloc] initWithObject:<span class="keyword">object</span></span><br><span class="line">                                             <span class="keyword">configuration</span>:<span class="keyword">configuration</span></span><br><span class="line">                                                  namePath:namePath];</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    //如果是NSTimer的子类并且配置类中shouldInspectTimers 为 YES 返回FBObjectiveCNSCFTimer</span><br><span class="line">    <span class="keyword">if</span> ([object_getClass(<span class="keyword">object</span>) isSubclassOfClass:[NSTimer <span class="keyword">class</span>]] &amp;&amp;</span><br><span class="line">        <span class="keyword">configuration</span>.shouldInspectTimers) &#123;</span><br><span class="line">      newElement = [[FBObjectiveCNSCFTimer alloc] initWithObject:<span class="keyword">object</span></span><br><span class="line">                                                   <span class="keyword">configuration</span>:<span class="keyword">configuration</span></span><br><span class="line">                                                        namePath:namePath];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      //否则返回FBObjectiveCObject</span><br><span class="line">      newElement = [[FBObjectiveCObject alloc] initWithObject:<span class="keyword">object</span></span><br><span class="line">                                                <span class="keyword">configuration</span>:<span class="keyword">configuration</span></span><br><span class="line">                                                     namePath:namePath];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> (<span class="keyword">configuration</span> &amp;&amp; <span class="keyword">configuration</span>.transformerBlock) ? <span class="keyword">configuration</span>.transformerBlock(newElement) : newElement;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>FBWrapObjectGraphElementWithContext会根据传入的object的对象判断，如果是Block类型则返回FBObjectiveCBlock，如果是NSTimer的子类并且配置类中shouldInspectTimers 为 YES 返回FBObjectiveCNSCFTimer，如果其他类型返回FBObjectiveCObject。</p>
+<p>FBObjectiveCBlock，FBObjectiveCNSCFTimer，FBObjectiveCObject都是FBObjectiveCGraphElement的子类，都是一种对象图元素。</p>
+<p>我们回到FBNodeEnumerator类，我们上面提到深度遍历对象树靠的就是FBNodeEnumerator的nextObject方法。我们看下nextObject方法：</p>
+<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">- (FBNodeEnumerator *)nextObject &#123;</span><br><span class="line">  <span class="keyword">if</span> (!<span class="variable">_object</span>) &#123;</span><br><span class="line">    return <span class="literal">nil</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="variable">_retainedObjectsSnapshot</span>) &#123;</span><br><span class="line">    <span class="variable">_retainedObjectsSnapshot</span> = [<span class="variable">_object</span> allRetainedObjects];</span><br><span class="line">    <span class="variable">_enumerator</span> = [<span class="variable">_retainedObjectsSnapshot</span> objectEnumerator];</span><br><span class="line">  &#125;</span><br><span class="line">  FBObjectiveCGraphElement *next = [<span class="variable">_enumerator</span> nextObject];</span><br><span class="line">  <span class="keyword">if</span> (next) &#123;</span><br><span class="line">    return [[FBNodeEnumerator alloc] initWithObject:next];</span><br><span class="line">  &#125;</span><br><span class="line">  return <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里最关键的就是调用了上面提到的allRetainedObjects方法。也就是说通过allRetainedObjects可以对当前节点进行展开递归。</p>
+<p>我们针对上面提到的三种对象图元素一一看下怎么获取到某个对象的全部强引用属性：</p>
+<p><strong><strong>FBObjectiveCBlock</strong></strong></p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="operator">-</span> (<span class="type">NSSet</span> <span class="operator">*</span>)allRetainedObjects &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ......</span></span><br><span class="line">  <span class="comment">//获取一个对象的所有强引用属性</span></span><br><span class="line">  <span class="type">NSArray</span> <span class="operator">*</span>strongIvars <span class="operator">=</span> <span class="type">FBGetObjectStrongReferences</span>(<span class="keyword">self</span>.object, <span class="keyword">self</span>.configuration.layoutCache);</span><br><span class="line">  <span class="comment">//通过super方法获取当前类的关联对象属性</span></span><br><span class="line">  <span class="type">NSMutableArray</span> <span class="operator">*</span>retainedObjects <span class="operator">=</span> [[[<span class="keyword">super</span> allRetainedObjects] allObjects] mutableCopy];</span><br><span class="line"></span><br><span class="line">  <span class="comment">//将全部的强引用对象封装成FBObjectiveCGraphElement</span></span><br><span class="line">  <span class="keyword">for</span> (id<span class="operator">&lt;</span><span class="type">FBObjectReference</span><span class="operator">&gt;</span> ref <span class="keyword">in</span> strongIvars) &#123;</span><br><span class="line">    id referencedObject <span class="operator">=</span> [ref objectReferenceFromObject:<span class="keyword">self</span>.object];</span><br><span class="line">    <span class="keyword">if</span> (referencedObject) &#123;</span><br><span class="line">      <span class="type">NSArray</span>&lt;<span class="type">NSString</span> *&gt; <span class="operator">*</span>namePath <span class="operator">=</span> [ref namePath];</span><br><span class="line">      <span class="type">FBObjectiveCGraphElement</span> <span class="operator">*</span>element <span class="operator">=</span> <span class="type">FBWrapObjectGraphElementWithContext</span>(<span class="keyword">self</span>,</span><br><span class="line">                                                                              referencedObject,</span><br><span class="line">                                                                              <span class="keyword">self</span>.configuration,</span><br><span class="line">                                                                              namePath);</span><br><span class="line">      <span class="keyword">if</span> (element) &#123;</span><br><span class="line">        [retainedObjects addObject:element];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ([<span class="type">NSStringFromClass</span>(aCls) hasPrefix:@<span class="string">&quot;__NSCF&quot;</span>]) &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     If we are dealing with toll-free bridged collections, we are not guaranteed that the collection</span></span><br><span class="line"><span class="comment">     will hold only Objective-C objects. We are not able to check in runtime what callbacks it uses to</span></span><br><span class="line"><span class="comment">     retain/release (if any) and we could easily crash here.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">return</span> [<span class="type">NSSet</span> setWithArray:retainedObjects];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (class_isMetaClass(aCls)) &#123;</span><br><span class="line">    <span class="comment">// If it&#x27;s a meta-class it can conform to following protocols,</span></span><br><span class="line">    <span class="comment">// but it would crash when trying enumerating</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//获取集合类的引用</span></span><br><span class="line">  <span class="keyword">if</span> ([aCls conformsToProtocol:<span class="meta">@protocol</span>(<span class="type">NSFastEnumeration</span>)]) &#123;</span><br><span class="line">    <span class="type">BOOL</span> retainsKeys <span class="operator">=</span> [<span class="keyword">self</span> _objectRetainsEnumerableKeys];</span><br><span class="line">    <span class="type">BOOL</span> retainsValues <span class="operator">=</span> [<span class="keyword">self</span> _objectRetainsEnumerableValues];</span><br><span class="line"></span><br><span class="line">    <span class="type">BOOL</span> isKeyValued <span class="operator">=</span> <span class="type">NO</span>;</span><br><span class="line">    <span class="keyword">if</span> ([aCls instancesRespondToSelector:<span class="meta">@selector</span>(objectForKey:)]) &#123;</span><br><span class="line">      isKeyValued <span class="operator">=</span> <span class="type">YES</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     This codepath is prone to errors. When you enumerate a collection that can be mutated while enumeration</span></span><br><span class="line"><span class="comment">     we fall into risk of crash. To save ourselves from that we will catch such exception and try again.</span></span><br><span class="line"><span class="comment">     We should not try this endlessly, so at some point we will simply give up.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">NSInteger</span> tries <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">NSInteger</span> i <span class="operator">=</span> <span class="number">0</span>; i <span class="operator">&lt;</span> tries; <span class="operator">++</span>i) &#123;</span><br><span class="line">      <span class="comment">// If collection is mutated we want to rollback and try again - let&#x27;s keep refs in temporary set</span></span><br><span class="line">      <span class="type">NSMutableSet</span> <span class="operator">*</span>temporaryRetainedObjects <span class="operator">=</span> [<span class="type">NSMutableSet</span> new];</span><br><span class="line">      <span class="meta">@try</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (id subobject <span class="keyword">in</span> <span class="keyword">self</span>.object) &#123;</span><br><span class="line">          <span class="keyword">if</span> (retainsKeys) &#123;</span><br><span class="line">            <span class="type">FBObjectiveCGraphElement</span> <span class="operator">*</span>element <span class="operator">=</span> <span class="type">FBWrapObjectGraphElement</span>(<span class="keyword">self</span>, subobject, <span class="keyword">self</span>.configuration);</span><br><span class="line">            <span class="keyword">if</span> (element) &#123;</span><br><span class="line">              [temporaryRetainedObjects addObject:element];</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">if</span> (isKeyValued <span class="operator">&amp;&amp;</span> retainsValues) &#123;</span><br><span class="line">            <span class="type">FBObjectiveCGraphElement</span> <span class="operator">*</span>element <span class="operator">=</span> <span class="type">FBWrapObjectGraphElement</span>(<span class="keyword">self</span>,</span><br><span class="line">                                                                         [<span class="keyword">self</span>.object objectForKey:subobject],</span><br><span class="line">                                                                         <span class="keyword">self</span>.configuration);</span><br><span class="line">            <span class="keyword">if</span> (element) &#123;</span><br><span class="line">              [temporaryRetainedObjects addObject:element];</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="meta">@catch</span> (<span class="type">NSException</span> <span class="operator">*</span>exception) &#123;</span><br><span class="line">        <span class="comment">// mutation happened, we want to try enumerating again</span></span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// If we are here it means no exception happened and we want to break outer loop</span></span><br><span class="line">      [retainedObjects addObjectsFromArray:[temporaryRetainedObjects allObjects]];</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> [<span class="type">NSSet</span> setWithArray:retainedObjects];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里最关键的就是FBGetObjectStrongReferences方法：它能从类中获取它的所有引用，无论是强引用或者是弱引用。</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="type">NSArray</span>&lt;id&lt;<span class="type">FBObjectReference</span>&gt;<span class="operator">&gt;</span> <span class="operator">*</span><span class="type">FBGetObjectStrongReferences</span>(id obj,</span><br><span class="line">                                                            <span class="type">NSMutableDictionary</span>&lt;<span class="type">Class</span>, <span class="type">NSArray</span>&lt;id&lt;<span class="type">FBObjectReference</span>&gt;&gt; <span class="operator">*&gt;</span> <span class="operator">*</span>layoutCache) &#123;</span><br><span class="line">  <span class="type">NSMutableArray</span>&lt;id&lt;<span class="type">FBObjectReference</span>&gt;<span class="operator">&gt;</span> <span class="operator">*</span>array <span class="operator">=</span> [<span class="type">NSMutableArray</span> new];</span><br><span class="line"></span><br><span class="line">  __unsafe_unretained <span class="type">Class</span> previousClass <span class="operator">=</span> <span class="literal">nil</span>;</span><br><span class="line">  __unsafe_unretained <span class="type">Class</span> currentClass <span class="operator">=</span> object_getClass(obj);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (previousClass <span class="operator">!=</span> currentClass) &#123;</span><br><span class="line">    <span class="type">NSArray</span>&lt;id&lt;<span class="type">FBObjectReference</span>&gt;<span class="operator">&gt;</span> <span class="operator">*</span>ivars;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (layoutCache <span class="operator">&amp;&amp;</span> currentClass) &#123;</span><br><span class="line">      ivars <span class="operator">=</span> layoutCache[currentClass];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (<span class="operator">!</span>ivars) &#123;</span><br><span class="line">      ivars <span class="operator">=</span> <span class="type">FBGetStrongReferencesForClass</span>(currentClass);</span><br><span class="line">      <span class="keyword">if</span> (layoutCache <span class="operator">&amp;&amp;</span> currentClass) &#123;</span><br><span class="line">        layoutCache[currentClass] <span class="operator">=</span> ivars;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    [array addObjectsFromArray:ivars];</span><br><span class="line">    previousClass <span class="operator">=</span> currentClass;</span><br><span class="line">    currentClass <span class="operator">=</span> class_getSuperclass(currentClass);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> [array copy];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在FBGetObjectStrongReferences方法中遍历本类以及所有父指针强引用，并且加入了缓存以加速查找强引用的过程，在这里会对所有遍历的类调用FBGetStrongReferencesForClass获取ivars，同时过滤弱引用。</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">static NSArray&lt;id&lt;FBObjectReference&gt;&gt; *FBGetStrongReferencesForClass(<span class="keyword">Class</span> aCls) &#123;</span><br><span class="line">  NSArray&lt;id&lt;FBObjectReference&gt;&gt; *ivars = [FBGetClassReferences(aCls) filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^<span class="type">BOOL</span>(id evaluatedObject, NSDictionary *bindings) &#123;</span><br><span class="line">    <span class="keyword">if</span> ([evaluatedObject isKindOfClass:[FBIvarReference <span class="keyword">class</span>]]) &#123;</span><br><span class="line">      FBIvarReference *<span class="keyword">wrapper</span> = evaluatedObject;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">wrapper</span>.<span class="keyword">type</span> != FBUnknownType;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> YES;</span><br><span class="line">  &#125;]];</span><br><span class="line"></span><br><span class="line">  const uint8_t *fullLayout = class_getIvarLayout(aCls);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!fullLayout) &#123;</span><br><span class="line">    <span class="keyword">return</span> @[];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  NSUInteger minimumIndex = FBGetMinimumIvarIndex(aCls);</span><br><span class="line">  NSIndexSet *parsedLayout = FBGetLayoutAsIndexesForDescription(minimumIndex, fullLayout);</span><br><span class="line"></span><br><span class="line">  NSArray&lt;id&lt;FBObjectReference&gt;&gt; *filteredIvars =</span><br><span class="line">  [ivars filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^<span class="type">BOOL</span>(id&lt;FBObjectReference&gt; evaluatedObject,</span><br><span class="line">                                                                           NSDictionary *bindings) &#123;</span><br><span class="line">    <span class="keyword">return</span> [parsedLayout containsIndex:[evaluatedObject indexInIvarLayout]];</span><br><span class="line">  &#125;]];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> filteredIvars;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们来看下FBGetClassReferences方法：</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">NSArray&lt;id&lt;FBObjectReference&gt;&gt; *FBGetClassReferences(<span class="keyword">Class</span> aCls) &#123;</span><br><span class="line">  NSMutableArray&lt;id&lt;FBObjectReference&gt;&gt; *result = [NSMutableArray <span class="built_in">new</span>];</span><br><span class="line"></span><br><span class="line">  unsigned <span class="type">int</span> count;</span><br><span class="line">  Ivar *ivars = class_copyIvarList(aCls, &amp;count);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (unsigned <span class="type">int</span> i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">    Ivar ivar = ivars[i];</span><br><span class="line">    FBIvarReference *<span class="keyword">wrapper</span> = [[FBIvarReference alloc] initWithIvar:ivar];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">wrapper</span>.<span class="keyword">type</span> == FBStructType) &#123;</span><br><span class="line">      std::string encoding = std::string(ivar_getTypeEncoding(<span class="keyword">wrapper</span>.ivar));</span><br><span class="line">      NSArray&lt;FBObjectInStructReference *&gt; *<span class="keyword">references</span> = FBGetReferencesForObjectsInStructEncoding(<span class="keyword">wrapper</span>, <span class="keyword">encoding</span>);</span><br><span class="line"></span><br><span class="line">      [result addObjectsFromArray:<span class="keyword">references</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      [result addObject:<span class="keyword">wrapper</span>];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  free(ivars);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> [result <span class="keyword">copy</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里主要通过class_copyIvarList方法获取到Ivar然后将所有的Ivar封装到FBIvarReference对象。FBIvarReference对象其实是Ivar的面向对象封装，包括属性的名称、类型、偏移量以及索引。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">FBIvarReference</span> : <span class="title">NSObject</span> &lt;<span class="title">FBObjectReference</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>, <span class="keyword">readonly</span>, <span class="keyword">nullable</span>) <span class="built_in">NSString</span> *name;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) FBType type;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) ptrdiff_t offset;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">NSUInteger</span> index;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>, <span class="keyword">nonnull</span>) Ivar ivar;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">nonnull</span> <span class="keyword">instancetype</span>)initWithIvar:(<span class="keyword">nonnull</span> Ivar)ivar;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>到目前为止我们直到了如何获取到某个对象的全部属性，这里包括强引用和弱引用，下面我们还要知道如何过滤弱引用。</p>
+<p>为了弄明白怎么过滤弱引用，我们要先了解Ivar Layout，获取Ivar Layout 是通过 FBGetLayoutAsIndexesForDescription方法获取的。<br>Ivar Layout 是一系列的字符，每两个一组，比如\xmn，每一组 Ivar Layout 中第一位表示有m个非强属性，第二位表示接下来有n个强属性。<br>FBGetLayoutAsIndexesForDescription 返回的就是所有强引用的Ivar Layout。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="built_in">NSIndexSet</span> *FBGetLayoutAsIndexesForDescription(<span class="built_in">NSUInteger</span> minimumIndex, <span class="keyword">const</span> uint8_t *layoutDescription) &#123;</span><br><span class="line">	<span class="built_in">NSMutableIndexSet</span> *interestingIndexes = [<span class="built_in">NSMutableIndexSet</span> new];</span><br><span class="line">	<span class="built_in">NSUInteger</span> currentIndex = minimumIndex;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> (*layoutDescription != <span class="string">&#x27;\x00&#x27;</span>) &#123;</span><br><span class="line">		<span class="type">int</span> upperNibble = (*layoutDescription &amp; <span class="number">0xf0</span>) &gt;&gt; <span class="number">4</span>;</span><br><span class="line">		<span class="type">int</span> lowerNibble = *layoutDescription &amp; <span class="number">0xf</span>;</span><br><span class="line"></span><br><span class="line">		currentIndex += upperNibble;</span><br><span class="line">		[interestingIndexes addIndexesInRange:<span class="built_in">NSMakeRange</span>(currentIndex, lowerNibble)];</span><br><span class="line">		currentIndex += lowerNibble;</span><br><span class="line"></span><br><span class="line">		++layoutDescription;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> interestingIndexes;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来我们就可以拿着上面找到的parsedLayout对ivars进行过滤，留下所有强引用的ivars。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="built_in">NSArray</span>&lt;<span class="type">id</span>&lt;FBObjectReference&gt;&gt; *filteredIvars =</span><br><span class="line">[ivars filteredArrayUsingPredicate:[<span class="built_in">NSPredicate</span> predicateWithBlock:^<span class="type">BOOL</span>(<span class="type">id</span>&lt;FBObjectReference&gt; evaluatedObject,</span><br><span class="line">																		 <span class="built_in">NSDictionary</span> *bindings) &#123;</span><br><span class="line">	<span class="keyword">return</span> [parsedLayout containsIndex:[evaluatedObject indexInIvarLayout]];</span><br><span class="line">&#125;]];</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>FBObjectiveCBlock</strong></strong></p>
+<p>我们来看下Block对象对应的图节点FBObjectiveCBlock：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line">- (<span class="built_in">NSSet</span> *)allRetainedObjects &#123;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//获取关联对象的全部强引用</span></span><br><span class="line">  <span class="built_in">NSMutableArray</span> *results = [[[<span class="variable language_">super</span> allRetainedObjects] allObjects] mutableCopy];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Grab a strong reference to the object, otherwise it can crash while doing</span></span><br><span class="line">  <span class="comment">// nasty stuff on deallocation</span></span><br><span class="line">  __attribute__((objc_precise_lifetime)) <span class="type">id</span> anObject = <span class="keyword">self</span>.object;</span><br><span class="line"></span><br><span class="line">  <span class="type">void</span> *blockObjectReference = (__bridge <span class="type">void</span> *)anObject;</span><br><span class="line">  <span class="built_in">NSArray</span> *allRetainedReferences = FBGetBlockStrongReferences(blockObjectReference);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">id</span> object <span class="keyword">in</span> allRetainedReferences) &#123;</span><br><span class="line">    FBObjectiveCGraphElement *element = FBWrapObjectGraphElement(<span class="keyword">self</span>, object, <span class="keyword">self</span>.configuration);</span><br><span class="line">    <span class="keyword">if</span> (element) &#123;</span><br><span class="line">      [results addObject:element];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> [<span class="built_in">NSSet</span> setWithArray:results];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里最重要的是FBGetBlockStrongReferences方法：</p>
+<figure class="highlight nim"><table><tr><td class="code"><pre><span class="line"><span class="type">NSArray</span> *<span class="type">FBGetBlockStrongReferences</span>(<span class="type">void</span> *<span class="keyword">block</span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> (!<span class="type">FBObjectIsBlock</span>(<span class="keyword">block</span>)) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">nil</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="type">NSMutableArray</span> *results = [<span class="type">NSMutableArray</span> new];</span><br><span class="line">	<span class="type">void</span> **blockReference = <span class="keyword">block</span>;</span><br><span class="line">	<span class="type">NSIndexSet</span> *strongLayout = _GetBlockStrongLayout(<span class="keyword">block</span>);</span><br><span class="line">	[strongLayout enumerateIndexesUsingBlock:^(<span class="type">NSUInteger</span> idx, <span class="type">BOOL</span> *stop) &#123;</span><br><span class="line">		<span class="type">void</span> **reference = &amp;blockReference[idx];</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (reference &amp;&amp; (*reference)) &#123;</span><br><span class="line">			id <span class="keyword">object</span> = (id)(*reference);</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> (<span class="keyword">object</span>) &#123;</span><br><span class="line">				[results addObject:<span class="keyword">object</span>];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;];</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> [results autorelease];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在FBGetBlockStrongReferences方法中通过_GetBlockStrongLayout获得Block所持有的强引用。在理解如何Block强引用之前我们先来回顾下Block的一些基础知识：</p>
+<p>struct BlockLiteral {<br>    void *isa;<br>    int flags;<br>    int reserved;<br>    void (*invoke)(void *, …);<br>    struct BlockDescriptor *descriptor;<br>    &#x2F;&#x2F; imported variables<br>};</p>
+<p>首先Block对于它所捕获的Objective-C对象实例，都会在block 结构体的下面存放这些持有的对象，并且会将强引用的对象排放在弱引用对象的前面。当Block将要释放时，会调用dispose_helper函数，该函数会调用所有需要进行内存管理的所捕获的对象，如Block、<strong>block变量、__attribute</strong>((NSObject))变量或有constructor&#x2F;destructor的C++ const对象。所以我们可以创建一系列的fake对象来模拟捕获的Objective-C对象实例，然后主动调用Block的dispose_helper方法，该方法会调用对象实例的release方法，我们只需要在fake对象中实现release方法，如果release方法被调用，所以该fake对象对应的真实变量为Objective-C对象实例。</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="built_in">NSIndexSet</span> *_GetBlockStrongLayout(<span class="type">void</span> *block) &#123;</span><br><span class="line">    </span><br><span class="line">  <span class="keyword">struct</span> BlockLiteral *blockLiteral = block;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   BLOCK_HAS_CTOR - Block has a C++ constructor/destructor, which gives us a good chance it retains</span></span><br><span class="line"><span class="comment">   objects that are not pointer aligned, so omit them.</span></span><br><span class="line"><span class="comment">   </span></span><br><span class="line"><span class="comment">   !BLOCK_HAS_COPY_DISPOSE - Block doesn&#x27;t have a dispose function, so it does not retain objects and</span></span><br><span class="line"><span class="comment">   we are not able to blackbox it.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">if</span> ((blockLiteral-&gt;flags &amp; BLOCK_HAS_CTOR)</span><br><span class="line">      || !(blockLiteral-&gt;flags &amp; BLOCK_HAS_COPY_DISPOSE)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//获取当前Block的dispose_helper方法</span></span><br><span class="line">  <span class="type">void</span> (*dispose_helper)(<span class="type">void</span> *src) = blockLiteral-&gt;descriptor-&gt;dispose_helper;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//指针大小</span></span><br><span class="line">  <span class="keyword">const</span> size_t ptrSize = <span class="keyword">sizeof</span>(<span class="type">void</span> *);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//计算出需要填充的fake对象数量</span></span><br><span class="line">  <span class="comment">// Figure out the number of pointers it takes to fill out the object, rounding up.</span></span><br><span class="line">  <span class="keyword">const</span> size_t elements = (blockLiteral-&gt;descriptor-&gt;size + ptrSize - <span class="number">1</span>) / ptrSize;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建fack对象</span></span><br><span class="line">  <span class="comment">// Create a fake object of the appropriate length.</span></span><br><span class="line">  <span class="type">void</span> *obj[elements];</span><br><span class="line">  <span class="type">void</span> *detectors[elements];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (size_t i = <span class="number">0</span>; i &lt; elements; ++i) &#123;</span><br><span class="line">    FBBlockStrongRelationDetector *detector = [FBBlockStrongRelationDetector new];</span><br><span class="line">    obj[i] = detectors[i] = detector;</span><br><span class="line">  &#125;</span><br><span class="line">    </span><br><span class="line">  <span class="comment">//调用dispose_helper，这时候会调用每个FBBlockStrongRelationDetector的release方法，这时候会将strong设置为YES</span></span><br><span class="line">  <span class="keyword">@autoreleasepool</span> &#123;</span><br><span class="line">    dispose_helper(obj);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Run through the release detectors and add each one that got released to the object&#x27;s</span></span><br><span class="line">  <span class="comment">// strong ivar layout.</span></span><br><span class="line">  <span class="built_in">NSMutableIndexSet</span> *layout = [<span class="built_in">NSMutableIndexSet</span> indexSet];</span><br><span class="line"> <span class="comment">//判断strong是否为YES,如果为YES表示为强引用，则将其添加到layout</span></span><br><span class="line">  <span class="keyword">for</span> (size_t i = <span class="number">0</span>; i &lt; elements; ++i) &#123;</span><br><span class="line">    FBBlockStrongRelationDetector *detector = (FBBlockStrongRelationDetector *)(detectors[i]);</span><br><span class="line">    <span class="keyword">if</span> (detector.isStrong) &#123;</span><br><span class="line">      [layout addIndex:i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Destroy detectors</span></span><br><span class="line">    [detector trueRelease];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> layout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><strong>FBObjectiveCNSCFTimer</strong></strong>*</p>
+<p>FBObjectiveCNSCFTimer比较简单它会通过runloop去获取CFRunLoopTimerGetContext，然后通过context查看是否有target或者，userInfo如果有假设它强持有这些对象的引用。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">- (NSSet *)allRetainedObjects &#123;</span><br><span class="line">  <span class="comment">// Let&#x27;s retain our timer</span></span><br><span class="line">  <span class="constructor">__attribute__((<span class="params">objc_precise_lifetime</span>)</span>) NSTimer *timer = self.<span class="keyword">object</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!timer) &#123;</span><br><span class="line">    return nil;</span><br><span class="line">  &#125;</span><br><span class="line">  NSMutableSet *retained = <span class="literal">[[<span class="identifier">super</span> <span class="identifier">allRetainedObjects</span>]</span> mutableCopy];</span><br><span class="line">  CFRunLoopTimerContext context;</span><br><span class="line">  <span class="comment">//通过runloop去获取CFRunLoopTimerGetContext</span></span><br><span class="line">  <span class="constructor">CFRunLoopTimerGetContext((CFRunLoopTimerRef)</span>timer, &amp;context);</span><br><span class="line">  <span class="comment">// If it has a retain function, let&#x27;s assume it retains strongly</span></span><br><span class="line">  <span class="keyword">if</span> (context.info<span class="operator"> &amp;&amp; </span>context.retain) &#123;</span><br><span class="line">    _FBNSCFTimerInfoStruct infoStruct = *(_FBNSCFTimerInfoStruct *)(context.info);</span><br><span class="line">    <span class="keyword">if</span> (infoStruct.target) &#123;</span><br><span class="line">      FBObjectiveCGraphElement *element = <span class="constructor">FBWrapObjectGraphElementWithContext(<span class="params">self</span>, <span class="params">infoStruct</span>.<span class="params">target</span>, <span class="params">self</span>.<span class="params">configuration</span>, @[@<span class="string">&quot;target&quot;</span>])</span>;</span><br><span class="line">      <span class="keyword">if</span> (element) &#123;</span><br><span class="line">        <span class="literal">[<span class="identifier">retained</span> <span class="identifier">addObject</span>:<span class="identifier">element</span>]</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (infoStruct.userInfo) &#123;</span><br><span class="line">      FBObjectiveCGraphElement *element = <span class="constructor">FBWrapObjectGraphElementWithContext(<span class="params">self</span>, <span class="params">infoStruct</span>.<span class="params">userInfo</span>, <span class="params">self</span>.<span class="params">configuration</span>, @[@<span class="string">&quot;userInfo&quot;</span>])</span>;</span><br><span class="line">      <span class="keyword">if</span> (element) &#123;</span><br><span class="line">        <span class="literal">[<span class="identifier">retained</span> <span class="identifier">addObject</span>:<span class="identifier">element</span>]</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return retained;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="FBAllocationTracker"><a href="#FBAllocationTracker" class="headerlink" title="FBAllocationTracker"></a>FBAllocationTracker</h4><p><a target="_blank" rel="noopener" href="https://github.com/facebook/FBAllocationTracker">FBAllocationTracker</a>我们上面给大家分析了<a href>FBRetainCycleDetector</a>，它主要的功能是查找到待检测对象的全部强引用对象，这些强引用对象便是搜索循环引用的有向图节点， FBRetainCycleDetector通过深度优先原则遍历整个对象图，如果在整个路径中发现有存在重复访问的情况，便认为是一个循环引用，FBRetainCycleDetector一般先通过MLeaksFinder或者FBAllocationTracker这些开源库找到可疑的对象，然后再通过FBRetainCycleDetector对这个对象进行检查是否存在循环引用。<br>接下来我们给大家介绍下FBAllocationTracker，下面是它的最基本用法：</p>
+<figure class="highlight objectivec"><table><tr><td class="code"><pre><span class="line"><span class="meta">#import <span class="string">&lt;FBAllocationTracker/FBAllocationTrackerManager.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> main(<span class="type">int</span> argc, <span class="type">char</span> * argv[]) &#123;</span><br><span class="line">  [[FBAllocationTrackerManager sharedManager] startTrackingAllocations];</span><br><span class="line">  [[FBAllocationTrackerManager sharedManager] enableGenerations];</span><br><span class="line">  <span class="keyword">@autoreleasepool</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">UIApplicationMain</span>(argc, argv, <span class="literal">nil</span>, <span class="built_in">NSStringFromClass</span>([AppDelegate <span class="keyword">class</span>]));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line">- (<span class="literal">void</span>)startTrackingAllocations &#123;</span><br><span class="line">  FB<span class="type">::AllocationTracker</span><span class="type">::beginTracking</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="literal">void</span>)enableGenerations &#123;</span><br><span class="line">  dispatch_sync(_queue, ^&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">self</span>-&gt;_generationsClients == <span class="number">0</span>) &#123;</span><br><span class="line">      FB<span class="type">::AllocationTracker</span><span class="type">::enableGenerations</span>();</span><br><span class="line">      FB<span class="type">::AllocationTracker</span><span class="type">::markGeneration</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">self</span>-&gt;_generationsClients += <span class="number">1</span>;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/">iOS 开源库分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iOS-开源库分析/">iOS 开源库分析</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2019/11/28/日志库CocoaLumberjack-源码解析/" title="日志库CocoaLumberjack 源码解析">
+  <span>
+  日志库CocoaLumberjack 源码解析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/11/26/BlocksKit-的使用/"  title="BlocksKit 的使用">
+ <span>BlocksKit 的使用
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-源码解析/" data-title=" FBRetainCycleDetector  FBAllocationTracker 源码解析" data-url="http://yoursite.com/2019/11/26/FBRetainCycleDetector-FBAllocationTracker-FBMemoryProfiler-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%BC%80%E7%AF%87%E5%8F%A8%E5%8F%A8"><span class="toc-number">1.</span> <span class="toc-text">开篇叨叨</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FBRetainCycleDetector"><span class="toc-number"></span> <span class="toc-text">FBRetainCycleDetector</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">项目结构</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">源码解析</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FBAllocationTracker"><span class="toc-number"></span> <span class="toc-text">FBAllocationTracker</span></a>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

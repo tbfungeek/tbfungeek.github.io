@@ -1,0 +1,749 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 初步之资源的使用 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="为什么要将资源独立出来编写良好的代码往往在程序中调用它的资源，而不是直接将其写入代码中，这样做的好处是：  将应用程序资源存储于某个特定的位置更有利于管理他们，而且使得代码更容易阅读与管理。 类似字符串这样的外部资源能使得应用程序更容易根据不同的地区和语言来进行本地化处理。 不同的资源对于不同的设备而言是很必要的。  资源在Android工程资源目录中的存储方式 字符串资源 基本字符串  &lt;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 初步之资源的使用">
+<meta property="og:url" content="http://yoursite.com/2016/03/30/Android-%E5%88%9D%E6%AD%A5%E4%B9%8B%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="为什么要将资源独立出来编写良好的代码往往在程序中调用它的资源，而不是直接将其写入代码中，这样做的好处是：  将应用程序资源存储于某个特定的位置更有利于管理他们，而且使得代码更容易阅读与管理。 类似字符串这样的外部资源能使得应用程序更容易根据不同的地区和语言来进行本地化处理。 不同的资源对于不同的设备而言是很必要的。  资源在Android工程资源目录中的存储方式 字符串资源 基本字符串  &lt;">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/03/30/Android-%E5%88%9D%E6%AD%A5%E4%B9%8B%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/03/30/Android-%E5%88%9D%E6%AD%A5%E4%B9%8B%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8/2.png">
+<meta property="article:published_time" content="2016-03-30T13:16:04.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:30:36.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/03/30/Android-%E5%88%9D%E6%AD%A5%E4%B9%8B%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/03/30/Android-初步之资源的使用/" title="Android 初步之资源的使用" itemprop="url">Android 初步之资源的使用</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-03-30T13:16:04.000Z" itemprop="datePublished"> Published 2016-03-30</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="为什么要将资源独立出来"><a href="#为什么要将资源独立出来" class="headerlink" title="为什么要将资源独立出来"></a>为什么要将资源独立出来</h4><p>编写良好的代码往往在程序中调用它的资源，而不是直接将其写入代码中，这样做的好处是：</p>
+<ol>
+<li>将应用程序资源存储于某个特定的位置更有利于管理他们，而且使得代码更容易阅读与管理。</li>
+<li>类似字符串这样的外部资源能使得应用程序更容易根据不同的地区和语言来进行本地化处理。</li>
+<li>不同的资源对于不同的设备而言是很必要的。</li>
+</ol>
+<h4 id="资源在Android工程资源目录中的存储方式"><a href="#资源在Android工程资源目录中的存储方式" class="headerlink" title="资源在Android工程资源目录中的存储方式"></a>资源在Android工程资源目录中的存储方式</h4><p><img src="/2016/03/30/Android-%E5%88%9D%E6%AD%A5%E4%B9%8B%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8/1.png"><br><img src="/2016/03/30/Android-%E5%88%9D%E6%AD%A5%E4%B9%8B%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8/2.png"></p>
+<h4 id="字符串资源"><a href="#字符串资源" class="headerlink" title="字符串资源"></a>字符串资源</h4><ul>
+<li>基本字符串</li>
+</ul>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">string</span> <span class="built_in">name</span>=<span class="string">&quot;header&quot;</span>&gt;Android简介&lt;/<span class="built_in">string</span>&gt;</span><br><span class="line">&lt;<span class="built_in">string</span> <span class="built_in">name</span>=<span class="string">&quot;content&quot;</span>&gt;Android是由安迪.鲁宾开发出来的一款移动操作系统，而后由Google公司收购&lt;/<span class="built_in">string</span>&gt;</span><br><span class="line">&lt;<span class="built_in">string</span> <span class="built_in">name</span>=<span class="string">&quot;footer&quot;</span>&gt;由xiaohai.lin编辑&lt;/<span class="built_in">string</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>当字符串包含撇号或单引号的时候需要进行转义或者使用双引号括起来，如果包含双引号那么则需使用转义符号来转义。<br>对于字符串资源，可以为其添加3种具有HTML风格的属性，分别是加粗，斜体和下划线，可以使用</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">b</span>&gt;</span>,<span class="tag">&lt;<span class="name">i</span>&gt;</span><span class="tag">&lt;<span class="name">u</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>标记来指定这些风格。</p>
+<ul>
+<li>格式化字符串资源</li>
+</ul>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">string</span> name=<span class="string">&quot;demo_string3&quot;</span>&gt;The <span class="keyword">match</span> is %<span class="number">1</span>$d : %<span class="number">2</span>$d Jimmy &amp;lt;b&amp;gt;%<span class="number">3</span>$s&amp;lt;/b&amp;gt; the game &lt;/<span class="built_in">string</span>&gt;</span><br><span class="line">tv = (TextView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">stringWithFormat</span>)</span>;</span><br><span class="line">String matchInfo = get<span class="constructor">Resources()</span>.get<span class="constructor">String(R.<span class="params">string</span>.<span class="params">demo_string3</span>)</span>;</span><br><span class="line">String escapeStr = <span class="module-access"><span class="module"><span class="identifier">TextUtils</span>.</span></span>html<span class="constructor">Encode(<span class="string">&quot;Won&quot;</span>)</span>;</span><br><span class="line">String finalStr = <span class="module-access"><span class="module"><span class="identifier">String</span>.</span></span>format(matchInfo, <span class="number">5</span>,<span class="number">2</span>,escapeStr);</span><br><span class="line">CharSequence result = <span class="module-access"><span class="module"><span class="identifier">Html</span>.</span></span>from<span class="constructor">Html(<span class="params">finalStr</span>)</span>;</span><br><span class="line">tv.set<span class="constructor">Text(<span class="params">result</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>复数字符串资源</li>
+</ul>
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">&lt;plurals<span class="built_in"> name</span> = <span class="string">&quot;unicorn&quot;</span>&gt;</span><br><span class="line">    &lt;<span class="type">item</span> quantity = <span class="string">&quot;one&quot;</span>&gt;One <span class="type">item</span> &lt;/<span class="type">item</span>&gt;</span><br><span class="line">    &lt;<span class="type">item</span> quantity = <span class="string">&quot;other&quot;</span>&gt;<span class="meta">%d</span> items &lt;/<span class="type">item</span>&gt;</span><br><span class="line">&lt;/plurals&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">String unicon = get<span class="constructor">Resources()</span>.get<span class="constructor">QuantityString(R.<span class="params">plurals</span>.<span class="params">unicorn</span>,<span class="params">unicorn</span>,<span class="params">unicorn</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+
+<p>在XML中使用</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">@<span class="built_in">string</span>/content</span><br></pre></td></tr></table></figure>
+<p>在java代码中</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">String strings = get<span class="constructor">Resources()</span>.get<span class="constructor">String(R.<span class="params">string</span>.<span class="params">content</span>)</span>返回的是字符串内容本身，所有的HTML格式均被删除</span><br><span class="line">CharSequence texts = get<span class="constructor">Resources()</span>.get<span class="constructor">Text(R.<span class="params">string</span>.<span class="params">content</span>)</span>;返回的是带格式的内容</span><br></pre></td></tr></table></figure>
+
+<h4 id="颜色资源"><a href="#颜色资源" class="headerlink" title="颜色资源"></a>颜色资源</h4><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;red&quot;</span>&gt;</span>#ff0000<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;green&quot;</span>&gt;</span>#00ff00<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;blue&quot;</span>&gt;</span>#0000ff<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line">    注意#aarrggbb中的aa表示透明度0表示完全透明，F表示完全不透明</span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在XML中使用</p>
+<figure class="highlight processing"><table><tr><td class="code"><pre><span class="line"><span class="type">color</span>/<span class="built_in">red</span></span><br></pre></td></tr></table></figure>
+<p>在java代码中</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">getResources</span><span class="params">()</span></span><span class="selector-class">.getColor</span>(R<span class="selector-class">.color</span>.color1)</span><br></pre></td></tr></table></figure>
+
+<h4 id="尺寸资源"><a href="#尺寸资源" class="headerlink" title="尺寸资源"></a>尺寸资源</h4><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;header&quot;</span>&gt;</span>20px<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;content&quot;</span>&gt;</span>18px<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;footer&quot;</span>&gt;</span>10px<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在XML中使用</p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;@dimen/header“</span></span><br></pre></td></tr></table></figure>
+<p>在java代码中</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">getResources</span><span class="params">()</span></span><span class="selector-class">.getDimension</span>(R<span class="selector-class">.dimen</span>.<span class="attribute">content</span>)</span><br></pre></td></tr></table></figure>
+
+<p>px:  对应屏幕上的每一个点<br>In：每英寸等于2.54cm<br>Pt: 磅  1&#x2F;72厘米<br>Dp：一种基于屏幕密度的抽象单位，每英寸160点的显示器，1dp&#x3D;1px<br>Sp：主要处理字体大小，可以根据用户字体大小首选项进行缩放<br>mm: 毫米</p>
+<h4 id="数组资源"><a href="#数组资源" class="headerlink" title="数组资源"></a>数组资源</h4><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string-array</span> <span class="attr">name</span>=<span class="string">&quot;contract&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">item</span>&gt;</span>项目1<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">item</span>&gt;</span>项目2<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">string-array</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在XML中使用</p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line">android:entries=<span class="string">&quot;@array/contract“</span></span><br></pre></td></tr></table></figure>
+<p>在java代码中</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">getResources</span><span class="params">()</span></span><span class="selector-class">.getStringArray</span>(R<span class="selector-class">.array</span>.contract)</span><br></pre></td></tr></table></figure>
+<p>共有三类</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">&lt;<span class="built_in">array</span>&gt;普通的数组</span><br><span class="line">&lt;<span class="built_in">string</span>-<span class="built_in">array</span>&gt;字符数组</span><br><span class="line">&lt;<span class="built_in">int</span>eger-<span class="built_in">array</span>&gt;整形数组</span><br></pre></td></tr></table></figure>
+<h4 id="图片资源"><a href="#图片资源" class="headerlink" title="图片资源"></a>图片资源</h4><p>在Java代码中使用:</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"><span class="module-access"><span class="module"><span class="identifier">ImageView</span>.</span></span>set<span class="constructor">ImageResources(R.<span class="params">drawable</span>.<span class="params">head</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>XML代码中使用</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="meta">@drawable</span>/head</span><br></pre></td></tr></table></figure>
+
+<h4 id="样式资源"><a href="#样式资源" class="headerlink" title="样式资源"></a>样式资源</h4><p>在res目录下的value下的style.xml下建立如下资源</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;basic&quot;</span>&gt;</span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">       <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textSize&quot;</span>&gt;</span>58px<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">       <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textColor&quot;</span>&gt;</span>#f60<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;textStyle&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;basic&quot;</span>&gt;</span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:gravity&quot;</span>&gt;</span>center<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用如下：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">&lt;TextView</span><br><span class="line">    android:<span class="attribute">layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">    android:<span class="attribute">layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span><br><span class="line">    android:<span class="attribute">text</span>=<span class="string">&quot;@string/hello_world&quot;</span> </span><br><span class="line">    <span class="attribute">style</span>=<span class="string">&quot;@style/textStyle&quot;</span>/&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="布局资源"><a href="#布局资源" class="headerlink" title="布局资源"></a>布局资源</h4><p>Java代码中:</p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">R.<span class="keyword">layout</span>.文件名</span><br></pre></td></tr></table></figure>
+
+<p>XML代码中：</p>
+<figure class="highlight aspectj"><table><tr><td class="code"><pre><span class="line"><span class="meta">@layout</span>/文件名</span><br></pre></td></tr></table></figure>
+
+<h4 id="主题资源"><a href="#主题资源" class="headerlink" title="主题资源"></a>主题资源</h4><p>主题资源与样式资源类似，定义主题资源的资源文件也是保存在res&#x2F;values目录下，其根元素同样是<resources>在该标记中也是使用<style>标记定义主题，所不同的是，主题资源不能作用域单个的View组件，而是对所有或者单个Activity起作用，<br>主题资源定义完成后就可以使用了：<br>在AndroidManifest.xml文件中使用主题资源<br>只需要使用android:theme属性指定要使用的资源即可<br>android:theme&#x3D;“@style&#x2F;bg”<br>如果要在整个应用中使用该主题可以在application 标记中使用theme属性<br>如果要在单个Activity中使用该主题可以在activitiy中使用</p>
+<p>Java文件中使用主题样式<br>在Activity的onCreate方法中，设置使用的主题资源时候，一定要在为该Activity设置布局内容前设置也就是在setContentView方法之前使用.</p>
+<h4 id="使用原始文件"><a href="#使用原始文件" class="headerlink" title="使用原始文件"></a>使用原始文件</h4><p>应用程序还可以使用原始文件作为资源进行使用，一般在开发中我们会将一些音频，视频，和一些不被aapt支持的格式文件作为原始文件资源放在&#x2F;res&#x2F;raw目录下</p>
+<h4 id="使用系统资源"><a href="#使用系统资源" class="headerlink" title="使用系统资源"></a>使用系统资源</h4><p>除了使用上述提到的我们自己定义的资源，还可以使用Android系统提供的系统资源，要使用这些系统资源可以按照如下方式使用：</p>
+<p>Java 模式</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">android<span class="selector-class">.R</span>.XXXXX</span><br></pre></td></tr></table></figure>
+
+<p>XML 模式</p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="variable">@android:</span>color/XXXXX</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用当前主题中的样式"><a href="#使用当前主题中的样式" class="headerlink" title="使用当前主题中的样式"></a>使用当前主题中的样式</h4><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="string">?a</span><span class="symbol">ndroid:</span>textColor</span><br></pre></td></tr></table></figure></style></resources></p>  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E5%88%9D%E6%AD%A5/">Android初步</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android基础/">Android基础</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/03/31/Android-初步之数据存储/" title="Android 初步之数据存储">
+  <span>
+  Android 初步之数据存储</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/03/29/Android-初步之布局管理/"  title="Android 初步之布局管理">
+ <span>Android 初步之布局管理
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/03/30/Android-初步之资源的使用/" data-title="Android 初步之资源的使用" data-url="http://yoursite.com/2016/03/30/Android-%E5%88%9D%E6%AD%A5%E4%B9%8B%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%B0%86%E8%B5%84%E6%BA%90%E7%8B%AC%E7%AB%8B%E5%87%BA%E6%9D%A5"><span class="toc-number">1.</span> <span class="toc-text">为什么要将资源独立出来</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B5%84%E6%BA%90%E5%9C%A8Android%E5%B7%A5%E7%A8%8B%E8%B5%84%E6%BA%90%E7%9B%AE%E5%BD%95%E4%B8%AD%E7%9A%84%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">2.</span> <span class="toc-text">资源在Android工程资源目录中的存储方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%B5%84%E6%BA%90"><span class="toc-number">3.</span> <span class="toc-text">字符串资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%9C%E8%89%B2%E8%B5%84%E6%BA%90"><span class="toc-number">4.</span> <span class="toc-text">颜色资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B0%BA%E5%AF%B8%E8%B5%84%E6%BA%90"><span class="toc-number">5.</span> <span class="toc-text">尺寸资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E7%BB%84%E8%B5%84%E6%BA%90"><span class="toc-number">6.</span> <span class="toc-text">数组资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9B%BE%E7%89%87%E8%B5%84%E6%BA%90"><span class="toc-number">7.</span> <span class="toc-text">图片资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B7%E5%BC%8F%E8%B5%84%E6%BA%90"><span class="toc-number">8.</span> <span class="toc-text">样式资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B8%83%E5%B1%80%E8%B5%84%E6%BA%90"><span class="toc-number">9.</span> <span class="toc-text">布局资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E9%A2%98%E8%B5%84%E6%BA%90"><span class="toc-number">10.</span> <span class="toc-text">主题资源</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

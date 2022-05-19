@@ -1,0 +1,705 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之性能优化 电量优化 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="要进行电量优化首先需要知道到我们的设备中有哪些耗电大户：一般而言手机中耗电最多的模块有手机的显示屏，网络模块，GPS传感器模块，冗余的后台线程和Service。所以总体而言我们有下优化措施：  尽量减少唤醒屏幕的次数以及持续的时间。例如下图中有三个Apk共唤醒了三次，而如果将上述的后台任务打包延迟处理，等待一个合适的时机将这些任务一并处理，如图2所示那么手机只需要被唤醒一次，这样就节省了电量的损耗">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之性能优化 电量优化">
+<meta property="og:url" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="要进行电量优化首先需要知道到我们的设备中有哪些耗电大户：一般而言手机中耗电最多的模块有手机的显示屏，网络模块，GPS传感器模块，冗余的后台线程和Service。所以总体而言我们有下优化措施：  尽量减少唤醒屏幕的次数以及持续的时间。例如下图中有三个Apk共唤醒了三次，而如果将上述的后台任务打包延迟处理，等待一个合适的时机将这些任务一并处理，如图2所示那么手机只需要被唤醒一次，这样就节省了电量的损耗">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/2.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/3.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/4.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/6.png">
+<meta property="og:image" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/7.png">
+<meta property="article:published_time" content="2016-06-03T12:36:49.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:56:50.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/06/03/Android-进阶之性能优化-电量优化/" title="Android 进阶之性能优化 电量优化" itemprop="url">Android 进阶之性能优化 电量优化</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-06-03T12:36:49.000Z" itemprop="datePublished"> Published 2016-06-03</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>要进行电量优化首先需要知道到我们的设备中有哪些耗电大户：<br>一般而言手机中耗电最多的模块有手机的显示屏，网络模块，GPS传感器模块，冗余的后台线程和Service。<br>所以总体而言我们有下优化措施：</p>
+<ol>
+<li><p>尽量减少唤醒屏幕的次数以及持续的时间。<br>例如下图中有三个Apk共唤醒了三次，而如果将上述的后台任务打包延迟处理，等待一个合适的时机将这些任务一并处理，如图2所示那么手机只需要被唤醒一次，这样就节省了电量的损耗。<br><img src="/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/1.png"><br><img src="/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/2.png"></p>
+</li>
+<li><p>某些非必须立刻执行的操作可以等到手机处于充电或者电量充足的时候进行。</p>
+</li>
+</ol>
+<p>这里就涉及到了如何判断手机电量状态的问题：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">/</span><br><span class="line">* <span class="keyword">This</span> method checks <span class="keyword">for</span> <span class="keyword">power</span> by comparing the current battery state against all possible</span><br><span class="line"> * plugged in states. In <span class="keyword">this</span> <span class="keyword">case</span>, a device may be considered plugged in either by USB, AC, or</span><br><span class="line"> * wireless charge. (Wireless charge was introduced in API Level <span class="number">17</span>.)</span><br><span class="line"> */</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">boolean</span> checkForPower() &#123;</span><br><span class="line">    <span class="comment">// It is very easy to subscribe to changes to the battery state, but you can get the current</span></span><br><span class="line">    <span class="comment">// state by simply passing null in as your receiver.  Nifty, isn&#x27;t that?</span></span><br><span class="line">    IntentFilter filter = <span class="keyword">new</span> IntentFilter(Intent.ACTION_BATTERY_CHANGED);</span><br><span class="line">    Intent batteryStatus = <span class="keyword">this</span>.registerReceiver(<span class="keyword">null</span>, filter);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// There are currently three ways a device can be plugged in. We should check them all.</span></span><br><span class="line">    <span class="keyword">int</span> chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">boolean</span> usbCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_USB);</span><br><span class="line">    <span class="keyword">boolean</span> acCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_AC);</span><br><span class="line">    <span class="keyword">boolean</span> wirelessCharge = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.JELLY_BEAN_MR1) &#123;</span><br><span class="line">        wirelessCharge = (chargePlug ==BatteryManager.BATTERY_PLUGGED_WIRELESS);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (usbCharge || acCharge || wirelessCharge);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>由于每次网络请求被出发后都会持续无线信号一段时间，这段时间会耗费较多电量（如下图所示），为了避免这个问题我们可以通过将多次零散的网络请求打包成一次操作，尽量避免频繁触发网络请求。</li>
+</ol>
+<p><img src="/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/3.png"><br><img src="/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/4.png"></p>
+<ol start="4">
+<li><p>对于传感器尽量减少刷新请求，在Activity不需要监听某些Sensor数据的时候需要尽快释放监听注册，对于Sensor的数据我们尽量做批处理，待数据累积一定次数或者某个程度的时候再进行处理并更新到UI上。</p>
+</li>
+<li><p>对于定位功能是一个相对来说比较耗电的操作，通常来说，我们会使用类似下面这样的代码来发出定位请求：<br><img src="/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/6.png"><br>这里关键的是setInterval()这个方法它指的意思是每隔多长的时间获取一次位置更新，时间相隔越短， 自然花费的电量就越多，但是时间相隔太长，又无法及时获取到更新的位置信息。其中存在的一个优化点是，我们可以通过判断返回的位置信息是否相同，从而决定 设置下次的更新间隔是否增加一倍，通过这种方式可以减少电量的消耗。<br>除了从网络请求频率的角度来优化外还可以从定位精度角度来考虑<br>通过GPS定位服务相比起使用网络进行定位更加的耗电，但是精度方面也相对更加精准一些为了提供不同精度的定位需求，Android提供了下面4种不同精度与耗电量的参数给应用进行设置调用，应用只需要决 定在适当的场景下使用对应的参数就好了，通过LocationRequest.setPriority()方法传递下面的参数就好了。<br><img src="/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/7.png"></p>
+</li>
+<li><p>对于定时任务尽量使用AlarmManager，而不是sleep或者Timer进行管理</p>
+</li>
+</ol>
+<p>在Android系统中为避免电量过度消耗，提供了电源唤醒锁wakeLock以及JobScheduler API。</p>
+<h6 id="电源唤醒锁wakeLock："><a href="#电源唤醒锁wakeLock：" class="headerlink" title="电源唤醒锁wakeLock："></a>电源唤醒锁wakeLock：</h6><p>借助电源唤醒锁Android设备可以在被闲置之后迅速进入睡眠状态。还可以在屏幕关闭的时候利用唤醒锁保持后台服务的正常运行。但是一定要保证唤醒锁在最后的时刻回到初始状态。这是使用唤醒锁时候十分关键的一点。<br>至于唤醒锁的使用大家可以在晚上搜索相应的用法。除了唤醒锁外还有个WakefulBroadcastReceiver<br>，这个我自己用得比较少，所以借助这次机会对其进行总结下：<br>WakefulBroadcastReceiver 会将任务交给服务的同时保证设备在此过程中不会进入休眠状态。<br>下面是一个WakefulBroadcastReceiver 使用的例子：<br>在 WakefulReceiver中通过startWakefulService()来启动WakefulService，在这个过程中WakeflBroadcastReceiver会在Service启动后将唤醒锁保持住，当Service结束之后，它会调用WakefulReceiver.completeWakefulIntent()来释放唤醒锁。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">WakefulReceiver</span> <span class="keyword">extends</span> <span class="title">WakefulBroadcastReceiver</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    public void onReceive(<span class="type">Context</span> context, <span class="type">Intent</span> intent) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Start the service, keeping the device awake while the service is</span></span><br><span class="line">        <span class="comment">// launching. This is the Intent to deliver to the service.</span></span><br><span class="line">        <span class="type">Intent</span> service = <span class="keyword">new</span> <span class="type">Intent</span>(context, <span class="type">WakefulService</span>.<span class="keyword">class</span>);</span><br><span class="line">        startWakefulService(context, service);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">WakefulService</span> <span class="keyword">extends</span> <span class="title">IntentService</span> </span>&#123;</span><br><span class="line"> </span><br><span class="line">    public <span class="type">WakefulService</span>() &#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="string">&quot;WakefulService&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> void onHandleIntent(<span class="type">Intent</span> intent) &#123;</span><br><span class="line">        <span class="type">Bundle</span> extras = intent.getExtras();</span><br><span class="line">        <span class="comment">// Do the work that requires your app to keep the CPU running.</span></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="comment">// Release the wake lock provided by the WakefulBroadcastReceiver.</span></span><br><span class="line">        <span class="type">MyWakefulReceiver</span>.completeWakefulIntent(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>尽量使用setInexactRepeating()方法替代setRepeating()方法。当你使用setInexactRepeating()方法时，Android系统会集中多个应用的重复闹钟同步请求，并一起触发它们。这可以减少系统将设备唤醒的总次数，以此减少电量消耗。</p>
+<h6 id="JobScheduler："><a href="#JobScheduler：" class="headerlink" title="JobScheduler："></a>JobScheduler：</h6><p>除了使用电源唤醒锁，非精确闹钟来节省电源外，还可以通过JobScheduler  API来将某些任务缓存起来推迟到某个时间或者一定条件下执行，比如想要将下载图片或者歌曲的任务安排在接入电源或者Wifi连接的情况下执行。下面是JobScheduler  API的使用例子：</p>
+<figure class="highlight d"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> MyJobService extends JobService &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">&quot;MyJobService&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * false: 该系统假设任何任务运行不需要很长时间并且到方法返回时已经完成。</span></span><br><span class="line"><span class="comment">     * true: 该系统假设任务是需要一些时间并且当任务完成时需要调用jobFinished()告知系统。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">@Override</span></span><br><span class="line">    <span class="keyword">public</span> boolean onStartJob(JobParameters params) &#123;</span><br><span class="line">        Log.i(TAG, <span class="string">&quot;Totally and completely working on job &quot;</span> + </span><br><span class="line">        params.getJobId());</span><br><span class="line">        <span class="keyword">if</span> (isNetworkConnected()) &#123;</span><br><span class="line">            <span class="keyword">new</span> SimpleDownloadTask().execute(params);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Log.i(TAG, <span class="string">&quot;No connection on job &quot;</span> + params.getJobId() + <span class="string">&quot;; </span></span><br><span class="line"><span class="string">                 sad face&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 当收到取消请求时，该方法是系统用来取消挂起的任务的。</span></span><br><span class="line"><span class="comment">     * 如果onStartJob()返回false，则系统会假设没有当前运行的任务，故不会调用该方法。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">@Override</span></span><br><span class="line">    <span class="keyword">public</span> boolean onStopJob(JobParameters params) &#123;</span><br><span class="line">        Log.i(TAG, <span class="string">&quot;stop job &quot;</span> + params.getJobId());</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> boolean isNetworkConnected() &#123;</span><br><span class="line">        ConnectivityManager manager = (ConnectivityManager) </span><br><span class="line">        getSystemService(Context.CONNECTIVITY_SERVICE);</span><br><span class="line">        NetworkInfo info = manager.getActiveNetworkInfo();</span><br><span class="line">        <span class="keyword">return</span> (info != <span class="literal">null</span> &amp;&amp; info.isConnected());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">class</span> SimpleDownloadTask extends</span><br><span class="line">            AsyncTask&lt;JobParameters, Void, String&gt; &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> JobParameters mJobParam;</span><br><span class="line">        <span class="keyword">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> String doInBackground(JobParameters... params) &#123;</span><br><span class="line">            mJobParam = params[<span class="number">0</span>];</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                InputStream <span class="keyword">is</span> = <span class="literal">null</span>;</span><br><span class="line">                <span class="keyword">int</span> len = <span class="number">50</span>;</span><br><span class="line">                URL url = <span class="keyword">new</span> URL(<span class="string">&quot;http://www.baidu.com&quot;</span>);</span><br><span class="line">                HttpURLConnection conn = (HttpURLConnection) </span><br><span class="line">                url.openConnection();</span><br><span class="line">                conn.setReadTimeout(<span class="number">10000</span>);</span><br><span class="line">                conn.setConnectTimeout(<span class="number">15000</span>);</span><br><span class="line">                conn.setRequestMethod(<span class="string">&quot;GET&quot;</span>);</span><br><span class="line">                conn.connect();</span><br><span class="line">                <span class="keyword">int</span> responseCode = conn.getResponseCode();</span><br><span class="line">                Log.i(TAG, <span class="string">&quot;response code is : &quot;</span> + responseCode);</span><br><span class="line">                <span class="keyword">is</span> = conn.getInputStream();</span><br><span class="line">                Reader reader = <span class="literal">null</span>;</span><br><span class="line">                reader = <span class="keyword">new</span> InputStreamReader(<span class="keyword">is</span>, <span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">                <span class="built_in">char</span>[] buffer = <span class="keyword">new</span> <span class="built_in">char</span>[len];</span><br><span class="line">                reader.read(buffer);</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> String(buffer);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;unable to retrieve web page&quot;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> <span class="keyword">void</span> onPostExecute(String result) &#123;</span><br><span class="line">            jobFinished(mJobParam, <span class="literal">false</span>);</span><br><span class="line">            Log.i(TAG, <span class="string">&quot;获取结果：&quot;</span> + result);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> MainActivity extends Activity &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TextView result;</span><br><span class="line">    <span class="keyword">private</span> ComponentName jobService;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">        set<span class="constructor">ContentView(R.<span class="params">layout</span>.<span class="params">activity_main</span>)</span>;</span><br><span class="line">        jobService = <span class="keyword">new</span> <span class="constructor">ComponentName(<span class="params">this</span>, MyJobService.<span class="params">class</span>)</span>;</span><br><span class="line">        Intent service = <span class="keyword">new</span> <span class="constructor">Intent(<span class="params">this</span>, MyJobService.<span class="params">class</span>)</span>;</span><br><span class="line">        start<span class="constructor">Service(<span class="params">service</span>)</span>;</span><br><span class="line"></span><br><span class="line">        result = (TextView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">result_tv</span>)</span>;</span><br><span class="line">        Button btn = (Button) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">button</span>)</span>;</span><br><span class="line">        btn.set<span class="constructor">OnClickListener(<span class="params">new</span> OnClickListener()</span> &#123;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void on<span class="constructor">Click(View <span class="params">v</span>)</span> &#123;</span><br><span class="line">                poll<span class="constructor">Server()</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> void poll<span class="constructor">Server()</span> &#123;</span><br><span class="line">        JobScheduler scheduler = (JobScheduler) </span><br><span class="line">        get<span class="constructor">SystemService(Context.JOB_SCHEDULER_SERVICE)</span>;</span><br><span class="line">        <span class="built_in">int</span> jobId;</span><br><span class="line">        <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">            jobId = i;</span><br><span class="line">            JobInfo jobInfo = <span class="keyword">new</span> JobInfo.<span class="constructor">Builder(<span class="params">jobId</span>, <span class="params">jobService</span>)</span></span><br><span class="line">            .set<span class="constructor">MinimumLatency(5000)</span><span class="comment">// 设置任务运行最少延迟时间</span></span><br><span class="line">            .set<span class="constructor">OverrideDeadline(60000)</span></span><br><span class="line">             <span class="comment">// 设置deadline，若到期还没有达到规定的条件则会开始执行</span></span><br><span class="line">            .set<span class="constructor">RequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)</span><span class="comment">// 设置网络条件</span></span><br><span class="line">            .set<span class="constructor">RequiresCharging(<span class="params">true</span>)</span><span class="comment">// 设置是否充电的条件</span></span><br><span class="line">            .set<span class="constructor">RequiresDeviceIdle(<span class="params">false</span>)</span><span class="comment">// 设置手机是否空闲的条件</span></span><br><span class="line">             .build<span class="literal">()</span>;</span><br><span class="line">            result.append(<span class="string">&quot;scheduling job &quot;</span> + i + <span class="string">&quot;!\n&quot;</span>);</span><br><span class="line">            scheduler.schedule(jobInfo);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注册：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">service</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;com.example.jobschedulerdemo.MyJobService&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:permission</span>=<span class="string">&quot;android.permission.BIND_JOB_SERVICE&quot;</span> &gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">service</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>使用battery-historian来进行电量的分析：</p>
+<p>battery-historian 的gitHub地址如下：<br><a target="_blank" rel="noopener" href="https://github.com/google/battery-historian">https://github.com/google/battery-historian</a><br>关于battery-historian2 的使用推荐看下下面的这篇文章。<br><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/a7d9a3aec423/comments/1589962">http://www.jianshu.com/p/a7d9a3aec423/comments/1589962</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android性能优化/">Android性能优化</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/06/04/Android-进阶之性能优化-网络优化/" title="Android 进阶之性能优化 网络优化">
+  <span>
+  Android 进阶之性能优化 网络优化</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/06/02/Android-进阶之性能优化-内存优化/"  title="Android 进阶之性能优化 内存优化">
+ <span>Android 进阶之性能优化 内存优化
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/06/03/Android-进阶之性能优化-电量优化/" data-title="Android 进阶之性能优化 电量优化" data-url="http://yoursite.com/2016/06/03/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E7%94%B5%E9%87%8F%E4%BC%98%E5%8C%96/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%94%B5%E6%BA%90%E5%94%A4%E9%86%92%E9%94%81wakeLock%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">电源唤醒锁wakeLock：</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#JobScheduler%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">JobScheduler：</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

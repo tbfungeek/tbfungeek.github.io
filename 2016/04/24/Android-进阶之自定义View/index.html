@@ -1,0 +1,746 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android-进阶之自定义View 一 自定义View 流程 | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android-进阶之自定义View 一 自定义View 流程">
+<meta property="og:url" content="http://yoursite.com/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/1.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/2.png">
+<meta property="article:published_time" content="2016-04-24T14:15:24.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:42:14.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android 自定义View进阶">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/1.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/24/Android-进阶之自定义View/" title="Android-进阶之自定义View 一 自定义View 流程" itemprop="url">Android-进阶之自定义View 一 自定义View 流程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-24T14:15:24.000Z" itemprop="datePublished"> Published 2016-04-24</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>Android 中最让人感到兴奋的就是看到GitHub上各种自定义View的实现了，而自定义View对自己个人而言是那种痛并快乐的一件事情，一旦次数多了，不痛了也就能够感受到自定义View的所带来的快乐了，<br>但是自己坦白还没到那种水平，自定义View有一定的固定套路，也有一部分很灵活的部分，而最重要的部分恰恰是后者，该博文将只会介绍Android控件的整体架构，自定义View固定流程，后续将会另起一个专题专门将工作这段时间所实现的一些比较好玩的自定义View。</p>
+<p>在开始本篇博文之前，需要介绍下Android 控件的整体架构，这样对整个流程的介绍会更清晰：</p>
+<h4 id="Android-控件的整体架构"><a href="#Android-控件的整体架构" class="headerlink" title="Android 控件的整体架构"></a>Android 控件的整体架构</h4><p>Android中的所有可视化组件都是从View派生出来的，这些可视化组件通常被称为控件或者小组件，ViewGroup类是对View类的扩展，它用来包含多个视图，ViewGroup主要用于管理子视图布局和创建可重用的复合组件。它是View的容器，可以存放View 还可以存放ViewGroup，从而形成树状结构。<br>每个控件树都有一个ViewParent，它负责所有交互事件的调度和分配，并且顺着控件树，上层的控件负责下层空间的测量与绘制，每个View占据屏幕上的一个矩形区域，每个View对象负责这个矩形区域的测度、布局、绘图、焦点改变、滚动、触摸，手势等交互事件的处理。<br>根节点要求它的孩子节点绘制它自己，每个ViewGroup节点要求调用自己的子视图绘制自己。子视图可以往父视图中请求指定的尺寸数据，但是每个子视图的父视图对象对子视图的尺寸有最终决定权，也就是说子视图可以告诉乎视图要求多大的空间，但是父视图会纵观全局来决定实际分配给每个子视图的大小。如果元素有重叠的地方，重叠部分后面绘制的将在之前绘制的上面。经过上述过程至顶向下的绘制最终绘制出整个页面；<br><img src="/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/1.png"><br>每个Activity都持有一个Window对象，它是一个抽象类，它有一个子类PhoneWindow是Window类的具体实现，可以通过PhoneWindow具体去绘制窗口。<br>DecorView 是PhoneWindow类的内部类，它是窗口界面的顶层视图，是所有应用窗口的根View。大部分事件都是由它传递给view，一般情况下它有上下两部分组成，它将要显示的内容呈现在PhoneWindow上。如下图所示，一个是TitleView，一个是ContentView，我们可以通过setContentView来将布局添加到ContentView中。<br><img src="/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/2.png"></p>
+<h4 id="View以及ViewGroup的测量"><a href="#View以及ViewGroup的测量" class="headerlink" title="View以及ViewGroup的测量"></a>View以及ViewGroup的测量</h4><p>为什么需要测量，这是因为在绘制一个View的时候不仅需要知道它的形状等信息，还需要知道它的大小信息。View的绘制工作在onMeasure方法中进行，通过这个方法可以指定该控件在屏幕上的大小，重写该方法时需要计算控件的实际大小，然后调用setMeasuredDimension(int, int)将确定尺寸数值设置为控件的实际大小。<br>onMeasure被调用的时候传入两个参数widthMeasureSpec和heightMeasureSpec。每个都是一个32位的int值它分成两个部分高两位为测量模式，低30位为测量的大小。<br>我们可以通过：<br>int mode &#x3D; MeasureSpec.getMode(xxxxxxx)获取到模式，<br>int size &#x3D; MeasureSpec.getSize(xxxxxxx)获取到尺寸数值。</p>
+<p>测量模式有三种：<br>EXACTLY：精确模式，当我们将layout_height以及layout_width设置为具体数值时，或者设置为match_parent的时候，使用的是这种模式<br>AT_MOST:最大值模式，当控件的layout_height以及layout_width被设置为wrap_content属性的时候，使用的是这种模式，这种模式下控件的尺寸只要不超过父控件允许的最大尺寸即可。<br>UNSPECIFIED：这种情况我见得不是很多，基本上没有用到。</p>
+<p>View 默认情况下支持EXACTLY模式，因此如果不重写onMeasure方法时，只能使用EXACTLY模式，所定义的View只能指定具体尺寸，或者是match_parent，而不能是wrap_content.如果需要支持wrap_content就必须重写onMeasure方法。</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">@Override    </span><br><span class="line">protected void on<span class="constructor">Measure(<span class="params">int</span> <span class="params">widthMeasureSpec</span>, <span class="params">int</span> <span class="params">heightMeasureSpec</span>)</span> &#123;    </span><br><span class="line">    </span><br><span class="line">    <span class="built_in">int</span> finalWidth = get<span class="constructor">MeasuredLength(<span class="params">widthMeasureSpec</span>, <span class="params">true</span>)</span>;</span><br><span class="line">    <span class="built_in">int</span> finalHeight = get<span class="constructor">MeasuredLength(<span class="params">heightMeasureSpec</span>, <span class="params">false</span>)</span>;</span><br><span class="line">    set<span class="constructor">MeasuredDimension(<span class="params">finalWidth</span>, <span class="params">finalHeight</span>)</span>;    </span><br><span class="line">&#125;    </span><br><span class="line">     </span><br><span class="line"><span class="keyword">private</span> <span class="built_in">int</span> get<span class="constructor">MeasuredLength(<span class="params">int</span> <span class="params">length</span>, <span class="params">boolean</span> <span class="params">isWidth</span>)</span> &#123;    </span><br><span class="line">    <span class="built_in">int</span> specMode = <span class="module-access"><span class="module"><span class="identifier">MeasureSpec</span>.</span></span>get<span class="constructor">Mode(<span class="params">length</span>)</span>;    </span><br><span class="line">    <span class="built_in">int</span> specSize = <span class="module-access"><span class="module"><span class="identifier">MeasureSpec</span>.</span></span>get<span class="constructor">Size(<span class="params">length</span>)</span>;    </span><br><span class="line">    <span class="built_in">int</span> size;    </span><br><span class="line">    <span class="built_in">int</span> padding = isWidth ? get<span class="constructor">PaddingLeft()</span> + get<span class="constructor">PaddingRight()</span> : get<span class="constructor">PaddingTop()</span> + get<span class="constructor">PaddingBottom()</span>;    </span><br><span class="line">    <span class="keyword">if</span> (specMode<span class="operator"> == </span>MeasureSpec.EXACTLY) &#123;    </span><br><span class="line">        size = specSize;    </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;    </span><br><span class="line">        size = isWidth ? padding + DEFAULT_WIDTH  : DEFAULT_HEIGHT + padding;<span class="comment">//提供一个默认的值    </span></span><br><span class="line">        <span class="keyword">if</span> (specMode<span class="operator"> == </span>MeasureSpec.AT_MOST) &#123;    </span><br><span class="line">            size = <span class="module-access"><span class="module"><span class="identifier">Math</span>.</span></span>min(size, specSize);    </span><br><span class="line">        &#125;    </span><br><span class="line">    &#125;    </span><br><span class="line">    return size;    </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+
+<h4 id="View的绘制："><a href="#View的绘制：" class="headerlink" title="View的绘制："></a>View的绘制：</h4><p>我们知道自定义一个View需要继承自View并重写构造方法以及onDraw方法。</p>
+<ul>
+<li><h5 id="覆写构造方法"><a href="#覆写构造方法" class="headerlink" title="覆写构造方法"></a>覆写构造方法</h5>一般我们在Android Studio创建一个View的时候，会要求复写构造方法，默认情况下会有三个构造函数：</li>
+</ul>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">CustomView</span><span class="params">(Context context)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="type">void</span> <span class="title">CustomView</span><span class="params">(Context context, AttributeSet attrs, <span class="type">int</span> defStyle)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>第一个构造函数用在代码中动态创建对象时使用的，如果只打算在代码中动态创建一个view而不使用布局文件xml，那么就直接实现这个构造方法就可以了，但是一般都不这么做，因为难保证后面不会用在layout布局中，虽然后面使用的时候添加一个也很容易，但是一般项目代码都很庞大<br>。如果没有遵守这个规则的话，后面谁来在你的平台上开发的话，将其用在XML布局文件中，就会引起问题，虽然这种错误很好排查，但是如果遇到这种情况一般都会问候下原先维护这个代码的那个人。所以如果不想在离职后还被别人挂念还是继续实现后面两个构造方法吧。</p>
+<p>第二个构造方法比第一个构造方法多了一个AttributeSet类型的参数，通过布局文件xml创建一个view时，这个参数会将xml里设定的属性传递给构造函数。如果采用xml方法却没有实现这种构造方法，那么虽然编译的时候会顺利通过但是运行时就会报错。</p>
+<p>第三个构造方法比第二个构造方法多了一个defStyle的参数，这个参数用来指定view的默认style，如果为0将不会应用任何默认的style。那么这个值又是从哪里传过来的呢？<br>一般这个系统是不调用的，一般用于提供给第二个构造方法使用的，在第二个构造方法中会传给第三个构造方法一个默认的style id。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">CustomView</span> <span class="keyword">extends</span> <span class="title">View</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs) &#123;</span><br><span class="line">        <span class="keyword">this</span>(context, attrs, <span class="type">R</span>.attr.<span class="type">CustomizeStyleRef</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="type">CustomView</span>(<span class="type">Context</span> context, <span class="type">AttributeSet</span> attrs, int defStyle) &#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs, defStyle);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h5 id="自定义属性"><a href="#自定义属性" class="headerlink" title="自定义属性"></a>自定义属性</h5></li>
+</ul>
+<ol>
+<li>定义属性</li>
+</ol>
+<p>在res&#x2F;values&#x2F;attrs.xml文件中为添加自定义的属性的定义</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line">    &lt;<span class="keyword">declare</span>-styleable <span class="type">name</span>=&quot;Customize&quot;&gt;</span><br><span class="line">        &lt;attr <span class="type">name</span>=&quot;attr_1&quot; <span class="keyword">format</span>=&quot;string&quot; /&gt;</span><br><span class="line">        &lt;attr <span class="type">name</span>=&quot;attr_2&quot; <span class="keyword">format</span>=&quot;string&quot; /&gt;</span><br><span class="line">    &lt;/<span class="keyword">declare</span>-styleable&gt;</span><br><span class="line">    &lt;attr <span class="type">name</span>=&quot;CustomizeStyle&quot; <span class="keyword">format</span>=&quot;reference&quot; /&gt;</span><br><span class="line">&lt;/resources&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要了解下属性的类型有哪些：</p>
+<ul>
+<li>reference：引用某一资源ID。<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line">定义： </span><br><span class="line">&lt;attr name = <span class="string">&quot;background&quot;</span> <span class="keyword">format</span> = <span class="string">&quot;reference&quot;</span> /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:background = <span class="string">&quot;@drawable/图片ID&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>color：颜色值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="type">name</span> = &quot;textColor&quot; <span class="keyword">format</span> = &quot;color&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:textColor = &quot;#00FF00&quot;</span><br></pre></td></tr></table></figure></li>
+<li>boolean：布尔值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">  &lt;attr <span class="type">name</span> = &quot;focusable&quot; <span class="keyword">format</span> = &quot;boolean&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:focusable = &quot;true&quot;</span><br></pre></td></tr></table></figure></li>
+<li>dimension：尺寸值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line">&lt;attr <span class="type">name</span> = &quot;layout_width&quot; <span class="keyword">format</span> = &quot;dimension&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:layout_width = &quot;42dip&quot;</span><br></pre></td></tr></table></figure></li>
+<li>float：浮点值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;fromAlpha&quot; <span class="keyword">format</span> = &quot;float&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:fromAlpha = &quot;1.0&quot;</span><br></pre></td></tr></table></figure></li>
+<li>integer：整型值。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;framesCount&quot; <span class="keyword">format</span>=&quot;integer&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:frameDuration = &quot;100&quot;</span><br></pre></td></tr></table></figure></li>
+<li>string：字符串。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;apiKey&quot; <span class="keyword">format</span> = &quot;string&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:apiKey = &quot;0jOkQ80oD1JL9C6HAja99uGXCRiS2CGjKO_bc_g&quot;</span><br></pre></td></tr></table></figure></li>
+<li>fraction：百分数。<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="type">name</span> = &quot;pivotX&quot; <span class="keyword">format</span> = &quot;fraction&quot; /&gt;</span><br><span class="line">属性使用：</span><br><span class="line">android:pivotY = &quot;300%&quot;</span><br></pre></td></tr></table></figure></li>
+<li>enum：枚举值。<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> <span class="language-xml"><span class="tag">&lt;<span class="name">attr</span> <span class="attr">name</span>=<span class="string">&quot;orientation&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">enum</span> <span class="attr">name</span>=<span class="string">&quot;horizontal&quot;</span> <span class="attr">value</span>=<span class="string">&quot;0&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">enum</span> <span class="attr">name</span>=<span class="string">&quot;vertical&quot;</span> <span class="attr">value</span>=<span class="string">&quot;1&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">attr</span>&gt;</span></span>       </span><br><span class="line">属性使用：</span><br><span class="line">android:orientation = <span class="string">&quot;vertical&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>flag：位或运算。<figure class="highlight sqf"><table><tr><td class="code"><pre><span class="line">定义：</span><br><span class="line"> &lt;attr <span class="built_in">name</span>=<span class="string">&quot;windowSoftInputMode&quot;</span>&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateUnspecified&quot;</span> value = <span class="string">&quot;0&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateUnchanged&quot;</span> value = <span class="string">&quot;1&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateHidden&quot;</span> value = <span class="string">&quot;2&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateAlwaysHidden&quot;</span> value = <span class="string">&quot;3&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateVisible&quot;</span> value = <span class="string">&quot;4&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;stateAlwaysVisible&quot;</span> value = <span class="string">&quot;5&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustUnspecified&quot;</span> value = <span class="string">&quot;0x00&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustResize&quot;</span> value = <span class="string">&quot;0x10&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustPan&quot;</span> value = <span class="string">&quot;0x20&quot;</span> /&gt;</span><br><span class="line">  &lt;<span class="built_in">flag</span> <span class="built_in">name</span> = <span class="string">&quot;adjustNothing&quot;</span> value = <span class="string">&quot;0x30&quot;</span> /&gt;</span><br><span class="line"> &lt;/attr&gt;          </span><br><span class="line">属性使用：</span><br><span class="line">android:windowSoftInputMode = <span class="string">&quot;stateUnspecified | stateUnchanged　|　stateHidden&quot;</span>&gt;</span><br></pre></td></tr></table></figure>
+属性定义时可以指定多种类型值。<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line">&lt;attr name = <span class="string">&quot;background&quot;</span> <span class="keyword">format</span> = <span class="string">&quot;reference|color&quot;</span> /&gt;</span><br><span class="line">android:background = <span class="string">&quot;@drawable/图片ID|#00FF00&quot;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>2.在xml中为相应的属性声明属性值</p>
+<ul>
+<li>直接在layout中使用属性：这个就不做介绍了，一般布局很多都是这种方式 custom:attr_1&#x3D;”attr one”</li>
+<li>设置style并在style中设置属性<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">    </span><span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;DirectStyle&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        </span><span class="language-xml"><span class="language-xml"><span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from DirectStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">        </span><span class="language-xml"><span class="language-xml"><span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_2&quot;</span>&gt;</span>attr two from DirectStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">使用方式：</span><br><span class="line">style=<span class="string">&quot;@style/DirectStyle&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>在主题中指定在当前Application或Activity中属性的默认值<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;AppTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;AppBaseTheme&quot;</span>&gt;</span><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from Theme<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;CustomizeStyleRef&quot;</span>&gt;</span>@style/CustomizeStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>在defStyle提供默认值</li>
+</ul>
+<p>它们的顺序如下：</p>
+<figure class="highlight lasso"><table><tr><td class="code"><pre><span class="line"><span class="built_in">XML</span>中定义&gt;style定义&gt;由defStyle提供默认值&gt;在Theme中指定的值</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面是个人实现自定义View为View添加属性时候的固定步骤：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;AppBaseTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;android:Theme.Light&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line">   </span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;AppTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;AppBaseTheme&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        //1 定义一个Style引用</span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;CustomizeStyleRef&quot;</span>&gt;</span>@style/CustomizeStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//定义一个Style  CustomizeStyleRef 指向它，这个是为主题提供默认的属性值</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;CustomizeStyle&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    //Style项</span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from CustomizeStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//2 定义一个默认的style用于提供默认值，这个在defStyle提供默认值</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;DefaultCustomizeStyle&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from defalut style<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//3 这个用于直接在xml通过style方式提供属性值</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;DirectStyle&quot;</span>&gt;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;attr_1&quot;</span>&gt;</span>attr one from DirectStyle<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">&lt;/resources&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h5 id="如何获得属性值"><a href="#如何获得属性值" class="headerlink" title="如何获得属性值"></a>如何获得属性值</h5><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="constructor">CustomView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>)</span> &#123;</span><br><span class="line">    this(context, attrs, <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>attr.CustomizeStyleRef);<span class="comment">//注意这里是从attr获取</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public <span class="constructor">CustomTextView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>, <span class="params">int</span> <span class="params">defStyle</span>)</span> &#123;</span><br><span class="line">    super(context, attrs, defStyle);</span><br><span class="line">    TypedArray a = context.obtain<span class="constructor">StyledAttributes(<span class="params">attrs</span>, R.<span class="params">styleable</span>.Customize, <span class="params">defStyle</span>,R.<span class="params">style</span>.DefaultCustomizeStyle)</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        attr_1 = a.get<span class="constructor">String(R.<span class="params">styleable</span>.Customize_attr_1)</span>;<span class="comment">//注意这里！！！！！格式是定义属性名_属性名</span></span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        a.recycle<span class="literal">()</span>;<span class="comment">//TypedArry是一个共享的资源，使用完毕必须回收它。</span></span><br><span class="line">    &#125;<span class="operator"></span></span><br><span class="line"><span class="operator">    ...</span></span><br><span class="line"><span class="operator"></span>&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><h5 id="覆写onDraw方法绘制View"><a href="#覆写onDraw方法绘制View" class="headerlink" title="覆写onDraw方法绘制View"></a>覆写onDraw方法绘制View</h5><p>[见绘图部分]</p>
+</li>
+<li><h5 id="覆写onTouch等事件相应方法"><a href="#覆写onTouch等事件相应方法" class="headerlink" title="覆写onTouch等事件相应方法"></a>覆写onTouch等事件相应方法</h5><p>[见事件部分]</p>
+</li>
+<li><h5 id="设置控件的回调接口"><a href="#设置控件的回调接口" class="headerlink" title="设置控件的回调接口"></a>设置控件的回调接口</h5></li>
+</ul>
+<hr>
+<h3 id="自定义View步骤总结："><a href="#自定义View步骤总结：" class="headerlink" title="自定义View步骤总结："></a>自定义View步骤总结：</h3><ol>
+<li>继承View或继承View的子类</li>
+<li>在res&#x2F;values&#x2F;attrs.xm 中新增<declare-styleable>节点定义自定义属性</declare-styleable></li>
+<li>将自定义View放到布局文件中，注意命名空间名的格式为<a target="_blank" rel="noopener" href="http://schemas.android.com/apk/res/[%E8%87%AA%E5%AE%9A%E4%B9%89View%E6%89%80%E5%9C%A8%E7%9A%84%E5%8C%85%E8%B7%AF%E5%BE%84]">http://schemas.android.com/apk/res/[自定义View所在的包路径]</a> 比如<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:custom</span>=<span class="string">&quot;http://schemas.android.com/apk/res/com.example.customviews&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">com.example.customviews.CustomView</span></span></span><br><span class="line"><span class="tag">    <span class="attr">custom:attr_1</span>=<span class="string">&quot;dddddddddddd&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>在XML布局中设定指定属性的值</li>
+<li>在CustomView 中获取对应的属性值并覆写构造方法以及onDraw方法</li>
+<li>覆写onTouch等事件相应方法</li>
+</ol>
+<p>自定义View过程中除了上述介绍的onMeasue方法还有如下重要的回调方法：</p>
+<p>onFinishInflate()  从XML加载组件后调用<br>onMeasure()        调用该方法进行测量<br>onLayout()         调用该方法确定显示的位置<br>onSizeChange()     组件大小改变的时候这个方法会被掉用<br>onTouchEvent       当触摸事件来临时被调用</p>
+<p>自定义View是一个需要很长时间实践才能掌握的技术，上面进阶是一些死东西，活的东西需要在实践中不断积累，多看别人的作品，并多实践是掌握自定义View的不二法则，下面是一些我之前收集的一些较好的博文，推荐给大家。<br>[推荐博文]</p>
+<blockquote>
+<p>blog.csdn.net&#x2F;jdsjlzx&#x2F;article&#x2F;details&#x2F;41113969<br><a target="_blank" rel="noopener" href="http://blog.csdn.net/lmj623565791/article/details/24252901">http://blog.csdn.net/lmj623565791/article/details/24252901</a><br><a target="_blank" rel="noopener" href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0606/3001.html">http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0606/3001.html</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/feelang/article/details/45035759">http://blog.csdn.net/feelang/article/details/45035759</a><br><a target="_blank" rel="noopener" href="http://www.zhihu.com/question/41101031">http://www.zhihu.com/question/41101031</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/singwhatiwanna/article/details/38168103">http://blog.csdn.net/singwhatiwanna/article/details/38168103</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/aigestudio/article/details/41447349">http://blog.csdn.net/aigestudio/article/details/41447349</a></p>
+</blockquote>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-自定义View进阶/">Android 自定义View进阶</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/04/25/Android-进阶之自定义View-二-View的刷新模式/" title="Android-进阶之自定义View 二 View的刷新模式">
+  <span>
+  Android-进阶之自定义View 二 View的刷新模式</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/04/23/Android-进阶之动画-七-插值器/"  title="Android 进阶之动画 七 插值器">
+ <span>Android 进阶之动画 七 插值器
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/04/24/Android-进阶之自定义View/" data-title="Android-进阶之自定义View 一 自定义View 流程" data-url="http://yoursite.com/2016/04/24/Android-%E8%BF%9B%E9%98%B6%E4%B9%8B%E8%87%AA%E5%AE%9A%E4%B9%89View/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Android-%E6%8E%A7%E4%BB%B6%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">Android 控件的整体架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#View%E4%BB%A5%E5%8F%8AViewGroup%E7%9A%84%E6%B5%8B%E9%87%8F"><span class="toc-number">2.</span> <span class="toc-text">View以及ViewGroup的测量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#View%E7%9A%84%E7%BB%98%E5%88%B6%EF%BC%9A"><span class="toc-number">3.</span> <span class="toc-text">View的绘制：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A6%86%E5%86%99%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95"><span class="toc-number">3.1.</span> <span class="toc-text">覆写构造方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%B1%9E%E6%80%A7"><span class="toc-number">3.2.</span> <span class="toc-text">自定义属性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%BE%97%E5%B1%9E%E6%80%A7%E5%80%BC"><span class="toc-number">3.3.</span> <span class="toc-text">如何获得属性值</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A6%86%E5%86%99onDraw%E6%96%B9%E6%B3%95%E7%BB%98%E5%88%B6View"><span class="toc-number">3.4.</span> <span class="toc-text">覆写onDraw方法绘制View</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A6%86%E5%86%99onTouch%E7%AD%89%E4%BA%8B%E4%BB%B6%E7%9B%B8%E5%BA%94%E6%96%B9%E6%B3%95"><span class="toc-number">3.5.</span> <span class="toc-text">覆写onTouch等事件相应方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E6%8E%A7%E4%BB%B6%E7%9A%84%E5%9B%9E%E8%B0%83%E6%8E%A5%E5%8F%A3"><span class="toc-number">3.6.</span> <span class="toc-text">设置控件的回调接口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89View%E6%AD%A5%E9%AA%A4%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="toc-number"></span> <span class="toc-text">自定义View步骤总结：</span></a>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

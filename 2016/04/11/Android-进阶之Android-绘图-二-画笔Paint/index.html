@@ -1,0 +1,821 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android 进阶之Android 绘图 二 画笔Paint | Edgar&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Edgar">
+    
+
+    
+    <meta name="description" content="画笔Paint在现实生活中我们要画一幅画需要有画笔，画布，还有颜料，Android系统中也是一样，在接下去的章节中将对这些绘画元素进行一一介绍，而在这个部分我们就先介绍画笔对象，画笔有很多重要的属性，比如画笔的颜色，画笔的线宽，画笔的样式等 画笔的基本属性：setARGB(int a,int r,int g,int b);  设置绘制的颜色，a代表透明度，r，g，b代表颜色值。 setAlpha(">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进阶之Android 绘图 二 画笔Paint">
+<meta property="og:url" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/index.html">
+<meta property="og:site_name" content="Edgar&#39;s Blog">
+<meta property="og:description" content="画笔Paint在现实生活中我们要画一幅画需要有画笔，画布，还有颜料，Android系统中也是一样，在接下去的章节中将对这些绘画元素进行一一介绍，而在这个部分我们就先介绍画笔对象，画笔有很多重要的属性，比如画笔的颜色，画笔的线宽，画笔的样式等 画笔的基本属性：setARGB(int a,int r,int g,int b);  设置绘制的颜色，a代表透明度，r，g，b代表颜色值。 setAlpha(">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/Cap.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/Joint.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/burmasker.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color4.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color1.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color2.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color3.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/colormatrix1.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/colormatrix2.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/colormatrix3.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/HSV.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/shader.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/layershader.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/mode.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/origin.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/clear.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/src.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dst.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcover.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstover.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcin.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstin.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcout.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstout.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcatop.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstatop.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/xor.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/darken.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/lighten.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/multipy.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/screen.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/none.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/corner.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dscreb.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dist.png">
+<meta property="og:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/pathdash.png">
+<meta property="article:published_time" content="2016-04-11T03:30:40.000Z">
+<meta property="article:modified_time" content="2016-07-18T21:41:12.000Z">
+<meta property="article:author" content="Edgar">
+<meta property="article:tag" content="Android 绘图进阶">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/Cap.png">
+
+    
+    <link rel="alternative" href="atom.xml" title="Edgar&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/unnamed4_n_mSY_icon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/profile.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/profile.png">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Edgar&#39;s Blog">Edgar&#39;s Blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/11/Android-进阶之Android-绘图-二-画笔Paint/" title="Android 进阶之Android 绘图 二 画笔Paint" itemprop="url">Android 进阶之Android 绘图 二 画笔Paint</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Edgar" target="_blank" itemprop="author">Edgar</a>
+		
+  <p class="article-time">
+    <time datetime="2016-04-11T03:30:40.000Z" itemprop="datePublished"> Published 2016-04-11</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h4 id="画笔Paint"><a href="#画笔Paint" class="headerlink" title="画笔Paint"></a>画笔Paint</h4><p>在现实生活中我们要画一幅画需要有画笔，画布，还有颜料，Android系统中也是一样，在接下去的章节中将对这些绘画元素进行一一介绍，而在这个部分我们就先介绍画笔对象，画笔有很多重要的属性，比如画笔的颜色，画笔的线宽，画笔的样式等</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">画笔的基本属性：</span><br><span class="line"></span><br><span class="line">set<span class="constructor">ARGB(<span class="params">int</span> <span class="params">a</span>,<span class="params">int</span> <span class="params">r</span>,<span class="params">int</span> <span class="params">g</span>,<span class="params">int</span> <span class="params">b</span>)</span>;  设置绘制的颜色，a代表透明度，r，g，b代表颜色值。 </span><br><span class="line">set<span class="constructor">Alpha(<span class="params">int</span> <span class="params">a</span>)</span>;                    设置绘制图形的透明度，设置范围是<span class="literal">[<span class="number">0.</span>.<span class="number">255</span>]</span></span><br><span class="line">set<span class="constructor">Color(<span class="params">int</span> <span class="params">color</span>)</span>; 	            设置绘制的颜色，该颜色值包括透明度和RGB颜色。</span><br><span class="line">set<span class="constructor">AntiAlias(<span class="params">boolean</span> <span class="params">aa</span>)</span>;       	设置是否使用抗锯齿功能，会消耗较大资源，绘制图形速度会变慢。一般在绘制棱角分明的图像时不需要抗锯齿。</span><br><span class="line">set<span class="constructor">Dither(<span class="params">boolean</span> <span class="params">dither</span>)</span>;  	    设定是否使用图像抖动处理，会使绘制出来的图片颜色更加平滑和饱满，图像更加清晰 </span><br><span class="line">set<span class="constructor">Style(Paint.Style <span class="params">style</span>)</span>; 	    设置画笔的样式，Paint.Style.STROKE：描边，Paint.Style.FILL_AND_STROKE：描边并填充，Paint.Style.FILL：填充 </span><br><span class="line">set<span class="constructor">StrokeWidth(<span class="params">float</span> <span class="params">width</span>)</span>; 	    当画笔样式为STROKE或FILL_OR_STROKE时，设置笔刷的粗细度,也就是线条宽度</span><br><span class="line">set<span class="constructor">StrokeCap(Paint.Cap <span class="params">cap</span>)</span>; 	    当画笔样式为STROKE或FILL_OR_STROKE时，设置笔刷的图形样式，如圆形样Cap.ROUND,或方形样式Cap.SQUARE</span><br><span class="line">set<span class="constructor">StokeJoin(Paint.Join <span class="params">join</span>)</span>;  	设置绘制时各图形的结合方式，如平滑效果等</span><br><span class="line">set<span class="constructor">StrokeMiter(<span class="params">float</span> <span class="params">miter</span>)</span>：        设置画笔倾斜度</span><br></pre></td></tr></table></figure>
+<p>这个部分重点介绍下setStrokeCap和setStokeJoin。</p>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/Cap.png"><br>Android StrokeCap 属性对比图</p>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/Joint.png"><br>Android StokeJoin 属性对比图</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">文字相关属性：</span><br><span class="line"></span><br><span class="line">set<span class="constructor">TextSize(<span class="params">float</span> <span class="params">textSize</span>)</span>;            设置绘制文字的字号大小</span><br><span class="line">set<span class="constructor">LetterSpacing(<span class="params">float</span> <span class="params">letterSpacing</span>)</span>   设置行间距，默认是<span class="number">0.</span></span><br><span class="line">set<span class="constructor">FakeBoldText(<span class="params">boolean</span> <span class="params">fakeBoldText</span>)</span>;      模拟实现粗体文字 </span><br><span class="line">set<span class="constructor">TextScaleX(<span class="params">float</span> <span class="params">scaleX</span>)</span>; 	    设置绘制文字x轴的缩放比例，可以实现文字的拉伸的效果，当值大于<span class="number">1</span>会沿X轴水平放大文本，当值小于<span class="number">1</span>会沿X轴水平缩放文本</span><br><span class="line">set<span class="constructor">TextSkewX(<span class="params">float</span> <span class="params">skewX</span>)</span>;      设置斜体文字，skewX为倾斜弧度，值为负右倾值为正左倾</span><br><span class="line">set<span class="constructor">UnderlineText(<span class="params">boolean</span> <span class="params">underlineText</span>)</span>; 	    设置带有下划线的文字效果</span><br><span class="line">set<span class="constructor">StrikeThruText(<span class="params">boolean</span> <span class="params">strikeThruText</span>)</span>;      设置带有删除线的效果</span><br><span class="line">set<span class="constructor">TextAlign(Paint.Align <span class="params">align</span>)</span>;        设置绘制文字的对齐方向 可供选的方式有三种：CENTER,LEFT和RIGHT。</span><br><span class="line">set<span class="constructor">Typeface(Typeface <span class="params">typeface</span>)</span>; 	设置Typeface对象，即字体风格，包括粗体，斜体以及衬线体，非衬线体等 </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">画笔的特效</span><br><span class="line">set<span class="constructor">FilterBitmap(<span class="params">boolean</span> <span class="params">filter</span>)</span>;  	        如果该项设置为<span class="literal">true</span>，则图像在动画进行中会滤掉对Bitmap图像的优化操作，加快显示速度，本设置项依赖于dither和xfermode的设置</span><br><span class="line">set<span class="constructor">MaskFilter(MaskFilter <span class="params">maskfilter</span>)</span>; 	    设置MaskFilter，可以用不同的MaskFilter实现滤镜的效果，如滤化，立体等</span><br><span class="line">set<span class="constructor">ColorFilter(ColorFilter <span class="params">colorfilter</span>)</span>; 	        设置颜色过滤器，可以在绘制颜色时实现不用颜色的变换效果 </span><br><span class="line">set<span class="constructor">PathEffect(PathEffect <span class="params">effect</span>)</span>; 	        设置绘制路径的效果，如点画线等</span><br><span class="line">set<span class="constructor">Shader(Shader <span class="params">shader</span>)</span>; 	        设置图像效果，使用Shader可以绘制出各种渐变效果 </span><br><span class="line">set<span class="constructor">ShadowLayer(<span class="params">float</span> <span class="params">radius</span> ,<span class="params">float</span> <span class="params">dx</span>,<span class="params">float</span> <span class="params">dy</span>,<span class="params">int</span> <span class="params">color</span>)</span>; 	    在图形下面设置阴影层，产生阴影效果，radius为阴影的角度，dx和dy为阴影在x轴和y轴上的距离，color为阴影的颜色</span><br><span class="line">set<span class="constructor">Xfermode(Xfermode <span class="params">xfermode</span>)</span>; 设置图形重叠时的处理方式，如合并，取交集或并集，经常用来制作橡皮的擦除效果</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>画笔这部分最重要也是最难的就是画笔特效这部分。<br>接下来我们将会介绍<br>setMaskFilter<br>setColorFilter<br>setShader<br>setShadowLayer<br>setXfermode<br>setPathEffect</p>
+<p>一、setMaskFilter(MaskFilter maskfilter)</p>
+<p>setMaskFilter(MaskFilter maskfilter)是用来给画笔添加某种效果，这里的效果主要有两类一类是模糊效果，一类是浮雕效果，下面将对这两个效果进行介绍：</p>
+<ul>
+<li>BlurMaskFilter 主要是用来实现添加一些阴影轮廓效果,这里需要注意的是在使用这个效果的时候需要关闭硬件加速功能，这里的关闭有两种方式一种是在AndroidManifest中关闭，这种关闭是全局的在这个地方关闭将会导致整个应用都不能使用硬件加速，<br>还有一种方式是使用setLayerType(LAYER_TYPE_SOFTWARE, null); 将硬件加速给关闭，这种关闭方式只是针对某个具体的View，其他View还是可以使用硬件加速功能的</li>
+</ul>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void on<span class="constructor">Draw(Canvas <span class="params">canvas</span>)</span> &#123;</span><br><span class="line">    super.on<span class="constructor">Draw(<span class="params">canvas</span>)</span>;</span><br><span class="line">    mPaint.set<span class="constructor">MaskFilter(<span class="params">new</span> BlurMaskFilter(20, BlurMaskFilter.Blur.INNER)</span>);</span><br><span class="line">    canvas.draw<span class="constructor">Circle(400,200,100,<span class="params">mPaint</span>)</span>;</span><br><span class="line">    mPaint.set<span class="constructor">MaskFilter(<span class="params">new</span> BlurMaskFilter(20, BlurMaskFilter.Blur.NORMAL)</span>);</span><br><span class="line">    canvas.draw<span class="constructor">Circle(400,450,100,<span class="params">mPaint</span>)</span>;</span><br><span class="line">    mPaint.set<span class="constructor">MaskFilter(<span class="params">new</span> BlurMaskFilter(20, BlurMaskFilter.Blur.OUTER)</span>);</span><br><span class="line">    canvas.draw<span class="constructor">Circle(400,700,100,<span class="params">mPaint</span>)</span>;</span><br><span class="line">    mPaint.set<span class="constructor">MaskFilter(<span class="params">new</span> BlurMaskFilter(20, BlurMaskFilter.Blur.SOLID)</span>);</span><br><span class="line">    canvas.draw<span class="constructor">Circle(400,950,100,<span class="params">mPaint</span>)</span>;</span><br><span class="line"></span><br><span class="line">    Bitmap bitmap = <span class="module-access"><span class="module"><span class="identifier">BitmapFactory</span>.</span></span>decode<span class="constructor">Resource(<span class="params">getResources</span>()</span>,<span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.test1);</span><br><span class="line">    Bitmap b = bitmap.extract<span class="constructor">Alpha()</span>;</span><br><span class="line">    canvas.draw<span class="constructor">Bitmap(<span class="params">b</span>,200,1150,<span class="params">mPaint</span>)</span>;</span><br><span class="line">    canvas.draw<span class="constructor">Bitmap(<span class="params">bitmap</span>,200,1150,<span class="params">null</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/burmasker.png"></p>
+<p>EmbossMaskFilter 我个人几乎没有用到，所以这里先不作介绍，后续有机会使用的时候会增加该部分用法</p>
+<p>ColorMatrix</p>
+<p>在介绍ColorFilter之前我们先了解下色彩三元素的概念：<br>色彩三元素指的是色调（色相），饱和度，亮度：<br>下面是来自百度百科的解释：</p>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color4.png"></p>
+<p>色相</p>
+<blockquote>
+<p>色彩是由于物体上的物理性的光反射到人眼视神经上所产生的感觉。色的不同是由光的波长的长短差别所决定的。<br>作为色相，指的是这些不同波长的色的情况。波长最长的是红色，最短的是紫色。<br>把红、橙、黄、绿、蓝、紫和处在它们各自之间的红橙、黄橙、黄绿、蓝绿、蓝紫、红紫这6种中间色——共计12种色作为色相环。<br>在色相环上排列的色是纯度高的色，被称为纯色。这些色在环上的位置是根据视觉和感觉的相等间隔来进行安排的。用类似这样的方法还可以再分出差别细微的多种色来。<br>在色相环上，与环中心对称，并在180度的位置两端的色被称为互补色。</p>
+</blockquote>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color1.png"></p>
+<p>饱和度</p>
+<blockquote>
+<p>用数值表示色的鲜艳或鲜明的程度称之为彩度。有彩色的各种色都具有彩度值，无彩色的色的彩度值为0，对于有彩色的色的彩度（纯度）的高低，区别方法是根据这种色中含灰色的程度来计算的。<br>彩度由于色相的不同而不同，而且即使是相同的色相，因为明度的不同，彩度也会随之变化的。</p>
+</blockquote>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color2.png"></p>
+<p>亮度</p>
+<blockquote>
+<p>表示色彩所具有的亮度和暗度被称为明度。计算明度的基准是灰度测试卡。黑色为0，白色为10，在0—10之间等间隔的排列为9个阶段。色彩可以分为有彩色和无彩色，但后者仍然存在着明度。作为有彩色<br>，每种色各自的亮度、暗度在灰度测试卡上都具有相应的位置值。彩度高的色对明度有很大的影响，不太容易辨别。在明亮的地方鉴别色的明度比较容易的，在暗的地方就难以鉴别。</p>
+</blockquote>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/color3.png"></p>
+<p>在Android系统中用一个4*5的矩阵对图像进行处理。<br>颜色矩阵如下所示：</p>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/colormatrix1.png"></p>
+<p>将M乘以如下的列矩阵：</p>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/colormatrix2.png"></p>
+<p>得到如下的变换结果：</p>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/colormatrix3.png"></p>
+<p>从上面可以看出：<br>M矩阵的第一行决定了变换后的红色，第二行决定了变换后的绿色，第三行决定了变换后的蓝色，最后一行决定了变换后的透明度</p>
+<p>下面是一个测试ColorMatrix的实例：</p>
+<p>但是对于矩阵的方式这种方法比较不直观，因此Android提供了一种单独设置H，S，V的方式来改变图像的色彩属性：<br>下面是使用的例子</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">&quot;http://schemas.android.com/tools&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">&quot;vertical&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">&quot;com.example.jimmy.customviewtest.MainActivity&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ImageView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/imageview&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_weight</span>=<span class="string">&quot;1&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">LinearLayout</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_marginBottom</span>=<span class="string">&quot;15dp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:orientation</span>=<span class="string">&quot;vertical&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">SeekBar</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:max</span>=<span class="string">&quot;180&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:id</span>=<span class="string">&quot;@+id/hvalue&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">SeekBar</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:id</span>=<span class="string">&quot;@+id/svalue&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">SeekBar</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:id</span>=<span class="string">&quot;@+id/vvalue&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ImageView mImageView = null;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> Hvalue;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">float</span> Svalue;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">float</span> Vvalue;</span><br><span class="line">    <span class="keyword">private</span> SeekBar mHvalue;</span><br><span class="line">    <span class="keyword">private</span> SeekBar mSvalue;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> SMAX;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> VMAX;</span><br><span class="line">    <span class="keyword">private</span> SeekBar mVvalue;</span><br><span class="line">    <span class="keyword">private</span> Bitmap mBitmap;</span><br><span class="line">    protected void on<span class="constructor">Create(Bundle <span class="params">savedInstanceState</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Create(<span class="params">savedInstanceState</span>)</span>;</span><br><span class="line">        set<span class="constructor">ContentView(R.<span class="params">layout</span>.<span class="params">activity_main</span>)</span>;</span><br><span class="line">        mImageView = (ImageView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">imageview</span>)</span>;</span><br><span class="line">        mHvalue = (SeekBar) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">hvalue</span>)</span>;</span><br><span class="line">        mSvalue = (SeekBar) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">svalue</span>)</span>;</span><br><span class="line">        mVvalue = (SeekBar) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">vvalue</span>)</span>;</span><br><span class="line">        mHvalue.set<span class="constructor">OnSeekBarChangeListener(<span class="params">this</span>)</span>;</span><br><span class="line">        mSvalue.set<span class="constructor">OnSeekBarChangeListener(<span class="params">this</span>)</span>;</span><br><span class="line">        SMAX = mSvalue.get<span class="constructor">Max()</span>;</span><br><span class="line">        VMAX = mVvalue.get<span class="constructor">Max()</span>;</span><br><span class="line">        mVvalue.set<span class="constructor">OnSeekBarChangeListener(<span class="params">this</span>)</span>;</span><br><span class="line">        mBitmap = <span class="module-access"><span class="module"><span class="identifier">BitmapFactory</span>.</span></span>decode<span class="constructor">Resource(<span class="params">getResources</span>()</span>, <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.test1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">ProgressChanged(SeekBar <span class="params">seekBar</span>, <span class="params">int</span> <span class="params">progress</span>, <span class="params">boolean</span> <span class="params">fromUser</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">        switch (seekBar.get<span class="constructor">Id()</span>) &#123;</span><br><span class="line">            case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.hvalue:</span><br><span class="line">                Hvalue = progress;</span><br><span class="line">                break;</span><br><span class="line">            case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.svalue:</span><br><span class="line">                <span class="keyword">if</span> (SMAX != <span class="number">0</span>) &#123;</span><br><span class="line">                    Svalue = progress*<span class="number">1.0</span>F/SMAX;</span><br><span class="line">                &#125;</span><br><span class="line">                break;</span><br><span class="line">            case <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>id.vvalue:</span><br><span class="line">                <span class="keyword">if</span>(VMAX != <span class="number">0</span>) &#123;</span><br><span class="line">                    Vvalue = progress*<span class="number">1.0</span>F/VMAX;;</span><br><span class="line">                &#125;</span><br><span class="line">                break;</span><br><span class="line">        &#125;</span><br><span class="line">        set<span class="constructor">HSV()</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> void set<span class="constructor">HSV()</span> &#123;</span><br><span class="line">        </span><br><span class="line">        ColorMatrix hutMatrix = <span class="keyword">new</span> <span class="constructor">ColorMatrix()</span>;</span><br><span class="line">        <span class="comment">//设置RGB 的色调值  第一个参数为R，G，B，第二个参数为具体的色调 </span></span><br><span class="line">        hutMatrix.set<span class="constructor">Rotate(0,Hvalue)</span>;</span><br><span class="line">        hutMatrix.set<span class="constructor">Rotate(1,Hvalue)</span>;</span><br><span class="line">        hutMatrix.set<span class="constructor">Rotate(2,Hvalue)</span>;</span><br><span class="line"></span><br><span class="line">        ColorMatrix saturation = <span class="keyword">new</span> <span class="constructor">ColorMatrix()</span>;</span><br><span class="line">         <span class="comment">//设置饱和度</span></span><br><span class="line">        saturation.set<span class="constructor">Saturation(Svalue)</span>;</span><br><span class="line"></span><br><span class="line">        ColorMatrix lumMatrix = <span class="keyword">new</span> <span class="constructor">ColorMatrix()</span>;</span><br><span class="line">        <span class="comment">//设置亮度</span></span><br><span class="line">        lumMatrix.set<span class="constructor">Scale(Vvalue,Vvalue,Vvalue,1f)</span>;</span><br><span class="line"></span><br><span class="line">        ColorMatrix colorMatrix = <span class="keyword">new</span> <span class="constructor">ColorMatrix()</span>;</span><br><span class="line">        <span class="comment">//postConcat 用于将矩阵的作用效果混合，从而产生叠加效果</span></span><br><span class="line">        colorMatrix.post<span class="constructor">Concat(<span class="params">hutMatrix</span>)</span>;</span><br><span class="line">        colorMatrix.post<span class="constructor">Concat(<span class="params">saturation</span>)</span>;</span><br><span class="line">        colorMatrix.post<span class="constructor">Concat(<span class="params">lumMatrix</span>)</span>;</span><br><span class="line"></span><br><span class="line">        Paint paint = <span class="keyword">new</span> <span class="constructor">Paint()</span>;</span><br><span class="line">        paint.set<span class="constructor">AntiAlias(<span class="params">true</span>)</span>;</span><br><span class="line">        paint.set<span class="constructor">Dither(<span class="params">true</span>)</span>;</span><br><span class="line">        paint.set<span class="constructor">ColorFilter(<span class="params">new</span> ColorMatrixColorFilter(<span class="params">colorMatrix</span>)</span>);</span><br><span class="line">        Bitmap bitmap = <span class="module-access"><span class="module"><span class="identifier">Bitmap</span>.</span></span>create<span class="constructor">Bitmap(<span class="params">mBitmap</span>.<span class="params">getWidth</span>()</span>, mBitmap.get<span class="constructor">Height()</span>, Bitmap.Config.ARGB_8888);</span><br><span class="line">        Canvas canvas = <span class="keyword">new</span> <span class="constructor">Canvas(<span class="params">bitmap</span>)</span>;</span><br><span class="line">        canvas.draw<span class="constructor">Bitmap(<span class="params">mBitmap</span>,0,0,<span class="params">paint</span>)</span>;</span><br><span class="line">        mImageView.set<span class="constructor">ImageBitmap(<span class="params">bitmap</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">StartTrackingTouch(SeekBar <span class="params">seekBar</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public void on<span class="constructor">StopTrackingTouch(SeekBar <span class="params">seekBar</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/HSV.png"></p>
+<p>着色器Shader</p>
+<p>Android提供了四种着色器：</p>
+<p>LinearGradient<br>RadialGradient<br>SweepGradient</p>
+<p>BitmapShader<br>ComposeShader</p>
+<p>下面将对这些着色器作简单介绍，都很简单主要用于填充画笔的</p>
+<p><em>LinearGradient 线性变化</em>：</p>
+<p>构造函数如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="constructor">LinearGradient(<span class="params">float</span> <span class="params">x0</span>, <span class="params">float</span> <span class="params">y0</span>, <span class="params">float</span> <span class="params">x1</span>, <span class="params">float</span> <span class="params">y1</span>, <span class="params">int</span>[] <span class="params">colors</span>, <span class="params">float</span>[] <span class="params">positions</span>,Shader.TileMode <span class="params">tile</span>)</span></span><br><span class="line">参数:</span><br><span class="line"><span class="built_in">float</span> x0: 渐变起始点x坐标</span><br><span class="line"><span class="built_in">float</span> y0:渐变起始点y坐标</span><br><span class="line"><span class="built_in">float</span> x1:渐变结束点x坐标</span><br><span class="line"><span class="built_in">float</span> y1:渐变结束点y坐标</span><br><span class="line"><span class="built_in">int</span><span class="literal">[]</span> colors:颜色 的<span class="built_in">int</span> 数组</span><br><span class="line"><span class="built_in">float</span><span class="literal">[]</span> positions: 相对位置的颜色数组,可为null, 如果为null,颜色沿渐变线均匀分布</span><br><span class="line">Shader.TileMode tile: 渲染器平铺模式</span><br><span class="line"></span><br><span class="line">public <span class="constructor">LinearGradient(<span class="params">float</span> <span class="params">x0</span>, <span class="params">float</span> <span class="params">y0</span>, <span class="params">float</span> <span class="params">x1</span>, <span class="params">float</span> <span class="params">y1</span>, <span class="params">int</span> <span class="params">color0</span>, <span class="params">int</span> <span class="params">color1</span>,Shader.TileMode <span class="params">tile</span>)</span></span><br><span class="line"><span class="built_in">float</span> x0: 渐变起始点x坐标</span><br><span class="line"><span class="built_in">float</span> y0:渐变起始点y坐标</span><br><span class="line"><span class="built_in">float</span> x1:渐变结束点x坐标</span><br><span class="line"><span class="built_in">float</span> y1:渐变结束点y坐标</span><br><span class="line"><span class="built_in">int</span> color0: 起始渐变色</span><br><span class="line"><span class="built_in">int</span> color1: 结束渐变色</span><br><span class="line">Shader.TileMode tile: 渲染器平铺模式</span><br></pre></td></tr></table></figure>
+
+<p><em>RadialGradient 光束变化</em>：</p>
+<p>构造函数如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="constructor">RadialGradient(<span class="params">float</span> <span class="params">x</span>, <span class="params">float</span> <span class="params">y</span>, <span class="params">float</span> <span class="params">radius</span>, <span class="params">int</span>[] <span class="params">colors</span>, <span class="params">float</span>[] <span class="params">positions</span>,Shader.TileMode <span class="params">tile</span>)</span></span><br><span class="line"><span class="built_in">float</span> x:  圆心X坐标</span><br><span class="line"><span class="built_in">float</span> y:  圆心Y坐标</span><br><span class="line"><span class="built_in">float</span> radius: 半径</span><br><span class="line"><span class="built_in">int</span><span class="literal">[]</span> colors:  渲染颜色数组</span><br><span class="line">floate<span class="literal">[]</span> positions: 相对位置数组,可为null, 如果为null,颜色沿渐变线均匀分布</span><br><span class="line">Shader.TileMode tile:渲染器平铺模式</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">public <span class="constructor">RadialGradient(<span class="params">float</span> <span class="params">x</span>, <span class="params">float</span> <span class="params">y</span>, <span class="params">float</span> <span class="params">radius</span>, <span class="params">int</span> <span class="params">color0</span>, <span class="params">int</span> <span class="params">color1</span>,Shader.TileMode <span class="params">tile</span>)</span></span><br><span class="line"><span class="built_in">float</span> x:  圆心X坐标</span><br><span class="line"><span class="built_in">float</span> y:  圆心Y坐标</span><br><span class="line"><span class="built_in">float</span> radius: 半径</span><br><span class="line"><span class="built_in">int</span> color0: 圆心颜色</span><br><span class="line"><span class="built_in">int</span> color1: 圆边缘颜色</span><br><span class="line">Shader.TileMode tile:渲染器平铺模式</span><br></pre></td></tr></table></figure>
+
+<p><em>SweepGradient 辐射变化</em>：<br>构造函数如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="constructor">SweepGradient(<span class="params">float</span> <span class="params">cx</span>, <span class="params">float</span> <span class="params">cy</span>, <span class="params">int</span>[] <span class="params">colors</span>, <span class="params">float</span>[] <span class="params">positions</span>)</span></span><br><span class="line">Parameters:</span><br><span class="line">cx	渲染中心点x 坐标</span><br><span class="line">cy	渲染中心y 点坐标</span><br><span class="line">colors	围绕中心渲染的颜色数组，至少要有两种颜色值</span><br><span class="line">positions	相对位置的颜色数组,可为null, 如果为null,颜色沿渐变线均匀分布</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">public <span class="constructor">SweepGradient(<span class="params">float</span> <span class="params">cx</span>, <span class="params">float</span> <span class="params">cy</span>, <span class="params">int</span> <span class="params">color0</span>, <span class="params">int</span> <span class="params">color1</span>)</span></span><br><span class="line">Parameters:</span><br><span class="line">cx	渲染中心点x 坐标</span><br><span class="line">cy	渲染中心点y 坐标</span><br><span class="line">color0	起始渲染颜色</span><br><span class="line">color1	结束渲染颜色</span><br></pre></td></tr></table></figure>
+
+
+<p><em>ComposeShader 两种shader混合</em>：<br>构造函数</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">public ComposeShader(<span class="keyword">Shader </span><span class="keyword">shaderA,Shader </span><span class="keyword">shaderB, </span>Xfermode mode)</span><br><span class="line">Parameters</span><br><span class="line"><span class="keyword">shaderA	</span>渲染器A,<span class="keyword">Shader及其子类对象</span></span><br><span class="line"><span class="keyword"></span><span class="keyword">shaderB	</span>渲染器<span class="keyword">B,Shader及其子类对象</span></span><br><span class="line"><span class="keyword"></span>mode	 两种渲染器组合的模式,Xfermode对象</span><br><span class="line"></span><br><span class="line">public ComposeShader(<span class="keyword">Shader </span><span class="keyword">shaderA,Shader </span><span class="keyword">shaderB, </span>PorterDuff.Mode mode)</span><br><span class="line">Parameters</span><br><span class="line"><span class="keyword">shaderA	</span>渲染器A,<span class="keyword">Shader及其子类对象</span></span><br><span class="line"><span class="keyword"></span><span class="keyword">shaderB	</span>渲染器<span class="keyword">B,Shader及其子类对象</span></span><br><span class="line"><span class="keyword"></span>mode	.两种渲染器组合的模式,ProterDuff.Mode对象</span><br></pre></td></tr></table></figure>
+
+<p><em>BitmapShader 位图Shader</em>：<br>构造函数</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">public   <span class="keyword">BitmapShader(Bitmap </span><span class="keyword">bitmap,Shader.TileMode </span>tileX,<span class="keyword">Shader.TileMode </span>tileY)</span><br><span class="line"></span><br><span class="line"><span class="keyword">bitmap </span>  在渲染器内使用的位图</span><br><span class="line">tileX      The tiling mode for x to draw the <span class="keyword">bitmap </span>in.   在位图上X方向渲染器平铺模式</span><br><span class="line">tileY     The tiling mode for y to draw the <span class="keyword">bitmap </span>in.    在位图上Y方向渲染器平铺模式</span><br><span class="line">TileMode：</span><br></pre></td></tr></table></figure>
+
+<p>下面代码是上述Shader的使用方法例子：<br>在看下面的例子的时候需要先明确下填充方式：</p>
+<figure class="highlight monkey"><table><tr><td class="code"><pre><span class="line"><span class="built_in">CLAMP</span>  ：如果渲染器超出原始边界范围，会复制范围内边缘染色。</span><br><span class="line"><span class="keyword">REPEAT</span> : 重复渲染器图片平铺。</span><br><span class="line">MIRROR ：重复渲染器图片，以镜像方式平铺。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> ShaderView extends View &#123;</span><br><span class="line">    <span class="keyword">private</span> Context mContext = null;</span><br><span class="line">    public <span class="constructor">ShaderView(Context <span class="params">context</span>)</span> &#123;</span><br><span class="line">        super(context);</span><br><span class="line">        mContext = context;</span><br><span class="line">        init<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="constructor">ShaderView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>)</span> &#123;</span><br><span class="line">        super(context, attrs);</span><br><span class="line">        mContext = context;</span><br><span class="line">        init<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="constructor">ShaderView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>, <span class="params">int</span> <span class="params">defStyleAttr</span>)</span> &#123;</span><br><span class="line">        super(context, attrs, defStyleAttr);</span><br><span class="line">        mContext = context;</span><br><span class="line">        init<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Paint mPaint;</span><br><span class="line">    <span class="keyword">private</span> void init<span class="literal">()</span> &#123;</span><br><span class="line">        mPaint = <span class="keyword">new</span> <span class="constructor">Paint()</span>;</span><br><span class="line">        mPaint.set<span class="constructor">Dither(<span class="params">true</span>)</span>;</span><br><span class="line">        mPaint.set<span class="constructor">AntiAlias(<span class="params">true</span>)</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    protected void on<span class="constructor">Draw(Canvas <span class="params">canvas</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Draw(<span class="params">canvas</span>)</span>;</span><br><span class="line">        mPaint.set<span class="constructor">Shader(<span class="params">new</span> LinearGradient(0,0,200,200, Color.BLUE,Color.YELLOW, Shader.TileMode.CLAMP)</span>);</span><br><span class="line">        canvas.draw<span class="constructor">RoundRect(0,0,1024,400,2F,3F,<span class="params">mPaint</span>)</span>;</span><br><span class="line"></span><br><span class="line">        mPaint.set<span class="constructor">Shader(<span class="params">new</span> RadialGradient(400,800,500, Color.YELLOW,Color.BLUE, Shader.TileMode.CLAMP)</span>);</span><br><span class="line">        canvas.draw<span class="constructor">RoundRect(0,400,1024,800,2F,3F,<span class="params">mPaint</span>)</span>;</span><br><span class="line"></span><br><span class="line">        mPaint.set<span class="constructor">Shader(<span class="params">new</span> SweepGradient(400,1200,Color.BLUE,Color.RED)</span>);</span><br><span class="line">        canvas.draw<span class="constructor">RoundRect(0,800,1024,1200,2F,3F,<span class="params">mPaint</span>)</span>;</span><br><span class="line"></span><br><span class="line">        Bitmap bitmap = <span class="module-access"><span class="module"><span class="identifier">BitmapFactory</span>.</span></span>decode<span class="constructor">Resource(<span class="params">mContext</span>.<span class="params">getResources</span>()</span>, <span class="module-access"><span class="module"><span class="identifier">R</span>.</span></span>drawable.test1);</span><br><span class="line">        mPaint.set<span class="constructor">Shader(<span class="params">new</span> BitmapShader(<span class="params">bitmap</span>, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)</span>);</span><br><span class="line">        canvas.draw<span class="constructor">Circle(500,1600,400,<span class="params">mPaint</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/shader.png"></p>
+<p>使用setShadowLayer 给TextView 以及Button添加阴影：</p>
+<p>上面介绍setMatrixFilder的时候介绍过给某个图形添加阴影，这里将要介绍的是给文本以及按钮添加阴影，这部分十分简单，只要熟悉下各个参数即可：</p>
+<p>setShadowLayer共有4个参数：<br>第一个参数为模糊半径，越大越模糊。<br>第二个参数是阴影的横向偏移距离。<br>第三个参数是阴影的纵向偏移距离。<br>第四个参数是阴影颜色。<br>下面是该方法是使用例子</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">TextView textView = (TextView) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">text1</span>)</span>;</span><br><span class="line">textView.set<span class="constructor">ShadowLayer(20,30,20, Color.DKGRAY)</span>;</span><br><span class="line"></span><br><span class="line">Button ButtomView = (Button) find<span class="constructor">ViewById(R.<span class="params">id</span>.<span class="params">text2</span>)</span>;</span><br><span class="line"><span class="module-access"><span class="module"><span class="identifier">ButtomView</span>.</span></span>set<span class="constructor">ShadowLayer(30,50,80, Color.DKGRAY)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/layershader.png"></p>
+<p>接下来我们介绍下setXfermode，这个主要用于图层的混合，它包含AvoidXfermode，PixelXorXfermode以及PorterDuffXfermode，前两者不常用所以在这里不做过多的介绍：<br>这里重点介绍下PorterDuffXfermode。<br>我们先看下下面这张图，总共有16种模式：<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/mode.png"></p>
+<p>下面就使用如下的例子对这16种图层混合模式进行介绍：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">XfermodeView</span> <span class="keyword">extends</span> <span class="title class_">View</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">XfermodeView</span><span class="params">(Context context)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(context);</span><br><span class="line">        init(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">XfermodeView</span><span class="params">(Context context, AttributeSet attrs)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(context, attrs);</span><br><span class="line">        init(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">XfermodeView</span><span class="params">(Context context, AttributeSet attrs, <span class="type">int</span> defStyleAttr)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(context, attrs, defStyleAttr);</span><br><span class="line">        init(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">Paint</span> <span class="variable">mPaint</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Bitmap</span> <span class="variable">mSourceImage</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Bitmap</span> <span class="variable">mDestImage</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">PorterDuffXfermode</span> <span class="variable">duff</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(Context context)</span> &#123;</span><br><span class="line">        mPaint = <span class="keyword">new</span> <span class="title class_">Paint</span>();</span><br><span class="line">        mSourceImage = BitmapFactory.decodeResource(context.getResources(), R.drawable.test);</span><br><span class="line">        mDestImage = BitmapFactory.decodeResource(context.getResources(), R.drawable.background);</span><br><span class="line">        duff = <span class="keyword">new</span> <span class="title class_">PorterDuffXfermode</span>(PorterDuff.Mode.SCREEN);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onDraw</span><span class="params">(Canvas canvas)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onDraw(canvas);</span><br><span class="line">        canvas.drawColor(Color.WHITE);</span><br><span class="line">        <span class="type">int</span> <span class="variable">saveCount</span> <span class="operator">=</span> canvas.saveLayer(<span class="number">0</span>, <span class="number">0</span>, mTotalWidth, mTotalHeight, mPaint,</span><br><span class="line">                Canvas.ALL_SAVE_FLAG);</span><br><span class="line">        canvas.drawBitmap(mDestImage,<span class="number">0</span>,<span class="number">0</span>,mPaint);</span><br><span class="line">        mPaint.setXfermode(duff);</span><br><span class="line">        canvas.drawBitmap(mSourceImage,<span class="number">100</span>,<span class="number">600</span>,mPaint);</span><br><span class="line">        mPaint.setXfermode(<span class="literal">null</span>);</span><br><span class="line">        canvas.restoreToCount(saveCount);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> mTotalWidth;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> mTotalHeight;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onSizeChanged</span><span class="params">(<span class="type">int</span> w, <span class="type">int</span> h, <span class="type">int</span> oldw, <span class="type">int</span> oldh)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onSizeChanged(w, h, oldw, oldh);</span><br><span class="line">        mTotalWidth = w;</span><br><span class="line">        mTotalHeight = h;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="0">
+<li>不使用任何效果的原图<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/origin.png"></li>
+<li>CLEAR SRC会将DST部分给清除掉所以画出来的效果只有白色背景(所绘制不会提交到画布上)：<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/clear.png"></li>
+<li>SRC 只保留源图像的 alpha 和 color<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/src.png"></li>
+<li>DST 只保留目标图像的 alpha 和 color<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dst.png"></li>
+<li>SRC_OVER 在目标图片顶部绘制源图像,两个图都会显示<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcover.png"></li>
+<li>DST_OVER 将目标图像绘制在上方。两个图都会显示<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstover.png"></li>
+<li>SRC_IN 在两者相交的地方绘制源图像，<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcin.png"></li>
+<li>DST_IN 在两者相交的地方绘制目标图像<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstin.png"></li>
+<li>SRC_OUT 在不相交的地方绘制 源图像<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcout.png"></li>
+<li>DST_OUT 在不相交的地方绘制 目标图像<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstout.png"></li>
+<li>SRC_ATOP 源图像和目标图像相交处绘制源图像，不相交的地方绘制目标图像<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/srcatop.png"></li>
+<li>DST_ATOP 源图像和目标图像相交处绘制目标图像，不相交的地方绘制源图像<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dstatop.png"></li>
+<li>XOR 在不相交的地方按原样绘制源图像和目标图像，相交的地方受到对应alpha和色值影响<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/xor.png"></li>
+<li>DARKEN 该模式处理过后，会感觉效果变暗，即进行对应像素的比较，取较暗值<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/darken.png"></li>
+<li>LIGHTEN 该模式处理过后，会感觉效果变亮<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/lighten.png"></li>
+<li>MULTIPLY 将基色与混合色复合。结果色总是较暗的颜色<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/multipy.png"></li>
+<li>SCREEN 保留两个图层中较白的部分，较暗的部分被遮盖<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/screen.png"></li>
+</ol>
+<p>我们知道现实生活中有两种常见的线条，一种是实线，一种是虚线，要绘制虚线我们就需要用到PathEffect<br>接下来的部分将会介绍使用setPathEffect()以及各种PathEffect</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">class</span> PathEffectView extends View &#123;</span><br><span class="line"></span><br><span class="line">    public <span class="constructor">PathEffectView(Context <span class="params">context</span>)</span> &#123;</span><br><span class="line">        super(context);</span><br><span class="line">        init<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="constructor">PathEffectView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>)</span> &#123;</span><br><span class="line">        super(context, attrs);</span><br><span class="line">        init<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public <span class="constructor">PathEffectView(Context <span class="params">context</span>, AttributeSet <span class="params">attrs</span>, <span class="params">int</span> <span class="params">defStyleAttr</span>)</span> &#123;</span><br><span class="line">        super(context, attrs, defStyleAttr);</span><br><span class="line">        init<span class="literal">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Paint mPaint;</span><br><span class="line">    <span class="keyword">private</span> void init<span class="literal">()</span> &#123;</span><br><span class="line">        mPaint = <span class="keyword">new</span> <span class="constructor">Paint()</span>;</span><br><span class="line">        mPaint.set<span class="constructor">AntiAlias(<span class="params">true</span>)</span>;</span><br><span class="line">        mPaint.set<span class="constructor">Style(Paint.Style.STROKE)</span>;</span><br><span class="line">        mPaint.set<span class="constructor">StrokeWidth(3)</span>;</span><br><span class="line">        init<span class="constructor">Path()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Path mPath;</span><br><span class="line">    <span class="keyword">private</span> void init<span class="constructor">Path()</span> &#123;</span><br><span class="line">        mPath = <span class="keyword">new</span> <span class="constructor">Path()</span>;</span><br><span class="line">        mPath.move<span class="constructor">To(10, 50)</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt;= <span class="number">30</span>; i++) &#123;</span><br><span class="line">            mPath.line<span class="constructor">To(<span class="params">i</span> <span class="operator">*</span> 35, (<span class="params">float</span>)</span> (<span class="module-access"><span class="module"><span class="identifier">Math</span>.</span></span>random<span class="literal">()</span><span class="operator"> * </span><span class="number">500</span>+<span class="number">300</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void on<span class="constructor">Draw(Canvas <span class="params">canvas</span>)</span> &#123;</span><br><span class="line">        super.on<span class="constructor">Draw(<span class="params">canvas</span>)</span>;</span><br><span class="line">        canvas.draw<span class="constructor">Path(<span class="params">mPath</span>,<span class="params">mPaint</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br></pre></td></tr></table></figure>
+<p>没有用任何效果的情况<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/none.png"><br>CornerPathEffect<br>CornerPathEffect的作用是将路径的转角变得圆滑，CornerPathEffect的构造方法接受一个参数radius，用于表示转角处的圆滑程度。<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/corner.png"><br>DiscretePathEffect 会在路径上绘制很多“杂点”。它的构造方法有两个参数：<br>第一个指定这些突出的“杂点”的密度，值越小杂点越密集；第二个参数是“杂点”突出的大小，值越大突出的距离越大。</p>
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dscreb.png"></p>
+<p>DashPathEffect 它用于产生点画线，它的构造函数有两个：<br>第一个参数是一个浮点型的数组，在定义该参数的时候只要浮点型数组中元素个数大于等于2即可，<br>数组中偶数索引的值代表实线的长度，而奇数索引的值表示虚线的长度，<br>第二个参数为偏移值，动态改变其值会让路径产生动画的效果。<br><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/dist.png"><br>PathDashPathEffect<br>PathDashPathEffect和DashPathEffect是类似的，不同的是PathDashPathEffect可以让我们自己定义路径虚线的样式，比如我们将其换成一个个小圆组成的虚线：</p>
+<figure class="highlight pgsql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Path</span> <span class="keyword">path</span> = <span class="built_in">new</span> Path();</span><br><span class="line"><span class="type">path</span>.addRect(<span class="number">0</span>,<span class="number">0</span>,<span class="number">20</span>,<span class="number">20</span>, <span class="type">Path</span>.Direction.CCW);</span><br><span class="line">PathEffect pathEffect = <span class="built_in">new</span> PathDashPathEffect(<span class="type">path</span>, <span class="number">20</span>, <span class="number">1</span>, PathDashPathEffect.Style.ROTATE);</span><br><span class="line">mPaint.setPathEffect(pathEffect);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/pathdash.png"></p>
+<p>ComposePathEffect&amp;&amp;SumPathEffect<br>ComposePathEffect和SumPathEffect都可以用来组合两种路径效果，就是把两种效果二合一。唯一不同的是组合的方式：<br>ComposePathEffect(PathEffect outerpe, PathEffect innerpe)会先将路径变成innerpe的效果，再去复合outerpe的路径效果，即：outerpe(innerpe(Path))；<br>SumPathEffect(PathEffect first, PathEffect second)则会把两种路径效果加起来再作用于路径。</p>
+<h3 id="颜色Color"><a href="#颜色Color" class="headerlink" title="颜色Color"></a>颜色Color</h3><p>开发一款Apk色彩搭配也是很重要的一个要素，今后会针对这个专题做个总结，在这里只是简单介绍下Android中颜色的使用：<br>我们可以按照如下方式使用Android已经提供了的颜色，这些颜色一般都是一些标准颜色：<br>Color.RED;<br>@android:color&#x2F;xxxxxx</p>
+<p>还可以通过各个颜色分量的数值设置颜色<br>Color.argb(123, 45, 56, 67);<br>Color.rgb(123,23,44);</p>
+<p>在只知道十六进制的情况下个人比较喜欢用下面的方式，一般UE给出的颜色也是这种形式<br>Color.parseColor(“#343434”);</p>
+<p>Android 开发中常用的颜色，这个是网上找的。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;white&quot;</span>&gt;</span>#ffffff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 白色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;ivory&quot;</span>&gt;</span>#fffff0<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 象牙色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightyellow&quot;</span>&gt;</span>#ffffe0<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮黄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;yellow&quot;</span>&gt;</span>#ffff00<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 黄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;snow&quot;</span>&gt;</span>#fffafa<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 雪白色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;floralwhite&quot;</span>&gt;</span>#fffaf0<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 花白色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lemonchiffon&quot;</span>&gt;</span>#fffacd<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 柠檬绸色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;cornsilk&quot;</span>&gt;</span>#fff8dc<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 米绸色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;seaShell&quot;</span>&gt;</span>#fff5ee<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 海贝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lavenderblush&quot;</span>&gt;</span>#fff0f5<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 淡紫红 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;papayawhip&quot;</span>&gt;</span>#ffefd5<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 番木色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;blanchedalmond&quot;</span>&gt;</span>#ffebcd<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 白杏色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mistyrose&quot;</span>&gt;</span>#ffe4e1<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 浅玫瑰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;bisque&quot;</span>&gt;</span>#ffe4c4<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 桔黄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;moccasin&quot;</span>&gt;</span>#ffe4b5<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 鹿皮色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;navajowhite&quot;</span>&gt;</span>#ffdead<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 纳瓦白 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;peachpuff&quot;</span>&gt;</span>#ffdab9<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 桃色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;gold&quot;</span>&gt;</span>#ffd700<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 金色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;pink&quot;</span>&gt;</span>#ffc0cb<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 粉红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightpink&quot;</span>&gt;</span>#ffb6c1<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮粉红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;orange&quot;</span>&gt;</span>#ffa500<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 橙色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightsalmon&quot;</span>&gt;</span>#ffa07a<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮肉色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkorange&quot;</span>&gt;</span>#ff8c00<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗桔黄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;coral&quot;</span>&gt;</span>#ff7f50<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 珊瑚色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;hotpink&quot;</span>&gt;</span>#ff69b4<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 热粉红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;tomato&quot;</span>&gt;</span>#ff6347<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 西红柿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;orangered&quot;</span>&gt;</span>#ff4500<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 红橙色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;deeppink&quot;</span>&gt;</span>#ff1493<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 深粉红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;fuchsia&quot;</span>&gt;</span>#ff00ff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 紫红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;magenta&quot;</span>&gt;</span>#ff00ff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 红紫色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;red&quot;</span>&gt;</span>#ff0000<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;oldlace&quot;</span>&gt;</span>#fdf5e6<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 老花色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightgoldenrodyellow&quot;</span>&gt;</span>#fafad2<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮金黄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;linen&quot;</span>&gt;</span>#faf0e6<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亚麻色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;antiquewhite&quot;</span>&gt;</span>#faebd7<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 古董白 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;salmon&quot;</span>&gt;</span>#fa8072<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 鲜肉色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;ghostwhite&quot;</span>&gt;</span>#f8f8ff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 幽灵白 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mintcream&quot;</span>&gt;</span>#f5fffa<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 薄荷色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;whitesmoke&quot;</span>&gt;</span>#f5f5f5<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 烟白色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;beige&quot;</span>&gt;</span>#f5f5dc<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 米色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;wheat&quot;</span>&gt;</span>#f5deb3<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 浅黄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;sandybrown&quot;</span>&gt;</span>#f4a460<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 沙褐色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;azure&quot;</span>&gt;</span>#f0ffff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 天蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;honeydew&quot;</span>&gt;</span>#f0fff0<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 蜜色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;aliceblue&quot;</span>&gt;</span>#f0f8ff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 艾利斯兰 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;khaki&quot;</span>&gt;</span>#f0e68c<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 黄褐色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightcoral&quot;</span>&gt;</span>#f08080<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮珊瑚色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;palegoldenrod&quot;</span>&gt;</span>#eee8aa<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 苍麒麟色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;violet&quot;</span>&gt;</span>#ee82ee<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 紫罗兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darksalmon&quot;</span>&gt;</span>#e9967a<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗肉色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lavender&quot;</span>&gt;</span>#e6e6fa<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 淡紫色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightcyan&quot;</span>&gt;</span>#e0ffff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮青色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;burlywood&quot;</span>&gt;</span>#deb887<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 实木色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;plum&quot;</span>&gt;</span>#dda0dd<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 洋李色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;gainsboro&quot;</span>&gt;</span>#dcdcdc<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 淡灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;crimson&quot;</span>&gt;</span>#dc143c<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗深红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;palevioletred&quot;</span>&gt;</span>#db7093<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 苍紫罗兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;goldenrod&quot;</span>&gt;</span>#daa520<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 金麒麟色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;orchid&quot;</span>&gt;</span>#da70d6<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 淡紫色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;thistle&quot;</span>&gt;</span>#d8bfd8<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 蓟色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightgray&quot;</span>&gt;</span>#d3d3d3<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightgrey&quot;</span>&gt;</span>#d3d3d3<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;tan&quot;</span>&gt;</span>#d2b48c<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 茶色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;chocolate&quot;</span>&gt;</span>#d2691e<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 巧可力色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;peru&quot;</span>&gt;</span>#cd853f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 秘鲁色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;indianred&quot;</span>&gt;</span>#cd5c5c<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 印第安红 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumvioletred&quot;</span>&gt;</span>#c71585<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中紫罗兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;silver&quot;</span>&gt;</span>#c0c0c0<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 银色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkkhaki&quot;</span>&gt;</span>#bdb76b<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗黄褐色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;rosybrown&quot;</span>&gt;</span>#bc8f8f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 褐玫瑰红 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumorchid&quot;</span>&gt;</span>#ba55d3<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中粉紫色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkgoldenrod&quot;</span>&gt;</span>#b8860b<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗金黄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;firebrick&quot;</span>&gt;</span>#b22222<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 火砖色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;powderblue&quot;</span>&gt;</span>#b0e0e6<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 粉蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightsteelblue&quot;</span>&gt;</span>#b0c4de<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮钢兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;paleturquoise&quot;</span>&gt;</span>#afeeee<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 苍宝石绿 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;greenyellow&quot;</span>&gt;</span>#adff2f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 黄绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightblue&quot;</span>&gt;</span>#add8e6<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkgray&quot;</span>&gt;</span>#a9a9a9<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkgrey&quot;</span>&gt;</span>#a9a9a9<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;brown&quot;</span>&gt;</span>#a52a2a<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 褐色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;sienna&quot;</span>&gt;</span>#a0522d<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 赭色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkorchid&quot;</span>&gt;</span>#9932cc<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗紫色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;palegreen&quot;</span>&gt;</span>#98fb98<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 苍绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkviolet&quot;</span>&gt;</span>#9400d3<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗紫罗兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumpurple&quot;</span>&gt;</span>#9370db<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中紫色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightgreen&quot;</span>&gt;</span>#90ee90<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkseagreen&quot;</span>&gt;</span>#8fbc8f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗海兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;saddlebrown&quot;</span>&gt;</span>#8b4513<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 重褐色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkmagenta&quot;</span>&gt;</span>#8b008b<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗洋红 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkred&quot;</span>&gt;</span>#8b0000<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗红色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;blueviolet&quot;</span>&gt;</span>#8a2be2<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 紫罗兰蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightskyblue&quot;</span>&gt;</span>#87cefa<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮天蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;skyblue&quot;</span>&gt;</span>#87ceeb<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 天蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;gray&quot;</span>&gt;</span>#808080<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;grey&quot;</span>&gt;</span>#808080<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;olive&quot;</span>&gt;</span>#808000<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 橄榄色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;purple&quot;</span>&gt;</span>#800080<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 紫色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;maroon&quot;</span>&gt;</span>#800000<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 粟色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;aquamarine&quot;</span>&gt;</span>#7fffd4<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 碧绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;chartreuse&quot;</span>&gt;</span>#7fff00<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 黄绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lawngreen&quot;</span>&gt;</span>#7cfc00<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 草绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumslateblue&quot;</span>&gt;</span>#7b68ee<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中暗蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightslategray&quot;</span>&gt;</span>#778899<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮蓝灰 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightslategrey&quot;</span>&gt;</span>#778899<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮蓝灰 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;slategray&quot;</span>&gt;</span>#708090<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 灰石色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;slategrey&quot;</span>&gt;</span>#708090<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 灰石色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;olivedrab&quot;</span>&gt;</span>#6b8e23<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 深绿褐色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;slateblue&quot;</span>&gt;</span>#6a5acd<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 石蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;dimgray&quot;</span>&gt;</span>#696969<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;dimgrey&quot;</span>&gt;</span>#696969<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumaquamarine&quot;</span>&gt;</span>#66cdaa<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;cornflowerblue&quot;</span>&gt;</span>#6495ed<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 菊兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;cadetblue&quot;</span>&gt;</span>#5f9ea0<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 军兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkolivegreen&quot;</span>&gt;</span>#556b2f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗橄榄绿 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;indigo&quot;</span>&gt;</span>#4b0082<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 靛青色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumturquoise&quot;</span>&gt;</span>#48d1cc<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中绿宝石 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkslateblue&quot;</span>&gt;</span>#483d8b<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗灰蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;steelblue&quot;</span>&gt;</span>#4682b4<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 钢兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;royalblue&quot;</span>&gt;</span>#4169e1<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 皇家蓝 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;turquoise&quot;</span>&gt;</span>#40e0d0<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 青绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumseagreen&quot;</span>&gt;</span>#3cb371<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中海蓝 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;limegreen&quot;</span>&gt;</span>#32cd32<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 橙绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkslategray&quot;</span>&gt;</span>#2f4f4f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗瓦灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkslategrey&quot;</span>&gt;</span>#2f4f4f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗瓦灰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;seagreen&quot;</span>&gt;</span>#2e8b57<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 海绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;forestgreen&quot;</span>&gt;</span>#228b22<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 森林绿 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lightseagreen&quot;</span>&gt;</span>#20b2aa<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 亮海蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;dodgerblue&quot;</span>&gt;</span>#1e90ff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 闪兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;midnightblue&quot;</span>&gt;</span>#191970<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中灰兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;aqua&quot;</span>&gt;</span>#00ffff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 浅绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;cyan&quot;</span>&gt;</span>#00ffff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 青色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;springgreen&quot;</span>&gt;</span>#00ff7f<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 春绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;lime&quot;</span>&gt;</span>#00ff00<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 酸橙色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumspringgreen&quot;</span>&gt;</span>#00fa9a<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中春绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkturquoise&quot;</span>&gt;</span>#00ced1<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗宝石绿 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;deepskyblue&quot;</span>&gt;</span>#00bfff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 深天蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkcyan&quot;</span>&gt;</span>#008b8b<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗青色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;teal&quot;</span>&gt;</span>#008080<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 水鸭色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;green&quot;</span>&gt;</span>#008000<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkgreen&quot;</span>&gt;</span>#006400<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗绿色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;blue&quot;</span>&gt;</span>#0000ff<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;mediumblue&quot;</span>&gt;</span>#0000cd<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 中兰色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;darkblue&quot;</span>&gt;</span>#00008b<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 暗蓝色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;navy&quot;</span>&gt;</span>#000080<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 海军色 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;black&quot;</span>&gt;</span>#000000<span class="tag">&lt;/<span class="name">color</span>&gt;</span> <span class="comment">&lt;!-- 黑色 --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android%E8%BF%9B%E9%98%B6/">Android进阶</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-绘图进阶/">Android 绘图进阶</a>
+  </div>
+
+</div>
+
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/04/12/Android-进阶之Android-绘图-三-画布Canvs以及SurfaceView/" title="Android 进阶之Android 绘图 三 画布Canvs以及SurfaceView">
+  <span>
+  Android 进阶之Android 绘图 三 画布Canvs以及SurfaceView</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/04/10/Android-进阶之Android-绘图-一-Android坐标体系及屏幕尺寸相关概念/"  title="Android 进阶之Android 绘图 一 Android坐标体系及屏幕尺寸相关概念">
+ <span>Android 进阶之Android 绘图 一 Android坐标体系及屏幕尺寸相关概念
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2016/04/11/Android-进阶之Android-绘图-二-画笔Paint/" data-title="Android 进阶之Android 绘图 二 画笔Paint" data-url="http://yoursite.com/2016/04/11/Android-%E8%BF%9B%E9%98%B6%E4%B9%8BAndroid-%E7%BB%98%E5%9B%BE-%E4%BA%8C-%E7%94%BB%E7%AC%94Paint/"></div>
+</section>
+
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%BB%E7%AC%94Paint"><span class="toc-number">1.</span> <span class="toc-text">画笔Paint</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%9C%E8%89%B2Color"><span class="toc-number"></span> <span class="toc-text">颜色Color</span></a>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-img"></div>		
+	
+	<div class="social-info" class="clearfix">
+		
+		
+		<a href="https://github.com/tbfungeek" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:tbfungeek@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android-小经验/" title="Android 小经验">Android 小经验<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android-源码分析/" title="Android 源码分析">Android 源码分析<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android其他/" title="Android其他">Android其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android初步/" title="Android初步">Android初步<sup>21</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Android进阶/" title="Android进阶">Android进阶<sup>100</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JavaScript理论/" title="JavaScript理论">JavaScript理论<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-工具使用/" title="iOS 工具使用">iOS 工具使用<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人收藏/" title="个人收藏">个人收藏<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/代码规范/" title="代码规范">代码规范<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/其他/" title="其他">其他<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客分类目录/" title="博客分类目录">博客分类目录<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/叨叨系列/" title="叨叨系列">叨叨系列<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源代码分析/" title="开源代码分析">开源代码分析<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开源库分析/" title="开源库分析">开源库分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/版本控制/" title="版本控制">版本控制<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/直播/" title="直播">直播<sup>6</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/iOS-开源库分析/" title="iOS 开源库分析">iOS 开源库分析<sup>36</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-设计模式/" title="Android 设计模式">Android 设计模式<sup>29</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Objective-C-相关/" title="Objective C 相关">Objective C 相关<sup>24</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android基础/" title="Android基础">Android基础<sup>21</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/AOSP-源码/" title="AOSP 源码">AOSP 源码<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-常用第三方库/" title="Android 常用第三方库">Android 常用第三方库<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-理论基础/" title="iOS 理论基础">iOS 理论基础<sup>14</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo-使用/" title="Hexo 使用">Hexo 使用<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ROS/" title="ROS">ROS<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-动画进阶/" title="Android 动画进阶">Android 动画进阶<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-JNI/" title="Android JNI">Android JNI<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-绘图进阶/" title="Android 绘图进阶">Android 绘图进阶<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android性能优化/" title="Android性能优化">Android性能优化<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自动化测试/" title="Android 自动化测试">Android 自动化测试<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/OpenCV/" title="OpenCV">OpenCV<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/直播/" title="直播">直播<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-开源源码/" title="Android 开源源码">Android 开源源码<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-自定义View进阶/" title="Android 自定义View进阶">Android 自定义View进阶<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/树莓派/" title="树莓派">树莓派<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/iOS-进阶/" title="iOS 进阶">iOS 进阶<sup>4</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://hexo.io" target="_blank" title="Hexo">Hexo</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://pages.github.com/" target="_blank" title="GitHub">GitHub</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://pf18.github.io/" target="_blank" title="PF18">PF18</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://toutiao.io/" target="_blank" title="开发者头条">开发者头条</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.jcodecraeer.com/" target="_blank" title="泡在网上的日子">泡在网上的日子</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/AOSP-%E6%BA%90%E7%A0%81/" style="font-size: 17.14px;">AOSP 源码</a> <a href="/tags/Android-APK-%E7%AD%BE%E5%90%8D/" style="font-size: 10px;">Android APK 签名</a> <a href="/tags/Android-JNI/" style="font-size: 12.86px;">Android JNI</a> <a href="/tags/Android-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E8%BF%9B%E9%98%B6/" style="font-size: 10.71px;">Android 事件处理进阶</a> <a href="/tags/Android-%E5%8A%A8%E7%94%BB%E8%BF%9B%E9%98%B6/" style="font-size: 13.57px;">Android 动画进阶</a> <a href="/tags/Android-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91/" style="font-size: 10px;">Android 多线程开发</a> <a href="/tags/Android-%E5%B0%8F%E7%BB%8F%E9%AA%8C/" style="font-size: 10px;">Android 小经验</a> <a href="/tags/Android-%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/" style="font-size: 16.43px;">Android 常用第三方库</a> <a href="/tags/Android-%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android 开发流程</a> <a href="/tags/Android-%E5%BC%80%E6%BA%90%E6%BA%90%E7%A0%81/" style="font-size: 12.14px;">Android 开源源码</a> <a href="/tags/Android-%E7%BB%98%E5%9B%BE%E8%BF%9B%E9%98%B6/" style="font-size: 12.86px;">Android 绘图进阶</a> <a href="/tags/Android-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/" style="font-size: 12.86px;">Android 自动化测试</a> <a href="/tags/Android-%E8%87%AA%E5%AE%9A%E4%B9%89View%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">Android 自定义View进阶</a> <a href="/tags/Android-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.29px;">Android 设计模式</a> <a href="/tags/Android%E5%85%B6%E4%BB%96/" style="font-size: 10px;">Android其他</a> <a href="/tags/Android%E5%9F%BA%E7%A1%80/" style="font-size: 17.86px;">Android基础</a> <a href="/tags/Android%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" style="font-size: 10px;">Android开发流程</a> <a href="/tags/Android%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.86px;">Android性能优化</a> <a href="/tags/Android%E6%B7%B7%E6%B7%86%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">Android混淆技术</a> <a href="/tags/Android%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">Android质量管理工具</a> <a href="/tags/Android%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">Android逆向工程</a> <a href="/tags/Git-github/" style="font-size: 10px;">Git && github</a> <a href="/tags/Hexo-%E4%BD%BF%E7%94%A8/" style="font-size: 15px;">Hexo 使用</a> <a href="/tags/JavaScript/" style="font-size: 10px;">JavaScript</a> <a href="/tags/Linux-%E4%BD%BF%E7%94%A8/" style="font-size: 10px;">Linux 使用</a> <a href="/tags/Objective-C-%E7%9B%B8%E5%85%B3/" style="font-size: 18.57px;">Objective C 相关</a> <a href="/tags/OpenCV/" style="font-size: 12.86px;">OpenCV</a> <a href="/tags/ROS/" style="font-size: 14.29px;">ROS</a> <a href="/tags/iOS-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" style="font-size: 10.71px;">iOS 工具使用</a> <a href="/tags/iOS-%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 20px;">iOS 开源库分析</a> <a href="/tags/iOS-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80/" style="font-size: 15.71px;">iOS 理论基础</a> <a href="/tags/iOS-%E8%BF%9B%E9%98%B6/" style="font-size: 12.14px;">iOS 进阶</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/" style="font-size: 10px;">代码规范</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%88%86%E7%B1%BB%E7%9B%AE%E5%BD%95/" style="font-size: 10.71px;">博客分类目录</a> <a href="/tags/%E5%8F%A8%E5%8F%A8%E7%B3%BB%E5%88%97/" style="font-size: 10px;">叨叨系列</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 11.43px;">工具的使用</a> <a href="/tags/%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10.71px;">开源代码分析</a> <a href="/tags/%E5%BC%80%E6%BA%90%E5%BA%93%E5%88%86%E6%9E%90/" style="font-size: 10px;">开源库分析</a> <a href="/tags/%E6%9D%82%E7%B1%BB/" style="font-size: 10px;">杂类</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 12.14px;">树莓派</a> <a href="/tags/%E7%9B%B4%E6%92%AD/" style="font-size: 12.86px;">直播</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/" style="font-size: 10.71px;">编程技巧</a> <a href="/tags/%E7%BD%91%E7%AB%99%E6%94%B6%E8%97%8F/" style="font-size: 10px;">网站收藏</a> <a href="/tags/%E9%87%8D%E8%A6%81%E6%8E%A7%E4%BB%B6/" style="font-size: 11.43px;">重要控件</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+		
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/hsihohuang/kiddochan" target="_blank" title="Kiddochan">Kiddochan</a> © 2022 
+		
+		<a href="/about" target="_blank" title="Edgar">Edgar</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"tbfungeek"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'tbfungeek';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?7c9443b0374f1cf6b1dbb5ab84d939cb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
